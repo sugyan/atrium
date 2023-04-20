@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "atprs-cli",
+    "atprs-lex",
     "atprs-xrpc",
 ]
