@@ -3,9 +3,11 @@ mod lexicon;
 use lexicon::LexUserType;
 use serde::{Deserialize, Serialize};
 use serde_json::Error;
+use serde_with::skip_serializing_none;
 use std::collections::HashMap;
 use std::str::FromStr;
 
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LexiconDoc {
     pub lexicon: u32,
