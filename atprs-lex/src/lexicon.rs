@@ -5,28 +5,25 @@ use std::collections::HashMap;
 // primitives
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexBoolean {
     pub description: Option<String>,
     pub default: Option<bool>,
-    #[serde(rename = "const")]
-    pub const_value: Option<bool>,
+    pub r#const: Option<bool>,
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexInteger {
     pub description: Option<String>,
     pub default: Option<i64>,
     pub minimum: Option<i64>,
     pub maximum: Option<i64>,
-    #[serde(rename = "enum")]
-    pub enum_value: Option<Vec<i64>>,
-    #[serde(rename = "const")]
-    pub const_value: Option<i64>,
+    pub r#enum: Option<Vec<i64>>,
+    pub r#const: Option<i64>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(rename_all = "kebab-case")]
 pub enum LexStringFormat {
     Datetime,
@@ -39,7 +36,7 @@ pub enum LexStringFormat {
     Cid,
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LexString {
     pub description: Option<String>,
@@ -49,15 +46,13 @@ pub struct LexString {
     pub max_length: Option<usize>,
     pub min_graphemes: Option<usize>,
     pub max_graphemes: Option<usize>,
-    #[serde(rename = "enum")]
-    pub enum_value: Option<Vec<String>>,
-    #[serde(rename = "const")]
-    pub const_value: Option<String>,
+    pub r#enum: Option<Vec<String>>,
+    pub r#const: Option<String>,
     pub known_values: Option<Vec<String>>,
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexUnknown {
     pub description: Option<String>,
 }
@@ -65,7 +60,7 @@ pub struct LexUnknown {
 // ipld types
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LexBytes {
     pub description: Option<String>,
@@ -74,7 +69,7 @@ pub struct LexBytes {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexCidLink {
     pub description: Option<String>,
 }
@@ -82,15 +77,14 @@ pub struct LexCidLink {
 // references
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexRef {
     pub description: Option<String>,
-    #[serde(rename = "ref")]
-    pub ref_value: String,
+    pub r#ref: String,
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexRefUnion {
     pub description: Option<String>,
     pub refs: Vec<String>,
@@ -100,7 +94,7 @@ pub struct LexRefUnion {
 // blobs
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LexBlob {
     pub description: Option<String>,
@@ -110,7 +104,7 @@ pub struct LexBlob {
 
 // complex types
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum LexArrayItem {
     // lexPrimitive
@@ -128,7 +122,7 @@ pub enum LexArrayItem {
     Union(LexRefUnion),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LexArray {
     pub description: Option<String>,
@@ -137,7 +131,7 @@ pub struct LexArray {
     pub max_length: Option<usize>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexPrimitiveArrayItem {
     // lexPrimitive
@@ -147,7 +141,7 @@ pub enum LexPrimitiveArrayItem {
     Unknown(LexUnknown),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LexPrimitiveArray {
     pub description: Option<String>,
@@ -157,12 +151,12 @@ pub struct LexPrimitiveArray {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexToken {
     pub description: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum LexObjectProperty {
     // lexRefVariant
@@ -182,7 +176,7 @@ pub enum LexObjectProperty {
     Unknown(LexUnknown),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexObject {
     pub description: Option<String>,
     pub required: Option<Vec<String>>,
@@ -192,7 +186,7 @@ pub struct LexObject {
 
 // xrpc
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexXrpcParametersProperty {
     // lexPrimitive
@@ -204,13 +198,13 @@ pub enum LexXrpcParametersProperty {
     Array(LexPrimitiveArray),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcParameters {
     pub required: Option<Vec<String>>,
     pub properties: HashMap<String, LexXrpcParametersProperty>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexXrpcBodySchema {
     // lexRefVariant
@@ -220,14 +214,14 @@ pub enum LexXrpcBodySchema {
     Object(LexObject),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcBody {
     pub description: Option<String>,
     pub encoding: String,
     pub schema: Option<LexXrpcBodySchema>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexXrpcSubscriptionMessageSchema {
     // lexRefVariant
@@ -237,26 +231,26 @@ pub enum LexXrpcSubscriptionMessageSchema {
     Object(LexObject),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcSubscriptionMessage {
     pub description: Option<String>,
     pub schema: Option<LexXrpcSubscriptionMessageSchema>,
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcError {
     pub description: Option<String>,
     pub name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexXrpcQueryParameter {
     Params(LexXrpcParameters),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcQuery {
     pub description: Option<String>,
     pub parameters: Option<LexXrpcQueryParameter>,
@@ -264,13 +258,13 @@ pub struct LexXrpcQuery {
     pub errors: Option<Vec<LexXrpcError>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexXrpcProcedureParameter {
     Params(LexXrpcParameters),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcProcedure {
     pub description: Option<String>,
     pub parameters: Option<LexXrpcProcedureParameter>,
@@ -279,13 +273,13 @@ pub struct LexXrpcProcedure {
     pub errors: Option<Vec<LexXrpcError>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexXrpcSubscriptionParameter {
     Params(LexXrpcParameters),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcSubscription {
     pub description: Option<String>,
     pub parameters: Option<LexXrpcSubscriptionParameter>,
@@ -296,13 +290,13 @@ pub struct LexXrpcSubscription {
 
 // database
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum LexRecordRecord {
     Object(LexObject),
 }
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexRecord {
     pub description: Option<String>,
     pub key: Option<String>,
@@ -311,7 +305,7 @@ pub struct LexRecord {
 
 // core
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum LexUserType {
     // lexRecord
