@@ -1,6 +1,8 @@
 [workspace]
 members = [
+    "atprs-api",
     "atprs-cli",
+    "atprs-codegen",
     "atprs-lex",
     "atprs-xrpc",
 ]
