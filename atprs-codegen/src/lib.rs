@@ -4,7 +4,7 @@ mod fs;
 use atprs_lex::lexicon::LexUserType;
 use atprs_lex::LexiconDoc;
 use code_writer::CodeWriter;
-use heck::{ToPascalCase, ToSnakeCase};
+use heck::ToSnakeCase;
 use serde_json::from_reader;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir, File};
@@ -54,12 +54,13 @@ fn generate_code(
     let mut paths = schema.id.split('.').collect::<Vec<_>>();
     if let Some(name) = paths.pop() {
         create_dir_all(outdir.join(paths.join("/")))?;
-        let mut writer = CodeWriter::new();
+        let mut writer = CodeWriter::new(Some(schema.id.clone()));
+        writer.write_header()?;
         // TODO
         let mut keys = Vec::new();
         for (key, def) in &schema.defs {
             if key == "main" {
-                writer.write_user_type(&name.to_pascal_case(), def, defmap)?;
+                writer.write_user_type(key, def, defmap)?;
             } else {
                 keys.push(key);
             }
@@ -74,7 +75,7 @@ fn generate_code(
                     | LexUserType::XrpcQuery(_)
                     | LexUserType::XrpcSubscription(_)
             ));
-            writer.write_user_type(&key.to_pascal_case(), def, defmap)?;
+            writer.write_user_type(key, def, defmap)?;
         }
         let mut filename = PathBuf::from(name.to_snake_case());
         filename.set_extension("rs");
@@ -112,7 +113,8 @@ fn generate_modules(outdir: &Path) -> Result<()> {
             .collect::<Vec<_>>();
         modules.sort();
 
-        let mut writer = CodeWriter::new();
+        let mut writer = CodeWriter::new(None);
+        writer.write_header()?;
         writer.write_mods(&modules)?;
         writer.write_to_file(&mut file)?;
     }
