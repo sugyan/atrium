@@ -5,8 +5,9 @@ use atprs_lex::lexicon::LexUserType;
 use atprs_lex::LexiconDoc;
 use code_writer::CodeWriter;
 use heck::{ToPascalCase, ToSnakeCase};
+use serde_json::from_reader;
 use std::collections::HashMap;
-use std::fs::{create_dir_all, read_dir, read_to_string, File};
+use std::fs::{create_dir_all, read_dir, File};
 use std::io::Result;
 use std::path::{Path, PathBuf};
 
@@ -16,7 +17,7 @@ pub fn genapi(lexdir: impl AsRef<Path>, outdir: impl AsRef<Path>, prefix: &str) 
     let paths = fs::find_schemas(&lexdir)?;
     let mut schemas = Vec::with_capacity(paths.len());
     for path in &paths {
-        schemas.push((read_to_string(path)?).parse::<LexiconDoc>()?);
+        schemas.push(from_reader(File::open(path)?)?);
     }
     let defmap = build_defmap(&schemas);
     for schema in schemas

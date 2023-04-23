@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 atprs-lex = { path = "../atprs-lex" }
 heck = "0.4.1"
+serde_json = "1.0"

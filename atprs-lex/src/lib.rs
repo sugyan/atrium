@@ -2,11 +2,9 @@ pub mod lexicon;
 
 use lexicon::LexUserType;
 use serde::{Deserialize, Serialize};
-use serde_json::Error;
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use serde_with::skip_serializing_none;
 use std::collections::HashMap;
-use std::str::FromStr;
 
 #[derive(Debug, Serialize_repr, Deserialize_repr, PartialEq, Eq, Clone, Copy)]
 #[repr(u8)]
@@ -21,14 +19,6 @@ pub struct LexiconDoc {
     pub revision: Option<u32>,
     pub description: Option<String>,
     pub defs: HashMap<String, LexUserType>,
-}
-
-impl FromStr for LexiconDoc {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_str::<Self>(s)
-    }
 }
 
 #[cfg(test)]
@@ -48,13 +38,13 @@ mod tests {
 }"#;
 
     #[test]
-    fn parse() -> Result<(), Error> {
-        let doc = LEXICON_EXAMPLE_TOKEN.parse::<LexiconDoc>()?;
+    fn parse() {
+        let doc = serde_json::from_str::<LexiconDoc>(LEXICON_EXAMPLE_TOKEN)
+            .expect("failed to deserialize");
         assert_eq!(doc.lexicon, Lexicon::Lexicon1);
         assert_eq!(doc.id, "com.socialapp.actorUser");
         assert_eq!(doc.revision, None);
         assert_eq!(doc.description, None);
         assert_eq!(doc.defs.len(), 1);
-        Ok(())
     }
 }
