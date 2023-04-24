@@ -1,6 +1,7 @@
 use atprs_lex::lexicon::{
-    LexArrayItem, LexObject, LexObjectProperty, LexRecord, LexRef, LexToken, LexUserType,
-    LexXrpcBodySchema, LexXrpcProcedure, LexXrpcSubscription,
+    LexArray, LexArrayItem, LexObject, LexObjectProperty, LexPrimitiveArrayItem, LexRecord, LexRef,
+    LexToken, LexUserType, LexXrpcBodySchema, LexXrpcError, LexXrpcParametersProperty,
+    LexXrpcProcedure, LexXrpcQuery, LexXrpcQueryParameter, LexXrpcSubscription,
 };
 use heck::{ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
@@ -45,12 +46,8 @@ impl CodeWriter {
     ) -> Result<()> {
         writeln!(&mut self.buf)?;
         match def {
-            LexUserType::XrpcQuery(_) => {
-                writeln!(&mut self.buf, "// TODO")?;
-            }
-            LexUserType::XrpcProcedure(procedure) => {
-                self.write_procedure(name, procedure, defmap)?
-            }
+            LexUserType::XrpcQuery(query) => self.write_query(name, query)?,
+            LexUserType::XrpcProcedure(procedure) => self.write_procedure(name, procedure)?,
             _ => {
                 if let Some(schema_id) = &self.schema_id {
                     let refname = if is_main {
@@ -109,12 +106,98 @@ impl CodeWriter {
         writeln!(&mut self.buf, "pub struct {} {{}}", name.to_pascal_case())?;
         Ok(())
     }
-    fn write_procedure(
-        &mut self,
-        name: &str,
-        procedure: &LexXrpcProcedure,
-        _defmap: &HashMap<String, &LexUserType>,
-    ) -> Result<()> {
+    fn write_query(&mut self, name: &str, query: &LexXrpcQuery) -> Result<()> {
+        if let Some(description) = &query.description {
+            writeln!(&mut self.buf, "/// {}", description)?;
+        }
+        let has_params = query.parameters.is_some();
+        let has_output = query.output.as_ref().map_or(false, |o| o.schema.is_some());
+        writeln!(&mut self.buf, "pub trait {} {{", name.to_pascal_case())?;
+        writeln!(
+            &mut self.buf,
+            "    fn {}(&self{}) -> Result<{}, Error>;",
+            name.to_snake_case(),
+            if has_params {
+                ", input: Parameters"
+            } else {
+                ""
+            },
+            if has_output { "Output" } else { "()" }
+        )?;
+        writeln!(&mut self.buf, "}}")?;
+        // parameters
+        if let Some(LexXrpcQueryParameter::Params(parameters)) = &query.parameters {
+            let required = if let Some(required) = &parameters.required {
+                HashSet::from_iter(required)
+            } else {
+                HashSet::new()
+            };
+
+            writeln!(&mut self.buf)?;
+            writeln!(&mut self.buf, "pub struct Parameters {{")?;
+            for key in parameters.properties.keys().sorted() {
+                let property = match &parameters.properties[key] {
+                    LexXrpcParametersProperty::Boolean(boolean) => {
+                        LexObjectProperty::Boolean(boolean.clone())
+                    }
+                    LexXrpcParametersProperty::Integer(integer) => {
+                        LexObjectProperty::Integer(integer.clone())
+                    }
+                    LexXrpcParametersProperty::String(string) => {
+                        LexObjectProperty::String(string.clone())
+                    }
+                    LexXrpcParametersProperty::Unknown(unknown) => {
+                        LexObjectProperty::Unknown(unknown.clone())
+                    }
+                    LexXrpcParametersProperty::Array(primitive_array) => {
+                        let items = match &primitive_array.items {
+                            LexPrimitiveArrayItem::Boolean(b) => LexArrayItem::Boolean(b.clone()),
+                            LexPrimitiveArrayItem::Integer(i) => LexArrayItem::Integer(i.clone()),
+                            LexPrimitiveArrayItem::String(s) => LexArrayItem::String(s.clone()),
+                            LexPrimitiveArrayItem::Unknown(u) => LexArrayItem::Unknown(u.clone()),
+                        };
+                        LexObjectProperty::Array(LexArray {
+                            description: primitive_array.description.clone(),
+                            items,
+                            min_length: primitive_array.min_length,
+                            max_length: primitive_array.max_length,
+                        })
+                    }
+                };
+                self.write_object_property(key, &property, required.contains(key))?;
+            }
+            writeln!(&mut self.buf, "}}")?;
+        }
+        // output
+        if let Some(output) = &query.output {
+            writeln!(&mut self.buf)?;
+            if let Some(description) = &output.description {
+                writeln!(&mut self.buf, "/// {description}")?;
+            }
+            if let Some(schema) = &output.schema {
+                match schema {
+                    LexXrpcBodySchema::Ref(r#ref) => {
+                        if let Some(description) = &r#ref.description {
+                            writeln!(&mut self.buf, "/// {description}")?;
+                        }
+                        writeln!(
+                            &mut self.buf,
+                            "pub type Output = {};",
+                            Self::ref_type(r#ref)
+                        )?;
+                    }
+                    LexXrpcBodySchema::Union(_) => unimplemented!(),
+                    LexXrpcBodySchema::Object(object) => {
+                        self.write_object("Output", object)?;
+                    }
+                }
+            }
+        }
+        // error
+        self.write_xrpc_errors(&query.errors)?;
+        Ok(())
+    }
+    fn write_procedure(&mut self, name: &str, procedure: &LexXrpcProcedure) -> Result<()> {
         if let Some(description) = &procedure.description {
             writeln!(&mut self.buf, "/// {}", description)?;
         }
@@ -180,9 +263,13 @@ impl CodeWriter {
             }
         }
         // error
+        self.write_xrpc_errors(&procedure.errors)?;
+        Ok(())
+    }
+    fn write_xrpc_errors(&mut self, errors: &Option<Vec<LexXrpcError>>) -> Result<()> {
         writeln!(&mut self.buf)?;
         writeln!(&mut self.buf, "pub enum Error {{")?;
-        if let Some(errors) = &procedure.errors {
+        if let Some(errors) = errors {
             for error in errors {
                 if let Some(description) = &error.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
