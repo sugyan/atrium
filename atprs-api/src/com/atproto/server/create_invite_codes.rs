@@ -6,5 +6,5 @@
 // com.atproto.server.createInviteCodes#accountCodes
 pub struct AccountCodes {
     pub account: String,
-    // pub codes: ...,
+    pub codes: Vec<String>,
 }

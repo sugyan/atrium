@@ -5,7 +5,7 @@
 
 // app.bsky.feed.getLikes#like
 pub struct Like {
-    // pub actor: ...
+    pub actor: crate::app::bsky::actor::defs::ProfileView,
     pub created_at: String,
     pub indexed_at: String,
 }

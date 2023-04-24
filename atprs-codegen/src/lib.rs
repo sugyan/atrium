@@ -5,6 +5,7 @@ use atprs_lex::lexicon::LexUserType;
 use atprs_lex::LexiconDoc;
 use code_writer::CodeWriter;
 use heck::ToSnakeCase;
+use itertools::Itertools;
 use serde_json::from_reader;
 use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir, File};
@@ -65,8 +66,7 @@ fn generate_code(
                 keys.push(key);
             }
         }
-        keys.sort();
-        for key in keys {
+        for &key in keys.iter().sorted() {
             let def = &schema.defs[key];
             assert!(!matches!(
                 def,
@@ -101,7 +101,7 @@ fn generate_modules(outdir: &Path) -> Result<()> {
     }
     // write "mod" statements
     for (path, mut file) in paths.iter().zip(&files) {
-        let mut modules = read_dir(path)?
+        let modules = read_dir(path)?
             .filter_map(Result::ok)
             .filter(|entry| entry.path().is_file())
             .filter_map(|entry| {
@@ -110,8 +110,8 @@ fn generate_modules(outdir: &Path) -> Result<()> {
                     .file_stem()
                     .map(|s| s.to_string_lossy().into_owned())
             })
-            .collect::<Vec<_>>();
-        modules.sort();
+            .sorted()
+            .collect_vec();
 
         let mut writer = CodeWriter::new(None);
         writer.write_header()?;

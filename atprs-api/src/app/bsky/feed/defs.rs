@@ -3,9 +3,9 @@
 
 // app.bsky.feed.defs#feedViewPost
 pub struct FeedViewPost {
-    // pub post: ...
+    pub post: crate::app::bsky::feed::defs::PostView,
     // pub reason: ...,
-    // pub reply: ...
+    pub reply: Option<ReplyRef>,
 }
 
 // app.bsky.feed.defs#notFoundPost
@@ -16,36 +16,36 @@ pub struct NotFoundPost {
 
 // app.bsky.feed.defs#postView
 pub struct PostView {
-    // pub author: ...
+    pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,
     // pub embed: ...,
     pub indexed_at: String,
-    // pub labels: ...,
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub like_count: Option<i32>,
     // pub record: ...,
     pub reply_count: Option<i32>,
     pub repost_count: Option<i32>,
     pub uri: String,
-    // pub viewer: ...
+    pub viewer: Option<ViewerState>,
 }
 
 // app.bsky.feed.defs#reasonRepost
 pub struct ReasonRepost {
-    // pub by: ...
+    pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub indexed_at: String,
 }
 
 // app.bsky.feed.defs#replyRef
 pub struct ReplyRef {
-    // pub parent: ...
-    // pub root: ...
+    pub parent: crate::app::bsky::feed::defs::PostView,
+    pub root: crate::app::bsky::feed::defs::PostView,
 }
 
 // app.bsky.feed.defs#threadViewPost
 pub struct ThreadViewPost {
     // pub parent: ...,
-    // pub post: ...
-    // pub replies: ...,
+    pub post: PostView,
+    // pub replies: Vec<...>
 }
 
 // app.bsky.feed.defs#viewerState

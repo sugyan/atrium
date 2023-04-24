@@ -4,11 +4,11 @@
 // app.bsky.embed.recordWithMedia
 pub struct Main {
     // pub media: ...,
-    // pub record: ...
+    pub record: crate::app::bsky::embed::record::Main,
 }
 
 // app.bsky.embed.recordWithMedia#view
 pub struct View {
     // pub media: ...,
-    // pub record: ...
+    pub record: crate::app::bsky::embed::record::View,
 }

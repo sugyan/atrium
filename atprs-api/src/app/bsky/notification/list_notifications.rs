@@ -5,11 +5,11 @@
 
 // app.bsky.notification.listNotifications#notification
 pub struct Notification {
-    // pub author: ...
+    pub author: crate::app::bsky::actor::defs::ProfileView,
     pub cid: String,
     pub indexed_at: String,
     pub is_read: bool,
-    // pub labels: ...,
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     /// Expected values are 'like', 'repost', 'follow', 'mention', 'reply', and 'quote'.
     pub reason: String,
     pub reason_subject: Option<String>,

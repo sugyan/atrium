@@ -3,7 +3,7 @@
 
 // app.bsky.embed.record
 pub struct Main {
-    // pub record: ...
+    pub record: crate::com::atproto::repo::strong_ref::Main,
 }
 
 // app.bsky.embed.record#view
@@ -18,9 +18,9 @@ pub struct ViewNotFound {
 
 // app.bsky.embed.record#viewRecord
 pub struct ViewRecord {
-    // pub author: ...
+    pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,
-    // pub embeds: ...,
+    // pub embeds: Vec<...>
     pub indexed_at: String,
     pub uri: String,
     // pub value: ...,

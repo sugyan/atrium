@@ -7,11 +7,11 @@ pub struct Main {}
 
 // com.atproto.sync.subscribeRepos#commit
 pub struct Commit {
-    // pub blobs: ...,
+    // pub blobs: Vec<...>
     /// CAR file containing relevant blocks
     // pub blocks: ...,
     // pub commit: ...,
-    // pub ops: ...,
+    pub ops: Vec<RepoOp>,
     // pub prev: ...,
     pub rebase: bool,
     pub repo: String,

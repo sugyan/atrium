@@ -3,6 +3,7 @@ pub mod defs;
 pub mod get_author_feed;
 pub mod get_likes;
 pub mod get_post_thread;
+pub mod get_posts;
 pub mod get_reposted_by;
 pub mod get_timeline;
 pub mod like;

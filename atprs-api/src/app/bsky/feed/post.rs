@@ -7,7 +7,7 @@ pub struct Main {}
 // app.bsky.feed.post#entity
 /// Deprecated: use facets instead.
 pub struct Entity {
-    // pub index: ...
+    pub index: TextSlice,
     /// Expected values are 'mention' and 'link'.
     pub r#type: String,
     pub value: String,
@@ -15,8 +15,8 @@ pub struct Entity {
 
 // app.bsky.feed.post#replyRef
 pub struct ReplyRef {
-    // pub parent: ...
-    // pub root: ...
+    pub parent: crate::com::atproto::repo::strong_ref::Main,
+    pub root: crate::com::atproto::repo::strong_ref::Main,
 }
 
 // app.bsky.feed.post#textSlice

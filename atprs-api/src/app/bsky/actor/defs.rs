@@ -9,8 +9,8 @@ pub struct ProfileView {
     pub display_name: Option<String>,
     pub handle: String,
     pub indexed_at: Option<String>,
-    // pub labels: ...,
-    // pub viewer: ...
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    pub viewer: Option<ViewerState>,
 }
 
 // app.bsky.actor.defs#profileViewBasic
@@ -19,8 +19,8 @@ pub struct ProfileViewBasic {
     pub did: String,
     pub display_name: Option<String>,
     pub handle: String,
-    // pub labels: ...,
-    // pub viewer: ...
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    pub viewer: Option<ViewerState>,
 }
 
 // app.bsky.actor.defs#profileViewDetailed
@@ -34,9 +34,9 @@ pub struct ProfileViewDetailed {
     pub follows_count: Option<i32>,
     pub handle: String,
     pub indexed_at: Option<String>,
-    // pub labels: ...,
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub posts_count: Option<i32>,
-    // pub viewer: ...
+    pub viewer: Option<ViewerState>,
 }
 
 // app.bsky.actor.defs#viewerState

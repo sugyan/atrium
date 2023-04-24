@@ -3,8 +3,8 @@
 
 // app.bsky.richtext.facet
 pub struct Main {
-    // pub features: ...,
-    // pub index: ...
+    // pub features: Vec<...>
+    pub index: ByteSlice,
 }
 
 // app.bsky.richtext.facet#byteSlice

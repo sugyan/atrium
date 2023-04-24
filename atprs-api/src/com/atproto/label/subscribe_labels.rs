@@ -13,6 +13,6 @@ pub struct Info {
 
 // com.atproto.label.subscribeLabels#labels
 pub struct Labels {
-    // pub labels: ...,
+    pub labels: Vec<crate::com::atproto::label::defs::Label>,
     pub seq: i32,
 }

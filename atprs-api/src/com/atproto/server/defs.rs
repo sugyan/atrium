@@ -9,7 +9,7 @@ pub struct InviteCode {
     pub created_by: String,
     pub disabled: bool,
     pub for_account: String,
-    // pub uses: ...,
+    pub uses: Vec<InviteCodeUse>,
 }
 
 // com.atproto.server.defs#inviteCodeUse

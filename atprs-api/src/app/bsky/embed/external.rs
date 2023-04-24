@@ -3,7 +3,7 @@
 
 // app.bsky.embed.external
 pub struct Main {
-    // pub external: ...
+    pub external: External,
 }
 
 // app.bsky.embed.external#external
@@ -16,7 +16,7 @@ pub struct External {
 
 // app.bsky.embed.external#view
 pub struct View {
-    // pub external: ...
+    pub external: ViewExternal,
 }
 
 // app.bsky.embed.external#viewExternal

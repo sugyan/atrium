@@ -3,7 +3,7 @@
 
 // app.bsky.embed.images
 pub struct Main {
-    // pub images: ...,
+    pub images: Vec<Image>,
 }
 
 // app.bsky.embed.images#image
@@ -14,7 +14,7 @@ pub struct Image {
 
 // app.bsky.embed.images#view
 pub struct View {
-    // pub images: ...,
+    pub images: Vec<ViewImage>,
 }
 
 // app.bsky.embed.images#viewImage

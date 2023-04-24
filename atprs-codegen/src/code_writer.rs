@@ -1,7 +1,9 @@
 use atprs_lex::lexicon::{
-    LexObject, LexObjectProperty, LexRecord, LexToken, LexUserType, LexXrpcSubscription,
+    LexArrayItem, LexObject, LexObjectProperty, LexRecord, LexToken, LexUserType,
+    LexXrpcSubscription,
 };
 use heck::{ToPascalCase, ToSnakeCase};
+use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 use std::io::{Result, Write};
 
@@ -129,9 +131,7 @@ impl CodeWriter {
         };
         writeln!(&mut self.buf, "pub struct {} {{", name.to_pascal_case())?;
         if let Some(properties) = &object.properties {
-            let mut keys = properties.keys().collect::<Vec<_>>();
-            keys.sort();
-            for key in keys {
+            for key in properties.keys().sorted() {
                 self.write_object_property(key, &properties[key], &required)?;
             }
         }
@@ -149,8 +149,29 @@ impl CodeWriter {
                 if let Some(description) = &r#ref.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                // TODO
-                writeln!(&mut self.buf, "    // pub {}: ...", name.to_snake_case())?;
+                let (namespace, def) = r#ref
+                    .r#ref
+                    .split_once('#')
+                    .unwrap_or((&r#ref.r#ref, "main"));
+                let ref_type = if namespace.is_empty() {
+                    def.to_pascal_case()
+                } else {
+                    format!(
+                        "crate::{}::{}",
+                        namespace.split('.').map(str::to_snake_case).join("::"),
+                        def.to_pascal_case()
+                    )
+                };
+                let field_type = if required.contains(name) {
+                    ref_type
+                } else {
+                    format!("Option<{}>", ref_type)
+                };
+                writeln!(
+                    &mut self.buf,
+                    "    pub {}: {field_type},",
+                    name.to_snake_case()
+                )?;
             }
             LexObjectProperty::Union(ref_union) => {
                 if let Some(description) = &ref_union.description {
@@ -177,8 +198,46 @@ impl CodeWriter {
                 if let Some(description) = &array.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                // TODO
-                writeln!(&mut self.buf, "    // pub {}: ...,", name.to_snake_case())?;
+                let item_type = match &array.items {
+                    LexArrayItem::Boolean(_) => String::from("bool"),
+                    LexArrayItem::Integer(_) => String::from("i32"),
+                    LexArrayItem::String(_) => String::from("String"),
+                    LexArrayItem::Unknown(_) => String::from(""), // TODO
+                    LexArrayItem::Bytes(_) => String::from(""),   // TODO
+                    LexArrayItem::CidLink(_) => String::from(""), // TODO
+                    LexArrayItem::Blob(_) => String::from(""),    // TODO
+                    LexArrayItem::Ref(r#ref) => {
+                        let (namespace, def) = r#ref.r#ref.split_once('#').expect("invalid ref");
+                        if namespace.is_empty() {
+                            def.to_pascal_case()
+                        } else {
+                            format!(
+                                "crate::{}::{}",
+                                namespace.split('.').map(str::to_snake_case).join("::"),
+                                def.to_pascal_case()
+                            )
+                        }
+                    }
+                    LexArrayItem::Union(_) => String::from(""), // TODO
+                };
+                let field_type = if required.contains(&name) {
+                    format!("Vec<{}>", item_type)
+                } else {
+                    format!("Option<Vec<{}>>", item_type)
+                };
+                if item_type.is_empty() {
+                    writeln!(
+                        &mut self.buf,
+                        "    // pub {}: Vec<...>",
+                        name.to_snake_case()
+                    )?;
+                } else {
+                    writeln!(
+                        &mut self.buf,
+                        "    pub {}: {field_type},",
+                        name.to_snake_case()
+                    )?;
+                }
             }
             LexObjectProperty::Blob(blob) => {
                 if let Some(description) = &blob.description {
