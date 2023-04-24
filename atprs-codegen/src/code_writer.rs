@@ -129,6 +129,10 @@ impl CodeWriter {
         } else {
             HashSet::new()
         };
+        writeln!(
+            &mut self.buf,
+            "#[derive(serde::Serialize, serde::Deserialize)]"
+        )?;
         writeln!(&mut self.buf, "pub struct {} {{", name.to_pascal_case())?;
         if let Some(properties) = &object.properties {
             for key in properties.keys().sorted() {

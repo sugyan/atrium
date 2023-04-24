@@ -2,21 +2,25 @@
 //! Definitions for the `app.bsky.embed.record` namespace.
 
 // app.bsky.embed.record
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {
     pub record: crate::com::atproto::repo::strong_ref::Main,
 }
 
 // app.bsky.embed.record#view
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct View {
     // pub record: ...,
 }
 
 // app.bsky.embed.record#viewNotFound
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ViewNotFound {
     pub uri: String,
 }
 
 // app.bsky.embed.record#viewRecord
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ViewRecord {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,

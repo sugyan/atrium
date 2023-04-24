@@ -2,6 +2,7 @@
 //! Definitions for the `app.bsky.actor.defs` namespace.
 
 // app.bsky.actor.defs#profileView
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProfileView {
     pub avatar: Option<String>,
     pub description: Option<String>,
@@ -14,6 +15,7 @@ pub struct ProfileView {
 }
 
 // app.bsky.actor.defs#profileViewBasic
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProfileViewBasic {
     pub avatar: Option<String>,
     pub did: String,
@@ -24,6 +26,7 @@ pub struct ProfileViewBasic {
 }
 
 // app.bsky.actor.defs#profileViewDetailed
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ProfileViewDetailed {
     pub avatar: Option<String>,
     pub banner: Option<String>,
@@ -40,6 +43,7 @@ pub struct ProfileViewDetailed {
 }
 
 // app.bsky.actor.defs#viewerState
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ViewerState {
     pub followed_by: Option<String>,
     pub following: Option<String>,

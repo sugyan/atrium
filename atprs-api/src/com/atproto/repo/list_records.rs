@@ -4,6 +4,7 @@
 // TODO
 
 // com.atproto.repo.listRecords#record
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Record {
     pub cid: String,
     pub uri: String,

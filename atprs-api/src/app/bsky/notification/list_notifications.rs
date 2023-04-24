@@ -4,6 +4,7 @@
 // TODO
 
 // app.bsky.notification.listNotifications#notification
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Notification {
     pub author: crate::app::bsky::actor::defs::ProfileView,
     pub cid: String,

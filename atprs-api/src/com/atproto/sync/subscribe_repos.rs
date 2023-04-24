@@ -6,6 +6,7 @@
 pub struct Main {}
 
 // com.atproto.sync.subscribeRepos#commit
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Commit {
     // pub blobs: Vec<...>
     /// CAR file containing relevant blocks
@@ -21,6 +22,7 @@ pub struct Commit {
 }
 
 // com.atproto.sync.subscribeRepos#handle
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Handle {
     pub did: String,
     pub handle: String,
@@ -29,12 +31,14 @@ pub struct Handle {
 }
 
 // com.atproto.sync.subscribeRepos#info
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Info {
     pub message: Option<String>,
     pub name: String,
 }
 
 // com.atproto.sync.subscribeRepos#migrate
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Migrate {
     pub did: String,
     pub migrate_to: String,
@@ -43,6 +47,7 @@ pub struct Migrate {
 }
 
 // com.atproto.sync.subscribeRepos#repoOp
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct RepoOp {
     pub action: String,
     // pub cid: ...,
@@ -50,6 +55,7 @@ pub struct RepoOp {
 }
 
 // com.atproto.sync.subscribeRepos#tombstone
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Tombstone {
     pub did: String,
     pub seq: i32,

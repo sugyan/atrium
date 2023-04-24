@@ -2,6 +2,7 @@
 //! Definitions for the `com.atproto.repo.strongRef` namespace.
 
 // com.atproto.repo.strongRef
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {
     pub cid: String,
     pub uri: String,

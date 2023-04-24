@@ -4,6 +4,7 @@
 // TODO
 
 // com.atproto.sync.listRepos#repo
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Repo {
     pub did: String,
     pub head: String,

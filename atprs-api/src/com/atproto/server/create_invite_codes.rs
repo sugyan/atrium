@@ -4,6 +4,7 @@
 // TODO
 
 // com.atproto.server.createInviteCodes#accountCodes
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct AccountCodes {
     pub account: String,
     pub codes: Vec<String>,

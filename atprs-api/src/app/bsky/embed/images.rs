@@ -2,22 +2,26 @@
 //! Definitions for the `app.bsky.embed.images` namespace.
 
 // app.bsky.embed.images
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {
     pub images: Vec<Image>,
 }
 
 // app.bsky.embed.images#image
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Image {
     pub alt: String,
     // pub image: ...,
 }
 
 // app.bsky.embed.images#view
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct View {
     pub images: Vec<ViewImage>,
 }
 
 // app.bsky.embed.images#viewImage
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ViewImage {
     pub alt: String,
     pub fullsize: String,

@@ -4,6 +4,7 @@
 // TODO
 
 // com.atproto.server.describeServer#links
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Links {
     pub privacy_policy: Option<String>,
     pub terms_of_service: Option<String>,

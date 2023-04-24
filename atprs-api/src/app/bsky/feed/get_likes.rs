@@ -4,6 +4,7 @@
 // TODO
 
 // app.bsky.feed.getLikes#like
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Like {
     pub actor: crate::app::bsky::actor::defs::ProfileView,
     pub created_at: String,

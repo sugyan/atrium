@@ -4,6 +4,7 @@
 // TODO
 
 // com.atproto.server.createAppPassword#appPassword
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct AppPassword {
     pub created_at: String,
     pub name: String,

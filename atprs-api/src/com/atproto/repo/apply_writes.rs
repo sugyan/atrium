@@ -5,6 +5,7 @@
 
 // com.atproto.repo.applyWrites#create
 /// Create a new record.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Create {
     pub collection: String,
     pub rkey: Option<String>,
@@ -13,6 +14,7 @@ pub struct Create {
 
 // com.atproto.repo.applyWrites#delete
 /// Delete an existing record.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Delete {
     pub collection: String,
     pub rkey: String,
@@ -20,6 +22,7 @@ pub struct Delete {
 
 // com.atproto.repo.applyWrites#update
 /// Update an existing record.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Update {
     pub collection: String,
     pub rkey: String,
