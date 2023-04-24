@@ -2,4 +2,5 @@
 //! Definitions for the `app.bsky.feed.repost` namespace.
 
 // app.bsky.feed.repost
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {}

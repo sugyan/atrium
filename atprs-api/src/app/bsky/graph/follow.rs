@@ -3,4 +3,5 @@
 
 // app.bsky.graph.follow
 /// A social follow.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {}

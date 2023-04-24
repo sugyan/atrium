@@ -3,6 +3,7 @@
 
 // com.atproto.sync.subscribeRepos
 /// Subscribe to repo updates
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {}
 
 // com.atproto.sync.subscribeRepos#commit

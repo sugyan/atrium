@@ -91,6 +91,10 @@ impl CodeWriter {
             writeln!(&mut self.buf, "/// {}", description)?;
         }
         // TODO
+        writeln!(
+            &mut self.buf,
+            "#[derive(serde::Serialize, serde::Deserialize)]"
+        )?;
         writeln!(&mut self.buf, "pub struct {} {{}}", name.to_pascal_case())?;
         Ok(())
     }
@@ -104,6 +108,10 @@ impl CodeWriter {
             writeln!(&mut self.buf, "/// {}", description)?;
         }
         // TODO
+        writeln!(
+            &mut self.buf,
+            "#[derive(serde::Serialize, serde::Deserialize)]"
+        )?;
         writeln!(&mut self.buf, "pub struct {} {{}}", name.to_pascal_case())?;
         Ok(())
     }
@@ -316,6 +324,10 @@ impl CodeWriter {
             writeln!(&mut self.buf, "/// {}", description)?;
         }
         // TODO: enum?
+        writeln!(
+            &mut self.buf,
+            "#[derive(serde::Serialize, serde::Deserialize)]"
+        )?;
         writeln!(&mut self.buf, "pub struct {};", name.to_pascal_case())?;
         Ok(())
     }

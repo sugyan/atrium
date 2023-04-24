@@ -3,6 +3,7 @@
 
 // com.atproto.label.subscribeLabels
 /// Subscribe to label updates
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {}
 
 // com.atproto.label.subscribeLabels#info

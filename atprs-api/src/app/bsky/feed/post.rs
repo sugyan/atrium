@@ -2,6 +2,7 @@
 //! Definitions for the `app.bsky.feed.post` namespace.
 
 // app.bsky.feed.post
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Main {}
 
 // app.bsky.feed.post#entity

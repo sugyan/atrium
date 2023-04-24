@@ -14,6 +14,7 @@ pub struct ActionReversal {
 }
 
 // com.atproto.admin.defs#actionType
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ActionType;
 
 // com.atproto.admin.defs#actionView
