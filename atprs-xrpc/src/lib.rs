@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use atprs_api::app::bsky::actor::get_profile::GetProfile;
 use atprs_api::app::bsky::feed::get_timeline::GetTimeline;
 use atprs_api::com::atproto::server::create_session::CreateSession;
+use atprs_api::com::atproto::server::get_session::GetSession;
 use atprs_api::xrpc::{HttpClient, XrpcClient};
 use http::{Request, Response};
 use reqwest::Client;
@@ -51,4 +52,5 @@ impl XrpcClient for XrpcReqwestClient {
 
 impl CreateSession for XrpcReqwestClient {}
 impl GetProfile for XrpcReqwestClient {}
+impl GetSession for XrpcReqwestClient {}
 impl GetTimeline for XrpcReqwestClient {}

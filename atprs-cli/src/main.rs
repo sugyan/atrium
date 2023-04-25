@@ -1,6 +1,7 @@
 use atprs_api::app::bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameters};
 use atprs_api::app::bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
 use atprs_api::com::atproto::server::create_session::{CreateSession, Input};
+use atprs_api::com::atproto::server::get_session::GetSession;
 use atprs_xrpc::XrpcReqwestClient;
 use clap::{Parser, Subcommand};
 use std::fs;
@@ -19,8 +20,9 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    CreateRecord { text: String },
+    // CreateRecord { text: String },
     GetProfile { actor: String },
+    GetSession,
     GetTimeline,
 }
 
@@ -32,7 +34,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let (Some(Value::String(identifier)), Some(Value::String(password))) =
         (value.get("identifier"), value.get("password"))
     {
-        run(args.pds_host, identifier, password, args.command).await?;
+        run(
+            args.pds_host,
+            identifier.to_string(),
+            password.to_string(),
+            args.command,
+        )
+        .await?;
     } else {
         panic!("invalid config");
     }
@@ -41,27 +49,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 async fn run(
     host: String,
-    identifier: &str,
-    password: &str,
+    identifier: String,
+    password: String,
     command: Command,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = XrpcReqwestClient::new(host);
     let session = client
         .create_session(Input {
-            identifier: identifier.to_string(),
-            password: password.to_string(),
+            identifier,
+            password,
         })
         .await?;
     client.set_auth(session.access_jwt);
     match command {
+        // Command::CreateRecord { text: _ } => {
+        //     todo!()
+        // }
         Command::GetProfile { actor } => {
             println!(
                 "{:#?}",
                 client.get_profile(GetProfileParameters { actor }).await?
             );
         }
-        Command::CreateRecord { text: _ } => {
-            todo!()
+        Command::GetSession => {
+            println!("{:#?}", client.get_session().await?);
         }
         Command::GetTimeline => {
             println!(
