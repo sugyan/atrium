@@ -1,4 +1,5 @@
-use atprs_api::app::bsky::actor::get_profile::{GetProfile, Parameters};
+use atprs_api::app::bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameters};
+use atprs_api::app::bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
 use atprs_api::com::atproto::server::create_session::{CreateSession, Input};
 use atprs_xrpc::XrpcReqwestClient;
 use clap::{Parser, Subcommand};
@@ -18,8 +19,9 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    GetProfile { actor: String },
     CreateRecord { text: String },
+    GetProfile { actor: String },
+    GetTimeline,
 }
 
 #[tokio::main]
@@ -53,10 +55,25 @@ async fn run(
     client.set_auth(session.access_jwt);
     match command {
         Command::GetProfile { actor } => {
-            println!("{:?}", client.get_profile(Parameters { actor }).await?);
+            println!(
+                "{:#?}",
+                client.get_profile(GetProfileParameters { actor }).await?
+            );
         }
         Command::CreateRecord { text: _ } => {
             todo!()
+        }
+        Command::GetTimeline => {
+            println!(
+                "{:#?}",
+                client
+                    .get_timeline(GetTimelineParameters {
+                        algorithm: None,
+                        cursor: None,
+                        limit: Some(25),
+                    })
+                    .await?
+            );
         }
     };
 
