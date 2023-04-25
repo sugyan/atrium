@@ -22,7 +22,8 @@ pub struct Parameters {
     pub rkey_start: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cursor: Option<String>,
     pub records: Vec<Record>,
@@ -32,7 +33,8 @@ pub enum Error {
 }
 
 // com.atproto.repo.listRecords#record
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Record {
     pub cid: String,
     pub uri: String,

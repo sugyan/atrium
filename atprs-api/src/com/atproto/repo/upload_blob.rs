@@ -2,12 +2,22 @@
 //! Definitions for the `com.atproto.repo.uploadBlob` namespace.
 
 /// Upload a new blob to be added to repo in a later request.
-pub trait UploadBlob {
-    fn upload_blob(&self) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait UploadBlob: crate::xrpc::XrpcClient {
+    async fn upload_blob(&self) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.repo.uploadBlob",
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     // pub blob: ...,
 }

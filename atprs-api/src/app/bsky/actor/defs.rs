@@ -3,7 +3,8 @@
 //! A reference to an actor in the network.
 
 // app.bsky.actor.defs#profileView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ProfileView {
     pub avatar: Option<String>,
     pub description: Option<String>,
@@ -16,7 +17,8 @@ pub struct ProfileView {
 }
 
 // app.bsky.actor.defs#profileViewBasic
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ProfileViewBasic {
     pub avatar: Option<String>,
     pub did: String,
@@ -27,7 +29,8 @@ pub struct ProfileViewBasic {
 }
 
 // app.bsky.actor.defs#profileViewDetailed
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ProfileViewDetailed {
     pub avatar: Option<String>,
     pub banner: Option<String>,
@@ -44,7 +47,8 @@ pub struct ProfileViewDetailed {
 }
 
 // app.bsky.actor.defs#viewerState
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ViewerState {
     pub followed_by: Option<String>,
     pub following: Option<String>,

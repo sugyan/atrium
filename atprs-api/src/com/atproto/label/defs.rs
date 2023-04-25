@@ -3,7 +3,8 @@
 
 // com.atproto.label.defs#label
 /// Metadata tag on an atproto resource (eg, repo or record)
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Label {
     /// optionally, CID specifying the specific version of 'uri' resource this label applies to
     pub cid: Option<String>,

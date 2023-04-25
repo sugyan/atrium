@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.server.createAccount` namespace.
 
 /// Create an account.
-pub trait CreateAccount {
-    fn create_account(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait CreateAccount: crate::xrpc::XrpcClient {
+    async fn create_account(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.server.createAccount",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub email: String,
     pub handle: String,
@@ -15,7 +25,8 @@ pub struct Input {
     pub recovery_key: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub access_jwt: String,
     pub did: String,

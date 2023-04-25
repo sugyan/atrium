@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.repo.applyWrites` namespace.
 
 /// Apply a batch transaction of creates, updates, and deletes.
-pub trait ApplyWrites {
-    fn apply_writes(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait ApplyWrites: crate::xrpc::XrpcClient {
+    async fn apply_writes(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.repo.applyWrites",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The handle or DID of the repo.
     pub repo: String,
@@ -22,7 +32,8 @@ pub enum Error {
 
 // com.atproto.repo.applyWrites#create
 /// Create a new record.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Create {
     pub collection: String,
     pub rkey: Option<String>,
@@ -31,7 +42,8 @@ pub struct Create {
 
 // com.atproto.repo.applyWrites#delete
 /// Delete an existing record.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Delete {
     pub collection: String,
     pub rkey: String,
@@ -39,7 +51,8 @@ pub struct Delete {
 
 // com.atproto.repo.applyWrites#update
 /// Update an existing record.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Update {
     pub collection: String,
     pub rkey: String,

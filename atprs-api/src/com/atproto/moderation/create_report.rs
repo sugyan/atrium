@@ -2,18 +2,29 @@
 //! Definitions for the `com.atproto.moderation.createReport` namespace.
 
 /// Report a repo or a record.
-pub trait CreateReport {
-    fn create_report(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait CreateReport: crate::xrpc::XrpcClient {
+    async fn create_report(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.moderation.createReport",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     // pub subject: ...,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub created_at: String,
     pub id: i32,

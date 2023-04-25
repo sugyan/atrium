@@ -2,11 +2,21 @@
 //! Definitions for the `app.bsky.graph.muteActor` namespace.
 
 /// Mute an actor by did or handle.
-pub trait MuteActor {
-    fn mute_actor(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait MuteActor: crate::xrpc::XrpcClient {
+    async fn mute_actor(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "app.bsky.graph.muteActor",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub actor: String,
 }

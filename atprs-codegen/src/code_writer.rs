@@ -209,14 +209,39 @@ impl CodeWriter {
             .output
             .as_ref()
             .map_or(false, |o| o.schema.is_some());
-        writeln!(&mut self.buf, "pub trait {} {{", name.to_pascal_case())?;
+        writeln!(&mut self.buf, "#[async_trait::async_trait]")?;
         writeln!(
             &mut self.buf,
-            "    fn {}(&self{}) -> Result<{}, Error>;",
+            "pub trait {}: crate::xrpc::XrpcClient {{",
+            name.to_pascal_case()
+        )?;
+        writeln!(
+            &mut self.buf,
+            "    async fn {}(&self{}) -> Result<{}, Box<dyn std::error::Error>> {{",
             name.to_snake_case(),
             if has_input { ", input: Input" } else { "" },
             if has_output { "Output" } else { "()" }
         )?;
+        writeln!(&mut self.buf, "        crate::xrpc::XrpcClient::send(")?;
+        writeln!(&mut self.buf, "            self,")?;
+        writeln!(&mut self.buf, "            http::Method::POST,")?;
+        writeln!(
+            &mut self.buf,
+            "            {:?},",
+            self.schema_id.as_ref().expect("schema id must be set")
+        )?;
+        writeln!(
+            &mut self.buf,
+            "            {},",
+            if has_input {
+                "Some(input)"
+            } else {
+                "Option::<()>::None"
+            }
+        )?;
+        writeln!(&mut self.buf, "        )")?;
+        writeln!(&mut self.buf, "        .await")?;
+        writeln!(&mut self.buf, "    }}")?;
         writeln!(&mut self.buf, "}}")?;
         if procedure.parameters.is_some() {
             // TODO
@@ -316,8 +341,9 @@ impl CodeWriter {
         };
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
         )?;
+        writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
         writeln!(&mut self.buf, "pub struct {} {{", name.to_pascal_case())?;
         if let Some(properties) = &object.properties {
             for key in properties.keys().sorted() {
@@ -469,7 +495,7 @@ impl CodeWriter {
         // TODO: enum?
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
         )?;
         writeln!(&mut self.buf, "pub struct {};", name.to_pascal_case())?;
         Ok(())

@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.server.revokeAppPassword` namespace.
 
 /// Revoke an app-specific password by name.
-pub trait RevokeAppPassword {
-    fn revoke_app_password(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait RevokeAppPassword: crate::xrpc::XrpcClient {
+    async fn revoke_app_password(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.server.revokeAppPassword",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub name: String,
 }

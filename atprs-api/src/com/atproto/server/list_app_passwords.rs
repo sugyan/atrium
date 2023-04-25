@@ -6,7 +6,8 @@ pub trait ListAppPasswords {
     fn list_app_passwords(&self) -> Result<Output, Error>;
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub passwords: Vec<AppPassword>,
 }
@@ -16,7 +17,8 @@ pub enum Error {
 }
 
 // com.atproto.server.listAppPasswords#appPassword
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct AppPassword {
     pub created_at: String,
     pub name: String,

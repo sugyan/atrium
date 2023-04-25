@@ -2,7 +2,8 @@
 //! Definitions for the `app.bsky.richtext.facet` namespace.
 
 // app.bsky.richtext.facet
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Main {
     // pub features: Vec<...>
     pub index: ByteSlice,
@@ -10,7 +11,8 @@ pub struct Main {
 
 // app.bsky.richtext.facet#byteSlice
 /// A text segment. Start is inclusive, end is exclusive. Indices are for utf8-encoded strings.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ByteSlice {
     pub byte_end: i32,
     pub byte_start: i32,
@@ -18,14 +20,16 @@ pub struct ByteSlice {
 
 // app.bsky.richtext.facet#link
 /// A facet feature for links.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Link {
     pub uri: String,
 }
 
 // app.bsky.richtext.facet#mention
 /// A facet feature for actor mentions.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Mention {
     pub did: String,
 }

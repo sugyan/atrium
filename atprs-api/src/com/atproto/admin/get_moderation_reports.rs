@@ -13,7 +13,8 @@ pub struct Parameters {
     pub subject: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cursor: Option<String>,
     pub reports: Vec<crate::com::atproto::admin::defs::ReportView>,

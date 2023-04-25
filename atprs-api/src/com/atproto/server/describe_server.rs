@@ -6,7 +6,8 @@ pub trait DescribeServer {
     fn describe_server(&self) -> Result<Output, Error>;
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub available_user_domains: Vec<String>,
     pub invite_code_required: Option<bool>,
@@ -17,7 +18,8 @@ pub enum Error {
 }
 
 // com.atproto.server.describeServer#links
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Links {
     pub privacy_policy: Option<String>,
     pub terms_of_service: Option<String>,

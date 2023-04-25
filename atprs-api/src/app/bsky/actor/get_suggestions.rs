@@ -11,7 +11,8 @@ pub struct Parameters {
     pub limit: Option<i32>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub actors: Vec<crate::app::bsky::actor::defs::ProfileView>,
     pub cursor: Option<String>,

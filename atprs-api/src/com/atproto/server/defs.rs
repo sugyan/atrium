@@ -2,7 +2,8 @@
 //! Definitions for the `com.atproto.server.defs` namespace.
 
 // com.atproto.server.defs#inviteCode
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct InviteCode {
     pub available: i32,
     pub code: String,
@@ -14,7 +15,8 @@ pub struct InviteCode {
 }
 
 // com.atproto.server.defs#inviteCodeUse
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct InviteCodeUse {
     pub used_at: String,
     pub used_by: String,

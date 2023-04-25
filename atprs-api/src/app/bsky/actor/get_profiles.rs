@@ -9,7 +9,8 @@ pub struct Parameters {
     pub actors: Vec<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub profiles: Vec<crate::app::bsky::actor::defs::ProfileViewDetailed>,
 }

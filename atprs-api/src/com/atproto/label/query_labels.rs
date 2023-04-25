@@ -15,7 +15,8 @@ pub struct Parameters {
     pub uri_patterns: Vec<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cursor: Option<String>,
     pub labels: Vec<crate::com::atproto::label::defs::Label>,

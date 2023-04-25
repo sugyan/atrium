@@ -2,8 +2,17 @@
 //! Definitions for the `com.atproto.server.requestAccountDelete` namespace.
 
 /// Initiate a user account deletion via email.
-pub trait RequestAccountDelete {
-    fn request_account_delete(&self) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait RequestAccountDelete: crate::xrpc::XrpcClient {
+    async fn request_account_delete(&self) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.server.requestAccountDelete",
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
 pub enum Error {

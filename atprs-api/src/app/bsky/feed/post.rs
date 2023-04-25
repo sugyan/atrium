@@ -7,7 +7,8 @@ pub struct Main {}
 
 // app.bsky.feed.post#entity
 /// Deprecated: use facets instead.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Entity {
     pub index: TextSlice,
     /// Expected values are 'mention' and 'link'.
@@ -16,7 +17,8 @@ pub struct Entity {
 }
 
 // app.bsky.feed.post#replyRef
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReplyRef {
     pub parent: crate::com::atproto::repo::strong_ref::Main,
     pub root: crate::com::atproto::repo::strong_ref::Main,
@@ -24,7 +26,8 @@ pub struct ReplyRef {
 
 // app.bsky.feed.post#textSlice
 /// Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct TextSlice {
     pub end: i32,
     pub start: i32,

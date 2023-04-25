@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.repo.putRecord` namespace.
 
 /// Write a record, creating or updating it as needed.
-pub trait PutRecord {
-    fn put_record(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait PutRecord: crate::xrpc::XrpcClient {
+    async fn put_record(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.repo.putRecord",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The NSID of the record collection.
     pub collection: String,
@@ -24,7 +34,8 @@ pub struct Input {
     pub validate: Option<bool>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cid: String,
     pub uri: String,

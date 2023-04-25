@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.admin.reverseModerationAction` namespace.
 
 /// Reverse a moderation action.
-pub trait ReverseModerationAction {
-    fn reverse_moderation_action(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ReverseModerationAction: crate::xrpc::XrpcClient {
+    async fn reverse_moderation_action(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.admin.reverseModerationAction",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub created_by: String,
     pub id: i32,

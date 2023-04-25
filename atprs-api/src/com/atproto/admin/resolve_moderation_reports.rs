@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.admin.resolveModerationReports` namespace.
 
 /// Resolve moderation reports by an action.
-pub trait ResolveModerationReports {
-    fn resolve_moderation_reports(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ResolveModerationReports: crate::xrpc::XrpcClient {
+    async fn resolve_moderation_reports(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.admin.resolveModerationReports",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub action_id: i32,
     pub created_by: String,

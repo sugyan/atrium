@@ -6,7 +6,8 @@ pub trait GetSession {
     fn get_session(&self) -> Result<Output, Error>;
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub did: String,
     pub email: Option<String>,

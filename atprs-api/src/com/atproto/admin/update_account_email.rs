@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.admin.updateAccountEmail` namespace.
 
 /// Administrative action to update an account's email
-pub trait UpdateAccountEmail {
-    fn update_account_email(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait UpdateAccountEmail: crate::xrpc::XrpcClient {
+    async fn update_account_email(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.admin.updateAccountEmail",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The handle or DID of the repo.
     pub account: String,

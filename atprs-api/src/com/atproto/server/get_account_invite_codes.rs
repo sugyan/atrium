@@ -11,7 +11,8 @@ pub struct Parameters {
     pub include_used: Option<bool>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub codes: Vec<crate::com::atproto::server::defs::InviteCode>,
 }

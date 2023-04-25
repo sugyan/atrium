@@ -10,7 +10,8 @@ pub struct Parameters {
     pub uris: Vec<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub posts: Vec<crate::app::bsky::feed::defs::PostView>,
 }

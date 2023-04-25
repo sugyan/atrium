@@ -3,7 +3,8 @@
 //! A URI with a content-hash fingerprint.
 
 // com.atproto.repo.strongRef
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Main {
     pub cid: String,
     pub uri: String,

@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.server.requestPasswordReset` namespace.
 
 /// Initiate a user account password reset via email.
-pub trait RequestPasswordReset {
-    fn request_password_reset(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait RequestPasswordReset: crate::xrpc::XrpcClient {
+    async fn request_password_reset(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.server.requestPasswordReset",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub email: String,
 }

@@ -12,7 +12,8 @@ pub struct Parameters {
     pub uri: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cid: Option<String>,
     pub cursor: Option<String>,
@@ -24,7 +25,8 @@ pub enum Error {
 }
 
 // app.bsky.feed.getLikes#like
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Like {
     pub actor: crate::app::bsky::actor::defs::ProfileView,
     pub created_at: String,

@@ -11,7 +11,8 @@ pub struct Parameters {
     pub limit: Option<i32>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cursor: Option<String>,
     pub repos: Vec<Repo>,
@@ -21,7 +22,8 @@ pub enum Error {
 }
 
 // com.atproto.sync.listRepos#repo
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Repo {
     pub did: String,
     pub head: String,

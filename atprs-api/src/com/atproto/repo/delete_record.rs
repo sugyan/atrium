@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.repo.deleteRecord` namespace.
 
 /// Delete a record, or ensure it doesn't exist.
-pub trait DeleteRecord {
-    fn delete_record(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait DeleteRecord: crate::xrpc::XrpcClient {
+    async fn delete_record(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.repo.deleteRecord",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The NSID of the record collection.
     pub collection: String,

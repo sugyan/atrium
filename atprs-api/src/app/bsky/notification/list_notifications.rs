@@ -11,7 +11,8 @@ pub struct Parameters {
     pub seen_at: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cursor: Option<String>,
     pub notifications: Vec<Notification>,
@@ -21,7 +22,8 @@ pub enum Error {
 }
 
 // app.bsky.notification.listNotifications#notification
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Notification {
     pub author: crate::app::bsky::actor::defs::ProfileView,
     pub cid: String,

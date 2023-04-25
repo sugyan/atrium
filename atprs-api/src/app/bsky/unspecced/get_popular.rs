@@ -11,7 +11,8 @@ pub struct Parameters {
     pub limit: Option<i32>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cursor: Option<String>,
     pub feed: Vec<crate::app::bsky::feed::defs::FeedViewPost>,

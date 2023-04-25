@@ -12,7 +12,8 @@ pub struct Parameters {
     pub sort: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Output {
     pub codes: Vec<crate::com::atproto::server::defs::InviteCode>,
     pub cursor: Option<String>,

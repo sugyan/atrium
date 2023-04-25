@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.server.createAppPassword` namespace.
 
 /// Create an app-specific password.
-pub trait CreateAppPassword {
-    fn create_app_password(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait CreateAppPassword: crate::xrpc::XrpcClient {
+    async fn create_app_password(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.server.createAppPassword",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub name: String,
 }
@@ -18,7 +28,8 @@ pub enum Error {
 }
 
 // com.atproto.server.createAppPassword#appPassword
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct AppPassword {
     pub created_at: String,
     pub name: String,

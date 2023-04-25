@@ -2,7 +2,8 @@
 //! Definitions for the `app.bsky.feed.defs` namespace.
 
 // app.bsky.feed.defs#feedViewPost
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct FeedViewPost {
     pub post: crate::app::bsky::feed::defs::PostView,
     // pub reason: ...,
@@ -10,14 +11,16 @@ pub struct FeedViewPost {
 }
 
 // app.bsky.feed.defs#notFoundPost
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct NotFoundPost {
     pub not_found: bool,
     pub uri: String,
 }
 
 // app.bsky.feed.defs#postView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct PostView {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,
@@ -33,21 +36,24 @@ pub struct PostView {
 }
 
 // app.bsky.feed.defs#reasonRepost
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReasonRepost {
     pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub indexed_at: String,
 }
 
 // app.bsky.feed.defs#replyRef
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReplyRef {
     pub parent: crate::app::bsky::feed::defs::PostView,
     pub root: crate::app::bsky::feed::defs::PostView,
 }
 
 // app.bsky.feed.defs#threadViewPost
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ThreadViewPost {
     // pub parent: ...,
     pub post: PostView,
@@ -55,7 +61,8 @@ pub struct ThreadViewPost {
 }
 
 // app.bsky.feed.defs#viewerState
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ViewerState {
     pub like: Option<String>,
     pub repost: Option<String>,

@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.admin.takeModerationAction` namespace.
 
 /// Take a moderation action on a repo.
-pub trait TakeModerationAction {
-    fn take_moderation_action(&self, input: Input) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait TakeModerationAction: crate::xrpc::XrpcClient {
+    async fn take_moderation_action(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.admin.takeModerationAction",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub action: String,
     pub create_label_vals: Option<Vec<String>>,

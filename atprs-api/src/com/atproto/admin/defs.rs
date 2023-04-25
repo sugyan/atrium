@@ -6,7 +6,8 @@
 pub struct Acknowledge;
 
 // com.atproto.admin.defs#actionReversal
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ActionReversal {
     pub created_at: String,
     pub created_by: String,
@@ -14,11 +15,12 @@ pub struct ActionReversal {
 }
 
 // com.atproto.admin.defs#actionType
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct ActionType;
 
 // com.atproto.admin.defs#actionView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ActionView {
     pub action: ActionType,
     pub create_label_vals: Option<Vec<String>>,
@@ -34,14 +36,16 @@ pub struct ActionView {
 }
 
 // com.atproto.admin.defs#actionViewCurrent
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ActionViewCurrent {
     pub action: ActionType,
     pub id: i32,
 }
 
 // com.atproto.admin.defs#actionViewDetail
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ActionViewDetail {
     pub action: ActionType,
     pub create_label_vals: Option<Vec<String>>,
@@ -57,7 +61,8 @@ pub struct ActionViewDetail {
 }
 
 // com.atproto.admin.defs#blobView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct BlobView {
     pub cid: String,
     pub created_at: String,
@@ -72,20 +77,23 @@ pub struct BlobView {
 pub struct Flag;
 
 // com.atproto.admin.defs#imageDetails
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ImageDetails {
     pub height: i32,
     pub width: i32,
 }
 
 // com.atproto.admin.defs#moderation
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Moderation {
     pub current_action: Option<ActionViewCurrent>,
 }
 
 // com.atproto.admin.defs#moderationDetail
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ModerationDetail {
     pub actions: Vec<ActionView>,
     pub current_action: Option<ActionViewCurrent>,
@@ -93,7 +101,8 @@ pub struct ModerationDetail {
 }
 
 // com.atproto.admin.defs#recordView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RecordView {
     pub blob_cids: Vec<String>,
     pub cid: String,
@@ -105,7 +114,8 @@ pub struct RecordView {
 }
 
 // com.atproto.admin.defs#recordViewDetail
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RecordViewDetail {
     pub blobs: Vec<BlobView>,
     pub cid: String,
@@ -118,13 +128,15 @@ pub struct RecordViewDetail {
 }
 
 // com.atproto.admin.defs#repoRef
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RepoRef {
     pub did: String,
 }
 
 // com.atproto.admin.defs#repoView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RepoView {
     pub did: String,
     pub email: Option<String>,
@@ -136,7 +148,8 @@ pub struct RepoView {
 }
 
 // com.atproto.admin.defs#repoViewDetail
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct RepoViewDetail {
     pub did: String,
     pub email: Option<String>,
@@ -150,7 +163,8 @@ pub struct RepoViewDetail {
 }
 
 // com.atproto.admin.defs#reportView
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReportView {
     pub created_at: String,
     pub id: i32,
@@ -162,7 +176,8 @@ pub struct ReportView {
 }
 
 // com.atproto.admin.defs#reportViewDetail
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct ReportViewDetail {
     pub created_at: String,
     pub id: i32,
@@ -178,7 +193,8 @@ pub struct ReportViewDetail {
 pub struct Takedown;
 
 // com.atproto.admin.defs#videoDetails
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct VideoDetails {
     pub height: i32,
     pub length: i32,

@@ -2,11 +2,21 @@
 //! Definitions for the `com.atproto.server.deleteAccount` namespace.
 
 /// Delete a user account with a token and password.
-pub trait DeleteAccount {
-    fn delete_account(&self, input: Input) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait DeleteAccount: crate::xrpc::XrpcClient {
+    async fn delete_account(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::POST,
+            "com.atproto.server.deleteAccount",
+            Some(input),
+        )
+        .await
+    }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Input {
     pub did: String,
     pub password: String,
