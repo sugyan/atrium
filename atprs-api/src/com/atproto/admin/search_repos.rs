@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.admin.searchRepos` namespace.
 
 /// Find repositories based on a search term.
-pub trait SearchRepos {
-    fn search_repos(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait SearchRepos: crate::xrpc::XrpcClient {
+    async fn search_repos(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.admin.searchRepos",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub invited_by: Option<String>,

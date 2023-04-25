@@ -112,18 +112,44 @@ impl CodeWriter {
         }
         let has_params = query.parameters.is_some();
         let has_output = query.output.as_ref().map_or(false, |o| o.schema.is_some());
-        writeln!(&mut self.buf, "pub trait {} {{", name.to_pascal_case())?;
+        writeln!(&mut self.buf, "#[async_trait::async_trait]")?;
         writeln!(
             &mut self.buf,
-            "    fn {}(&self{}) -> Result<{}, Error>;",
+            "pub trait {}: crate::xrpc::XrpcClient {{",
+            name.to_pascal_case()
+        )?;
+        writeln!(
+            &mut self.buf,
+            "    async fn {}(&self{}) -> Result<{}, Box<dyn std::error::Error>> {{",
             name.to_snake_case(),
             if has_params {
-                ", input: Parameters"
+                ", params: Parameters"
             } else {
                 ""
             },
             if has_output { "Output" } else { "()" }
         )?;
+        writeln!(&mut self.buf, "        crate::xrpc::XrpcClient::send(")?;
+        writeln!(&mut self.buf, "            self,")?;
+        writeln!(&mut self.buf, "            http::Method::GET,")?;
+        writeln!(
+            &mut self.buf,
+            "            {:?},",
+            self.schema_id.as_ref().expect("schema id must be set")
+        )?;
+        writeln!(
+            &mut self.buf,
+            "            {},",
+            if has_params {
+                "Some(params)"
+            } else {
+                "Option::<()>::None"
+            }
+        )?;
+        writeln!(&mut self.buf, "            Option::<()>::None,")?;
+        writeln!(&mut self.buf, "        )")?;
+        writeln!(&mut self.buf, "        .await")?;
+        writeln!(&mut self.buf, "    }}")?;
         writeln!(&mut self.buf, "}}")?;
         // parameters
         if let Some(LexXrpcQueryParameter::Params(parameters)) = &query.parameters {
@@ -134,6 +160,11 @@ impl CodeWriter {
             };
 
             writeln!(&mut self.buf)?;
+            writeln!(
+                &mut self.buf,
+                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            )?;
+            writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
             writeln!(&mut self.buf, "pub struct Parameters {{")?;
             for key in parameters.properties.keys().sorted() {
                 let property = match &parameters.properties[key] {
@@ -230,6 +261,7 @@ impl CodeWriter {
             "            {:?},",
             self.schema_id.as_ref().expect("schema id must be set")
         )?;
+        writeln!(&mut self.buf, "            Option::<()>::None,")?;
         writeln!(
             &mut self.buf,
             "            {},",

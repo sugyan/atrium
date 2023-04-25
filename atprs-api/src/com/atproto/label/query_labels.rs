@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.label.queryLabels` namespace.
 
 /// Find labels relevant to the provided URI patterns.
-pub trait QueryLabels {
-    fn query_labels(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait QueryLabels: crate::xrpc::XrpcClient {
+    async fn query_labels(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.label.queryLabels",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

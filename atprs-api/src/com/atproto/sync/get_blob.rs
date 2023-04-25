@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.getBlob` namespace.
 
 /// Get a blob associated with a given repo.
-pub trait GetBlob {
-    fn get_blob(&self, input: Parameters) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait GetBlob: crate::xrpc::XrpcClient {
+    async fn get_blob(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.getBlob",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The CID of the blob to fetch
     pub cid: String,

@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.admin.getRepo` namespace.
 
 /// View details about a repository.
-pub trait GetRepo {
-    fn get_repo(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetRepo: crate::xrpc::XrpcClient {
+    async fn get_repo(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.admin.getRepo",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub did: String,
 }

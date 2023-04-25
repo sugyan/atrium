@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.repo.listRecords` namespace.
 
 /// List a range of records in a collection.
-pub trait ListRecords {
-    fn list_records(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ListRecords: crate::xrpc::XrpcClient {
+    async fn list_records(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.repo.listRecords",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The NSID of the record type.
     pub collection: String,

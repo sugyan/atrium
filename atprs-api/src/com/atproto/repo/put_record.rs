@@ -9,6 +9,7 @@ pub trait PutRecord: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.repo.putRecord",
+            Option::<()>::None,
             Some(input),
         )
         .await

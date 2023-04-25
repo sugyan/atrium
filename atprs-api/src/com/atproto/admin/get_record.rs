@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.admin.getRecord` namespace.
 
 /// View details about a record.
-pub trait GetRecord {
-    fn get_record(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetRecord: crate::xrpc::XrpcClient {
+    async fn get_record(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.admin.getRecord",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cid: Option<String>,
     pub uri: String,

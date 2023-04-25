@@ -9,6 +9,7 @@ pub trait CreateReport: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.moderation.createReport",
+            Option::<()>::None,
             Some(input),
         )
         .await

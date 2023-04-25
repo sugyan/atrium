@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.admin.getInviteCodes` namespace.
 
 /// Admin view of invite codes
-pub trait GetInviteCodes {
-    fn get_invite_codes(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetInviteCodes: crate::xrpc::XrpcClient {
+    async fn get_invite_codes(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.admin.getInviteCodes",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

@@ -9,6 +9,7 @@ pub trait DeleteAccount: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.server.deleteAccount",
+            Option::<()>::None,
             Some(input),
         )
         .await

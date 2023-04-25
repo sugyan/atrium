@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.actor.getSuggestions` namespace.
 
 /// Get a list of actors suggested for following. Used in discovery UIs.
-pub trait GetSuggestions {
-    fn get_suggestions(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetSuggestions: crate::xrpc::XrpcClient {
+    async fn get_suggestions(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.actor.getSuggestions",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

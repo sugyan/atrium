@@ -2,8 +2,18 @@
 //! Definitions for the `com.atproto.server.listAppPasswords` namespace.
 
 /// List all app-specific passwords.
-pub trait ListAppPasswords {
-    fn list_app_passwords(&self) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ListAppPasswords: crate::xrpc::XrpcClient {
+    async fn list_app_passwords(&self) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.server.listAppPasswords",
+            Option::<()>::None,
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]

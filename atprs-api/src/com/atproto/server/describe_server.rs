@@ -2,8 +2,18 @@
 //! Definitions for the `com.atproto.server.describeServer` namespace.
 
 /// Get a document describing the service's accounts configuration.
-pub trait DescribeServer {
-    fn describe_server(&self) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait DescribeServer: crate::xrpc::XrpcClient {
+    async fn describe_server(&self) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.server.describeServer",
+            Option::<()>::None,
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]

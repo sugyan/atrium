@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.identity.resolveHandle` namespace.
 
 /// Provides the DID of a repo.
-pub trait ResolveHandle {
-    fn resolve_handle(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ResolveHandle: crate::xrpc::XrpcClient {
+    async fn resolve_handle(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.identity.resolveHandle",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The handle to resolve. If not supplied, will resolve the host's own handle.
     pub handle: Option<String>,

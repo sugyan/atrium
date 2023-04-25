@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.graph.getFollows` namespace.
 
 /// Who is an actor following?
-pub trait GetFollows {
-    fn get_follows(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetFollows: crate::xrpc::XrpcClient {
+    async fn get_follows(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.graph.getFollows",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub actor: String,
     pub cursor: Option<String>,

@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.requestCrawl` namespace.
 
 /// Request a service to persistently crawl hosted repos.
-pub trait RequestCrawl {
-    fn request_crawl(&self, input: Parameters) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait RequestCrawl: crate::xrpc::XrpcClient {
+    async fn request_crawl(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.requestCrawl",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// Hostname of the service that is requesting to be crawled.
     pub hostname: String,

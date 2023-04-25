@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.getCommitPath` namespace.
 
 /// Gets the path of repo commits
-pub trait GetCommitPath {
-    fn get_commit_path(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetCommitPath: crate::xrpc::XrpcClient {
+    async fn get_commit_path(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.getCommitPath",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The DID of the repo.
     pub did: String,

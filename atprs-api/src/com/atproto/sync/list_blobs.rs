@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.listBlobs` namespace.
 
 /// List blob cids for some range of commits
-pub trait ListBlobs {
-    fn list_blobs(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ListBlobs: crate::xrpc::XrpcClient {
+    async fn list_blobs(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.listBlobs",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The DID of the repo.
     pub did: String,

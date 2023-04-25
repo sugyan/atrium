@@ -9,6 +9,7 @@ pub trait CreateInviteCodes: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.server.createInviteCodes",
+            Option::<()>::None,
             Some(input),
         )
         .await

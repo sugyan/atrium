@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.actor.searchActorsTypeahead` namespace.
 
 /// Find actor suggestions for a search term.
-pub trait SearchActorsTypeahead {
-    fn search_actors_typeahead(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait SearchActorsTypeahead: crate::xrpc::XrpcClient {
+    async fn search_actors_typeahead(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.actor.searchActorsTypeahead",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub limit: Option<i32>,
     pub term: Option<String>,

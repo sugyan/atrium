@@ -9,6 +9,7 @@ pub trait CreateAppPassword: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.server.createAppPassword",
+            Option::<()>::None,
             Some(input),
         )
         .await

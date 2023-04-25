@@ -9,6 +9,7 @@ pub trait DisableInviteCodes: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.admin.disableInviteCodes",
+            Option::<()>::None,
             Some(input),
         )
         .await

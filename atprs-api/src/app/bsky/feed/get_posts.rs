@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.feed.getPosts` namespace.
 
 /// A view of an actor's feed.
-pub trait GetPosts {
-    fn get_posts(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetPosts: crate::xrpc::XrpcClient {
+    async fn get_posts(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.feed.getPosts",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub uris: Vec<String>,
 }

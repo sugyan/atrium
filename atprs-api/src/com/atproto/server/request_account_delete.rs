@@ -10,6 +10,7 @@ pub trait RequestAccountDelete: crate::xrpc::XrpcClient {
             http::Method::POST,
             "com.atproto.server.requestAccountDelete",
             Option::<()>::None,
+            Option::<()>::None,
         )
         .await
     }

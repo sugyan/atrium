@@ -9,6 +9,7 @@ pub trait MuteActor: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "app.bsky.graph.muteActor",
+            Option::<()>::None,
             Some(input),
         )
         .await

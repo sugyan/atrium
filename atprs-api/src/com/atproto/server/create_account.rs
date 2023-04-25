@@ -9,6 +9,7 @@ pub trait CreateAccount: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.server.createAccount",
+            Option::<()>::None,
             Some(input),
         )
         .await

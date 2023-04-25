@@ -9,6 +9,7 @@ pub trait RevokeAppPassword: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.server.revokeAppPassword",
+            Option::<()>::None,
             Some(input),
         )
         .await

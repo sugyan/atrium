@@ -9,6 +9,7 @@ pub trait ReverseModerationAction: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.admin.reverseModerationAction",
+            Option::<()>::None,
             Some(input),
         )
         .await

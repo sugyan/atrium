@@ -10,6 +10,7 @@ pub trait UploadBlob: crate::xrpc::XrpcClient {
             http::Method::POST,
             "com.atproto.repo.uploadBlob",
             Option::<()>::None,
+            Option::<()>::None,
         )
         .await
     }

@@ -9,6 +9,7 @@ pub trait UpdateHandle: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.identity.updateHandle",
+            Option::<()>::None,
             Some(input),
         )
         .await

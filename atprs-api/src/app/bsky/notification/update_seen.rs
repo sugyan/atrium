@@ -9,6 +9,7 @@ pub trait UpdateSeen: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "app.bsky.notification.updateSeen",
+            Option::<()>::None,
             Some(input),
         )
         .await

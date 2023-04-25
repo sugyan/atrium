@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.notifyOfUpdate` namespace.
 
 /// Notify a crawling service of a recent update. Often when a long break between updates causes the connection with the crawling service to break.
-pub trait NotifyOfUpdate {
-    fn notify_of_update(&self, input: Parameters) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait NotifyOfUpdate: crate::xrpc::XrpcClient {
+    async fn notify_of_update(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.notifyOfUpdate",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// Hostname of the service that is notifying of update.
     pub hostname: String,

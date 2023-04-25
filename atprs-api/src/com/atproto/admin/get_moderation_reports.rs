@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.admin.getModerationReports` namespace.
 
 /// List moderation reports related to a subject.
-pub trait GetModerationReports {
-    fn get_moderation_reports(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetModerationReports: crate::xrpc::XrpcClient {
+    async fn get_moderation_reports(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.admin.getModerationReports",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

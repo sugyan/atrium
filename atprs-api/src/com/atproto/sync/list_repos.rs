@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.listRepos` namespace.
 
 /// List dids and root cids of hosted repos
-pub trait ListRepos {
-    fn list_repos(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait ListRepos: crate::xrpc::XrpcClient {
+    async fn list_repos(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.listRepos",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

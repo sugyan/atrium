@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.unspecced.getPopular` namespace.
 
 /// An unspecced view of globally popular items
-pub trait GetPopular {
-    fn get_popular(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetPopular: crate::xrpc::XrpcClient {
+    async fn get_popular(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.unspecced.getPopular",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

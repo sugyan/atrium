@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.sync.getRecord` namespace.
 
 /// Gets blocks needed for existence or non-existence of record.
-pub trait GetRecord {
-    fn get_record(&self, input: Parameters) -> Result<(), Error>;
+#[async_trait::async_trait]
+pub trait GetRecord: crate::xrpc::XrpcClient {
+    async fn get_record(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.sync.getRecord",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub collection: String,
     /// An optional past commit CID.

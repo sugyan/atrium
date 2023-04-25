@@ -9,6 +9,7 @@ pub trait ApplyWrites: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.repo.applyWrites",
+            Option::<()>::None,
             Some(input),
         )
         .await

@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.actor.searchActors` namespace.
 
 /// Find actors matching search criteria.
-pub trait SearchActors {
-    fn search_actors(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait SearchActors: crate::xrpc::XrpcClient {
+    async fn search_actors(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.actor.searchActors",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cursor: Option<String>,
     pub limit: Option<i32>,

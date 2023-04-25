@@ -2,8 +2,18 @@
 //! Definitions for the `com.atproto.server.getSession` namespace.
 
 /// Get information about the current session.
-pub trait GetSession {
-    fn get_session(&self) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetSession: crate::xrpc::XrpcClient {
+    async fn get_session(&self) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.server.getSession",
+            Option::<()>::None,
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]

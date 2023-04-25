@@ -1,4 +1,6 @@
-use atprs_xrpc::{Client, CreateRecordInput, CreateSessionInput, Record};
+use atprs_api::app::bsky::actor::get_profile::{GetProfile, Parameters};
+use atprs_api::com::atproto::server::create_session::{CreateSession, Input};
+use atprs_xrpc::XrpcReqwestClient;
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
@@ -16,7 +18,7 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    GetProfile,
+    GetProfile { actor: String },
     CreateRecord { text: String },
 }
 
@@ -41,29 +43,20 @@ async fn run(
     password: &str,
     command: Command,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = Client::new(host);
+    let mut client = XrpcReqwestClient::new(host);
     let session = client
-        .create_session(CreateSessionInput {
+        .create_session(Input {
             identifier: identifier.to_string(),
             password: password.to_string(),
         })
         .await?;
-    client.set_auth(session.clone());
+    client.set_auth(session.access_jwt);
     match command {
-        Command::GetProfile => {
-            println!("{:?}", client.get_profile(session.handle).await?);
+        Command::GetProfile { actor } => {
+            println!("{:?}", client.get_profile(Parameters { actor }).await?);
         }
-        Command::CreateRecord { text } => {
-            println!(
-                "{:?}",
-                client
-                    .create_record(CreateRecordInput {
-                        repo: session.did,
-                        collection: String::from("app.bsky.feed.post"),
-                        record: Record::FeedPost(text),
-                    })
-                    .await?
-            )
+        Command::CreateRecord { text: _ } => {
+            todo!()
         }
     };
 

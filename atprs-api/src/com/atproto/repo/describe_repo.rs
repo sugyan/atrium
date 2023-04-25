@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.repo.describeRepo` namespace.
 
 /// Get information about the repo, including the list of collections.
-pub trait DescribeRepo {
-    fn describe_repo(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait DescribeRepo: crate::xrpc::XrpcClient {
+    async fn describe_repo(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.repo.describeRepo",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The handle or DID of the repo.
     pub repo: String,

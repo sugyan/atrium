@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.feed.getTimeline` namespace.
 
 /// A view of the user's home timeline.
-pub trait GetTimeline {
-    fn get_timeline(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetTimeline: crate::xrpc::XrpcClient {
+    async fn get_timeline(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.feed.getTimeline",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub algorithm: Option<String>,
     pub cursor: Option<String>,

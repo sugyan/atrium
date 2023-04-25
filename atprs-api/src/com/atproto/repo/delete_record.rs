@@ -9,6 +9,7 @@ pub trait DeleteRecord: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.repo.deleteRecord",
+            Option::<()>::None,
             Some(input),
         )
         .await

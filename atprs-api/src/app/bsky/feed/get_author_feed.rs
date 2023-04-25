@@ -2,10 +2,22 @@
 //! Definitions for the `app.bsky.feed.getAuthorFeed` namespace.
 
 /// A view of an actor's feed.
-pub trait GetAuthorFeed {
-    fn get_author_feed(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetAuthorFeed: crate::xrpc::XrpcClient {
+    async fn get_author_feed(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "app.bsky.feed.getAuthorFeed",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub actor: String,
     pub cursor: Option<String>,

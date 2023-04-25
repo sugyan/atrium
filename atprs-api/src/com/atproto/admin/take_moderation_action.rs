@@ -9,6 +9,7 @@ pub trait TakeModerationAction: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.admin.takeModerationAction",
+            Option::<()>::None,
             Some(input),
         )
         .await

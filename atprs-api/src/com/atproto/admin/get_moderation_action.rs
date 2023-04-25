@@ -2,10 +2,22 @@
 //! Definitions for the `com.atproto.admin.getModerationAction` namespace.
 
 /// View details about a moderation action.
-pub trait GetModerationAction {
-    fn get_moderation_action(&self, input: Parameters) -> Result<Output, Error>;
+#[async_trait::async_trait]
+pub trait GetModerationAction: crate::xrpc::XrpcClient {
+    async fn get_moderation_action(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+        crate::xrpc::XrpcClient::send(
+            self,
+            http::Method::GET,
+            "com.atproto.admin.getModerationAction",
+            Some(params),
+            Option::<()>::None,
+        )
+        .await
+    }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub id: i32,
 }

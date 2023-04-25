@@ -9,6 +9,7 @@ pub trait ResetPassword: crate::xrpc::XrpcClient {
             self,
             http::Method::POST,
             "com.atproto.server.resetPassword",
+            Option::<()>::None,
             Some(input),
         )
         .await

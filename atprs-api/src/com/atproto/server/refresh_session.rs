@@ -10,6 +10,7 @@ pub trait RefreshSession: crate::xrpc::XrpcClient {
             http::Method::POST,
             "com.atproto.server.refreshSession",
             Option::<()>::None,
+            Option::<()>::None,
         )
         .await
     }

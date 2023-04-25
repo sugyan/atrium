@@ -10,6 +10,7 @@ pub trait DeleteSession: crate::xrpc::XrpcClient {
             http::Method::POST,
             "com.atproto.server.deleteSession",
             Option::<()>::None,
+            Option::<()>::None,
         )
         .await
     }
