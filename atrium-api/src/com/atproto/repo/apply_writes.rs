@@ -21,8 +21,10 @@ pub trait ApplyWrites: crate::xrpc::XrpcClient {
 pub struct Input {
     /// The handle or DID of the repo.
     pub repo: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
     /// Validate the records?
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
     // pub writes: Vec<...>
 }
@@ -37,8 +39,9 @@ pub enum Error {
 #[serde(rename_all = "camelCase")]
 pub struct Create {
     pub collection: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
-    // pub value: ...,
+    pub value: crate::records::Record,
 }
 
 // com.atproto.repo.applyWrites#delete
@@ -57,5 +60,5 @@ pub struct Delete {
 pub struct Update {
     pub collection: String,
     pub rkey: String,
-    // pub value: ...,
+    pub value: crate::records::Record,
 }

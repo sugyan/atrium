@@ -19,15 +19,20 @@ pub trait GetModerationReports: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub reports: Vec<crate::com::atproto::admin::defs::ReportView>,
 }

@@ -19,6 +19,7 @@ pub trait CreateReport: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     // pub subject: ...,
@@ -29,6 +30,7 @@ pub struct Input {
 pub struct Output {
     pub created_at: String,
     pub id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,

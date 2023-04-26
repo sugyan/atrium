@@ -20,6 +20,7 @@ pub trait CreateInviteCodes: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub code_count: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub for_accounts: Option<Vec<String>>,
     pub use_count: i32,
 }

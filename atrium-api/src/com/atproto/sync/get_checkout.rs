@@ -20,6 +20,7 @@ pub trait GetCheckout: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The commit to get the checkout from. Defaults to current HEAD.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commit: Option<String>,
     /// The DID of the repo.
     pub did: String,

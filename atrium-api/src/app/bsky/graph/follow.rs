@@ -3,5 +3,9 @@
 
 // app.bsky.graph.follow
 /// A social follow.
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct Main {}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Record {
+    pub created_at: String,
+    pub subject: String,
+}

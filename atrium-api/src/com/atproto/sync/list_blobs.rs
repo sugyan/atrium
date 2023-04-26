@@ -22,8 +22,10 @@ pub struct Parameters {
     /// The DID of the repo.
     pub did: String,
     /// The earliest commit to start from
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub earliest: Option<String>,
     /// The most recent commit
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub latest: Option<String>,
 }
 

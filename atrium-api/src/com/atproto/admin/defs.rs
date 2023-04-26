@@ -23,13 +23,16 @@ pub struct ActionType;
 #[serde(rename_all = "camelCase")]
 pub struct ActionView {
     pub action: ActionType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub create_label_vals: Option<Vec<String>>,
     pub created_at: String,
     pub created_by: String,
     pub id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
     pub reason: String,
     pub resolved_report_ids: Vec<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reversal: Option<ActionReversal>,
     // pub subject: ...,
     pub subject_blob_cids: Vec<String>,
@@ -48,13 +51,16 @@ pub struct ActionViewCurrent {
 #[serde(rename_all = "camelCase")]
 pub struct ActionViewDetail {
     pub action: ActionType,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub create_label_vals: Option<Vec<String>>,
     pub created_at: String,
     pub created_by: String,
     pub id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
     pub reason: String,
     pub resolved_reports: Vec<ReportView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reversal: Option<ActionReversal>,
     // pub subject: ...,
     pub subject_blobs: Vec<BlobView>,
@@ -68,6 +74,7 @@ pub struct BlobView {
     pub created_at: String,
     // pub details: ...,
     pub mime_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
     pub size: i32,
 }
@@ -88,6 +95,7 @@ pub struct ImageDetails {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Moderation {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub current_action: Option<ActionViewCurrent>,
 }
 
@@ -96,6 +104,7 @@ pub struct Moderation {
 #[serde(rename_all = "camelCase")]
 pub struct ModerationDetail {
     pub actions: Vec<ActionView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub current_action: Option<ActionViewCurrent>,
     pub reports: Vec<ReportView>,
 }
@@ -110,7 +119,7 @@ pub struct RecordView {
     pub moderation: Moderation,
     pub repo: RepoView,
     pub uri: String,
-    // pub value: ...,
+    pub value: crate::records::Record,
 }
 
 // com.atproto.admin.defs#recordViewDetail
@@ -120,11 +129,12 @@ pub struct RecordViewDetail {
     pub blobs: Vec<BlobView>,
     pub cid: String,
     pub indexed_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
     pub repo: RepoView,
     pub uri: String,
-    // pub value: ...,
+    pub value: crate::records::Record,
 }
 
 // com.atproto.admin.defs#repoRef
@@ -139,9 +149,11 @@ pub struct RepoRef {
 #[serde(rename_all = "camelCase")]
 pub struct RepoView {
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub handle: String,
     pub indexed_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
     pub moderation: Moderation,
     // pub related_records: Vec<...>
@@ -152,11 +164,15 @@ pub struct RepoView {
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewDetail {
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub handle: String,
     pub indexed_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub invites: Option<Vec<crate::com::atproto::server::defs::InviteCode>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
     // pub related_records: Vec<...>
@@ -168,6 +184,7 @@ pub struct RepoViewDetail {
 pub struct ReportView {
     pub created_at: String,
     pub id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
@@ -181,6 +198,7 @@ pub struct ReportView {
 pub struct ReportViewDetail {
     pub created_at: String,
     pub id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,

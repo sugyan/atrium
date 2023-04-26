@@ -18,14 +18,18 @@ pub trait ListNotifications: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub seen_at: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub notifications: Vec<Notification>,
 }
@@ -41,10 +45,12 @@ pub struct Notification {
     pub cid: String,
     pub indexed_at: String,
     pub is_read: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     /// Expected values are 'like', 'repost', 'follow', 'mention', 'reply', and 'quote'.
     pub reason: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reason_subject: Option<String>,
-    // pub record: ...,
+    pub record: crate::records::Record,
     pub uri: String,
 }

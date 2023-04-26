@@ -19,9 +19,12 @@ pub trait QueryLabels: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
     /// Optional list of label sources (DIDs) to filter on
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<String>>,
     /// List of AT URI patterns to match (boolean 'OR'). Each may be a prefix (ending with '*'; will match inclusive of the string leading to '*'), or a full URI
     pub uri_patterns: Vec<String>,
@@ -30,6 +33,7 @@ pub struct Parameters {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub labels: Vec<crate::com::atproto::label::defs::Label>,
 }

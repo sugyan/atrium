@@ -27,6 +27,7 @@ pub fn genapi(lexdir: impl AsRef<Path>, outdir: impl AsRef<Path>, prefix: &str) 
     {
         generate_code(schema, &outdir, &defmap)?;
     }
+    generate_records(&outdir, &schemas)?;
     generate_modules(&outdir)?;
     Ok(())
 }
@@ -57,7 +58,6 @@ fn generate_code(
         create_dir_all(outdir.join(paths.join("/")))?;
         let mut writer = CodeWriter::new(Some(schema.id.clone()));
         writer.write_header(&schema.description)?;
-        // TODO
         let mut keys = Vec::new();
         for (key, def) in &schema.defs {
             if key == "main" {
@@ -83,6 +83,27 @@ fn generate_code(
             outdir.join(paths.join("/")).join(filename),
         )?)?;
     }
+    Ok(())
+}
+
+fn generate_records(outdir: &Path, schemas: &[LexiconDoc]) -> Result<()> {
+    let records = schemas
+        .iter()
+        .filter_map(|schema| {
+            if let Some(LexUserType::Record(_)) = schema.defs.get("main") {
+                Some(schema.id.clone())
+            } else {
+                None
+            }
+        })
+        .sorted()
+        .collect_vec();
+    let mut writer = CodeWriter::new(None);
+    writer.write_header(&Some(String::from(
+        "Collection of ATP repository record type",
+    )))?;
+    writer.write_records(&records)?;
+    writer.write_to_file(&mut File::create(outdir.join("records.rs"))?)?;
     Ok(())
 }
 

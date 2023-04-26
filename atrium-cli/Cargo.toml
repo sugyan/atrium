@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 atrium-api = { path = "../atrium-api" }
 atrium-xrpc = { path = "../atrium-xrpc" }
+chrono = "0.4.24"
 clap = { version = "4.2.2", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 toml = "0.7.3"

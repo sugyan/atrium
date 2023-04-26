@@ -20,6 +20,7 @@ pub trait GetRecord: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The CID of the version of the record. If not specified, then return the most recent version.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     /// The NSID of the record collection.
     pub collection: String,
@@ -32,9 +33,10 @@ pub struct Parameters {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     pub uri: String,
-    // pub value: ...,
+    pub value: crate::records::Record,
 }
 
 pub enum Error {

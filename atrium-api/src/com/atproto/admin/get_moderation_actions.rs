@@ -19,8 +19,11 @@ pub trait GetModerationActions: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
 }
 
@@ -28,6 +31,7 @@ pub struct Parameters {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub actions: Vec<crate::com::atproto::admin::defs::ActionView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
 }
 

@@ -22,14 +22,17 @@ pub struct Input {
     /// The NSID of the record collection.
     pub collection: String,
     /// The record to create.
-    // pub record: ...,
+    pub record: crate::records::Record,
     /// The handle or DID of the repo.
     pub repo: String,
     /// The key of the record.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
     /// Compare and swap with the previous commit by cid.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
     /// Validate the record?
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }
 

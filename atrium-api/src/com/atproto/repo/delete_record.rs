@@ -26,8 +26,10 @@ pub struct Input {
     /// The key of the record.
     pub rkey: String,
     /// Compare and swap with the previous commit by cid.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
     /// Compare and swap with the previous record by cid.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_record: Option<String>,
 }
 

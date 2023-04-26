@@ -1,8 +1,14 @@
 use atrium_api::app::bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameters};
 use atrium_api::app::bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
-use atrium_api::com::atproto::server::create_session::{CreateSession, Input};
+use atrium_api::app::bsky::feed::post::Record as PostRecord;
+use atrium_api::com::atproto::repo::create_record::{CreateRecord, Input as CreateRecordInput};
+use atrium_api::com::atproto::server::create_session::{
+    CreateSession, Input as CreateSessionInput,
+};
 use atrium_api::com::atproto::server::get_session::GetSession;
+use atrium_api::records::Record;
 use atrium_xrpc::XrpcReqwestClient;
+use chrono::Utc;
 use clap::{Parser, Subcommand};
 use std::fs;
 use std::path::PathBuf;
@@ -20,7 +26,7 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    // CreateRecord { text: String },
+    CreateRecord { text: String },
     GetProfile { actor: String },
     GetSession,
     GetTimeline,
@@ -55,16 +61,34 @@ async fn run(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = XrpcReqwestClient::new(host);
     let session = client
-        .create_session(Input {
+        .create_session(CreateSessionInput {
             identifier,
             password,
         })
         .await?;
     client.set_auth(session.access_jwt);
     match command {
-        // Command::CreateRecord { text: _ } => {
-        //     todo!()
-        // }
+        Command::CreateRecord { text } => {
+            println!(
+                "{:#?}",
+                client
+                    .create_record(CreateRecordInput {
+                        collection: String::from("app.bsky.feed.post"),
+                        record: Record::AppBskyFeedPost(PostRecord {
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            entities: None,
+                            facets: None,
+                            reply: None,
+                            text,
+                        }),
+                        repo: session.did,
+                        rkey: None,
+                        swap_commit: None,
+                        validate: None,
+                    })
+                    .await?
+            );
+        }
         Command::GetProfile { actor } => {
             println!(
                 "{:#?}",

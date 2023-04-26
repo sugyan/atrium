@@ -7,10 +7,12 @@
 #[serde(rename_all = "camelCase")]
 pub struct Label {
     /// optionally, CID specifying the specific version of 'uri' resource this label applies to
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     /// timestamp when this label was created
     pub cts: String,
     /// if true, this is a negation label, overwriting a previous label
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub neg: Option<bool>,
     /// DID of the actor who created this label
     pub src: String,

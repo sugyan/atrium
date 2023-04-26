@@ -20,7 +20,9 @@ pub trait DescribeServer: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub available_user_domains: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_code_required: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<Links>,
 }
 
@@ -31,6 +33,8 @@ pub enum Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Links {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub terms_of_service: Option<String>,
 }

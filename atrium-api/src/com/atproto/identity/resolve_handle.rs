@@ -20,6 +20,7 @@ pub trait ResolveHandle: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The handle to resolve. If not supplied, will resolve the host's own handle.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<String>,
 }
 

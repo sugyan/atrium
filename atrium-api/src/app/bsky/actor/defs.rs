@@ -6,13 +6,19 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileView {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
     pub handle: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
 
@@ -20,11 +26,15 @@ pub struct ProfileView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileViewBasic {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
     pub handle: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
 
@@ -32,17 +42,27 @@ pub struct ProfileViewBasic {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileViewDetailed {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub followers_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub follows_count: Option<i32>,
     pub handle: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub posts_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
 
@@ -50,7 +70,10 @@ pub struct ProfileViewDetailed {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewerState {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub followed_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
 }

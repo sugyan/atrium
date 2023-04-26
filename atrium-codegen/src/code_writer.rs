@@ -1,7 +1,8 @@
 use atrium_lex::lexicon::{
-    LexArray, LexArrayItem, LexObject, LexObjectProperty, LexPrimitiveArrayItem, LexRecord, LexRef,
-    LexToken, LexUserType, LexXrpcBodySchema, LexXrpcError, LexXrpcParametersProperty,
-    LexXrpcProcedure, LexXrpcQuery, LexXrpcQueryParameter, LexXrpcSubscription,
+    LexArray, LexArrayItem, LexObject, LexObjectProperty, LexPrimitiveArrayItem, LexRecord,
+    LexRecordRecord, LexRef, LexToken, LexUserType, LexXrpcBodySchema, LexXrpcError,
+    LexXrpcParametersProperty, LexXrpcProcedure, LexXrpcQuery, LexXrpcQueryParameter,
+    LexXrpcSubscription,
 };
 use heck::{ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
@@ -63,7 +64,7 @@ impl CodeWriter {
                     name.to_pascal_case()
                 };
                 match def {
-                    LexUserType::Record(record) => self.write_record(&defname, record, defmap)?,
+                    LexUserType::Record(record) => self.write_record(record)?,
                     LexUserType::XrpcSubscription(subscription) => {
                         self.write_subscription(&defname, subscription, defmap)?
                     }
@@ -74,6 +75,26 @@ impl CodeWriter {
                 }
             }
         }
+        Ok(())
+    }
+    pub fn write_records(&mut self, records: &[String]) -> Result<()> {
+        writeln!(&mut self.buf)?;
+        writeln!(
+            &mut self.buf,
+            r#"#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"#
+        )?;
+        writeln!(&mut self.buf, r#"#[serde(tag = "$type")]"#)?;
+        writeln!(&mut self.buf, "pub enum Record {{")?;
+        for r in records {
+            writeln!(&mut self.buf, r#"    #[serde(rename = "{}")]"#, r)?;
+            writeln!(
+                &mut self.buf,
+                "    {}(crate::{}::Record),",
+                r.to_pascal_case(),
+                r.split('.').map(str::to_snake_case).join("::")
+            )?;
+        }
+        writeln!(&mut self.buf, "}}")?;
         Ok(())
     }
     pub fn write_mods(&mut self, mods: &[String]) -> Result<()> {
@@ -89,21 +110,12 @@ impl CodeWriter {
         file.write_all(&self.buf)
     }
 
-    fn write_record(
-        &mut self,
-        name: &str,
-        record: &LexRecord,
-        _defmap: &HashMap<String, &LexUserType>,
-    ) -> Result<()> {
+    fn write_record(&mut self, record: &LexRecord) -> Result<()> {
         if let Some(description) = &record.description {
             writeln!(&mut self.buf, "/// {}", description)?;
         }
-        // TODO
-        writeln!(
-            &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize)]"
-        )?;
-        writeln!(&mut self.buf, "pub struct {} {{}}", name.to_pascal_case())?;
+        let LexRecordRecord::Object(object) = &record.record;
+        self.write_object("Record", object)?;
         Ok(())
     }
     fn write_query(&mut self, name: &str, query: &LexXrpcQuery) -> Result<()> {
@@ -400,6 +412,10 @@ impl CodeWriter {
                 let field_type = if required {
                     ref_type
                 } else {
+                    writeln!(
+                        &mut self.buf,
+                        r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                    )?;
                     format!("Option<{}>", ref_type)
                 };
                 writeln!(
@@ -456,6 +472,12 @@ impl CodeWriter {
                         name.to_snake_case()
                     )?;
                 } else {
+                    if !required {
+                        writeln!(
+                            &mut self.buf,
+                            r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                        )?;
+                    }
                     writeln!(
                         &mut self.buf,
                         "    pub {}: {field_type},",
@@ -474,7 +496,15 @@ impl CodeWriter {
                 if let Some(description) = &boolean.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                let field_type = if required { "bool" } else { "Option<bool>" };
+                let field_type = if required {
+                    "bool"
+                } else {
+                    writeln!(
+                        &mut self.buf,
+                        r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                    )?;
+                    "Option<bool>"
+                };
                 writeln!(
                     &mut self.buf,
                     "    pub {}: {field_type},",
@@ -486,7 +516,15 @@ impl CodeWriter {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
                 // TODO: usize?
-                let field_type = if required { "i32" } else { "Option<i32>" };
+                let field_type = if required {
+                    "i32"
+                } else {
+                    writeln!(
+                        &mut self.buf,
+                        r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                    )?;
+                    "Option<i32>"
+                };
                 writeln!(
                     &mut self.buf,
                     "    pub {}: {field_type},",
@@ -498,7 +536,15 @@ impl CodeWriter {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
                 // TODO: enum?
-                let field_type = if required { "String" } else { "Option<String>" };
+                let field_type = if required {
+                    "String"
+                } else {
+                    writeln!(
+                        &mut self.buf,
+                        r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                    )?;
+                    "Option<String>"
+                };
                 writeln!(
                     &mut self.buf,
                     "    pub {}: {field_type},",
@@ -510,12 +556,16 @@ impl CodeWriter {
                     }
                 )?;
             }
+            // = Record enum
             LexObjectProperty::Unknown(unknown) => {
                 if let Some(description) = &unknown.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                // TODO
-                writeln!(&mut self.buf, "    // pub {}: ...,", name.to_snake_case())?;
+                writeln!(
+                    &mut self.buf,
+                    "    pub {}: crate::records::Record,",
+                    name.to_snake_case()
+                )?;
             }
         }
         Ok(())

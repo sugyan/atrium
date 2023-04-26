@@ -20,6 +20,7 @@ pub trait GetSession: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub handle: String,
 }

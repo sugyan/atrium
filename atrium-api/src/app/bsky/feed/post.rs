@@ -2,8 +2,20 @@
 //! Definitions for the `app.bsky.feed.post` namespace.
 
 // app.bsky.feed.post
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct Main {}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Record {
+    pub created_at: String,
+    // pub embed: ...,
+    /// Deprecated: replaced by app.bsky.richtext.facet.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub entities: Option<Vec<Entity>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reply: Option<ReplyRef>,
+    pub text: String,
+}
 
 // app.bsky.feed.post#entity
 /// Deprecated: use facets instead.

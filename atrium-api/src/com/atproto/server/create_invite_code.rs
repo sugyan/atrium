@@ -19,6 +19,7 @@ pub trait CreateInviteCode: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub for_account: Option<String>,
     pub use_count: i32,
 }

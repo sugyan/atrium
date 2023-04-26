@@ -28,7 +28,7 @@ pub struct Parameters {
 pub struct Output {
     pub collections: Vec<String>,
     pub did: String,
-    // pub did_doc: ...,
+    pub did_doc: crate::records::Record,
     pub handle: String,
     pub handle_is_correct: bool,
 }

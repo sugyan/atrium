@@ -19,7 +19,9 @@ pub trait DisableInviteCodes: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub accounts: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub codes: Option<Vec<String>>,
 }
 

@@ -2,5 +2,13 @@
 //! Definitions for the `app.bsky.actor.profile` namespace.
 
 // app.bsky.actor.profile
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct Main {}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Record {
+    // pub avatar: ...,
+    // pub banner: ...,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+}

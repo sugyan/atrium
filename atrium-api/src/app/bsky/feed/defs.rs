@@ -7,6 +7,7 @@
 pub struct FeedViewPost {
     pub post: crate::app::bsky::feed::defs::PostView,
     // pub reason: ...,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
 }
 
@@ -26,12 +27,17 @@ pub struct PostView {
     pub cid: String,
     // pub embed: ...,
     pub indexed_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub like_count: Option<i32>,
-    // pub record: ...,
+    pub record: crate::records::Record,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub repost_count: Option<i32>,
     pub uri: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
 
@@ -64,6 +70,8 @@ pub struct ThreadViewPost {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewerState {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub repost: Option<String>,
 }

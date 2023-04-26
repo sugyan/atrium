@@ -20,11 +20,14 @@ pub trait TakeModerationAction: crate::xrpc::XrpcClient {
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub action: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub create_label_vals: Option<Vec<String>>,
     pub created_by: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
     pub reason: String,
     // pub subject: ...,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<String>>,
 }
 

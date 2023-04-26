@@ -21,8 +21,10 @@ pub trait CreateAccount: crate::xrpc::XrpcClient {
 pub struct Input {
     pub email: String,
     pub handle: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_code: Option<String>,
     pub password: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub recovery_key: Option<String>,
 }
 

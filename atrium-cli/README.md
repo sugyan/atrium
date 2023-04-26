@@ -4,6 +4,7 @@
 Usage: atrium-cli [OPTIONS] <COMMAND>
 
 Commands:
+  create-record
   get-profile
   get-session
   get-timeline

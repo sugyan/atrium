@@ -19,7 +19,9 @@ pub trait GetSuggestions: crate::xrpc::XrpcClient {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
 }
 
@@ -27,6 +29,7 @@ pub struct Parameters {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub actors: Vec<crate::app::bsky::actor::defs::ProfileView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
 }
 

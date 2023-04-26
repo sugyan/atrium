@@ -31,6 +31,7 @@ pub struct View {
 #[serde(rename_all = "camelCase")]
 pub struct ViewExternal {
     pub description: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub thumb: Option<String>,
     pub title: String,
     pub uri: String,

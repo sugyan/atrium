@@ -21,6 +21,7 @@ pub trait GetRecord: crate::xrpc::XrpcClient {
 pub struct Parameters {
     pub collection: String,
     /// An optional past commit CID.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commit: Option<String>,
     /// The DID of the repo.
     pub did: String,

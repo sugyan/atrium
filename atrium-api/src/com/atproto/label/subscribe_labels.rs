@@ -10,6 +10,7 @@ pub struct Main {}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Info {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
     pub name: String,
 }
