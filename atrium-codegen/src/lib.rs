@@ -7,7 +7,6 @@ use code_writer::CodeWriter;
 use heck::ToSnakeCase;
 use itertools::Itertools;
 use serde_json::from_reader;
-use std::collections::HashMap;
 use std::fs::{create_dir_all, read_dir, File};
 use std::io::Result;
 use std::path::{Path, PathBuf};
@@ -18,41 +17,20 @@ pub fn genapi(lexdir: impl AsRef<Path>, outdir: impl AsRef<Path>, prefix: &str) 
     let paths = fs::find_schemas(&lexdir)?;
     let mut schemas = Vec::with_capacity(paths.len());
     for path in &paths {
-        schemas.push(from_reader(File::open(path)?)?);
+        schemas.push(from_reader::<_, LexiconDoc>(File::open(path)?)?);
     }
-    let defmap = build_defmap(&schemas);
     for schema in schemas
         .iter()
         .filter(|schema| schema.id.starts_with(prefix))
     {
-        generate_code(schema, &outdir, &defmap)?;
+        generate_code(schema, &outdir)?;
     }
     generate_records(&outdir, &schemas)?;
     generate_modules(&outdir)?;
     Ok(())
 }
 
-fn build_defmap(schemas: &[LexiconDoc]) -> HashMap<String, &LexUserType> {
-    let mut result = HashMap::new();
-    for schema in schemas {
-        for (name, def) in &schema.defs {
-            let key = if name == "main" {
-                schema.id.clone()
-            } else {
-                format!("{}#{}", schema.id, name)
-            };
-            assert!(!result.contains_key(&key), "duplicate key: {key}");
-            result.insert(key, def);
-        }
-    }
-    result
-}
-
-fn generate_code(
-    schema: &LexiconDoc,
-    outdir: &Path,
-    defmap: &HashMap<String, &LexUserType>,
-) -> Result<()> {
+fn generate_code(schema: &LexiconDoc, outdir: &Path) -> Result<()> {
     let mut paths = schema.id.split('.').collect::<Vec<_>>();
     if let Some(name) = paths.pop() {
         create_dir_all(outdir.join(paths.join("/")))?;
@@ -61,7 +39,7 @@ fn generate_code(
         let mut keys = Vec::new();
         for (key, def) in &schema.defs {
             if key == "main" {
-                writer.write_user_type(name, def, defmap, true)?;
+                writer.write_user_type(name, def, true)?;
             } else {
                 keys.push(key);
             }
@@ -75,7 +53,7 @@ fn generate_code(
                     | LexUserType::XrpcQuery(_)
                     | LexUserType::XrpcSubscription(_)
             ));
-            writer.write_user_type(key, def, defmap, false)?;
+            writer.write_user_type(key, def, false)?;
         }
         let mut filename = PathBuf::from(name.to_snake_case());
         filename.set_extension("rs");

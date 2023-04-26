@@ -1,12 +1,7 @@
-use atrium_lex::lexicon::{
-    LexArray, LexArrayItem, LexObject, LexObjectProperty, LexPrimitiveArrayItem, LexRecord,
-    LexRecordRecord, LexRef, LexToken, LexUserType, LexXrpcBodySchema, LexXrpcError,
-    LexXrpcParametersProperty, LexXrpcProcedure, LexXrpcQuery, LexXrpcQueryParameter,
-    LexXrpcSubscription,
-};
+use atrium_lex::lexicon::*;
 use heck::{ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::io::{Result, Write};
 
 pub(crate) struct CodeWriter {
@@ -38,13 +33,7 @@ impl CodeWriter {
         }
         Ok(())
     }
-    pub fn write_user_type(
-        &mut self,
-        name: &str,
-        def: &LexUserType,
-        defmap: &HashMap<String, &LexUserType>,
-        is_main: bool,
-    ) -> Result<()> {
+    pub fn write_user_type(&mut self, name: &str, def: &LexUserType, is_main: bool) -> Result<()> {
         writeln!(&mut self.buf)?;
         match def {
             LexUserType::XrpcQuery(query) => self.write_query(name, query)?,
@@ -66,7 +55,7 @@ impl CodeWriter {
                 match def {
                     LexUserType::Record(record) => self.write_record(record)?,
                     LexUserType::XrpcSubscription(subscription) => {
-                        self.write_subscription(&defname, subscription, defmap)?
+                        self.write_subscription(&defname, subscription)?
                     }
                     LexUserType::Token(token) => self.write_token(&defname, token)?,
                     LexUserType::Object(object) => self.write_object(&defname, object)?,
@@ -349,12 +338,7 @@ impl CodeWriter {
         writeln!(&mut self.buf, "}}")?;
         Ok(())
     }
-    fn write_subscription(
-        &mut self,
-        name: &str,
-        subscription: &LexXrpcSubscription,
-        _defmap: &HashMap<String, &LexUserType>,
-    ) -> Result<()> {
+    fn write_subscription(&mut self, name: &str, subscription: &LexXrpcSubscription) -> Result<()> {
         if let Some(description) = &subscription.description {
             writeln!(&mut self.buf, "/// {}", description)?;
         }
