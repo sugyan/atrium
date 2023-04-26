@@ -2,4 +2,5 @@
 pub mod app;
 pub mod com;
 pub mod records;
+pub mod traits;
 pub mod xrpc;

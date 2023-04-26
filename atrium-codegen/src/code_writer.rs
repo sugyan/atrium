@@ -86,6 +86,24 @@ impl CodeWriter {
         writeln!(&mut self.buf, "}}")?;
         Ok(())
     }
+    pub fn write_traits_macro(&mut self, traits: &[String]) -> Result<()> {
+        writeln!(&mut self.buf)?;
+        writeln!(&mut self.buf, "#[macro_export]")?;
+        writeln!(&mut self.buf, "macro_rules! impl_traits {{")?;
+        writeln!(&mut self.buf, "    ($type:ty) => {{")?;
+        for t in traits {
+            let parts = t.split('.').collect_vec();
+            writeln!(
+                &mut self.buf,
+                "        impl atrium_api::{}::{} for $type {{}}",
+                parts.iter().map(|s| s.to_snake_case()).join("::"),
+                parts[parts.len() - 1].to_pascal_case()
+            )?;
+        }
+        writeln!(&mut self.buf, "    }};")?;
+        writeln!(&mut self.buf, "}}")?;
+        Ok(())
+    }
     pub fn write_mods(&mut self, mods: &[String]) -> Result<()> {
         for m in mods {
             if m == "lib" {
