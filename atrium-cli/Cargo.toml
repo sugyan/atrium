@@ -1,0 +1,14 @@
+[package]
+name = "atrium-cli"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+atrium-api = { path = "../atrium-api" }
+atrium-xrpc = { path = "../atrium-xrpc" }
+clap = { version = "4.2.2", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+toml = "0.7.3"
+serde_json = "1.0"

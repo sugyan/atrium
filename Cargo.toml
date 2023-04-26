@@ -1,19 +1,19 @@
 [package]
-name = "atprs"
+name = "atrium"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-atprs-codegen = { path = "./atprs-codegen" }
+atrium-codegen = { path = "./atrium-codegen" }
 clap = { version = "4.2.4", features = ["derive"] }
 
 [workspace]
 members = [
-    "atprs-api",
-    "atprs-cli",
-    "atprs-codegen",
-    "atprs-lex",
-    "atprs-xrpc",
+    "atrium-api",
+    "atrium-cli",
+    "atrium-codegen",
+    "atrium-lex",
+    "atrium-xrpc",
 ]

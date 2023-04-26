@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
-use atprs_codegen::genapi;
+use atrium_codegen::genapi;
 use clap::Parser;
 
 #[derive(Parser, Debug)]
 struct Args {
     #[arg(short, long)]
     lexdir: PathBuf,
-    #[arg(short, long, default_value = "./atprs-api/src")]
+    #[arg(short, long, default_value = "./atrium-api/src")]
     outdir: PathBuf,
 }
 
