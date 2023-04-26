@@ -1,3 +1,5 @@
+[![Rust](https://github.com/sugyan/atrium/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/rust.yml)
+
 # ATrium
 
 ATrium is a collection of Rust libraries designed to work with the [AT Protocol](https://atproto.com/), providing a versatile and coherent ecosystem for developers. The name is inspired by the concept of an "atrium" with a view of the open [bluesky](https://bsky.app/), reflecting the open nature of the project.
