@@ -3,6 +3,7 @@ use atrium_api::com::atproto as com_atproto;
 
 use app_bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameters};
 use app_bsky::feed::get_author_feed::{GetAuthorFeed, Parameters as GetAuthorFeedParameters};
+use app_bsky::feed::get_post_thread::{GetPostThread, Parameters as GetPostThreadParameters};
 use app_bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
 use app_bsky::feed::post::Record as PostRecord;
 use app_bsky::feed::repost::Record as RepostRecord;
@@ -13,6 +14,7 @@ use atrium_xrpc::XrpcReqwestClient;
 use chrono::Utc;
 use clap::{Parser, Subcommand};
 use com_atproto::repo::create_record::{CreateRecord, Input as CreateRecordInput};
+use com_atproto::repo::get_record::{GetRecord, Parameters as GetRecordParameters};
 use com_atproto::server::create_session::{CreateSession, Input as CreateSessionInput};
 use com_atproto::server::get_session::GetSession;
 use serde::Serialize;
@@ -46,6 +48,8 @@ enum Command {
     GetSession,
     /// Get a profile of an actor (default: current session)
     GetProfile { actor: Option<String> },
+    /// Get record
+    GetRecord { uri: String, cid: Option<String> },
     /// Get timeline
     GetTimeline,
     /// Get following of an actor (default: current session)
@@ -54,6 +58,8 @@ enum Command {
     GetFollowers { actor: Option<String> },
     /// Get a feed of an author (default: current session)
     GetAuthorFeed { author: Option<String> },
+    /// Get a post thread
+    GetPostThread { uri: String },
 }
 
 #[derive(Subcommand, Debug)]
@@ -61,7 +67,7 @@ enum CreateRecordCommand {
     /// Create a post
     Post { text: String },
     /// Create a repost
-    Repost { cid: String, uri: String },
+    Repost { uri: String },
 }
 
 #[tokio::main]
@@ -108,30 +114,51 @@ async fn run(
                     .create_record(CreateRecordInput {
                         collection: String::from("app.bsky.feed.post"),
                         record: Record::AppBskyFeedPost(PostRecord {
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            embed: None,
+                            entities: None,
+                            facets: None,
+                            reply: None,
                             text,
-                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
-                            ..Default::default()
                         }),
                         repo: session.did,
-                        ..Default::default()
+                        rkey: None,
+                        swap_commit: None,
+                        validate: None,
                     })
                     .await?,
                 debug,
             )?,
-            CreateRecordCommand::Repost { cid, uri } => print(
-                client
-                    .create_record(CreateRecordInput {
-                        collection: String::from("app.bsky.feed.repost"),
-                        record: Record::AppBskyFeedRepost(RepostRecord {
-                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
-                            subject: com_atproto::repo::strong_ref::Main { cid, uri },
-                        }),
-                        repo: session.did,
-                        ..Default::default()
+            CreateRecordCommand::Repost { uri } => {
+                let ru = RecordUri::try_from(uri.as_str())?;
+                let record = client
+                    .get_record(GetRecordParameters {
+                        cid: None,
+                        collection: ru.collection,
+                        repo: ru.did,
+                        rkey: ru.rkey,
                     })
-                    .await?,
-                debug,
-            )?,
+                    .await?;
+                print(
+                    client
+                        .create_record(CreateRecordInput {
+                            collection: String::from("app.bsky.feed.repost"),
+                            record: Record::AppBskyFeedRepost(RepostRecord {
+                                created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                                subject: com_atproto::repo::strong_ref::Main {
+                                    cid: record.cid.unwrap(),
+                                    uri,
+                                },
+                            }),
+                            repo: session.did,
+                            rkey: None,
+                            swap_commit: None,
+                            validate: None,
+                        })
+                        .await?,
+                    debug,
+                )?
+            }
         },
         Command::GetSession => print(client.get_session().await?, debug)?,
         Command::GetProfile { actor } => print(
@@ -142,11 +169,26 @@ async fn run(
                 .await?,
             debug,
         )?,
+        Command::GetRecord { uri, cid } => {
+            let ru = RecordUri::try_from(uri.as_str())?;
+            print(
+                client
+                    .get_record(GetRecordParameters {
+                        cid,
+                        collection: ru.collection,
+                        repo: ru.did,
+                        rkey: ru.rkey,
+                    })
+                    .await?,
+                debug,
+            )?
+        }
         Command::GetTimeline => print(
             client
                 .get_timeline(GetTimelineParameters {
+                    algorithm: None,
+                    cursor: None,
                     limit: Some(25),
-                    ..Default::default()
                 })
                 .await?,
             debug,
@@ -155,7 +197,8 @@ async fn run(
             client
                 .get_follows(GetFollowsParameters {
                     actor: actor.unwrap_or(session.did),
-                    ..Default::default()
+                    cursor: None,
+                    limit: Some(25),
                 })
                 .await?,
             debug,
@@ -164,7 +207,8 @@ async fn run(
             client
                 .get_followers(GetFollowersParameters {
                     actor: actor.unwrap_or(session.did),
-                    ..Default::default()
+                    cursor: None,
+                    limit: Some(25),
                 })
                 .await?,
             debug,
@@ -173,8 +217,15 @@ async fn run(
             client
                 .get_author_feed(GetAuthorFeedParameters {
                     actor: author.unwrap_or(session.did),
-                    ..Default::default()
+                    cursor: None,
+                    limit: Some(25),
                 })
+                .await?,
+            debug,
+        )?,
+        Command::GetPostThread { uri } => print(
+            client
+                .get_post_thread(GetPostThreadParameters { depth: None, uri })
                 .await?,
             debug,
         )?,
@@ -189,4 +240,28 @@ fn print(value: impl Debug + Serialize, debug: bool) -> Result<(), serde_json::E
         println!("{}", to_string_pretty(&value)?);
     }
     Ok(())
+}
+
+#[derive(Debug)]
+struct RecordUri {
+    did: String,
+    collection: String,
+    rkey: String,
+}
+
+impl TryFrom<&str> for RecordUri {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let parts = value
+            .strip_prefix("at://did:plc:")
+            .ok_or(r#"record uri must start with "at://did:plc:""#)?
+            .splitn(3, '/')
+            .collect::<Vec<_>>();
+        Ok(Self {
+            did: format!("did:plc:{}", parts[0]),
+            collection: parts[1].to_string(),
+            rkey: parts[2].to_string(),
+        })
+    }
 }
