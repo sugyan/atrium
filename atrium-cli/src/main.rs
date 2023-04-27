@@ -1,19 +1,20 @@
-use atrium_api::app::bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameters};
-use atrium_api::app::bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
-use atrium_api::app::bsky::feed::post::Record as PostRecord;
-use atrium_api::app::bsky::graph::get_followers::{
-    GetFollowers, Parameters as GetFollowersParameters,
-};
-use atrium_api::app::bsky::graph::get_follows::{GetFollows, Parameters as GetFollowsParameters};
-use atrium_api::com::atproto::repo::create_record::{CreateRecord, Input as CreateRecordInput};
-use atrium_api::com::atproto::server::create_session::{
-    CreateSession, Input as CreateSessionInput,
-};
-use atrium_api::com::atproto::server::get_session::GetSession;
+use atrium_api::app::bsky as app_bsky;
+use atrium_api::com::atproto as com_atproto;
+
+use app_bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameters};
+use app_bsky::feed::get_author_feed::{GetAuthorFeed, Parameters as GetAuthorFeedParameters};
+use app_bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
+use app_bsky::feed::post::Record as PostRecord;
+use app_bsky::feed::repost::Record as RepostRecord;
+use app_bsky::graph::get_followers::{GetFollowers, Parameters as GetFollowersParameters};
+use app_bsky::graph::get_follows::{GetFollows, Parameters as GetFollowsParameters};
 use atrium_api::records::Record;
 use atrium_xrpc::XrpcReqwestClient;
 use chrono::Utc;
 use clap::{Parser, Subcommand};
+use com_atproto::repo::create_record::{CreateRecord, Input as CreateRecordInput};
+use com_atproto::server::create_session::{CreateSession, Input as CreateSessionInput};
+use com_atproto::server::get_session::GetSession;
 use serde::Serialize;
 use serde_json::to_string_pretty;
 use std::fmt::Debug;
@@ -38,8 +39,9 @@ struct Args {
 
 #[derive(Subcommand, Debug)]
 enum Command {
-    /// Create a new record
-    CreateRecord { text: String },
+    /// Create a new record (post, repost)
+    #[command(subcommand)]
+    CreateRecord(CreateRecordCommand),
     /// Get current session info
     GetSession,
     /// Get a profile of an actor (default: current session)
@@ -50,6 +52,16 @@ enum Command {
     GetFollows { actor: Option<String> },
     /// Get followers of an actor (default: current session)
     GetFollowers { actor: Option<String> },
+    /// Get a feed of an author (default: current session)
+    GetAuthorFeed { author: Option<String> },
+}
+
+#[derive(Subcommand, Debug)]
+enum CreateRecordCommand {
+    /// Create a post
+    Post { text: String },
+    /// Create a repost
+    Repost { cid: String, uri: String },
 }
 
 #[tokio::main]
@@ -90,21 +102,37 @@ async fn run(
         .await?;
     client.set_auth(session.access_jwt);
     match command {
-        Command::CreateRecord { text } => print(
-            client
-                .create_record(CreateRecordInput {
-                    collection: String::from("app.bsky.feed.post"),
-                    record: Record::AppBskyFeedPost(PostRecord {
-                        text,
-                        created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+        Command::CreateRecord(record) => match record {
+            CreateRecordCommand::Post { text } => print(
+                client
+                    .create_record(CreateRecordInput {
+                        collection: String::from("app.bsky.feed.post"),
+                        record: Record::AppBskyFeedPost(PostRecord {
+                            text,
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            ..Default::default()
+                        }),
+                        repo: session.did,
                         ..Default::default()
-                    }),
-                    repo: session.did,
-                    ..Default::default()
-                })
-                .await?,
-            debug,
-        )?,
+                    })
+                    .await?,
+                debug,
+            )?,
+            CreateRecordCommand::Repost { cid, uri } => print(
+                client
+                    .create_record(CreateRecordInput {
+                        collection: String::from("app.bsky.feed.repost"),
+                        record: Record::AppBskyFeedRepost(RepostRecord {
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            subject: com_atproto::repo::strong_ref::Main { cid, uri },
+                        }),
+                        repo: session.did,
+                        ..Default::default()
+                    })
+                    .await?,
+                debug,
+            )?,
+        },
         Command::GetSession => print(client.get_session().await?, debug)?,
         Command::GetProfile { actor } => print(
             client
@@ -136,6 +164,15 @@ async fn run(
             client
                 .get_followers(GetFollowersParameters {
                     actor: actor.unwrap_or(session.did),
+                    ..Default::default()
+                })
+                .await?,
+            debug,
+        )?,
+        Command::GetAuthorFeed { author } => print(
+            client
+                .get_author_feed(GetAuthorFeedParameters {
+                    actor: author.unwrap_or(session.did),
                     ..Default::default()
                 })
                 .await?,
