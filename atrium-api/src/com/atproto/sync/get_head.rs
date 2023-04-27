@@ -16,14 +16,14 @@ pub trait GetHead: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The DID of the repo.
     pub did: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub root: String,

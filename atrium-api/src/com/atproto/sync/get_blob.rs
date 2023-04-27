@@ -16,7 +16,7 @@ pub trait GetBlob: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The CID of the blob to fetch

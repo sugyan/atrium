@@ -95,16 +95,12 @@ async fn run(
                 .create_record(CreateRecordInput {
                     collection: String::from("app.bsky.feed.post"),
                     record: Record::AppBskyFeedPost(PostRecord {
-                        created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
-                        entities: None,
-                        facets: None,
-                        reply: None,
                         text,
+                        created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                        ..Default::default()
                     }),
                     repo: session.did,
-                    rkey: None,
-                    swap_commit: None,
-                    validate: None,
+                    ..Default::default()
                 })
                 .await?,
             debug,
@@ -121,9 +117,8 @@ async fn run(
         Command::GetTimeline => print(
             client
                 .get_timeline(GetTimelineParameters {
-                    algorithm: None,
-                    cursor: None,
                     limit: Some(25),
+                    ..Default::default()
                 })
                 .await?,
             debug,
@@ -132,8 +127,7 @@ async fn run(
             client
                 .get_follows(GetFollowsParameters {
                     actor: actor.unwrap_or(session.did),
-                    cursor: None,
-                    limit: None,
+                    ..Default::default()
                 })
                 .await?,
             debug,
@@ -142,8 +136,7 @@ async fn run(
             client
                 .get_followers(GetFollowersParameters {
                     actor: actor.unwrap_or(session.did),
-                    cursor: None,
-                    limit: None,
+                    ..Default::default()
                 })
                 .await?,
             debug,

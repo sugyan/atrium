@@ -16,7 +16,7 @@ pub trait ApplyWrites: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The handle or DID of the repo.
@@ -35,7 +35,7 @@ pub enum Error {
 
 // com.atproto.repo.applyWrites#create
 /// Create a new record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Create {
     pub collection: String,
@@ -46,7 +46,7 @@ pub struct Create {
 
 // com.atproto.repo.applyWrites#delete
 /// Delete an existing record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Delete {
     pub collection: String,
@@ -55,7 +55,7 @@ pub struct Delete {
 
 // com.atproto.repo.applyWrites#update
 /// Update an existing record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Update {
     pub collection: String,

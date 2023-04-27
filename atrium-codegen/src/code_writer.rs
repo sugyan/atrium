@@ -70,7 +70,7 @@ impl CodeWriter {
         writeln!(&mut self.buf)?;
         writeln!(
             &mut self.buf,
-            r#"#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"#
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
         )?;
         writeln!(&mut self.buf, r#"#[serde(tag = "$type")]"#)?;
         writeln!(&mut self.buf, "pub enum Record {{")?;
@@ -83,6 +83,8 @@ impl CodeWriter {
                 r.split('.').map(str::to_snake_case).join("::")
             )?;
         }
+        writeln!(&mut self.buf, "    #[default]")?;
+        writeln!(&mut self.buf, "    None,")?;
         writeln!(&mut self.buf, "}}")?;
         Ok(())
     }
@@ -181,7 +183,7 @@ impl CodeWriter {
             writeln!(&mut self.buf)?;
             writeln!(
                 &mut self.buf,
-                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
             )?;
             writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
             writeln!(&mut self.buf, "pub struct Parameters {{")?;
@@ -387,7 +389,7 @@ impl CodeWriter {
         };
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
         )?;
         writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
         writeln!(&mut self.buf, "pub struct {} {{", name.to_pascal_case())?;
@@ -579,7 +581,7 @@ impl CodeWriter {
         // TODO: enum?
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
         )?;
         writeln!(&mut self.buf, "pub struct {};", name.to_pascal_case())?;
         Ok(())

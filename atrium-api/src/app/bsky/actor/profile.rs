@@ -2,7 +2,7 @@
 //! Definitions for the `app.bsky.actor.profile` namespace.
 
 // app.bsky.actor.profile
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     // pub avatar: ...,

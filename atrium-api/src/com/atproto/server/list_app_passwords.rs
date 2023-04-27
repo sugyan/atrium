@@ -16,7 +16,7 @@ pub trait ListAppPasswords: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub passwords: Vec<AppPassword>,
@@ -27,7 +27,7 @@ pub enum Error {
 }
 
 // com.atproto.server.listAppPasswords#appPassword
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AppPassword {
     pub created_at: String,
