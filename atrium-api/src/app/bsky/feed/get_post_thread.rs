@@ -15,7 +15,7 @@ pub trait GetPostThread: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -23,12 +23,22 @@ pub struct Parameters {
     pub uri: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    // pub thread: ...,
+    pub thread: Box<OutputThreadEnum>,
 }
 
 pub enum Error {
     NotFound,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum OutputThreadEnum {
+    #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
+    AppBskyFeedDefsThreadViewPost(crate::app::bsky::feed::defs::ThreadViewPost),
+    #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
+    AppBskyFeedDefsNotFoundPost(crate::app::bsky::feed::defs::NotFoundPost),
 }

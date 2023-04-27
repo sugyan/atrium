@@ -16,7 +16,7 @@ pub trait ApplyWrites: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The handle or DID of the repo.
@@ -26,7 +26,7 @@ pub struct Input {
     /// Validate the records?
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
-    // pub writes: Vec<...>
+    pub writes: Vec<InputWritesItem>,
 }
 
 pub enum Error {
@@ -35,7 +35,7 @@ pub enum Error {
 
 // com.atproto.repo.applyWrites#create
 /// Create a new record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Create {
     pub collection: String,
@@ -46,7 +46,7 @@ pub struct Create {
 
 // com.atproto.repo.applyWrites#delete
 /// Delete an existing record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Delete {
     pub collection: String,
@@ -55,10 +55,22 @@ pub struct Delete {
 
 // com.atproto.repo.applyWrites#update
 /// Update an existing record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Update {
     pub collection: String,
     pub rkey: String,
     pub value: crate::records::Record,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum InputWritesItem {
+    #[serde(rename = "com.atproto.repo.applyWrites#create")]
+    Create(Create),
+    #[serde(rename = "com.atproto.repo.applyWrites#update")]
+    Update(Update),
+    #[serde(rename = "com.atproto.repo.applyWrites#delete")]
+    Delete(Delete),
 }

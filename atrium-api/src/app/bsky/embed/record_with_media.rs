@@ -3,17 +3,37 @@
 //! A representation of a record embedded in another form of content, alongside other compatible embeds
 
 // app.bsky.embed.recordWithMedia
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
-    // pub media: ...,
+    pub media: Box<MainMediaEnum>,
     pub record: crate::app::bsky::embed::record::Main,
 }
 
 // app.bsky.embed.recordWithMedia#view
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
-    // pub media: ...,
+    pub media: Box<ViewMediaEnum>,
     pub record: crate::app::bsky::embed::record::View,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum MainMediaEnum {
+    #[serde(rename = "app.bsky.embed.images")]
+    AppBskyEmbedImagesMain(crate::app::bsky::embed::images::Main),
+    #[serde(rename = "app.bsky.embed.external")]
+    AppBskyEmbedExternalMain(crate::app::bsky::embed::external::Main),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ViewMediaEnum {
+    #[serde(rename = "app.bsky.embed.images#view")]
+    AppBskyEmbedImagesView(crate::app::bsky::embed::images::View),
+    #[serde(rename = "app.bsky.embed.external#view")]
+    AppBskyEmbedExternalView(crate::app::bsky::embed::external::View),
 }

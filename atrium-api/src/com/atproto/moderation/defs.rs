@@ -22,7 +22,7 @@ pub struct ReasonSexual;
 pub struct ReasonSpam;
 
 // com.atproto.moderation.defs#reasonType
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct ReasonType;
 
 // com.atproto.moderation.defs#reasonViolation

@@ -1,6 +1,7 @@
 mod code_writer;
 mod fs;
 mod generator;
+mod schema;
 
 use crate::generator::{generate_code, generate_modules, generate_records, generate_traits};
 use atrium_lex::LexiconDoc;

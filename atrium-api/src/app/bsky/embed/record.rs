@@ -3,36 +3,61 @@
 //! A representation of a record embedded in another form of content
 
 // app.bsky.embed.record
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
     pub record: crate::com::atproto::repo::strong_ref::Main,
 }
 
 // app.bsky.embed.record#view
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
-    // pub record: ...,
+    pub record: Box<ViewRecordEnum>,
 }
 
 // app.bsky.embed.record#viewNotFound
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewNotFound {
     pub uri: String,
 }
 
 // app.bsky.embed.record#viewRecord
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewRecord {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,
-    // pub embeds: Vec<...>
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub embeds: Option<Vec<ViewRecordEmbedsItem>>,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub uri: String,
     pub value: crate::records::Record,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ViewRecordEmbedsItem {
+    #[serde(rename = "app.bsky.embed.images#view")]
+    AppBskyEmbedImagesView(crate::app::bsky::embed::images::View),
+    #[serde(rename = "app.bsky.embed.external#view")]
+    AppBskyEmbedExternalView(crate::app::bsky::embed::external::View),
+    #[serde(rename = "app.bsky.embed.record#view")]
+    AppBskyEmbedRecordView(crate::app::bsky::embed::record::View),
+    #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
+    AppBskyEmbedRecordWithMediaView(crate::app::bsky::embed::record_with_media::View),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ViewRecordEnum {
+    #[serde(rename = "app.bsky.embed.record#viewRecord")]
+    ViewRecord(ViewRecord),
+    #[serde(rename = "app.bsky.embed.record#viewNotFound")]
+    ViewNotFound(ViewNotFound),
 }

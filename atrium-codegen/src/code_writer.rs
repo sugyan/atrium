@@ -66,11 +66,51 @@ impl CodeWriter {
         }
         Ok(())
     }
+    pub fn write_ref_unions(&mut self, ref_unions: &[(String, LexRefUnion)]) -> Result<()> {
+        for (name, ref_union) in ref_unions {
+            writeln!(&mut self.buf)?;
+            if let Some(description) = &ref_union.description {
+                writeln!(&mut self.buf, "/// {}", description)?;
+            }
+            writeln!(&mut self.buf, "#[allow(clippy::large_enum_variant)]")?;
+            writeln!(
+                &mut self.buf,
+                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            )?;
+            writeln!(&mut self.buf, r#"#[serde(tag = "$type")]"#)?;
+            writeln!(&mut self.buf, "pub enum {name} {{")?;
+            for r#ref in &ref_union.refs {
+                let ref_type = Self::ref_type(&LexRef {
+                    description: None,
+                    r#ref: r#ref.clone(),
+                });
+                let rename = if r#ref.starts_with('#') {
+                    format!(
+                        "{}{}",
+                        self.schema_id.as_ref().expect("schema id must be set"),
+                        r#ref
+                    )
+                } else {
+                    r#ref.clone()
+                };
+                let name = ref_type
+                    .strip_prefix("crate::")
+                    .unwrap_or(&ref_type)
+                    .split("::")
+                    .map(str::to_pascal_case)
+                    .join("");
+                writeln!(&mut self.buf, r#"    #[serde(rename = "{rename}")]"#)?;
+                writeln!(&mut self.buf, "    {name}({ref_type}),")?;
+            }
+            writeln!(&mut self.buf, "}}")?;
+        }
+        Ok(())
+    }
     pub fn write_records(&mut self, records: &[String]) -> Result<()> {
         writeln!(&mut self.buf)?;
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
         )?;
         writeln!(&mut self.buf, r#"#[serde(tag = "$type")]"#)?;
         writeln!(&mut self.buf, "pub enum Record {{")?;
@@ -83,8 +123,6 @@ impl CodeWriter {
                 r.split('.').map(str::to_snake_case).join("::")
             )?;
         }
-        writeln!(&mut self.buf, "    #[default]")?;
-        writeln!(&mut self.buf, "    None,")?;
         writeln!(&mut self.buf, "}}")?;
         Ok(())
     }
@@ -183,7 +221,7 @@ impl CodeWriter {
             writeln!(&mut self.buf)?;
             writeln!(
                 &mut self.buf,
-                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
+                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
             )?;
             writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
             writeln!(&mut self.buf, "pub struct Parameters {{")?;
@@ -216,7 +254,7 @@ impl CodeWriter {
                         })
                     }
                 };
-                self.write_object_property(key, &property, required.contains(key))?;
+                self.write_object_property(key, &property, required.contains(key), "Parameters")?;
             }
             writeln!(&mut self.buf, "}}")?;
         }
@@ -358,16 +396,9 @@ impl CodeWriter {
         writeln!(&mut self.buf, "}}")?;
         Ok(())
     }
-    fn write_subscription(&mut self, name: &str, subscription: &LexXrpcSubscription) -> Result<()> {
-        if let Some(description) = &subscription.description {
-            writeln!(&mut self.buf, "/// {}", description)?;
-        }
+    fn write_subscription(&mut self, _: &str, _: &LexXrpcSubscription) -> Result<()> {
         // TODO
-        writeln!(
-            &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize)]"
-        )?;
-        writeln!(&mut self.buf, "pub struct {} {{}}", name.to_pascal_case())?;
+        writeln!(&mut self.buf, "// TODO")?;
         Ok(())
     }
     fn write_token(&mut self, name: &str, token: &LexToken) -> Result<()> {
@@ -389,13 +420,13 @@ impl CodeWriter {
         };
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
         )?;
         writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
         writeln!(&mut self.buf, "pub struct {} {{", name.to_pascal_case())?;
         if let Some(properties) = &object.properties {
             for key in properties.keys().sorted() {
-                self.write_object_property(key, &properties[key], required.contains(key))?;
+                self.write_object_property(key, &properties[key], required.contains(key), name)?;
             }
         }
         writeln!(&mut self.buf, "}}")?;
@@ -406,6 +437,7 @@ impl CodeWriter {
         name: &str,
         property: &LexObjectProperty,
         required: bool,
+        object_name: &str,
     ) -> Result<()> {
         match property {
             LexObjectProperty::Ref(r#ref) => {
@@ -420,7 +452,7 @@ impl CodeWriter {
                         &mut self.buf,
                         r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
                     )?;
-                    format!("Option<{}>", ref_type)
+                    format!("Option<{ref_type}>")
                 };
                 writeln!(
                     &mut self.buf,
@@ -428,12 +460,26 @@ impl CodeWriter {
                     name.to_snake_case()
                 )?;
             }
-            LexObjectProperty::Union(ref_union) => {
-                if let Some(description) = &ref_union.description {
+            LexObjectProperty::Union(union) => {
+                if let Some(description) = &union.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                // TODO
-                writeln!(&mut self.buf, "    // pub {}: ...,", name.to_snake_case())?;
+                // Use `Box` to avoid recursive.
+                let ref_type = format!("Box<{object_name}{}Enum>", name.to_pascal_case());
+                let field_type = if required {
+                    ref_type
+                } else {
+                    writeln!(
+                        &mut self.buf,
+                        r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                    )?;
+                    format!("Option<{ref_type}>")
+                };
+                writeln!(
+                    &mut self.buf,
+                    "    pub {}: {field_type},",
+                    name.to_snake_case()
+                )?;
             }
             LexObjectProperty::Bytes(bytes) => {
                 if let Some(description) = &bytes.description {
@@ -462,7 +508,7 @@ impl CodeWriter {
                     LexArrayItem::CidLink(_) => String::from(""), // TODO
                     LexArrayItem::Blob(_) => String::from(""),    // TODO
                     LexArrayItem::Ref(r#ref) => Self::ref_type(r#ref),
-                    LexArrayItem::Union(_) => String::from(""), // TODO
+                    LexArrayItem::Union(_) => format!("{object_name}{}Item", name.to_pascal_case()), // TODO
                 };
                 let field_type = if required {
                     format!("Vec<{}>", item_type)
@@ -581,7 +627,7 @@ impl CodeWriter {
         // TODO: enum?
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
         )?;
         writeln!(&mut self.buf, "pub struct {};", name.to_pascal_case())?;
         Ok(())

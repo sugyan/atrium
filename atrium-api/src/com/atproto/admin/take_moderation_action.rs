@@ -16,7 +16,7 @@ pub trait TakeModerationAction: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub action: String,
@@ -26,7 +26,7 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
     pub reason: String,
-    // pub subject: ...,
+    pub subject: Box<InputSubjectEnum>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<String>>,
 }
@@ -35,4 +35,14 @@ pub type Output = crate::com::atproto::admin::defs::ActionView;
 
 pub enum Error {
     SubjectHasAction,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum InputSubjectEnum {
+    #[serde(rename = "com.atproto.admin.defs#repoRef")]
+    ComAtprotoAdminDefsRepoRef(crate::com::atproto::admin::defs::RepoRef),
+    #[serde(rename = "com.atproto.repo.strongRef")]
+    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
 }

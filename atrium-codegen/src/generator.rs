@@ -1,5 +1,6 @@
 use crate::code_writer::CodeWriter;
 use crate::fs::find_dirs;
+use crate::schema::find_ref_unions;
 use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
@@ -33,6 +34,7 @@ pub(crate) fn generate_code(schema: &LexiconDoc, outdir: &Path) -> Result<()> {
             ));
             writer.write_user_type(key, def, false)?;
         }
+        writer.write_ref_unions(&find_ref_unions(&schema.defs))?;
         let mut filename = PathBuf::from(name.to_snake_case());
         filename.set_extension("rs");
         writer.write_to_file(&mut File::create(

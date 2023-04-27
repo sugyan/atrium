@@ -6,7 +6,7 @@
 pub struct Acknowledge;
 
 // com.atproto.admin.defs#actionReversal
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionReversal {
     pub created_at: String,
@@ -15,11 +15,11 @@ pub struct ActionReversal {
 }
 
 // com.atproto.admin.defs#actionType
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 pub struct ActionType;
 
 // com.atproto.admin.defs#actionView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionView {
     pub action: ActionType,
@@ -34,12 +34,12 @@ pub struct ActionView {
     pub resolved_report_ids: Vec<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reversal: Option<ActionReversal>,
-    // pub subject: ...,
+    pub subject: Box<ActionViewSubjectEnum>,
     pub subject_blob_cids: Vec<String>,
 }
 
 // com.atproto.admin.defs#actionViewCurrent
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionViewCurrent {
     pub action: ActionType,
@@ -47,7 +47,7 @@ pub struct ActionViewCurrent {
 }
 
 // com.atproto.admin.defs#actionViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionViewDetail {
     pub action: ActionType,
@@ -62,17 +62,18 @@ pub struct ActionViewDetail {
     pub resolved_reports: Vec<ReportView>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reversal: Option<ActionReversal>,
-    // pub subject: ...,
+    pub subject: Box<ActionViewDetailSubjectEnum>,
     pub subject_blobs: Vec<BlobView>,
 }
 
 // com.atproto.admin.defs#blobView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BlobView {
     pub cid: String,
     pub created_at: String,
-    // pub details: ...,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub details: Option<Box<BlobViewDetailsEnum>>,
     pub mime_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
@@ -84,7 +85,7 @@ pub struct BlobView {
 pub struct Flag;
 
 // com.atproto.admin.defs#imageDetails
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDetails {
     pub height: i32,
@@ -92,7 +93,7 @@ pub struct ImageDetails {
 }
 
 // com.atproto.admin.defs#moderation
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Moderation {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -100,7 +101,7 @@ pub struct Moderation {
 }
 
 // com.atproto.admin.defs#moderationDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationDetail {
     pub actions: Vec<ActionView>,
@@ -110,7 +111,7 @@ pub struct ModerationDetail {
 }
 
 // com.atproto.admin.defs#recordView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordView {
     pub blob_cids: Vec<String>,
@@ -123,7 +124,7 @@ pub struct RecordView {
 }
 
 // com.atproto.admin.defs#recordViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordViewDetail {
     pub blobs: Vec<BlobView>,
@@ -138,14 +139,14 @@ pub struct RecordViewDetail {
 }
 
 // com.atproto.admin.defs#repoRef
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoRef {
     pub did: String,
 }
 
 // com.atproto.admin.defs#repoView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoView {
     pub did: String,
@@ -160,7 +161,7 @@ pub struct RepoView {
 }
 
 // com.atproto.admin.defs#repoViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewDetail {
     pub did: String,
@@ -179,7 +180,7 @@ pub struct RepoViewDetail {
 }
 
 // com.atproto.admin.defs#reportView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportView {
     pub created_at: String,
@@ -189,11 +190,11 @@ pub struct ReportView {
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
     pub resolved_by_action_ids: Vec<i32>,
-    // pub subject: ...,
+    pub subject: Box<ReportViewSubjectEnum>,
 }
 
 // com.atproto.admin.defs#reportViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportViewDetail {
     pub created_at: String,
@@ -203,7 +204,7 @@ pub struct ReportViewDetail {
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
     pub resolved_by_actions: Vec<crate::com::atproto::admin::defs::ActionView>,
-    // pub subject: ...,
+    pub subject: Box<ReportViewDetailSubjectEnum>,
 }
 
 // com.atproto.admin.defs#takedown
@@ -211,10 +212,60 @@ pub struct ReportViewDetail {
 pub struct Takedown;
 
 // com.atproto.admin.defs#videoDetails
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct VideoDetails {
     pub height: i32,
     pub length: i32,
     pub width: i32,
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ActionViewDetailSubjectEnum {
+    #[serde(rename = "com.atproto.admin.defs#repoView")]
+    RepoView(RepoView),
+    #[serde(rename = "com.atproto.admin.defs#recordView")]
+    RecordView(RecordView),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ActionViewSubjectEnum {
+    #[serde(rename = "com.atproto.admin.defs#repoRef")]
+    RepoRef(RepoRef),
+    #[serde(rename = "com.atproto.repo.strongRef")]
+    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum BlobViewDetailsEnum {
+    #[serde(rename = "com.atproto.admin.defs#imageDetails")]
+    ImageDetails(ImageDetails),
+    #[serde(rename = "com.atproto.admin.defs#videoDetails")]
+    VideoDetails(VideoDetails),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ReportViewDetailSubjectEnum {
+    #[serde(rename = "com.atproto.admin.defs#repoView")]
+    RepoView(RepoView),
+    #[serde(rename = "com.atproto.admin.defs#recordView")]
+    RecordView(RecordView),
+}
+
+#[allow(clippy::large_enum_variant)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(tag = "$type")]
+pub enum ReportViewSubjectEnum {
+    #[serde(rename = "com.atproto.admin.defs#repoRef")]
+    RepoRef(RepoRef),
+    #[serde(rename = "com.atproto.repo.strongRef")]
+    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
 }

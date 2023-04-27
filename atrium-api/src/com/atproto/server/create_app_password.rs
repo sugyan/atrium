@@ -16,7 +16,7 @@ pub trait CreateAppPassword: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub name: String,
@@ -29,7 +29,7 @@ pub enum Error {
 }
 
 // com.atproto.server.createAppPassword#appPassword
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AppPassword {
     pub created_at: String,

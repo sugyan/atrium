@@ -16,7 +16,7 @@ pub trait DescribeServer: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub available_user_domains: Vec<String>,
@@ -30,7 +30,7 @@ pub enum Error {
 }
 
 // com.atproto.server.describeServer#links
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Links {
     #[serde(skip_serializing_if = "Option::is_none")]

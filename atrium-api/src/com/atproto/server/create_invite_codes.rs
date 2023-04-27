@@ -16,7 +16,7 @@ pub trait CreateInviteCodes: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub code_count: i32,
@@ -25,7 +25,7 @@ pub struct Input {
     pub use_count: i32,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub codes: Vec<AccountCodes>,
@@ -35,7 +35,7 @@ pub enum Error {
 }
 
 // com.atproto.server.createInviteCodes#accountCodes
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountCodes {
     pub account: String,

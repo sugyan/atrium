@@ -3,14 +3,14 @@
 //! A representation of some externally linked content, embedded in another form of content
 
 // app.bsky.embed.external
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
     pub external: External,
 }
 
 // app.bsky.embed.external#external
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct External {
     pub description: String,
@@ -20,14 +20,14 @@ pub struct External {
 }
 
 // app.bsky.embed.external#view
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
     pub external: ViewExternal,
 }
 
 // app.bsky.embed.external#viewExternal
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, Default)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewExternal {
     pub description: String,
