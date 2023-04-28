@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait NotifyOfUpdate: crate::xrpc::XrpcClient {
     async fn notify_of_update(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::GET,
             "com.atproto.sync.notifyOfUpdate",

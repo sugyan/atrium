@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetCheckout: crate::xrpc::XrpcClient {
     async fn get_checkout(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::GET,
             "com.atproto.sync.getCheckout",

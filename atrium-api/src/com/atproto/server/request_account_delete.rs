@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait RequestAccountDelete: crate::xrpc::XrpcClient {
     async fn request_account_delete(&self) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "com.atproto.server.requestAccountDelete",

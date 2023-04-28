@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait RevokeAppPassword: crate::xrpc::XrpcClient {
     async fn revoke_app_password(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "com.atproto.server.revokeAppPassword",

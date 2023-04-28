@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait UnmuteActor: crate::xrpc::XrpcClient {
     async fn unmute_actor(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "app.bsky.graph.unmuteActor",

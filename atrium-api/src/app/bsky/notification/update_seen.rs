@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait UpdateSeen: crate::xrpc::XrpcClient {
     async fn update_seen(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "app.bsky.notification.updateSeen",

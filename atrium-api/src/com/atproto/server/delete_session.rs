@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait DeleteSession: crate::xrpc::XrpcClient {
     async fn delete_session(&self) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "com.atproto.server.deleteSession",

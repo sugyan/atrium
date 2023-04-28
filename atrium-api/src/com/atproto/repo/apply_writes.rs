@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait ApplyWrites: crate::xrpc::XrpcClient {
     async fn apply_writes(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "com.atproto.repo.applyWrites",

@@ -14,16 +14,14 @@ pub trait HttpClient {
 pub trait XrpcClient: HttpClient {
     fn host(&self) -> &str;
     fn auth(&self) -> Option<&str>;
-    async fn send<Output>(
+
+    async fn send_xrpc(
         &self,
         method: Method,
         path: &str,
         params: Option<impl Serialize + Send + Sync>,
         input: Option<impl Serialize + Send + Sync>,
-    ) -> Result<Output, Box<dyn Error>>
-    where
-        Output: DeserializeOwned,
-    {
+    ) -> Result<Response<Vec<u8>>, Box<dyn Error>> {
         let mut url = Url::parse(&format!("{}/xrpc/{path}", self.host())).expect("invalid url");
         if let Some(params) = params {
             if let Ok(query) = serde_urlencoded::to_string(params) {
@@ -42,8 +40,40 @@ pub trait XrpcClient: HttpClient {
         } else {
             Vec::new()
         };
-        let res = HttpClient::send(self, builder.body(body)?).await?;
-        let (parts, body) = res.into_parts();
+        HttpClient::send(self, builder.body(body)?).await
+    }
+    async fn send_unit(
+        &self,
+        method: Method,
+        path: &str,
+        params: Option<impl Serialize + Send + Sync>,
+        input: Option<impl Serialize + Send + Sync>,
+    ) -> Result<(), Box<dyn Error>> {
+        let (parts, _) = self
+            .send_xrpc(method, path, params, input)
+            .await?
+            .into_parts();
+        if parts.status.is_success() {
+            Ok(())
+        } else {
+            // TODO
+            Err(format!("status: {}", parts.status).into())
+        }
+    }
+    async fn send<Output>(
+        &self,
+        method: Method,
+        path: &str,
+        params: Option<impl Serialize + Send + Sync>,
+        input: Option<impl Serialize + Send + Sync>,
+    ) -> Result<Output, Box<dyn Error>>
+    where
+        Output: DeserializeOwned,
+    {
+        let (parts, body) = self
+            .send_xrpc(method, path, params, input)
+            .await?
+            .into_parts();
         if parts.status.is_success() {
             Ok(from_slice(&body)?)
         } else {

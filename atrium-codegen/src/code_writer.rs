@@ -188,7 +188,11 @@ impl CodeWriter {
             },
             if has_output { "Output" } else { "()" }
         )?;
-        writeln!(&mut self.buf, "        crate::xrpc::XrpcClient::send(")?;
+        writeln!(
+            &mut self.buf,
+            "        crate::xrpc::XrpcClient::{}(",
+            if has_output { "send" } else { "send_unit" }
+        )?;
         writeln!(&mut self.buf, "            self,")?;
         writeln!(&mut self.buf, "            http::Method::GET,")?;
         writeln!(
@@ -312,7 +316,11 @@ impl CodeWriter {
             if has_input { ", input: Input" } else { "" },
             if has_output { "Output" } else { "()" }
         )?;
-        writeln!(&mut self.buf, "        crate::xrpc::XrpcClient::send(")?;
+        writeln!(
+            &mut self.buf,
+            "        crate::xrpc::XrpcClient::{}(",
+            if has_output { "send" } else { "send_unit" }
+        )?;
         writeln!(&mut self.buf, "            self,")?;
         writeln!(&mut self.buf, "            http::Method::POST,")?;
         writeln!(

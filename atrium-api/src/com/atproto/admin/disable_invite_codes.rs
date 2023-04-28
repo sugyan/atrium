@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait DisableInviteCodes: crate::xrpc::XrpcClient {
     async fn disable_invite_codes(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::POST,
             "com.atproto.admin.disableInviteCodes",

@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetBlocks: crate::xrpc::XrpcClient {
     async fn get_blocks(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        crate::xrpc::XrpcClient::send_unit(
             self,
             http::Method::GET,
             "com.atproto.sync.getBlocks",
