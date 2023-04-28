@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait UpdateHandle: crate::xrpc::XrpcClient {
     async fn update_handle(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send_unit(
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.identity.updateHandle",
-            Option::<()>::None,
-            Some(input),
+            None,
+            Some(serde_json::to_vec(&input)?),
+            Some(String::from("application/json")),
         )
-        .await
+        .await?;
+        Ok(())
     }
 }
 

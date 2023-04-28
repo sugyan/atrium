@@ -4,15 +4,17 @@
 /// Upload a new blob to be added to repo in a later request.
 #[async_trait::async_trait]
 pub trait UploadBlob: crate::xrpc::XrpcClient {
-    async fn upload_blob(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+    async fn upload_blob(&self, input: Vec<u8>) -> Result<Output, Box<dyn std::error::Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.repo.uploadBlob",
-            Option::<()>::None,
-            Option::<()>::None,
+            None,
+            Some(input),
+            Some(String::from("*/*")),
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

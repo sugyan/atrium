@@ -190,8 +190,7 @@ impl CodeWriter {
         )?;
         writeln!(
             &mut self.buf,
-            "        crate::xrpc::XrpcClient::{}(",
-            if has_output { "send" } else { "send_unit" }
+            "        let body = crate::xrpc::XrpcClient::send(",
         )?;
         writeln!(&mut self.buf, "            self,")?;
         writeln!(&mut self.buf, "            http::Method::GET,")?;
@@ -204,14 +203,19 @@ impl CodeWriter {
             &mut self.buf,
             "            {},",
             if has_params {
-                "Some(params)"
+                "Some(serde_urlencoded::to_string(&params)?)"
             } else {
-                "Option::<()>::None"
+                "None"
             }
         )?;
-        writeln!(&mut self.buf, "            Option::<()>::None,")?;
+        writeln!(&mut self.buf, "            None,")?;
+        writeln!(&mut self.buf, "            None,")?;
         writeln!(&mut self.buf, "        )")?;
-        writeln!(&mut self.buf, "        .await")?;
+        writeln!(&mut self.buf, "        .await?;")?;
+        writeln!(
+            &mut self.buf,
+            "        serde_json::from_slice(&body).map_err(|e| e.into())"
+        )?;
         writeln!(&mut self.buf, "    }}")?;
         writeln!(&mut self.buf, "}}")?;
         // parameters
@@ -311,15 +315,15 @@ impl CodeWriter {
         )?;
         writeln!(
             &mut self.buf,
-            "    async fn {}(&self{}) -> Result<{}, Box<dyn std::error::Error>> {{",
+            "    async fn {}(&self, input: {}) -> Result<{}, Box<dyn std::error::Error>> {{",
             name.to_snake_case(),
-            if has_input { ", input: Input" } else { "" },
+            if has_input { "Input" } else { "Vec<u8>" },
             if has_output { "Output" } else { "()" }
         )?;
         writeln!(
             &mut self.buf,
-            "        crate::xrpc::XrpcClient::{}(",
-            if has_output { "send" } else { "send_unit" }
+            "        let {} = crate::xrpc::XrpcClient::send(",
+            if has_output { "body" } else { "_" }
         )?;
         writeln!(&mut self.buf, "            self,")?;
         writeln!(&mut self.buf, "            http::Method::POST,")?;
@@ -328,18 +332,36 @@ impl CodeWriter {
             "            {:?},",
             self.schema_id.as_ref().expect("schema id must be set")
         )?;
-        writeln!(&mut self.buf, "            Option::<()>::None,")?;
+        writeln!(&mut self.buf, "            None,")?;
+        writeln!(
+            &mut self.buf,
+            "            Some({}),",
+            if has_input {
+                "serde_json::to_vec(&input)?"
+            } else {
+                "input"
+            }
+        )?;
         writeln!(
             &mut self.buf,
             "            {},",
-            if has_input {
-                "Some(input)"
+            if let Some(input) = &procedure.input {
+                format!("Some(String::from({:?}))", input.encoding)
             } else {
-                "Option::<()>::None"
+                String::from("None")
             }
         )?;
         writeln!(&mut self.buf, "        )")?;
-        writeln!(&mut self.buf, "        .await")?;
+        writeln!(&mut self.buf, "        .await?;")?;
+        writeln!(
+            &mut self.buf,
+            "        {}",
+            if has_output {
+                "serde_json::from_slice(&body).map_err(|e| e.into())"
+            } else {
+                "Ok(())"
+            }
+        )?;
         writeln!(&mut self.buf, "    }}")?;
         writeln!(&mut self.buf, "}}")?;
         if procedure.parameters.is_some() {

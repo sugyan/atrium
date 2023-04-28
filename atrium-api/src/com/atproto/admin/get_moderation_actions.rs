@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait GetModerationActions: crate::xrpc::XrpcClient {
     async fn get_moderation_actions(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.admin.getModerationActions",
-            Some(params),
-            Option::<()>::None,
+            Some(serde_urlencoded::to_string(&params)?),
+            None,
+            None,
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

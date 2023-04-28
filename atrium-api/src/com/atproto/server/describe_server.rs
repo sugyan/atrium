@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait DescribeServer: crate::xrpc::XrpcClient {
     async fn describe_server(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.server.describeServer",
-            Option::<()>::None,
-            Option::<()>::None,
+            None,
+            None,
+            None,
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

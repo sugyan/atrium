@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait RequestPasswordReset: crate::xrpc::XrpcClient {
     async fn request_password_reset(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send_unit(
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.requestPasswordReset",
-            Option::<()>::None,
-            Some(input),
+            None,
+            Some(serde_json::to_vec(&input)?),
+            Some(String::from("application/json")),
         )
-        .await
+        .await?;
+        Ok(())
     }
 }
 

@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait NotifyOfUpdate: crate::xrpc::XrpcClient {
     async fn notify_of_update(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send_unit(
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.notifyOfUpdate",
-            Some(params),
-            Option::<()>::None,
+            Some(serde_urlencoded::to_string(&params)?),
+            None,
+            None,
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

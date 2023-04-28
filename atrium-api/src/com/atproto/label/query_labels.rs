@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait QueryLabels: crate::xrpc::XrpcClient {
     async fn query_labels(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.label.queryLabels",
-            Some(params),
-            Option::<()>::None,
+            Some(serde_urlencoded::to_string(&params)?),
+            None,
+            None,
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

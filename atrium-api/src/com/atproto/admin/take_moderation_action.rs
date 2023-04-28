@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait TakeModerationAction: crate::xrpc::XrpcClient {
     async fn take_moderation_action(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.takeModerationAction",
-            Option::<()>::None,
-            Some(input),
+            None,
+            Some(serde_json::to_vec(&input)?),
+            Some(String::from("application/json")),
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

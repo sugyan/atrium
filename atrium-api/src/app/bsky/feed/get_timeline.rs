@@ -5,14 +5,16 @@
 #[async_trait::async_trait]
 pub trait GetTimeline: crate::xrpc::XrpcClient {
     async fn get_timeline(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.feed.getTimeline",
-            Some(params),
-            Option::<()>::None,
+            Some(serde_urlencoded::to_string(&params)?),
+            None,
+            None,
         )
-        .await
+        .await?;
+        serde_json::from_slice(&body).map_err(|e| e.into())
     }
 }
 

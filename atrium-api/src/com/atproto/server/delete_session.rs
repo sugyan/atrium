@@ -4,15 +4,17 @@
 /// Delete the current session.
 #[async_trait::async_trait]
 pub trait DeleteSession: crate::xrpc::XrpcClient {
-    async fn delete_session(&self) -> Result<(), Box<dyn std::error::Error>> {
-        crate::xrpc::XrpcClient::send_unit(
+    async fn delete_session(&self, input: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.deleteSession",
-            Option::<()>::None,
-            Option::<()>::None,
+            None,
+            Some(input),
+            None,
         )
-        .await
+        .await?;
+        Ok(())
     }
 }
 
