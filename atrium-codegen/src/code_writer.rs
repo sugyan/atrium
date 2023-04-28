@@ -536,7 +536,7 @@ impl CodeWriter {
                     LexArrayItem::Unknown(_) => String::from(""), // TODO
                     LexArrayItem::Bytes(_) => String::from(""),   // TODO
                     LexArrayItem::CidLink(_) => String::from(""), // TODO
-                    LexArrayItem::Blob(_) => String::from(""),    // TODO
+                    LexArrayItem::Blob(_) => String::from("crate::blob::BlobRef"), // TODO
                     LexArrayItem::Ref(r#ref) => Self::ref_type(r#ref),
                     LexArrayItem::Union(_) => format!("{object_name}{}Item", name.to_pascal_case()), // TODO
                 };
@@ -569,8 +569,20 @@ impl CodeWriter {
                 if let Some(description) = &blob.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                // TODO
-                writeln!(&mut self.buf, "    // pub {}: ...,", name.to_snake_case())?;
+                let field_type = if required {
+                    "crate::blob::BlobRef"
+                } else {
+                    writeln!(
+                        &mut self.buf,
+                        r#"    #[serde(skip_serializing_if = "Option::is_none")]"#
+                    )?;
+                    "Option<crate::blob::BlobRef>"
+                };
+                writeln!(
+                    &mut self.buf,
+                    "    pub {}: {field_type},",
+                    name.to_snake_case()
+                )?;
             }
             LexObjectProperty::Boolean(boolean) => {
                 if let Some(description) = &boolean.description {

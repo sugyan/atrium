@@ -5,8 +5,10 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    // pub avatar: ...,
-    // pub banner: ...,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub avatar: Option<crate::blob::BlobRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub banner: Option<crate::blob::BlobRef>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

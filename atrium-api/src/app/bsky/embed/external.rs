@@ -14,7 +14,8 @@ pub struct Main {
 #[serde(rename_all = "camelCase")]
 pub struct External {
     pub description: String,
-    // pub thumb: ...,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thumb: Option<crate::blob::BlobRef>,
     pub title: String,
     pub uri: String,
 }

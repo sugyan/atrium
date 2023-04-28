@@ -14,7 +14,7 @@ pub struct Main {
 #[serde(rename_all = "camelCase")]
 pub struct Image {
     pub alt: String,
-    // pub image: ...,
+    pub image: crate::blob::BlobRef,
 }
 
 // app.bsky.embed.images#view
