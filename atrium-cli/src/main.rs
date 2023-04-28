@@ -16,8 +16,15 @@ use clap::Parser;
 use com_atproto::repo::create_record::{CreateRecord, Input as CreateRecordInput};
 use com_atproto::repo::get_record::{GetRecord, Parameters as GetRecordParameters};
 use com_atproto::repo::strong_ref::Main as StrongRefMain;
+use com_atproto::server::create_app_password::{
+    CreateAppPassword, Input as CreateAppPasswordInput,
+};
 use com_atproto::server::create_session::{CreateSession, Input as CreateSessionInput};
 use com_atproto::server::get_session::GetSession;
+use com_atproto::server::list_app_passwords::ListAppPasswords;
+use com_atproto::server::revoke_app_password::{
+    Input as RevokeAppPasswordInput, RevokeAppPassword,
+};
 use serde::Serialize;
 use serde_json::to_string_pretty;
 use std::fmt::Debug;
@@ -45,6 +52,8 @@ enum Command {
     /// Create a new record (post, repost)
     #[command(subcommand)]
     CreateRecord(CreateRecordCommand),
+    /// Create a new app password
+    CreateAppPassword { name: String },
     /// Get current session info
     GetSession,
     /// Get a profile of an actor (default: current session)
@@ -61,6 +70,10 @@ enum Command {
     GetAuthorFeed { author: Option<String> },
     /// Get a post thread
     GetPostThread { uri: String },
+    /// List app passwords
+    ListAppPasswords,
+    /// Revoke an app password
+    RevokeAppPassword { name: String },
 }
 
 #[derive(Parser, Debug)]
@@ -195,6 +208,12 @@ async fn run(
             };
             print(client.create_record(input).await?, debug)?;
         }
+        Command::CreateAppPassword { name } => print(
+            client
+                .create_app_password(CreateAppPasswordInput { name })
+                .await?,
+            debug,
+        )?,
         Command::GetSession => print(client.get_session().await?, debug)?,
         Command::GetProfile { actor } => print(
             client
@@ -261,6 +280,13 @@ async fn run(
         Command::GetPostThread { uri } => print(
             client
                 .get_post_thread(GetPostThreadParameters { depth: None, uri })
+                .await?,
+            debug,
+        )?,
+        Command::ListAppPasswords => print(client.list_app_passwords().await?, debug)?,
+        Command::RevokeAppPassword { name } => print(
+            client
+                .revoke_app_password(RevokeAppPasswordInput { name })
                 .await?,
             debug,
         )?,
