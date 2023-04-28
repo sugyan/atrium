@@ -6,6 +6,7 @@ Usage: atrium-cli [OPTIONS] <COMMAND>
 Commands:
   create-record        Create a new record (post, repost)
   create-app-password  Create a new app password
+  delete-record        Delete record
   get-session          Get current session info
   get-profile          Get a profile of an actor (default: current session)
   get-record           Get record
@@ -52,6 +53,7 @@ Arguments:
 
 Options:
   -r, --reply <REPLY>  URI of the post to reply to
+  -i, --image <IMAGE>  image files
   -h, --help           Print help
 ```
 
