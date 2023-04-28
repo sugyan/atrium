@@ -38,3 +38,28 @@ Commands:
 Options:
   -h, --help  Print help
 ```
+
+```
+Create a post
+
+Usage: atrium-cli create-record post [OPTIONS] <TEXT>
+
+Arguments:
+  <TEXT>  Text of the post
+
+Options:
+  -r, --reply <REPLY>  URI of the post to reply to
+  -h, --help           Print help
+```
+
+```
+Create a repost
+
+Usage: atrium-cli create-record repost <URI>
+
+Arguments:
+  <URI>  URI of the post to repost
+
+Options:
+  -h, --help  Print help
+```

@@ -5,16 +5,17 @@ use app_bsky::actor::get_profile::{GetProfile, Parameters as GetProfileParameter
 use app_bsky::feed::get_author_feed::{GetAuthorFeed, Parameters as GetAuthorFeedParameters};
 use app_bsky::feed::get_post_thread::{GetPostThread, Parameters as GetPostThreadParameters};
 use app_bsky::feed::get_timeline::{GetTimeline, Parameters as GetTimelineParameters};
-use app_bsky::feed::post::Record as PostRecord;
+use app_bsky::feed::post::{Record as PostRecord, ReplyRef as PostReplyRef};
 use app_bsky::feed::repost::Record as RepostRecord;
 use app_bsky::graph::get_followers::{GetFollowers, Parameters as GetFollowersParameters};
 use app_bsky::graph::get_follows::{GetFollows, Parameters as GetFollowsParameters};
 use atrium_api::records::Record;
 use atrium_xrpc::XrpcReqwestClient;
 use chrono::Utc;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use com_atproto::repo::create_record::{CreateRecord, Input as CreateRecordInput};
 use com_atproto::repo::get_record::{GetRecord, Parameters as GetRecordParameters};
+use com_atproto::repo::strong_ref::Main as StrongRefMain;
 use com_atproto::server::create_session::{CreateSession, Input as CreateSessionInput};
 use com_atproto::server::get_session::GetSession;
 use serde::Serialize;
@@ -39,7 +40,7 @@ struct Args {
     command: Command,
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Parser, Debug)]
 enum Command {
     /// Create a new record (post, repost)
     #[command(subcommand)]
@@ -62,12 +63,27 @@ enum Command {
     GetPostThread { uri: String },
 }
 
-#[derive(Subcommand, Debug)]
+#[derive(Parser, Debug)]
 enum CreateRecordCommand {
     /// Create a post
-    Post { text: String },
+    Post(CreateRecordPostArgs),
     /// Create a repost
-    Repost { uri: String },
+    Repost(CreateRecordRepostArgs),
+}
+
+#[derive(Parser, Debug)]
+struct CreateRecordPostArgs {
+    /// Text of the post
+    text: String,
+    /// URI of the post to reply to
+    #[arg(short, long)]
+    reply: Option<String>,
+}
+
+#[derive(Parser, Debug)]
+struct CreateRecordRepostArgs {
+    /// URI of the post to repost
+    uri: String,
 }
 
 #[tokio::main]
@@ -108,58 +124,77 @@ async fn run(
         .await?;
     client.set_auth(session.access_jwt);
     match command {
-        Command::CreateRecord(record) => match record {
-            CreateRecordCommand::Post { text } => print(
-                client
-                    .create_record(CreateRecordInput {
+        Command::CreateRecord(record) => {
+            let input = match record {
+                CreateRecordCommand::Post(args) => {
+                    let reply = if let Some(uri) = &args.reply {
+                        let ru = RecordUri::try_from(uri.as_str())?;
+                        let record = client
+                            .get_record(GetRecordParameters {
+                                cid: None,
+                                collection: ru.collection,
+                                repo: ru.did,
+                                rkey: ru.rkey,
+                            })
+                            .await?;
+                        let parent = StrongRefMain {
+                            cid: record.cid.unwrap(),
+                            uri: record.uri,
+                        };
+                        let mut root = parent.clone();
+                        if let Record::AppBskyFeedPost(record) = record.value {
+                            if let Some(reply) = record.reply {
+                                root = reply.root;
+                            }
+                        };
+                        Some(PostReplyRef { parent, root })
+                    } else {
+                        None
+                    };
+                    CreateRecordInput {
                         collection: String::from("app.bsky.feed.post"),
                         record: Record::AppBskyFeedPost(PostRecord {
                             created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                             embed: None,
                             entities: None,
                             facets: None,
-                            reply: None,
-                            text,
+                            reply,
+                            text: args.text,
                         }),
                         repo: session.did,
                         rkey: None,
                         swap_commit: None,
                         validate: None,
-                    })
-                    .await?,
-                debug,
-            )?,
-            CreateRecordCommand::Repost { uri } => {
-                let ru = RecordUri::try_from(uri.as_str())?;
-                let record = client
-                    .get_record(GetRecordParameters {
-                        cid: None,
-                        collection: ru.collection,
-                        repo: ru.did,
-                        rkey: ru.rkey,
-                    })
-                    .await?;
-                print(
-                    client
-                        .create_record(CreateRecordInput {
-                            collection: String::from("app.bsky.feed.repost"),
-                            record: Record::AppBskyFeedRepost(RepostRecord {
-                                created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
-                                subject: com_atproto::repo::strong_ref::Main {
-                                    cid: record.cid.unwrap(),
-                                    uri,
-                                },
-                            }),
-                            repo: session.did,
-                            rkey: None,
-                            swap_commit: None,
-                            validate: None,
+                    }
+                }
+                CreateRecordCommand::Repost(args) => {
+                    let ru = RecordUri::try_from(args.uri.as_str())?;
+                    let record = client
+                        .get_record(GetRecordParameters {
+                            cid: None,
+                            collection: ru.collection,
+                            repo: ru.did,
+                            rkey: ru.rkey,
                         })
-                        .await?,
-                    debug,
-                )?
-            }
-        },
+                        .await?;
+                    CreateRecordInput {
+                        collection: String::from("app.bsky.feed.repost"),
+                        record: Record::AppBskyFeedRepost(RepostRecord {
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            subject: com_atproto::repo::strong_ref::Main {
+                                cid: record.cid.unwrap(),
+                                uri: args.uri,
+                            },
+                        }),
+                        repo: session.did,
+                        rkey: None,
+                        swap_commit: None,
+                        validate: None,
+                    }
+                }
+            };
+            print(client.create_record(input).await?, debug)?;
+        }
         Command::GetSession => print(client.get_session().await?, debug)?,
         Command::GetProfile { actor } => print(
             client
