@@ -51,6 +51,8 @@ enum Command {
     GetAuthorFeed { author: Option<String> },
     /// Get a post thread
     GetPostThread { uri: String },
+    /// Get a list of blocking actors
+    GetBlocks,
     /// List app passwords
     ListAppPasswords,
     /// Revoke an app password
@@ -63,6 +65,8 @@ enum CreateRecordCommand {
     Post(CreateRecordPostArgs),
     /// Create a repost
     Repost(CreateRecordRepostArgs),
+    /// Block an actor
+    Block(CreateRecordBlockArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -81,6 +85,12 @@ struct CreateRecordPostArgs {
 struct CreateRecordRepostArgs {
     /// URI of the post to repost
     uri: String,
+}
+
+#[derive(Parser, Debug)]
+struct CreateRecordBlockArgs {
+    /// DID of an actor to block
+    did: String,
 }
 
 #[tokio::main]
@@ -220,6 +230,20 @@ async fn run(
                         validate: None,
                     }
                 }
+                CreateRecordCommand::Block(args) => {
+                    use atrium_api::app::bsky::graph::block::Record as BlockRecord;
+                    Input {
+                        collection: String::from("app.bsky.graph.block"),
+                        record: Record::AppBskyGraphBlock(BlockRecord {
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            subject: args.did,
+                        }),
+                        repo: session.did,
+                        rkey: None,
+                        swap_commit: None,
+                        validate: None,
+                    }
+                }
             };
             print(client.create_record(input).await?, debug)?;
         }
@@ -280,7 +304,7 @@ async fn run(
                     .get_timeline(Parameters {
                         algorithm: None,
                         cursor: None,
-                        limit: Some(25),
+                        limit: None,
                     })
                     .await?,
                 debug,
@@ -293,7 +317,7 @@ async fn run(
                     .get_follows(Parameters {
                         actor: actor.unwrap_or(session.did),
                         cursor: None,
-                        limit: Some(25),
+                        limit: None,
                     })
                     .await?,
                 debug,
@@ -306,7 +330,7 @@ async fn run(
                     .get_followers(Parameters {
                         actor: actor.unwrap_or(session.did),
                         cursor: None,
-                        limit: Some(25),
+                        limit: None,
                     })
                     .await?,
                 debug,
@@ -319,7 +343,7 @@ async fn run(
                     .get_author_feed(Parameters {
                         actor: author.unwrap_or(session.did),
                         cursor: None,
-                        limit: Some(25),
+                        limit: None,
                     })
                     .await?,
                 debug,
@@ -330,6 +354,18 @@ async fn run(
             print(
                 client
                     .get_post_thread(Parameters { depth: None, uri })
+                    .await?,
+                debug,
+            )?
+        }
+        Command::GetBlocks => {
+            use atrium_api::app::bsky::graph::get_blocks::{GetBlocks, Parameters};
+            print(
+                client
+                    .get_blocks(Parameters {
+                        cursor: None,
+                        limit: None,
+                    })
                     .await?,
                 debug,
             )?
