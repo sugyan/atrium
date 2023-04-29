@@ -71,6 +71,10 @@ pub struct ProfileViewDetailed {
 #[serde(rename_all = "camelCase")]
 pub struct ViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked_by: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocking: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub followed_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,

@@ -16,6 +16,13 @@ pub struct View {
     pub record: Box<ViewRecordEnum>,
 }
 
+// app.bsky.embed.record#viewBlocked
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ViewBlocked {
+    pub uri: String,
+}
+
 // app.bsky.embed.record#viewNotFound
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -60,4 +67,6 @@ pub enum ViewRecordEnum {
     ViewRecord(ViewRecord),
     #[serde(rename = "app.bsky.embed.record#viewNotFound")]
     ViewNotFound(ViewNotFound),
+    #[serde(rename = "app.bsky.embed.record#viewBlocked")]
+    ViewBlocked(ViewBlocked),
 }

@@ -14,6 +14,7 @@ macro_rules! impl_traits {
         impl atrium_api::app::bsky::feed::get_posts::GetPosts for $type {}
         impl atrium_api::app::bsky::feed::get_reposted_by::GetRepostedBy for $type {}
         impl atrium_api::app::bsky::feed::get_timeline::GetTimeline for $type {}
+        impl atrium_api::app::bsky::graph::get_blocks::GetBlocks for $type {}
         impl atrium_api::app::bsky::graph::get_followers::GetFollowers for $type {}
         impl atrium_api::app::bsky::graph::get_follows::GetFollows for $type {}
         impl atrium_api::app::bsky::graph::get_mutes::GetMutes for $type {}

@@ -43,4 +43,6 @@ pub enum OutputThreadEnum {
     AppBskyFeedDefsThreadViewPost(crate::app::bsky::feed::defs::ThreadViewPost),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
     AppBskyFeedDefsNotFoundPost(crate::app::bsky::feed::defs::NotFoundPost),
+    #[serde(rename = "app.bsky.feed.defs#blockedPost")]
+    AppBskyFeedDefsBlockedPost(crate::app::bsky::feed::defs::BlockedPost),
 }
