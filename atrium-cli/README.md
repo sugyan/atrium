@@ -4,7 +4,7 @@
 Usage: atrium-cli [OPTIONS] <COMMAND>
 
 Commands:
-  create-record        Create a new record (post, repost)
+  create-record        Create a new record (post, repost, block)
   create-app-password  Create a new app password
   delete-record        Delete record
   get-session          Get current session info
@@ -15,6 +15,7 @@ Commands:
   get-followers        Get followers of an actor (default: current session)
   get-author-feed      Get a feed of an author (default: current session)
   get-post-thread      Get a post thread
+  get-blocks           Get a list of blocking actors
   list-app-passwords   List app passwords
   revoke-app-password  Revoke an app password
   help                 Print this message or the help of the given subcommand(s)
@@ -30,13 +31,14 @@ Options:
 ## sub commands
 
 ```
-Create a new record (post, repost)
+Create a new record (post, repost, block)
 
 Usage: atrium-cli create-record <COMMAND>
 
 Commands:
   post    Create a post
   repost  Create a repost
+  block   Block an actor
   help    Print this message or the help of the given subcommand(s)
 
 Options:
@@ -64,6 +66,18 @@ Usage: atrium-cli create-record repost <URI>
 
 Arguments:
   <URI>  URI of the post to repost
+
+Options:
+  -h, --help  Print help
+```
+
+```
+Block an actor
+
+Usage: atrium-cli create-record block <DID>
+
+Arguments:
+  <DID>  DID of an actor to block
 
 Options:
   -h, --help  Print help

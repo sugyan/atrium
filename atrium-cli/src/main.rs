@@ -28,7 +28,7 @@ struct Args {
 
 #[derive(Parser, Debug)]
 enum Command {
-    /// Create a new record (post, repost)
+    /// Create a new record (post, repost, block)
     #[command(subcommand)]
     CreateRecord(CreateRecordCommand),
     /// Create a new app password
