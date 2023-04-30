@@ -28,7 +28,7 @@ struct Args {
 
 #[derive(Parser, Debug)]
 enum Command {
-    /// Create a new record (post, repost, block)
+    /// Create a new record (post, repost, like, block)
     #[command(subcommand)]
     CreateRecord(CreateRecordCommand),
     /// Create a new app password
@@ -51,8 +51,12 @@ enum Command {
     GetAuthorFeed { author: Option<String> },
     /// Get a post thread
     GetPostThread { uri: String },
+    /// Get likes of a record
+    GetLikes { uri: String },
     /// Get a list of blocking actors
     GetBlocks,
+    /// List notifications
+    ListNotifications,
     /// List app passwords
     ListAppPasswords,
     /// Revoke an app password
@@ -65,6 +69,8 @@ enum CreateRecordCommand {
     Post(CreateRecordPostArgs),
     /// Create a repost
     Repost(CreateRecordRepostArgs),
+    /// Like a record
+    Like(CreateRecordLikeArgs),
     /// Block an actor
     Block(CreateRecordBlockArgs),
 }
@@ -84,6 +90,12 @@ struct CreateRecordPostArgs {
 #[derive(Parser, Debug)]
 struct CreateRecordRepostArgs {
     /// URI of the post to repost
+    uri: String,
+}
+
+#[derive(Parser, Debug)]
+struct CreateRecordLikeArgs {
+    /// URI of an record to like
     uri: String,
 }
 
@@ -230,6 +242,32 @@ async fn run(
                         validate: None,
                     }
                 }
+                CreateRecordCommand::Like(args) => {
+                    use atrium_api::app::bsky::feed::like::Record as LikeRecord;
+                    let ru = RecordUri::try_from(args.uri.as_str())?;
+                    let record = client
+                        .get_record(Parameters {
+                            cid: None,
+                            collection: ru.collection,
+                            repo: ru.did,
+                            rkey: ru.rkey,
+                        })
+                        .await?;
+                    Input {
+                        collection: String::from("app.bsky.feed.like"),
+                        record: Record::AppBskyFeedLike(LikeRecord {
+                            created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
+                            subject: StrongRef {
+                                cid: record.cid.unwrap(),
+                                uri: record.uri,
+                            },
+                        }),
+                        repo: session.did,
+                        rkey: None,
+                        swap_commit: None,
+                        validate: None,
+                    }
+                }
                 CreateRecordCommand::Block(args) => {
                     use atrium_api::app::bsky::graph::block::Record as BlockRecord;
                     Input {
@@ -358,6 +396,20 @@ async fn run(
                 debug,
             )?
         }
+        Command::GetLikes { uri } => {
+            use atrium_api::app::bsky::feed::get_likes::{GetLikes, Parameters};
+            print(
+                client
+                    .get_likes(Parameters {
+                        cid: None,
+                        cursor: None,
+                        limit: None,
+                        uri,
+                    })
+                    .await?,
+                debug,
+            )?
+        }
         Command::GetBlocks => {
             use atrium_api::app::bsky::graph::get_blocks::{GetBlocks, Parameters};
             print(
@@ -365,6 +417,21 @@ async fn run(
                     .get_blocks(Parameters {
                         cursor: None,
                         limit: None,
+                    })
+                    .await?,
+                debug,
+            )?
+        }
+        Command::ListNotifications => {
+            use atrium_api::app::bsky::notification::list_notifications::{
+                ListNotifications, Parameters,
+            };
+            print(
+                client
+                    .list_notifications(Parameters {
+                        cursor: None,
+                        limit: None,
+                        seen_at: None,
                     })
                     .await?,
                 debug,
