@@ -20,11 +20,12 @@ pub trait XrpcClient: HttpClient {
         input: Option<Vec<u8>>,
         encoding: Option<String>,
     ) -> Result<Vec<u8>, Box<dyn Error>> {
-        let mut url = Url::parse(&format!("{}/xrpc/{path}", self.host())).expect("invalid url");
+        let mut uri = format!("{}/xrpc/{path}", self.host());
         if let Some(query) = query {
-            url.set_query(Some(&query));
-        }
-        let mut builder = Request::builder().method(method).uri(url.as_str());
+            uri += "?";
+            uri += &query;
+        };
+        let mut builder = Request::builder().method(method).uri(uri);
         if let Some(encoding) = encoding {
             builder = builder.header(header::CONTENT_TYPE, encoding);
         }
