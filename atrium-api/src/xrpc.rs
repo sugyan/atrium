@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use http::{header, Method, Request, Response};
 use std::error::Error;
-use url::Url;
 
 #[async_trait]
 pub trait HttpClient {
