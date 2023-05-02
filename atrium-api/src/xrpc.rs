@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use http::{header, Method, Request, Response};
 use serde::de::DeserializeOwned;
 use std::error::Error;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display, Formatter};
 
 /// [Custom error codes and descriptions](https://atproto.com/specs/xrpc#custom-error-codes-and-descriptions)
 ///
@@ -38,11 +38,11 @@ where
     pub error: Option<XrpcError<E>>,
 }
 
-impl<E> std::fmt::Display for XrpcResponseError<E>
+impl<E> Display for XrpcResponseError<E>
 where
     E: Debug + PartialEq + Eq,
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("XrpcResponseError({})", self.status))?;
         if let Some(error) = &self.error {
             f.write_str(": ")?;
