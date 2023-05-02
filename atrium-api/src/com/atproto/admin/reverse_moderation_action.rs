@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait ReverseModerationAction: crate::xrpc::XrpcClient {
     async fn reverse_moderation_action(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.admin.reverseModerationAction",
@@ -18,7 +18,7 @@ pub trait ReverseModerationAction: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub created_by: String,
@@ -28,5 +28,7 @@ pub struct Input {
 
 pub type Output = crate::com::atproto::admin::defs::ActionView;
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetSession: crate::xrpc::XrpcClient {
     async fn get_session(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.server.getSession",
@@ -18,7 +18,7 @@ pub trait GetSession: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub did: String,
@@ -27,5 +27,7 @@ pub struct Output {
     pub handle: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

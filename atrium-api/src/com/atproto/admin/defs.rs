@@ -6,7 +6,7 @@
 pub struct Acknowledge;
 
 // com.atproto.admin.defs#actionReversal
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionReversal {
     pub created_at: String,
@@ -15,11 +15,11 @@ pub struct ActionReversal {
 }
 
 // com.atproto.admin.defs#actionType
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct ActionType;
 
 // com.atproto.admin.defs#actionView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionView {
     pub action: ActionType,
@@ -39,7 +39,7 @@ pub struct ActionView {
 }
 
 // com.atproto.admin.defs#actionViewCurrent
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionViewCurrent {
     pub action: ActionType,
@@ -47,7 +47,7 @@ pub struct ActionViewCurrent {
 }
 
 // com.atproto.admin.defs#actionViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ActionViewDetail {
     pub action: ActionType,
@@ -67,7 +67,7 @@ pub struct ActionViewDetail {
 }
 
 // com.atproto.admin.defs#blobView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlobView {
     pub cid: String,
@@ -85,7 +85,7 @@ pub struct BlobView {
 pub struct Flag;
 
 // com.atproto.admin.defs#imageDetails
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDetails {
     pub height: i32,
@@ -93,7 +93,7 @@ pub struct ImageDetails {
 }
 
 // com.atproto.admin.defs#moderation
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Moderation {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -101,7 +101,7 @@ pub struct Moderation {
 }
 
 // com.atproto.admin.defs#moderationDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationDetail {
     pub actions: Vec<ActionView>,
@@ -111,7 +111,7 @@ pub struct ModerationDetail {
 }
 
 // com.atproto.admin.defs#recordView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordView {
     pub blob_cids: Vec<String>,
@@ -124,7 +124,7 @@ pub struct RecordView {
 }
 
 // com.atproto.admin.defs#recordViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordViewDetail {
     pub blobs: Vec<BlobView>,
@@ -139,14 +139,14 @@ pub struct RecordViewDetail {
 }
 
 // com.atproto.admin.defs#repoRef
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoRef {
     pub did: String,
 }
 
 // com.atproto.admin.defs#repoView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoView {
     pub did: String,
@@ -161,7 +161,7 @@ pub struct RepoView {
 }
 
 // com.atproto.admin.defs#repoViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewDetail {
     pub did: String,
@@ -180,7 +180,7 @@ pub struct RepoViewDetail {
 }
 
 // com.atproto.admin.defs#reportView
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportView {
     pub created_at: String,
@@ -194,7 +194,7 @@ pub struct ReportView {
 }
 
 // com.atproto.admin.defs#reportViewDetail
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportViewDetail {
     pub created_at: String,
@@ -212,7 +212,7 @@ pub struct ReportViewDetail {
 pub struct Takedown;
 
 // com.atproto.admin.defs#videoDetails
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct VideoDetails {
     pub height: i32,
@@ -221,7 +221,7 @@ pub struct VideoDetails {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ActionViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
@@ -231,7 +231,7 @@ pub enum ActionViewDetailSubjectEnum {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ActionViewSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
@@ -241,7 +241,7 @@ pub enum ActionViewSubjectEnum {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum BlobViewDetailsEnum {
     #[serde(rename = "com.atproto.admin.defs#imageDetails")]
@@ -251,7 +251,7 @@ pub enum BlobViewDetailsEnum {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ReportViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
@@ -261,7 +261,7 @@ pub enum ReportViewDetailSubjectEnum {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ReportViewSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]

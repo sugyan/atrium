@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait UploadBlob: crate::xrpc::XrpcClient {
     async fn upload_blob(&self, input: Vec<u8>) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.repo.uploadBlob",
@@ -19,11 +19,13 @@ pub trait UploadBlob: crate::xrpc::XrpcClient {
 }
 
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub blob: crate::blob::BlobRef,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

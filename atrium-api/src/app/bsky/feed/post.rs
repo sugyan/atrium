@@ -2,7 +2,7 @@
 //! Definitions for the `app.bsky.feed.post` namespace.
 
 // app.bsky.feed.post
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub created_at: String,
@@ -20,7 +20,7 @@ pub struct Record {
 
 // app.bsky.feed.post#entity
 /// Deprecated: use facets instead.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Entity {
     pub index: TextSlice,
@@ -30,7 +30,7 @@ pub struct Entity {
 }
 
 // app.bsky.feed.post#replyRef
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplyRef {
     pub parent: crate::com::atproto::repo::strong_ref::Main,
@@ -39,7 +39,7 @@ pub struct ReplyRef {
 
 // app.bsky.feed.post#textSlice
 /// Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct TextSlice {
     pub end: i32,
@@ -47,7 +47,7 @@ pub struct TextSlice {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum RecordEmbedEnum {
     #[serde(rename = "app.bsky.embed.images")]

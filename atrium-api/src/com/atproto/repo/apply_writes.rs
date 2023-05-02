@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait ApplyWrites: crate::xrpc::XrpcClient {
     async fn apply_writes(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send(
+        let _ = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.repo.applyWrites",
@@ -18,7 +18,7 @@ pub trait ApplyWrites: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The handle or DID of the repo.
@@ -31,13 +31,15 @@ pub struct Input {
     pub writes: Vec<InputWritesItem>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    InvalidSwap,
+    InvalidSwap(Option<String>),
 }
 
 // com.atproto.repo.applyWrites#create
 /// Create a new record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Create {
     pub collection: String,
@@ -48,7 +50,7 @@ pub struct Create {
 
 // com.atproto.repo.applyWrites#delete
 /// Delete an existing record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Delete {
     pub collection: String,
@@ -57,7 +59,7 @@ pub struct Delete {
 
 // com.atproto.repo.applyWrites#update
 /// Update an existing record.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Update {
     pub collection: String,
@@ -66,7 +68,7 @@ pub struct Update {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum InputWritesItem {
     #[serde(rename = "com.atproto.repo.applyWrites#create")]

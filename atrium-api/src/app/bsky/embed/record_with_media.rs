@@ -3,7 +3,7 @@
 //! A representation of a record embedded in another form of content, alongside other compatible embeds
 
 // app.bsky.embed.recordWithMedia
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
     pub media: Box<MainMediaEnum>,
@@ -11,7 +11,7 @@ pub struct Main {
 }
 
 // app.bsky.embed.recordWithMedia#view
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
     pub media: Box<ViewMediaEnum>,
@@ -19,7 +19,7 @@ pub struct View {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum MainMediaEnum {
     #[serde(rename = "app.bsky.embed.images")]
@@ -29,7 +29,7 @@ pub enum MainMediaEnum {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ViewMediaEnum {
     #[serde(rename = "app.bsky.embed.images#view")]

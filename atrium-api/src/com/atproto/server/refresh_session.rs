@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait RefreshSession: crate::xrpc::XrpcClient {
     async fn refresh_session(&self, input: Vec<u8>) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.server.refreshSession",
@@ -18,7 +18,7 @@ pub trait RefreshSession: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub access_jwt: String,
@@ -27,6 +27,8 @@ pub struct Output {
     pub refresh_jwt: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    AccountTakedown,
+    AccountTakedown(Option<String>),
 }

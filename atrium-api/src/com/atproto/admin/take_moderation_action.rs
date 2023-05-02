@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait TakeModerationAction: crate::xrpc::XrpcClient {
     async fn take_moderation_action(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.admin.takeModerationAction",
@@ -18,7 +18,7 @@ pub trait TakeModerationAction: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub action: String,
@@ -35,12 +35,14 @@ pub struct Input {
 
 pub type Output = crate::com::atproto::admin::defs::ActionView;
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    SubjectHasAction,
+    SubjectHasAction(Option<String>),
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum InputSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]

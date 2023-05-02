@@ -3,35 +3,35 @@
 //! A representation of a record embedded in another form of content
 
 // app.bsky.embed.record
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
     pub record: crate::com::atproto::repo::strong_ref::Main,
 }
 
 // app.bsky.embed.record#view
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
     pub record: Box<ViewRecordEnum>,
 }
 
 // app.bsky.embed.record#viewBlocked
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewBlocked {
     pub uri: String,
 }
 
 // app.bsky.embed.record#viewNotFound
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewNotFound {
     pub uri: String,
 }
 
 // app.bsky.embed.record#viewRecord
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewRecord {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
@@ -46,7 +46,7 @@ pub struct ViewRecord {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ViewRecordEmbedsItem {
     #[serde(rename = "app.bsky.embed.images#view")]
@@ -60,7 +60,7 @@ pub enum ViewRecordEmbedsItem {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ViewRecordEnum {
     #[serde(rename = "app.bsky.embed.record#viewRecord")]

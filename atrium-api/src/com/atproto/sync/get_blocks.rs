@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetBlocks: crate::xrpc::XrpcClient {
     async fn get_blocks(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.sync.getBlocks",
@@ -18,7 +18,7 @@ pub trait GetBlocks: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub cids: Vec<String>,
@@ -27,5 +27,7 @@ pub struct Parameters {
 }
 
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

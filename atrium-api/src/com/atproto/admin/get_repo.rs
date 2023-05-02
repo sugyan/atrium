@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetRepo: crate::xrpc::XrpcClient {
     async fn get_repo(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.admin.getRepo",
@@ -18,7 +18,7 @@ pub trait GetRepo: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub did: String,
@@ -26,5 +26,7 @@ pub struct Parameters {
 
 pub type Output = crate::com::atproto::admin::defs::RepoViewDetail;
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

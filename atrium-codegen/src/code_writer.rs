@@ -75,7 +75,7 @@ impl CodeWriter {
             writeln!(&mut self.buf, "#[allow(clippy::large_enum_variant)]")?;
             writeln!(
                 &mut self.buf,
-                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]"
             )?;
             writeln!(&mut self.buf, r#"#[serde(tag = "$type")]"#)?;
             writeln!(&mut self.buf, "pub enum {name} {{")?;
@@ -110,7 +110,7 @@ impl CodeWriter {
         writeln!(&mut self.buf)?;
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]"
         )?;
         writeln!(&mut self.buf, r#"#[serde(tag = "$type")]"#)?;
         writeln!(&mut self.buf, "pub enum Record {{")?;
@@ -190,7 +190,7 @@ impl CodeWriter {
         )?;
         writeln!(
             &mut self.buf,
-            "        let body = crate::xrpc::XrpcClient::send(",
+            "        let body = crate::xrpc::XrpcClient::send::<Error>(",
         )?;
         writeln!(&mut self.buf, "            self,")?;
         writeln!(&mut self.buf, "            http::Method::GET,")?;
@@ -229,7 +229,7 @@ impl CodeWriter {
             writeln!(&mut self.buf)?;
             writeln!(
                 &mut self.buf,
-                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+                "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]"
             )?;
             writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
             writeln!(&mut self.buf, "pub struct Parameters {{")?;
@@ -322,7 +322,7 @@ impl CodeWriter {
         )?;
         writeln!(
             &mut self.buf,
-            "        let {} = crate::xrpc::XrpcClient::send(",
+            "        let {} = crate::xrpc::XrpcClient::send::<Error>(",
             if has_output { "body" } else { "_" }
         )?;
         writeln!(&mut self.buf, "            self,")?;
@@ -414,13 +414,25 @@ impl CodeWriter {
     }
     fn write_xrpc_errors(&mut self, errors: &Option<Vec<LexXrpcError>>) -> Result<()> {
         writeln!(&mut self.buf)?;
+        writeln!(
+            &mut self.buf,
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]"
+        )?;
+        writeln!(
+            &mut self.buf,
+            r#"#[serde(tag = "error", content = "message")]"#
+        )?;
         writeln!(&mut self.buf, "pub enum Error {{")?;
         if let Some(errors) = errors {
             for error in errors {
                 if let Some(description) = &error.description {
                     writeln!(&mut self.buf, "    /// {}", description)?;
                 }
-                writeln!(&mut self.buf, "    {},", error.name.to_pascal_case())?;
+                writeln!(
+                    &mut self.buf,
+                    "    {}(Option<String>),",
+                    error.name.to_pascal_case()
+                )?;
             }
         }
         writeln!(&mut self.buf, "}}")?;
@@ -450,7 +462,7 @@ impl CodeWriter {
         };
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]"
         )?;
         writeln!(&mut self.buf, r#"#[serde(rename_all = "camelCase")]"#)?;
         writeln!(&mut self.buf, "pub struct {} {{", name.to_pascal_case())?;
@@ -669,7 +681,7 @@ impl CodeWriter {
         // TODO: enum?
         writeln!(
             &mut self.buf,
-            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]"
+            "#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]"
         )?;
         writeln!(&mut self.buf, "pub struct {};", name.to_pascal_case())?;
         Ok(())

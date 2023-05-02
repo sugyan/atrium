@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait DeleteRecord: crate::xrpc::XrpcClient {
     async fn delete_record(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send(
+        let _ = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.repo.deleteRecord",
@@ -18,7 +18,7 @@ pub trait DeleteRecord: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The NSID of the record collection.
@@ -35,6 +35,8 @@ pub struct Input {
     pub swap_record: Option<String>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    InvalidSwap,
+    InvalidSwap(Option<String>),
 }
