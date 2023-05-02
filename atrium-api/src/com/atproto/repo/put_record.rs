@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait PutRecord: crate::xrpc::XrpcClient {
     async fn put_record(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.repo.putRecord",
@@ -18,7 +18,7 @@ pub trait PutRecord: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The NSID of the record collection.
@@ -40,13 +40,15 @@ pub struct Input {
     pub validate: Option<bool>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub cid: String,
     pub uri: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    InvalidSwap,
+    InvalidSwap(Option<String>),
 }

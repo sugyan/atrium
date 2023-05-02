@@ -5,7 +5,7 @@
 // TODO
 
 // com.atproto.label.subscribeLabels#info
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Info {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -14,7 +14,7 @@ pub struct Info {
 }
 
 // com.atproto.label.subscribeLabels#labels
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Labels {
     pub labels: Vec<crate::com::atproto::label::defs::Label>,

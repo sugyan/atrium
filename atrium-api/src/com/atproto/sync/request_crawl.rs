@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait RequestCrawl: crate::xrpc::XrpcClient {
     async fn request_crawl(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.sync.requestCrawl",
@@ -18,12 +18,14 @@ pub trait RequestCrawl: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// Hostname of the service that is requesting to be crawled.
     pub hostname: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

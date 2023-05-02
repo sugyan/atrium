@@ -4,7 +4,7 @@
 #[async_trait::async_trait]
 pub trait GetLikes: crate::xrpc::XrpcClient {
     async fn get_likes(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "app.bsky.feed.getLikes",
@@ -17,7 +17,7 @@ pub trait GetLikes: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -29,7 +29,7 @@ pub struct Parameters {
     pub uri: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -40,11 +40,13 @@ pub struct Output {
     pub uri: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }
 
 // app.bsky.feed.getLikes#like
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Like {
     pub actor: crate::app::bsky::actor::defs::ProfileView,

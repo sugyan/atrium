@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait CreateReport: crate::xrpc::XrpcClient {
     async fn create_report(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.moderation.createReport",
@@ -18,7 +18,7 @@ pub trait CreateReport: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,7 +27,7 @@ pub struct Input {
     pub subject: Box<InputSubjectEnum>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub created_at: String,
@@ -39,11 +39,13 @@ pub struct Output {
     pub subject: Box<OutputSubjectEnum>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum InputSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
@@ -53,7 +55,7 @@ pub enum InputSubjectEnum {
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum OutputSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]

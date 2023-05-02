@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait DescribeServer: crate::xrpc::XrpcClient {
     async fn describe_server(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.server.describeServer",
@@ -18,7 +18,7 @@ pub trait DescribeServer: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub available_user_domains: Vec<String>,
@@ -28,11 +28,13 @@ pub struct Output {
     pub links: Option<Links>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }
 
 // com.atproto.server.describeServer#links
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Links {
     #[serde(skip_serializing_if = "Option::is_none")]

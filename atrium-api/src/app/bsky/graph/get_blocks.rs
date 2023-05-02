@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetBlocks: crate::xrpc::XrpcClient {
     async fn get_blocks(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "app.bsky.graph.getBlocks",
@@ -18,7 +18,7 @@ pub trait GetBlocks: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,7 +27,7 @@ pub struct Parameters {
     pub limit: Option<i32>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub blocks: Vec<crate::app::bsky::actor::defs::ProfileView>,
@@ -35,5 +35,7 @@ pub struct Output {
     pub cursor: Option<String>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

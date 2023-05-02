@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait RequestAccountDelete: crate::xrpc::XrpcClient {
     async fn request_account_delete(&self, input: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send(
+        let _ = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.server.requestAccountDelete",
@@ -18,5 +18,7 @@ pub trait RequestAccountDelete: crate::xrpc::XrpcClient {
     }
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

@@ -4,7 +4,7 @@
 #[async_trait::async_trait]
 pub trait GetPostThread: crate::xrpc::XrpcClient {
     async fn get_post_thread(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "app.bsky.feed.getPostThread",
@@ -17,7 +17,7 @@ pub trait GetPostThread: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,18 +25,20 @@ pub struct Parameters {
     pub uri: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub thread: Box<OutputThreadEnum>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    NotFound,
+    NotFound(Option<String>),
 }
 
 #[allow(clippy::large_enum_variant)]
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum OutputThreadEnum {
     #[serde(rename = "app.bsky.feed.defs#threadViewPost")]

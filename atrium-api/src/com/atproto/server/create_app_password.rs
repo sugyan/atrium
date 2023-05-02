@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait CreateAppPassword: crate::xrpc::XrpcClient {
     async fn create_app_password(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.server.createAppPassword",
@@ -18,7 +18,7 @@ pub trait CreateAppPassword: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub name: String,
@@ -26,12 +26,14 @@ pub struct Input {
 
 pub type Output = AppPassword;
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    AccountTakedown,
+    AccountTakedown(Option<String>),
 }
 
 // com.atproto.server.createAppPassword#appPassword
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AppPassword {
     pub created_at: String,

@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait CreateAccount: crate::xrpc::XrpcClient {
     async fn create_account(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.server.createAccount",
@@ -18,7 +18,7 @@ pub trait CreateAccount: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub email: String,
@@ -30,7 +30,7 @@ pub struct Input {
     pub recovery_key: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub access_jwt: String,
@@ -39,10 +39,12 @@ pub struct Output {
     pub refresh_jwt: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
-    InvalidHandle,
-    InvalidPassword,
-    InvalidInviteCode,
-    HandleNotAvailable,
-    UnsupportedDomain,
+    InvalidHandle(Option<String>),
+    InvalidPassword(Option<String>),
+    InvalidInviteCode(Option<String>),
+    HandleNotAvailable(Option<String>),
+    UnsupportedDomain(Option<String>),
 }

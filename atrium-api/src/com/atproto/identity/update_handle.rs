@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait UpdateHandle: crate::xrpc::XrpcClient {
     async fn update_handle(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send(
+        let _ = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.identity.updateHandle",
@@ -18,11 +18,13 @@ pub trait UpdateHandle: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub handle: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

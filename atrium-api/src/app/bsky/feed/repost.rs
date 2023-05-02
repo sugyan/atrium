@@ -2,7 +2,7 @@
 //! Definitions for the `app.bsky.feed.repost` namespace.
 
 // app.bsky.feed.repost
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub created_at: String,

@@ -5,7 +5,7 @@
 // TODO
 
 // com.atproto.sync.subscribeRepos#commit
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Commit {
     // pub blobs: Vec<...>
@@ -22,7 +22,7 @@ pub struct Commit {
 }
 
 // com.atproto.sync.subscribeRepos#handle
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Handle {
     pub did: String,
@@ -32,7 +32,7 @@ pub struct Handle {
 }
 
 // com.atproto.sync.subscribeRepos#info
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Info {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -41,7 +41,7 @@ pub struct Info {
 }
 
 // com.atproto.sync.subscribeRepos#migrate
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Migrate {
     pub did: String,
@@ -51,7 +51,7 @@ pub struct Migrate {
 }
 
 // com.atproto.sync.subscribeRepos#repoOp
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoOp {
     pub action: String,
@@ -60,7 +60,7 @@ pub struct RepoOp {
 }
 
 // com.atproto.sync.subscribeRepos#tombstone
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tombstone {
     pub did: String,

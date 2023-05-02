@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait GetBlob: crate::xrpc::XrpcClient {
     async fn get_blob(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.sync.getBlob",
@@ -18,7 +18,7 @@ pub trait GetBlob: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The CID of the blob to fetch
@@ -28,5 +28,7 @@ pub struct Parameters {
 }
 
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

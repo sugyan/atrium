@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait UpdateAccountEmail: crate::xrpc::XrpcClient {
     async fn update_account_email(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send(
+        let _ = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "com.atproto.admin.updateAccountEmail",
@@ -18,7 +18,7 @@ pub trait UpdateAccountEmail: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     /// The handle or DID of the repo.
@@ -26,5 +26,7 @@ pub struct Input {
     pub email: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

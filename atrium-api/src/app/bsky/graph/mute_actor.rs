@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait MuteActor: crate::xrpc::XrpcClient {
     async fn mute_actor(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send(
+        let _ = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
             "app.bsky.graph.muteActor",
@@ -18,11 +18,13 @@ pub trait MuteActor: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub actor: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }

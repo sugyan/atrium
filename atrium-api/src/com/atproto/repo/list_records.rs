@@ -5,7 +5,7 @@
 #[async_trait::async_trait]
 pub trait ListRecords: crate::xrpc::XrpcClient {
     async fn list_records(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send(
+        let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
             "com.atproto.repo.listRecords",
@@ -18,7 +18,7 @@ pub trait ListRecords: crate::xrpc::XrpcClient {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     /// The NSID of the record type.
@@ -41,7 +41,7 @@ pub struct Parameters {
     pub rkey_start: Option<String>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,11 +49,13 @@ pub struct Output {
     pub records: Vec<Record>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "error", content = "message")]
 pub enum Error {
 }
 
 // com.atproto.repo.listRecords#record
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub cid: String,
