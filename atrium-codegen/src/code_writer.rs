@@ -33,6 +33,9 @@ impl CodeWriter {
         }
         Ok(())
     }
+    pub fn write_line(&mut self, line: &str) -> Result<()> {
+        writeln!(&mut self.buf, "{}", line)
+    }
     pub fn write_user_type(&mut self, name: &str, def: &LexUserType, is_main: bool) -> Result<()> {
         writeln!(&mut self.buf)?;
         match def {
@@ -127,6 +130,10 @@ impl CodeWriter {
         Ok(())
     }
     pub fn write_traits_macro(&mut self, traits: &[String]) -> Result<()> {
+        writeln!(
+            &mut self.buf,
+            "//! A macro for implementing the traits of all XRPC requests."
+        )?;
         writeln!(&mut self.buf)?;
         writeln!(&mut self.buf, "#[macro_export]")?;
         writeln!(&mut self.buf, "macro_rules! impl_traits {{")?;

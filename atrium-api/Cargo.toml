@@ -1,8 +1,14 @@
 [package]
 name = "atrium-api"
 version = "0.1.0"
-edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition = "2021"
+description = "API library for AT Protocol (Bluesky)"
+readme = "README.md"
+repository = "https://github.com/sugyan/atrium"
+license = "MIT"
+keywords = ["atproto", "bluesky"]
+
 
 [dependencies]
 async-trait = "0.1.68"
