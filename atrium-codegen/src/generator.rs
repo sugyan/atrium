@@ -115,6 +115,9 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<()> {
 
         let mut writer = CodeWriter::new(None);
         writer.write_header(&None)?;
+        if path == outdir {
+            writer.write_line(r#"#![doc = include_str!("../README.md")]"#)?;
+        }
         writer.write_mods(&modules)?;
         writer.write_to_file(&mut file)?;
     }

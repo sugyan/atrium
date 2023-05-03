@@ -1,3 +1,4 @@
+//! Definitions for XRPC request/response, as well as their associated errors.
 use async_trait::async_trait;
 use http::{header, Method, Request, Response};
 use serde::de::DeserializeOwned;
@@ -88,7 +89,6 @@ pub trait XrpcClient: HttpClient {
             uri += "?";
             uri += query;
         };
-        println!("{} {}", method, uri);
         let mut builder = Request::builder().method(method).uri(uri);
         if let Some(encoding) = encoding {
             builder = builder.header(header::CONTENT_TYPE, encoding);
