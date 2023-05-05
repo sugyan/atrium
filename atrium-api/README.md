@@ -1,12 +1,17 @@
 # ATrium API: Rust library for Bluesky's atproto services
 
+![](https://img.shields.io/crates/v/atrium-api)
+![](https://img.shields.io/docsrs/atrium-api)
+![](https://img.shields.io/crates/l/atrium-api)
+[![Rust](https://github.com/sugyan/atrium/actions/workflows/api.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/api.yml)
+
 ATrium API is a Rust library that includes the definitions of XRPC requests and their associated input/output model types. These codes are generated from the Lexicon schema on [atproto.com](https://atproto.com/).
 
 ## Usage
 
 You can use any HTTP client that implements `atrium_api::xrpc::HttpClient` to make use of the XRPC requests. Below is the simplest example using `reqwest`.
 
-```rust
+```rust,ignore
 #[derive(Default)]
 struct MyClient(reqwest::Client);
 

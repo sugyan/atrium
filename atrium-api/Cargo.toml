@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition = "2021"
 description = "API library for AT Protocol (Bluesky)"
+documentation = "https://docs.rs/atrium-api"
 readme = "README.md"
 repository = "https://github.com/sugyan/atrium"
 license = "MIT"

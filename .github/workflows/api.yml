@@ -1,4 +1,4 @@
-name: Rust
+name: API
 
 on:
   push:
@@ -10,9 +10,11 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Build
-        run: cargo build --verbose
+        run: cargo build -p atrium-api --verbose
+      - name: Run tests
+        run: cargo test -p atrium-api --verbose
