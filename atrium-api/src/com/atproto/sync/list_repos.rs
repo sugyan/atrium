@@ -37,8 +37,7 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}
 
 // com.atproto.sync.listRepos#repo
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

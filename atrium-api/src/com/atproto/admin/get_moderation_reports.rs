@@ -4,7 +4,10 @@
 /// List moderation reports related to a subject.
 #[async_trait::async_trait]
 pub trait GetModerationReports: crate::xrpc::XrpcClient {
-    async fn get_moderation_reports(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn get_moderation_reports(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
@@ -41,5 +44,4 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}

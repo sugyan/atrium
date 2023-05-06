@@ -3,7 +3,10 @@
 
 #[async_trait::async_trait]
 pub trait GetPostThread: crate::xrpc::XrpcClient {
-    async fn get_post_thread(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn get_post_thread(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,

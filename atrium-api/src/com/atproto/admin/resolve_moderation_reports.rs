@@ -4,7 +4,10 @@
 /// Resolve moderation reports by an action.
 #[async_trait::async_trait]
 pub trait ResolveModerationReports: crate::xrpc::XrpcClient {
-    async fn resolve_moderation_reports(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn resolve_moderation_reports(
+        &self,
+        input: Input,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
@@ -30,5 +33,4 @@ pub type Output = crate::com::atproto::admin::defs::ActionView;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}

@@ -4,7 +4,10 @@
 /// Get information about the repo, including the list of collections.
 #[async_trait::async_trait]
 pub trait DescribeRepo: crate::xrpc::XrpcClient {
-    async fn describe_repo(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn describe_repo(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
@@ -37,5 +40,4 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}

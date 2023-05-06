@@ -4,7 +4,10 @@
 /// Create an invite code.
 #[async_trait::async_trait]
 pub trait CreateInviteCodes: crate::xrpc::XrpcClient {
-    async fn create_invite_codes(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn create_invite_codes(
+        &self,
+        input: Input,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,
@@ -35,8 +38,7 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}
 
 // com.atproto.server.createInviteCodes#accountCodes
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

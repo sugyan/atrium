@@ -27,5 +27,4 @@ pub type Output = crate::app::bsky::actor::defs::ProfileViewDetailed;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}
