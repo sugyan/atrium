@@ -11,20 +11,20 @@ use std::path::{Path, PathBuf};
 
 pub(crate) fn generate_code(schema: &LexiconDoc, outdir: &Path) -> Result<()> {
     let mut paths = schema.id.split('.').collect::<Vec<_>>();
-    if let Some(name) = paths.pop() {
+    if let Some(basename) = paths.pop() {
         create_dir_all(outdir.join(paths.join("/")))?;
-        let mut writer = CodeWriter::new(Some(schema.id.clone()));
-        writer.write_header(&schema.description)?;
-        let mut keys = Vec::new();
-        for (key, def) in &schema.defs {
-            if key == "main" {
-                writer.write_user_type(name, def, true)?;
+        let mut writer = CodeWriter::default();
+        writer.write_header(schema.description.as_ref(), Some(&schema.id))?;
+        let mut names = Vec::new();
+        for (name, def) in &schema.defs {
+            if name == "main" {
+                writer.write_user_type(&schema.id, basename, def, true)?;
             } else {
-                keys.push(key);
+                names.push(name);
             }
         }
-        for &key in keys.iter().sorted() {
-            let def = &schema.defs[key];
+        for &name in names.iter().sorted() {
+            let def = &schema.defs[name];
             assert!(!matches!(
                 def,
                 LexUserType::Record(_)
@@ -32,10 +32,10 @@ pub(crate) fn generate_code(schema: &LexiconDoc, outdir: &Path) -> Result<()> {
                     | LexUserType::XrpcQuery(_)
                     | LexUserType::XrpcSubscription(_)
             ));
-            writer.write_user_type(key, def, false)?;
+            writer.write_user_type(&schema.id, name, def, false)?;
         }
-        writer.write_ref_unions(&find_ref_unions(&schema.defs))?;
-        let mut filename = PathBuf::from(name.to_snake_case());
+        writer.write_ref_unions(&schema.id, &find_ref_unions(&schema.defs))?;
+        let mut filename = PathBuf::from(basename.to_snake_case());
         filename.set_extension("rs");
         writer.write_to_file(&mut File::create(
             outdir.join(paths.join("/")).join(filename),
@@ -56,10 +56,8 @@ pub(crate) fn generate_records(outdir: &Path, schemas: &[LexiconDoc]) -> Result<
         })
         .sorted()
         .collect_vec();
-    let mut writer = CodeWriter::new(None);
-    writer.write_header(&Some(String::from(
-        "Collection of ATP repository record type",
-    )))?;
+    let mut writer = CodeWriter::default();
+    writer.write_header(None, None)?;
     writer.write_records(&records)?;
     writer.write_to_file(&mut File::create(outdir.join("records.rs"))?)?;
     Ok(())
@@ -79,8 +77,8 @@ pub(crate) fn generate_traits(outdir: &Path, schemas: &[LexiconDoc]) -> Result<(
         })
         .sorted()
         .collect_vec();
-    let mut writer = CodeWriter::new(None);
-    writer.write_header(&None)?;
+    let mut writer = CodeWriter::default();
+    writer.write_header(None, None)?;
     writer.write_traits_macro(&traits)?;
     writer.write_to_file(&mut File::create(outdir.join("traits.rs"))?)?;
     Ok(())
@@ -92,15 +90,15 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<()> {
     // create ".rs" files
     for path in &paths {
         let mut p = path.to_path_buf();
-        if path == outdir {
-            p = p.join("lib.rs");
-        } else {
-            p.set_extension("rs");
-        }
-        files.push(File::create(&p)?);
+        p.set_extension("rs");
+        files.push(p);
     }
     // write "mod" statements
-    for (path, mut file) in paths.iter().zip(&files) {
+    for (path, filepath) in paths.iter().zip(&files) {
+        if path == outdir {
+            continue;
+        }
+        let mut file = File::create(filepath)?;
         let modules = read_dir(path)?
             .filter_map(Result::ok)
             .filter(|entry| entry.path().is_file())
@@ -113,11 +111,8 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<()> {
             .sorted()
             .collect_vec();
 
-        let mut writer = CodeWriter::new(None);
-        writer.write_header(&None)?;
-        if path == outdir {
-            writer.write_line(r#"#![doc = include_str!("../README.md")]"#)?;
-        }
+        let mut writer = CodeWriter::default();
+        writer.write_header(None, None)?;
         writer.write_mods(&modules)?;
         writer.write_to_file(&mut file)?;
     }
