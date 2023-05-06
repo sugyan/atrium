@@ -5,7 +5,7 @@ use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
 use itertools::Itertools;
-use std::fs::{create_dir_all, read_dir, File};
+use std::fs::{create_dir_all, read_dir};
 use std::io::Result;
 use std::path::{Path, PathBuf};
 
@@ -37,9 +37,7 @@ pub(crate) fn generate_code(schema: &LexiconDoc, outdir: &Path) -> Result<()> {
         writer.write_ref_unions(&schema.id, &find_ref_unions(&schema.defs))?;
         let mut filename = PathBuf::from(basename.to_snake_case());
         filename.set_extension("rs");
-        writer.write_to_file(&mut File::create(
-            outdir.join(paths.join("/")).join(filename),
-        )?)?;
+        writer.write_to_file(&outdir.join(paths.join("/")).join(filename))?;
     }
     Ok(())
 }
@@ -59,7 +57,7 @@ pub(crate) fn generate_records(outdir: &Path, schemas: &[LexiconDoc]) -> Result<
     let mut writer = CodeWriter::default();
     writer.write_header(None, None)?;
     writer.write_records(&records)?;
-    writer.write_to_file(&mut File::create(outdir.join("records.rs"))?)?;
+    writer.write_to_file(&outdir.join("records.rs"))?;
     Ok(())
 }
 
@@ -80,7 +78,7 @@ pub(crate) fn generate_traits(outdir: &Path, schemas: &[LexiconDoc]) -> Result<(
     let mut writer = CodeWriter::default();
     writer.write_header(None, None)?;
     writer.write_traits_macro(&traits)?;
-    writer.write_to_file(&mut File::create(outdir.join("traits.rs"))?)?;
+    writer.write_to_file(&outdir.join("traits.rs"))?;
     Ok(())
 }
 
@@ -98,7 +96,6 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<()> {
         if path == outdir {
             continue;
         }
-        let mut file = File::create(filepath)?;
         let modules = read_dir(path)?
             .filter_map(Result::ok)
             .filter(|entry| entry.path().is_file())
@@ -114,7 +111,7 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<()> {
         let mut writer = CodeWriter::default();
         writer.write_header(None, None)?;
         writer.write_mods(&modules)?;
-        writer.write_to_file(&mut file)?;
+        writer.write_to_file(filepath)?;
     }
     Ok(())
 }

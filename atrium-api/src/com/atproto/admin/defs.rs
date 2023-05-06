@@ -80,6 +80,10 @@ pub struct BlobView {
     pub size: i32,
 }
 
+// com.atproto.admin.defs#escalate
+/// Moderation action type: Escalate. Indicates that the content has been flagged for additional review.
+pub struct Escalate;
+
 // com.atproto.admin.defs#flag
 /// Moderation action type: Flag. Indicates that the content was reviewed and considered to violate PDS rules, but may still be served.
 pub struct Flag;

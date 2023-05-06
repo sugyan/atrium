@@ -3,7 +3,10 @@
 
 #[async_trait::async_trait]
 pub trait ListNotifications: crate::xrpc::XrpcClient {
-    async fn list_notifications(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn list_notifications(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
@@ -38,8 +41,7 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}
 
 // app.bsky.notification.listNotifications#notification
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

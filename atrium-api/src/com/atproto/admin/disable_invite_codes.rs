@@ -29,5 +29,4 @@ pub struct Input {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}

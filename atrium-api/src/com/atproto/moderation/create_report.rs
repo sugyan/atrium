@@ -41,8 +41,7 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}
 
 #[allow(clippy::large_enum_variant)]
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

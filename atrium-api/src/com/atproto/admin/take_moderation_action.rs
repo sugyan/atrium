@@ -4,7 +4,10 @@
 /// Take a moderation action on a repo.
 #[async_trait::async_trait]
 pub trait TakeModerationAction: crate::xrpc::XrpcClient {
-    async fn take_moderation_action(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn take_moderation_action(
+        &self,
+        input: Input,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::POST,

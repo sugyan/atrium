@@ -4,7 +4,10 @@
 /// Get all invite codes for a given account
 #[async_trait::async_trait]
 pub trait GetAccountInviteCodes: crate::xrpc::XrpcClient {
-    async fn get_account_invite_codes(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn get_account_invite_codes(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,

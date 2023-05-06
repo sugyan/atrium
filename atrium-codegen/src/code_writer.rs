@@ -2,7 +2,10 @@ use atrium_lex::lexicon::*;
 use heck::{ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
 use std::collections::HashSet;
+use std::fs::File;
 use std::io::{Result, Write};
+use std::path::Path;
+use std::process::Command;
 
 #[derive(Default)]
 pub(crate) struct CodeWriter {
@@ -165,8 +168,21 @@ impl CodeWriter {
         }
         Ok(())
     }
-    pub fn write_to_file(&mut self, file: &mut impl Write) -> Result<()> {
-        file.write_all(&self.buf)
+    pub fn write_to_file(&mut self, filepath: &Path) -> Result<()> {
+        let mut file = File::create(filepath)?;
+        file.write_all(&self.buf)?;
+        match Command::new("rustfmt")
+            .arg("--edition")
+            .arg("2021")
+            .arg(filepath)
+            .status()
+        {
+            Ok(status) if status.success() => {}
+            _ => {
+                eprintln!("Failed to run rustfmt on {}", filepath.display());
+            }
+        }
+        Ok(())
     }
 
     fn write_record(&mut self, record: &LexRecord) -> Result<()> {

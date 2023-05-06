@@ -4,7 +4,10 @@
 /// A view of an actor's feed.
 #[async_trait::async_trait]
 pub trait GetAuthorFeed: crate::xrpc::XrpcClient {
-    async fn get_author_feed(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn get_author_feed(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,

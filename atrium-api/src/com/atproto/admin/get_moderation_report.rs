@@ -4,7 +4,10 @@
 /// View details about a moderation report.
 #[async_trait::async_trait]
 pub trait GetModerationReport: crate::xrpc::XrpcClient {
-    async fn get_moderation_report(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn get_moderation_report(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
@@ -28,5 +31,4 @@ pub type Output = crate::com::atproto::admin::defs::ReportViewDetail;
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}

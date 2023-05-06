@@ -4,7 +4,10 @@
 /// Get a list of actors suggested for following. Used in discovery UIs.
 #[async_trait::async_trait]
 pub trait GetSuggestions: crate::xrpc::XrpcClient {
-    async fn get_suggestions(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
+    async fn get_suggestions(
+        &self,
+        params: Parameters,
+    ) -> Result<Output, Box<dyn std::error::Error>> {
         let body = crate::xrpc::XrpcClient::send::<Error>(
             self,
             http::Method::GET,
@@ -37,5 +40,4 @@ pub struct Output {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {
-}
+pub enum Error {}
