@@ -1,5 +1,11 @@
 [workspace]
 publish = false
+changelog_update = false
 
 [[package]]
 name = "atrium-api"
+changelog_update = true
+
+[[package]]
+name = "atrium-cli"
+changelog_update = true
