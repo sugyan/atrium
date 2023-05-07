@@ -13,20 +13,21 @@ ATrium is divided into several sub-projects to address different aspects of the 
 ### [`atrium-api`](./atrium-api/)
 
 [![](https://img.shields.io/crates/v/atrium-api)](https://crates.io/crates/atrium-api)
+[![](https://img.shields.io/docsrs/atrium-api)](https://docs.rs/atrium-api)
 
-A library consisting of models and messaging definitions for XRPC, primarily generated using the codegen library
+A library consisting of models and messaging definitions for XRPC, primarily generated using the codegen library.
 
 ### [`atrium-lex`](./atrium-lex/)
 
-A library that provides type definitions for parsing the AT Protocol's [Lexicon](https://atproto.com/guides/lexicon) schema, ensuring compatibility with the lexicon
+A library that provides type definitions for parsing the AT Protocol's [Lexicon](https://atproto.com/guides/lexicon) schema, ensuring compatibility with the lexicon.
 
 ### [`atrium-codegen`](./atrium-codegen/)
 
-A library that generates Rust code for the `atrium-api` based on the analyzed lexicon definitions
+A library that generates Rust code for the `atrium-api` based on the analyzed lexicon definitions.
 
 ### [`atrium-xrpc`](./atrium-xrpc/)
 
-A client library that offers a convenient way to interact with the `atrium-api` and utilize its features
+A client library that offers a convenient way to interact with the `atrium-api` and utilize its features.
 
 ### [`atrium-cli`](./atrium-cli/)
 
@@ -45,3 +46,12 @@ We welcome contributions from the community to help us improve and expand ATrium
 ## License
 
 ATrium is released under the [MIT License](./LICENSE).
+
+## Related works
+
+Below are some related projects that might be of interest:
+
+- `atproto` https://github.com/bluesky-social/atproto
+  - The leading protocol implementation
+- `adenosine` https://gitlab.com/bnewbold/adenosine
+- `atproto-rs` https://github.com/ngerakines/atproto-rs

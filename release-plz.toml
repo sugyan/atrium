@@ -4,6 +4,7 @@ changelog_update = false
 
 [[package]]
 name = "atrium-api"
+publish = true
 changelog_update = true
 
 [[package]]
