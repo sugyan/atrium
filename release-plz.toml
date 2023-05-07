@@ -1,5 +1,5 @@
 [workspace]
 publish = false
 
-[[atrium-api]]
+[[package]]
 name = "atrium-api"
