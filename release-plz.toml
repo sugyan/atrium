@@ -1,0 +1,5 @@
+[workspace]
+publish = false
+
+[[atrium-api]]
+name = "atrium-api"
