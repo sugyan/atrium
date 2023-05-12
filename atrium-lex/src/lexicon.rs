@@ -200,6 +200,7 @@ pub enum LexXrpcParametersProperty {
 #[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexXrpcParameters {
+    pub description: Option<String>,
     pub required: Option<Vec<String>>,
     pub properties: HashMap<String, LexXrpcParametersProperty>,
 }
