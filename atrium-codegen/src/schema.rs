@@ -32,7 +32,9 @@ pub(crate) fn find_ref_unions(defs: &HashMap<String, LexUserType>) -> Vec<(Strin
             LexUserType::XrpcSubscription(_) => {
                 // TODO
             }
-            LexUserType::Array(_) => unimplemented!(),
+            LexUserType::Array(array) => {
+                find_ref_unions_in_array(array, &key.to_pascal_case(), &mut unions)
+            }
             LexUserType::Object(object) => {
                 find_ref_unions_in_object(object, &key.to_pascal_case(), &mut unions);
             }
