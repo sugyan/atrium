@@ -4,9 +4,11 @@
 macro_rules! impl_traits {
     ($ type : ty) => {
         use atrium_api::{app, com};
+        impl app::bsky::actor::get_preferences::GetPreferences for $type {}
         impl app::bsky::actor::get_profile::GetProfile for $type {}
         impl app::bsky::actor::get_profiles::GetProfiles for $type {}
         impl app::bsky::actor::get_suggestions::GetSuggestions for $type {}
+        impl app::bsky::actor::put_preferences::PutPreferences for $type {}
         impl app::bsky::actor::search_actors::SearchActors for $type {}
         impl app::bsky::actor::search_actors_typeahead::SearchActorsTypeahead for $type {}
         impl app::bsky::feed::get_author_feed::GetAuthorFeed for $type {}
@@ -18,14 +20,21 @@ macro_rules! impl_traits {
         impl app::bsky::graph::get_blocks::GetBlocks for $type {}
         impl app::bsky::graph::get_followers::GetFollowers for $type {}
         impl app::bsky::graph::get_follows::GetFollows for $type {}
+        impl app::bsky::graph::get_list::GetList for $type {}
+        impl app::bsky::graph::get_list_mutes::GetListMutes for $type {}
+        impl app::bsky::graph::get_lists::GetLists for $type {}
         impl app::bsky::graph::get_mutes::GetMutes for $type {}
         impl app::bsky::graph::mute_actor::MuteActor for $type {}
+        impl app::bsky::graph::mute_actor_list::MuteActorList for $type {}
         impl app::bsky::graph::unmute_actor::UnmuteActor for $type {}
+        impl app::bsky::graph::unmute_actor_list::UnmuteActorList for $type {}
         impl app::bsky::notification::get_unread_count::GetUnreadCount for $type {}
         impl app::bsky::notification::list_notifications::ListNotifications for $type {}
         impl app::bsky::notification::update_seen::UpdateSeen for $type {}
         impl app::bsky::unspecced::get_popular::GetPopular for $type {}
+        impl com::atproto::admin::disable_account_invites::DisableAccountInvites for $type {}
         impl com::atproto::admin::disable_invite_codes::DisableInviteCodes for $type {}
+        impl com::atproto::admin::enable_account_invites::EnableAccountInvites for $type {}
         impl com::atproto::admin::get_invite_codes::GetInviteCodes for $type {}
         impl com::atproto::admin::get_moderation_action::GetModerationAction for $type {}
         impl com::atproto::admin::get_moderation_actions::GetModerationActions for $type {}
@@ -50,6 +59,7 @@ macro_rules! impl_traits {
         impl com::atproto::repo::get_record::GetRecord for $type {}
         impl com::atproto::repo::list_records::ListRecords for $type {}
         impl com::atproto::repo::put_record::PutRecord for $type {}
+        impl com::atproto::repo::rebase_repo::RebaseRepo for $type {}
         impl com::atproto::repo::upload_blob::UploadBlob for $type {}
         impl com::atproto::server::create_account::CreateAccount for $type {}
         impl com::atproto::server::create_app_password::CreateAppPassword for $type {}
