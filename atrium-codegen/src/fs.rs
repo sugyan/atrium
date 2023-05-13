@@ -18,7 +18,7 @@ where
     Ok(())
 }
 
-pub(crate) fn find_schemas(path: &Path) -> Result<Vec<PathBuf>> {
+pub(crate) fn find_schemas(path: &Path) -> Result<Vec<impl AsRef<Path>>> {
     let mut results = Vec::new();
     walk(path, &mut results, &mut |path| {
         path.extension().and_then(OsStr::to_str) == Some("json")
@@ -26,7 +26,7 @@ pub(crate) fn find_schemas(path: &Path) -> Result<Vec<PathBuf>> {
     Ok(results)
 }
 
-pub(crate) fn find_dirs(path: &Path) -> Result<Vec<PathBuf>> {
+pub(crate) fn find_dirs(path: &Path) -> Result<Vec<impl AsRef<Path>>> {
     let mut results = Vec::new();
     walk(path, &mut results, &mut |path| path.is_dir())?;
     Ok(results)
