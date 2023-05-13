@@ -9,7 +9,7 @@ ATrium API is a Rust library that includes the definitions of XRPC requests and 
 
 ## Usage
 
-You can use any HTTP client that implements `atrium_api::xrpc::HttpClient` to make use of the XRPC requests. Below is the simplest example using `reqwest`.
+You can use any HTTP client that implements `xrpc::HttpClient` to make use of the XRPC requests. Below is the simplest example using [`reqwest`](https://crates.io/crates/reqwest).
 
 ```rust,ignore
 #[derive(Default)]

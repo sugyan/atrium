@@ -55,3 +55,6 @@ Below are some related projects that might be of interest:
   - The leading protocol implementation
 - `adenosine` https://gitlab.com/bnewbold/adenosine
 - `atproto-rs` https://github.com/ngerakines/atproto-rs
+- `atproto-rs` https://github.com/Maaarcocr/atproto-rs
+- `bisky` https://github.com/jesopo/bisky
+- `lexicon-rs` https://github.com/Matrix89/lexicon-rs

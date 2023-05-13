@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 
 [dependencies]
-atrium-api = { path = "../atrium-api" }
+atrium-api = "0.1"
 atrium-xrpc = { path = "../atrium-xrpc" }
 chrono = "0.4.24"
 clap = { version = "4.2.4", features = ["derive"] }

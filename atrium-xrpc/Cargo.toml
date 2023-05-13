@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 
 [dependencies]
-atrium-api = { path = "../atrium-api" }
+atrium-api = "0.1"
 async-trait = "0.1.68"
 http = "0.2.9"
 reqwest = "0.11.16"
