@@ -14,10 +14,7 @@ struct Args {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    let mut results = Vec::new();
-    for prefix in ["app.bsky", "com.atproto"] {
-        results.extend(genapi(&args.lexdir, &args.outdir, prefix)?);
-    }
+    let results = genapi(&args.lexdir, &args.outdir, &["app.bsky", "com.atproto"])?;
     for path in &results {
         match Command::new("rustfmt")
             .arg("--edition")

@@ -39,45 +39,15 @@ impl LexConverter {
         })
     }
     pub fn ref_unions(&self, ref_unions: &[(String, LexRefUnion)]) -> Result<TokenStream> {
-        // println!("ref_unions of {}", self.schema_id);
         let mut enums = Vec::new();
         for (name, ref_union) in ref_unions {
-            enums.push(self.ref_union(name, ref_union)?);
+            enums.push(self::refs_enum(
+                name,
+                &ref_union.refs,
+                Some(&self.schema_id),
+            )?);
         }
         Ok(quote!(#(#enums)*))
-    }
-    pub fn ref_union(&self, name: &str, ref_union: &LexRefUnion) -> Result<TokenStream> {
-        let derives = self::derives()?;
-        let enum_name = format_ident!("{name}");
-        let mut variants = Vec::new();
-        for r#ref in &ref_union.refs {
-            let path = self.resolve_ref(r#ref)?;
-            let s = path.to_string().replace(' ', "");
-            let rename = if r#ref.starts_with('#') {
-                format!("{}{}", self.schema_id, r#ref)
-            } else {
-                r#ref.clone()
-            };
-            let name = format_ident!(
-                "{}",
-                s.strip_prefix("crate::")
-                    .unwrap_or(&s)
-                    .split("::")
-                    .map(str::to_pascal_case)
-                    .join("")
-            );
-            variants.push(quote! {
-                #[serde(rename = #rename)]
-                #name(#path)
-            });
-        }
-        Ok(quote! {
-            #derives
-            #[serde(tag = "$type")]
-            pub enum #enum_name {
-                #(#variants),*
-            }
-        })
     }
     fn record(&self, record: &LexRecord) -> Result<TokenStream> {
         let LexRecordRecord::Object(object) = &record.record;
@@ -465,22 +435,9 @@ impl LexConverter {
             pub type #string_name = String;
         })
     }
-    fn resolve_ref(&self, r#ref: &str) -> Result<TokenStream> {
-        let (namespace, def) = r#ref.split_once('#').unwrap_or((r#ref, "main"));
-        let path = syn::parse_str::<Path>(&if namespace.is_empty() {
-            def.to_pascal_case()
-        } else {
-            format!(
-                "crate::{}::{}",
-                namespace.split('.').map(str::to_snake_case).join("::"),
-                def.to_pascal_case()
-            )
-        })?;
-        Ok(quote!(#path))
-    }
     fn ref_type(&self, r#ref: &LexRef) -> Result<(TokenStream, TokenStream)> {
         let description = self.description(&r#ref.description);
-        Ok((description, self.resolve_ref(&r#ref.r#ref)?))
+        Ok((description, self::resolve_ref(&r#ref.r#ref, "main")?))
     }
     fn union_type(
         &self,
@@ -533,6 +490,95 @@ impl LexConverter {
     }
 }
 
+pub(crate) fn refs_enum(
+    name: &str,
+    refs: &[String],
+    schema_id: Option<&String>,
+) -> Result<TokenStream> {
+    let is_record = schema_id.is_none();
+    let derives = self::derives()?;
+    let enum_name = format_ident!("{name}");
+    let mut variants = Vec::new();
+    for r#ref in refs {
+        let default = if is_record { "record" } else { "main" };
+        let path = self::resolve_ref(r#ref, default)?;
+        let rename = if r#ref.starts_with('#') {
+            format!(
+                "{}{}",
+                schema_id.expect("schema id must be specified"),
+                r#ref
+            )
+        } else {
+            r#ref.clone()
+        };
+        let s = path.to_string().replace(' ', "");
+        let mut parts = s
+            .strip_prefix("crate::")
+            .unwrap_or(&s)
+            .split("::")
+            .map(str::to_pascal_case)
+            .collect_vec();
+        if is_record {
+            parts.pop();
+        }
+        let name = format_ident!("{}", parts.join(""));
+        variants.push(quote! {
+            #[serde(rename = #rename)]
+            #name(#path)
+        });
+    }
+    Ok(quote! {
+        #derives
+        #[serde(tag = "$type")]
+        pub enum #enum_name {
+            #(#variants),*
+        }
+    })
+}
+
+pub(crate) fn traits_macro(traits: &[String]) -> Result<TokenStream> {
+    let mut paths = Vec::new();
+    let mut roots = HashSet::new();
+    for t in traits {
+        let parts = t.split('.').collect_vec();
+        roots.insert(format_ident!("{}", parts[0].to_snake_case()));
+        let basename = parts.last().unwrap();
+        let path = syn::parse_str::<Path>(&format!(
+            "{}::{}",
+            parts.iter().map(|s| s.to_snake_case()).join("::"),
+            basename.to_pascal_case()
+        ))?;
+        paths.push(quote! {
+            impl #path for $type {}
+        });
+    }
+    let roots = roots.into_iter().sorted().collect_vec();
+    Ok(quote! {
+        #[macro_export]
+        macro_rules! impl_traits {
+            ($type:ty) => {
+                use atrium_api::{#(#roots),*};
+                #(#paths)*
+            }
+        }
+    })
+}
+
+pub(crate) fn modules(names: &[String]) -> Result<TokenStream> {
+    let v = names
+        .iter()
+        .filter_map(|s| {
+            if s != "lib" {
+                let m = format_ident!("{s}");
+                Some(quote!(pub mod #m;))
+            } else {
+                None
+            }
+        })
+        .collect_vec();
+    Ok(quote!(#(#v)*))
+}
+
 fn derives() -> Result<TokenStream> {
     let mut derives = Vec::new();
     for derive in &[
@@ -546,4 +592,18 @@ fn derives() -> Result<TokenStream> {
         derives.push(syn::parse_str::<Path>(derive)?);
     }
     Ok(quote!(#[derive(#(#derives),*)]))
+}
+
+fn resolve_ref(r#ref: &str, default: &str) -> Result<TokenStream> {
+    let (namespace, def) = r#ref.split_once('#').unwrap_or((r#ref, default));
+    let path = syn::parse_str::<Path>(&if namespace.is_empty() {
+        def.to_pascal_case()
+    } else {
+        format!(
+            "crate::{}::{}",
+            namespace.split('.').map(str::to_snake_case).join("::"),
+            def.to_pascal_case()
+        )
+    })?;
+    Ok(quote!(#path))
 }
