@@ -26,6 +26,7 @@ impl LexConverter {
             LexUserType::XrpcQuery(query) => self.query(name, query)?,
             LexUserType::XrpcProcedure(procedure) => self.procedure(name, procedure)?,
             LexUserType::XrpcSubscription(subscription) => self.subscription(name, subscription)?,
+            LexUserType::Array(array) => self.array(name, array)?,
             LexUserType::Token(token) => self.token(name, token)?,
             LexUserType::Object(object) => {
                 self.object(if is_main { "Main" } else { name }, object)?
@@ -312,6 +313,14 @@ impl LexConverter {
             pub struct #subscription_name;
         })
     }
+    fn array(&self, name: &str, array: &LexArray) -> Result<TokenStream> {
+        let (description, array_type) = self.array_type(array, name, None)?;
+        let type_name = format_ident!("{}", name.to_pascal_case());
+        Ok(quote! {
+            #description
+            pub type #type_name = #array_type;
+        })
+    }
     fn token(&self, name: &str, token: &LexToken) -> Result<TokenStream> {
         let description = self.description(&token.description);
         let token_name = format_ident!("{}", name.to_pascal_case());
@@ -370,31 +379,7 @@ impl LexConverter {
             )?,
             LexObjectProperty::Bytes(bytes) => self.bytes_type(bytes)?,
             LexObjectProperty::CidLink(cid_link) => self.cid_link_type(cid_link)?,
-            LexObjectProperty::Array(array) => {
-                let description = self.description(&array.description);
-                let (_, item_type) = match &array.items {
-                    LexArrayItem::Integer(integer) => self.integer_type(integer)?,
-                    LexArrayItem::String(string) => self.string_type(string)?,
-                    LexArrayItem::Unknown(unknown) => self.unknown_type(unknown)?,
-                    LexArrayItem::CidLink(cid_link) => self.cid_link_type(cid_link)?,
-                    LexArrayItem::Ref(r#ref) => self.ref_type(r#ref)?,
-                    LexArrayItem::Union(union) => self.union_type(
-                        union,
-                        format!(
-                            "{}{}Item",
-                            object_name.to_pascal_case(),
-                            name.to_pascal_case()
-                        )
-                        .as_str(),
-                    )?,
-                    _ => unimplemented!("{:?}", array.items),
-                };
-                // TODO: must be determined
-                if item_type.is_empty() {
-                    return Ok(quote!());
-                }
-                (description, quote!(Vec<#item_type>))
-            }
+            LexObjectProperty::Array(array) => self.array_type(array, name, Some(object_name))?,
             LexObjectProperty::Blob(blob) => self.blob_type(blob)?,
             LexObjectProperty::Boolean(boolean) => self.boolean_type(boolean)?,
             LexObjectProperty::Integer(integer) => self.integer_type(integer)?,
@@ -458,6 +443,36 @@ impl LexConverter {
         let description = self.description(&cid_link.description);
         // TODO
         Ok((description, quote!()))
+    }
+    fn array_type(
+        &self,
+        array: &LexArray,
+        name: &str,
+        object_name: Option<&str>,
+    ) -> Result<(TokenStream, TokenStream)> {
+        let description = self.description(&array.description);
+        let (_, item_type) = match &array.items {
+            LexArrayItem::Integer(integer) => self.integer_type(integer)?,
+            LexArrayItem::String(string) => self.string_type(string)?,
+            LexArrayItem::Unknown(unknown) => self.unknown_type(unknown)?,
+            LexArrayItem::CidLink(cid_link) => self.cid_link_type(cid_link)?,
+            LexArrayItem::Ref(r#ref) => self.ref_type(r#ref)?,
+            LexArrayItem::Union(union) => self.union_type(
+                union,
+                format!(
+                    "{}{}Item",
+                    object_name.map_or(String::new(), str::to_pascal_case),
+                    name.to_pascal_case()
+                )
+                .as_str(),
+            )?,
+            _ => unimplemented!("{:?}", array.items),
+        };
+        // TODO: must be determined
+        if item_type.is_empty() {
+            return Ok((description, quote!()));
+        }
+        Ok((description, quote!(Vec<#item_type>)))
     }
     fn blob_type(&self, blob: &LexBlob) -> Result<(TokenStream, TokenStream)> {
         let description = self.description(&blob.description);

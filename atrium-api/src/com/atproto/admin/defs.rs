@@ -143,6 +143,8 @@ pub struct RepoView {
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invites_disabled: Option<bool>,
     pub moderation: Moderation,
     pub related_records: Vec<crate::records::Record>,
 }
@@ -159,6 +161,8 @@ pub struct RepoViewDetail {
     pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invites: Option<Vec<crate::com::atproto::server::defs::InviteCode>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invites_disabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,

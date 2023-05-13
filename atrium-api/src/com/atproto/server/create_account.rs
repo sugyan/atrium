@@ -20,6 +20,8 @@ pub trait CreateAccount: crate::xrpc::XrpcClient {
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub did: Option<String>,
     pub email: String,
     pub handle: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,4 +46,6 @@ pub enum Error {
     InvalidInviteCode(Option<String>),
     HandleNotAvailable(Option<String>),
     UnsupportedDomain(Option<String>),
+    UnresolvableDid(Option<String>),
+    IncompatibleDidDoc(Option<String>),
 }

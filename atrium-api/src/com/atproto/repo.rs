@@ -6,5 +6,6 @@ pub mod describe_repo;
 pub mod get_record;
 pub mod list_records;
 pub mod put_record;
+pub mod rebase_repo;
 pub mod strong_ref;
 pub mod upload_blob;
