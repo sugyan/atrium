@@ -16,4 +16,5 @@ members = [
     "atrium-codegen",
     "atrium-lex",
     "atrium-xrpc",
+    "examples/firehose",
 ]
