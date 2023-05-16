@@ -13,6 +13,11 @@ pub struct Commit {
     pub seq: i32,
     pub time: String,
     pub too_big: bool,
+    pub commit: cid::Cid,
+    pub prev: cid::Cid,
+    pub blobs: Vec<cid::Cid>,
+    #[serde(with = "serde_bytes")]
+    pub blocks: Vec<u8>,
 }
 #[doc = "`com.atproto.sync.subscribeRepos#handle`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -46,6 +51,7 @@ pub struct Migrate {
 pub struct RepoOp {
     pub action: String,
     pub path: String,
+    pub cid: Option<cid::Cid>,
 }
 #[doc = "`com.atproto.sync.subscribeRepos#tombstone`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
