@@ -14,7 +14,7 @@ pub struct Commit {
     pub time: String,
     pub too_big: bool,
     pub commit: cid::Cid,
-    pub prev: cid::Cid,
+    pub prev: Option<cid::Cid>,
     pub blobs: Vec<cid::Cid>,
     #[serde(with = "serde_bytes")]
     pub blocks: Vec<u8>,

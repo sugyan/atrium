@@ -9,13 +9,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         connect_async("wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos").await?;
 
     while let Some(Ok(tungstenite::Message::Binary(message))) = stream.next().await {
-        match Frame::try_from(message.as_slice())? {
-            Frame::Message(message) => match message.body {
+        process_message(&message).await?;
+    }
+    Ok(())
+}
+
+async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+    match Frame::try_from(message)? {
+        Frame::Message(message) => {
+            match message.body {
                 MessageEnum::Commit(commit) => {
-                    // println!("{:?}: {:?}", commit.commit, commit.ops);
-                    if let Some(op) = commit.ops.iter().find(|op| {
-                        op.action == "create" && op.path.starts_with("app.bsky.feed.post")
-                    }) {
+                    for op in commit.ops {
+                        let collection = op.path.split('/').next().expect("op.path is empty");
+                        if op.action != "create" || collection != "app.bsky.feed.post" {
+                            continue;
+                        }
                         let (items, _) =
                             rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
                         if let Some((cid, item)) = items.first() {
@@ -23,16 +31,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             if let Ok(value) =
                                 ciborium::de::from_reader::<Record, _>(&mut item.as_slice())
                             {
-                                println!("{}: {}", value.created_at, value.text.replace('\n', " "));
+                                println!("{}: {}", value.created_at, value.text);
                             } else {
                                 // TODO
                             }
                         }
                     }
                 }
-            },
-            Frame::Error(err) => panic!("{err:?}"),
+            }
         }
+        Frame::Error(err) => panic!("{err:?}"),
     }
     Ok(())
 }

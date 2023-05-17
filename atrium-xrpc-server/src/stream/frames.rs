@@ -100,10 +100,6 @@ impl TryFrom<&[u8]> for Frame {
         let mut cursor = Cursor::new(value);
         let value = ciborium::de::from_reader::<Value, _>(&mut cursor)?;
         let header = FrameHeader::try_from(value)?;
-        // println!(
-        //     "debug: {:?}",
-        //     ciborium::de::from_reader::<Value, _>(&mut cursor.clone())
-        // );
         match header {
             FrameHeader::Message(t) => match t.as_deref() {
                 Some("#commit") => Ok(Frame::Message(MessageFrame {
@@ -111,7 +107,7 @@ impl TryFrom<&[u8]> for Frame {
                         &mut cursor,
                     )?),
                 })),
-                _ => unimplemented!(),
+                _ => unimplemented!("{t:?}"),
             },
             FrameHeader::Error => Ok(Frame::Error(ErrorFrame {})),
         }
