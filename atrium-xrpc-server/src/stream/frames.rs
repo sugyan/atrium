@@ -1,5 +1,5 @@
-use atrium_api::com::atproto::sync::subscribe_repos::Commit;
-use ciborium::Value;
+use atrium_api::com::atproto::sync::subscribe_repos::{Commit, Handle, Info, Migrate, Tombstone};
+use libipld_core::ipld::Ipld;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::Cursor;
@@ -14,12 +14,6 @@ impl Display for FrameTypeError {
 }
 
 impl Error for FrameTypeError {}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum FrameHeader {
-    Message(Option<String>),
-    Error,
-}
 
 // original definition:
 //```
@@ -37,39 +31,39 @@ enum FrameHeader {
 // })
 // export type ErrorFrameHeader = z.infer<typeof errorFrameHeader>
 // ```
-impl TryFrom<Value> for FrameHeader {
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum FrameHeader {
+    Message(Option<String>),
+    Error,
+}
+
+impl TryFrom<Ipld> for FrameHeader {
     type Error = FrameTypeError;
 
-    fn try_from(value: Value) -> Result<Self, <FrameHeader as TryFrom<Value>>::Error> {
-        let (mut op, mut t) = (None, None);
-        if let Some(map) = value.as_map() {
-            for (k, v) in map {
-                match (k.as_text(), v) {
-                    (Some("op"), Value::Integer(i)) => match i8::try_from(*i) {
-                        Ok(1) => op = Some(true),
-                        Ok(-1) => op = Some(false),
-                        _ => {}
-                    },
-                    (Some("t"), Value::Text(s)) => t = Some(s.clone()),
+    fn try_from(value: Ipld) -> Result<Self, <FrameHeader as TryFrom<Ipld>>::Error> {
+        if let Ipld::Map(map) = value {
+            if let Some(Ipld::Integer(i)) = map.get("op") {
+                match i {
+                    1 => {
+                        let t = if let Some(Ipld::String(s)) = map.get("t") {
+                            Some(s.clone())
+                        } else {
+                            None
+                        };
+                        return Ok(FrameHeader::Message(t));
+                    }
+                    -1 => return Ok(FrameHeader::Error),
                     _ => {}
                 }
             }
         }
-        if let Some(b) = op {
-            if b {
-                Ok(FrameHeader::Message(t))
-            } else {
-                Ok(FrameHeader::Error)
-            }
-        } else {
-            Err(FrameTypeError)
-        }
+        Err(FrameTypeError)
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Frame {
-    Message(MessageFrame),
+    Message(Box<MessageFrame>),
     Error(ErrorFrame),
 }
 
@@ -86,11 +80,11 @@ pub struct ErrorFrame {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MessageEnum {
-    Commit(Commit),
-    // Handle(Handle),
-    // Migrate(Migrate),
-    // Tombstone(Tombstone),
-    // Info(Info),
+    Commit(Box<Commit>),
+    Handle(Box<Handle>),
+    Migrate(Box<Migrate>),
+    Tombstone(Box<Tombstone>),
+    Info(Box<Info>),
 }
 
 impl TryFrom<&[u8]> for Frame {
@@ -98,15 +92,24 @@ impl TryFrom<&[u8]> for Frame {
 
     fn try_from(value: &[u8]) -> Result<Self, <Frame as TryFrom<&[u8]>>::Error> {
         let mut cursor = Cursor::new(value);
-        let value = ciborium::de::from_reader::<Value, _>(&mut cursor)?;
-        let header = FrameHeader::try_from(value)?;
+        let (left, right) = match serde_ipld_dagcbor::from_reader::<Ipld, _>(&mut cursor) {
+            Err(serde_ipld_dagcbor::DecodeError::TrailingData) => {
+                value.split_at(cursor.position() as usize)
+            }
+            _ => {
+                // TODO
+                return Err(Box::new(FrameTypeError));
+            }
+        };
+        let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(left)?;
+        let header = FrameHeader::try_from(ipld)?;
         match header {
             FrameHeader::Message(t) => match t.as_deref() {
-                Some("#commit") => Ok(Frame::Message(MessageFrame {
-                    body: MessageEnum::Commit(serde_ipld_dagcbor::from_reader::<Commit, _>(
-                        &mut cursor,
-                    )?),
-                })),
+                Some("#commit") => Ok(Frame::Message(Box::new(MessageFrame {
+                    body: MessageEnum::Commit(Box::new(serde_ipld_dagcbor::from_slice::<Commit>(
+                        right,
+                    )?)),
+                }))),
                 _ => unimplemented!("{t:?}"),
             },
             FrameHeader::Error => Ok(Frame::Error(ErrorFrame {})),
@@ -117,58 +120,54 @@ impl TryFrom<&[u8]> for Frame {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ciborium::Value;
 
-    fn serialize_value(value: &Value) -> Vec<u8> {
-        let mut buf = Vec::new();
-        ciborium::ser::into_writer(value, &mut buf).expect("failed to serialize");
-        buf
+    fn serialized_data(s: &str) -> Vec<u8> {
+        assert!(s.len() % 2 == 0);
+        let b2u = |b: u8| match b {
+            b'0'..=b'9' => b - b'0',
+            b'a'..=b'f' => b - b'a' + 10,
+            _ => unreachable!(),
+        };
+        s.as_bytes()
+            .chunks(2)
+            .map(|b| (b2u(b[0]) << 4) + b2u(b[1]))
+            .collect()
     }
 
     #[test]
     fn deserialize_message_frame_header() {
-        let data = serialize_value(&Value::Map(vec![
-            (Value::Text("op".into()), Value::Integer(1.into())),
-            (Value::Text("t".into()), Value::Text("#commit".into())),
-        ]));
-        let value =
-            ciborium::de::from_reader::<Value, _>(data.as_slice()).expect("failed to deserialize");
+        // {"op": 1, "t": "#commit"}
+        let data = serialized_data("a2626f700161746723636f6d6d6974");
+        let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
         assert_eq!(
-            FrameHeader::try_from(value),
+            FrameHeader::try_from(ipld),
             Ok(FrameHeader::Message(Some(String::from("#commit"))))
         );
     }
 
     #[test]
     fn deserialize_error_frame_header() {
-        let data = serialize_value(&Value::Map(vec![(
-            Value::Text("op".into()),
-            Value::Integer((-1).into()),
-        )]));
-        let value =
-            ciborium::de::from_reader::<Value, _>(data.as_slice()).expect("failed to deserialize");
-        assert_eq!(FrameHeader::try_from(value), Ok(FrameHeader::Error));
+        // {"op": -1}
+        let data = serialized_data("a1626f7020");
+        let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
+        assert_eq!(FrameHeader::try_from(ipld), Ok(FrameHeader::Error));
     }
 
     #[test]
     fn deserialize_invalid_frame_header() {
         {
-            let data = serialize_value(&Value::Map(vec![
-                (Value::Text("op".into()), Value::Integer(2.into())),
-                (Value::Text("t".into()), Value::Text("#commit".into())),
-            ]));
-            let value = ciborium::de::from_reader::<Value, _>(data.as_slice())
-                .expect("failed to deserialize");
-            assert_eq!(FrameHeader::try_from(value), Err(FrameTypeError));
+            // {"op": 2, "t": "#commit"}
+            let data = serialized_data("a2626f700261746723636f6d6d6974");
+            let ipld =
+                serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
+            assert_eq!(FrameHeader::try_from(ipld), Err(FrameTypeError));
         }
         {
-            let data = serialize_value(&Value::Map(vec![(
-                Value::Text("op".into()),
-                Value::Integer((-2).into()),
-            )]));
-            let value = ciborium::de::from_reader::<Value, _>(data.as_slice())
-                .expect("failed to deserialize");
-            assert_eq!(FrameHeader::try_from(value), Err(FrameTypeError));
+            // {"op": -2}
+            let data = serialized_data("a1626f7021");
+            let ipld =
+                serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
+            assert_eq!(FrameHeader::try_from(ipld), Err(FrameTypeError));
         }
     }
 }

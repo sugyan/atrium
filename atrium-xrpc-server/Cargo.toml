@@ -7,6 +7,5 @@ edition = "2021"
 
 [dependencies]
 atrium-api = { path = "../atrium-api" }
-ciborium = "0.2.1"
-serde = { version = "1.0.163", features = ["derive"] }
+libipld-core = { version = "0.16.0", features = ["serde-codec"] }
 serde_ipld_dagcbor = "0.3.0"

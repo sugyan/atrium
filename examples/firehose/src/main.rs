@@ -26,8 +26,8 @@ async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error
                         }
                         let (items, _) =
                             rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
-                        if let Some((cid, item)) = items.first() {
-                            assert_eq!(Some(*cid), op.cid);
+                        if let Some((_, item)) = items.iter().find(|(cid, _)| Some(*cid) == op.cid)
+                        {
                             if let Ok(value) =
                                 ciborium::de::from_reader::<Record, _>(&mut item.as_slice())
                             {
@@ -38,6 +38,7 @@ async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error
                         }
                     }
                 }
+                _ => unimplemented!("{:?}", message.body),
             }
         }
         Frame::Error(err) => panic!("{err:?}"),
