@@ -126,6 +126,12 @@ pub struct RecordViewDetail {
     pub uri: String,
     pub value: crate::records::Record,
 }
+#[doc = "`com.atproto.admin.defs#recordViewNotFound`"]
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordViewNotFound {
+    pub uri: String,
+}
 #[doc = "`com.atproto.admin.defs#repoRef`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -167,6 +173,12 @@ pub struct RepoViewDetail {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
     pub related_records: Vec<crate::records::Record>,
+}
+#[doc = "`com.atproto.admin.defs#repoViewNotFound`"]
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RepoViewNotFound {
+    pub did: String,
 }
 #[doc = "`com.atproto.admin.defs#reportView`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -210,8 +222,12 @@ pub struct VideoDetails {
 pub enum ActionViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
     RepoView(Box<RepoView>),
+    #[serde(rename = "com.atproto.admin.defs#repoViewNotFound")]
+    RepoViewNotFound(Box<RepoViewNotFound>),
     #[serde(rename = "com.atproto.admin.defs#recordView")]
     RecordView(Box<RecordView>),
+    #[serde(rename = "com.atproto.admin.defs#recordViewNotFound")]
+    RecordViewNotFound(Box<RecordViewNotFound>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
@@ -234,8 +250,12 @@ pub enum BlobViewDetailsEnum {
 pub enum ReportViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
     RepoView(Box<RepoView>),
+    #[serde(rename = "com.atproto.admin.defs#repoViewNotFound")]
+    RepoViewNotFound(Box<RepoViewNotFound>),
     #[serde(rename = "com.atproto.admin.defs#recordView")]
     RecordView(Box<RecordView>),
+    #[serde(rename = "com.atproto.admin.defs#recordViewNotFound")]
+    RecordViewNotFound(Box<RecordViewNotFound>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

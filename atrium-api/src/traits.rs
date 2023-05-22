@@ -11,7 +11,13 @@ macro_rules! impl_traits {
         impl app::bsky::actor::put_preferences::PutPreferences for $type {}
         impl app::bsky::actor::search_actors::SearchActors for $type {}
         impl app::bsky::actor::search_actors_typeahead::SearchActorsTypeahead for $type {}
+        impl app::bsky::feed::describe_feed_generator::DescribeFeedGenerator for $type {}
+        impl app::bsky::feed::get_actor_feeds::GetActorFeeds for $type {}
         impl app::bsky::feed::get_author_feed::GetAuthorFeed for $type {}
+        impl app::bsky::feed::get_feed::GetFeed for $type {}
+        impl app::bsky::feed::get_feed_generator::GetFeedGenerator for $type {}
+        impl app::bsky::feed::get_feed_generators::GetFeedGenerators for $type {}
+        impl app::bsky::feed::get_feed_skeleton::GetFeedSkeleton for $type {}
         impl app::bsky::feed::get_likes::GetLikes for $type {}
         impl app::bsky::feed::get_post_thread::GetPostThread for $type {}
         impl app::bsky::feed::get_posts::GetPosts for $type {}

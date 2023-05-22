@@ -5,6 +5,8 @@
 pub enum Record {
     #[serde(rename = "app.bsky.actor.profile")]
     AppBskyActorProfile(Box<crate::app::bsky::actor::profile::Record>),
+    #[serde(rename = "app.bsky.feed.generator")]
+    AppBskyFeedGenerator(Box<crate::app::bsky::feed::generator::Record>),
     #[serde(rename = "app.bsky.feed.like")]
     AppBskyFeedLike(Box<crate::app::bsky::feed::like::Record>),
     #[serde(rename = "app.bsky.feed.post")]

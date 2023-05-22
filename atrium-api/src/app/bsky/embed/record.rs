@@ -60,4 +60,6 @@ pub enum ViewRecordEnum {
     ViewNotFound(Box<ViewNotFound>),
     #[serde(rename = "app.bsky.embed.record#viewBlocked")]
     ViewBlocked(Box<ViewBlocked>),
+    #[serde(rename = "app.bsky.feed.defs#generatorView")]
+    AppBskyFeedDefsGeneratorView(Box<crate::app::bsky::feed::defs::GeneratorView>),
 }
