@@ -1,6 +1,6 @@
 use async_trait::async_trait;
+use atrium_api::xrpc::http::{Request, Response};
 use atrium_api::xrpc::{HttpClient, XrpcClient};
-use http::{Request, Response};
 use reqwest::Client;
 use std::error::Error;
 

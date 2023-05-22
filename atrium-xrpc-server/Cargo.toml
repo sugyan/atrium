@@ -6,6 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-atrium-api = { path = "../atrium-api" }
+atrium-api = "0.3"
 libipld-core = { version = "0.16.0", features = ["serde-codec"] }
 serde_ipld_dagcbor = "0.3.0"

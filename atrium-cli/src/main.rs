@@ -194,7 +194,7 @@ async fn run(
                                 image: output.blob,
                             })
                         }
-                        Some(Box::new(RecordEmbedEnum::AppBskyEmbedImagesMain(
+                        Some(RecordEmbedEnum::AppBskyEmbedImagesMain(Box::new(
                             EmbedImages { images },
                         )))
                     } else {
@@ -202,14 +202,14 @@ async fn run(
                     };
                     Input {
                         collection: String::from("app.bsky.feed.post"),
-                        record: Record::AppBskyFeedPost(PostRecord {
+                        record: Record::AppBskyFeedPost(Box::new(PostRecord {
                             created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                             embed,
                             entities: None,
                             facets: None,
                             reply,
                             text: args.text,
-                        }),
+                        })),
                         repo: session.did,
                         rkey: None,
                         swap_commit: None,
@@ -229,13 +229,13 @@ async fn run(
                         .await?;
                     Input {
                         collection: String::from("app.bsky.feed.repost"),
-                        record: Record::AppBskyFeedRepost(RepostRecord {
+                        record: Record::AppBskyFeedRepost(Box::new(RepostRecord {
                             created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                             subject: StrongRef {
                                 cid: record.cid.unwrap(),
                                 uri: args.uri,
                             },
-                        }),
+                        })),
                         repo: session.did,
                         rkey: None,
                         swap_commit: None,
@@ -255,13 +255,13 @@ async fn run(
                         .await?;
                     Input {
                         collection: String::from("app.bsky.feed.like"),
-                        record: Record::AppBskyFeedLike(LikeRecord {
+                        record: Record::AppBskyFeedLike(Box::new(LikeRecord {
                             created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                             subject: StrongRef {
                                 cid: record.cid.unwrap(),
                                 uri: record.uri,
                             },
-                        }),
+                        })),
                         repo: session.did,
                         rkey: None,
                         swap_commit: None,
@@ -272,10 +272,10 @@ async fn run(
                     use atrium_api::app::bsky::graph::block::Record as BlockRecord;
                     Input {
                         collection: String::from("app.bsky.graph.block"),
-                        record: Record::AppBskyGraphBlock(BlockRecord {
+                        record: Record::AppBskyGraphBlock(Box::new(BlockRecord {
                             created_at: Utc::now().format("%Y-%m-%dT%H:%M:%SZ").to_string(),
                             subject: args.did,
-                        }),
+                        })),
                         repo: session.did,
                         rkey: None,
                         swap_commit: None,
