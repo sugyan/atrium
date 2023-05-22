@@ -1,5 +1,6 @@
 use atrium_api::app::bsky::feed::post::Record;
-use atrium_xrpc_server::stream::frames::{Frame, MessageEnum};
+use atrium_api::com::atproto::sync::subscribe_repos::Message;
+use atrium_xrpc_server::stream::frames::Frame;
 use futures::StreamExt;
 use tokio_tungstenite::{connect_async, tungstenite};
 
@@ -18,7 +19,7 @@ async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error
     match Frame::try_from(message)? {
         Frame::Message(message) => {
             match message.body {
-                MessageEnum::Commit(commit) => {
+                Message::Commit(commit) => {
                     for op in commit.ops {
                         let collection = op.path.split('/').next().expect("op.path is empty");
                         if op.action != "create" || collection != "app.bsky.feed.post" {

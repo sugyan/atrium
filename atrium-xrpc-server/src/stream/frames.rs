@@ -1,4 +1,4 @@
-use atrium_api::com::atproto::sync::subscribe_repos::{Commit, Handle, Info, Migrate, Tombstone};
+use atrium_api::com::atproto::sync::subscribe_repos::{Commit, Message};
 use libipld_core::ipld::Ipld;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
@@ -69,22 +69,13 @@ pub enum Frame {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MessageFrame {
-    pub body: MessageEnum,
+    pub body: Message,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ErrorFrame {
     // TODO
     // body: Value,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum MessageEnum {
-    Commit(Box<Commit>),
-    Handle(Box<Handle>),
-    Migrate(Box<Migrate>),
-    Tombstone(Box<Tombstone>),
-    Info(Box<Info>),
 }
 
 impl TryFrom<&[u8]> for Frame {
@@ -106,7 +97,7 @@ impl TryFrom<&[u8]> for Frame {
         match header {
             FrameHeader::Message(t) => match t.as_deref() {
                 Some("#commit") => Ok(Frame::Message(Box::new(MessageFrame {
-                    body: MessageEnum::Commit(Box::new(serde_ipld_dagcbor::from_slice::<Commit>(
+                    body: Message::Commit(Box::new(serde_ipld_dagcbor::from_slice::<Commit>(
                         right,
                     )?)),
                 }))),
