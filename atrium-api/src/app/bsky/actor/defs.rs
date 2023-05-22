@@ -15,7 +15,7 @@ pub struct ContentLabelPref {
     pub visibility: String,
 }
 #[doc = "`app.bsky.actor.defs#preferences`"]
-pub type Preferences = Vec<Box<PreferencesItem>>;
+pub type Preferences = Vec<PreferencesItem>;
 #[doc = "`app.bsky.actor.defs#profileView`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -98,7 +98,7 @@ pub struct ViewerState {
 #[serde(tag = "$type")]
 pub enum PreferencesItem {
     #[serde(rename = "app.bsky.actor.defs#adultContentPref")]
-    AdultContentPref(AdultContentPref),
+    AdultContentPref(Box<AdultContentPref>),
     #[serde(rename = "app.bsky.actor.defs#contentLabelPref")]
-    ContentLabelPref(ContentLabelPref),
+    ContentLabelPref(Box<ContentLabelPref>),
 }

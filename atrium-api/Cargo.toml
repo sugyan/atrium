@@ -13,8 +13,10 @@ keywords = ["atproto", "bluesky"]
 
 [dependencies]
 async-trait = "0.1.68"
+cid = { version = "0.10.1", features = ["serde-codec"] }
 http = "0.2.9"
 serde = { version = "1.0.160", features = ["derive"] }
+serde_bytes = "0.11.9"
 serde_json = "1.0.96"
 serde_urlencoded = "0.7.1"
 

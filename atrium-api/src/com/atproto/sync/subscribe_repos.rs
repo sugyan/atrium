@@ -7,7 +7,14 @@ pub struct SubscribeRepos;
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Commit {
+    pub blobs: Vec<cid::Cid>,
+    #[doc = "CAR file containing relevant blocks"]
+    #[serde(with = "serde_bytes")]
+    pub blocks: Vec<u8>,
+    pub commit: cid::Cid,
     pub ops: Vec<RepoOp>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prev: Option<cid::Cid>,
     pub rebase: bool,
     pub repo: String,
     pub seq: i32,
@@ -36,7 +43,8 @@ pub struct Info {
 #[serde(rename_all = "camelCase")]
 pub struct Migrate {
     pub did: String,
-    pub migrate_to: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub migrate_to: Option<String>,
     pub seq: i32,
     pub time: String,
 }
@@ -45,6 +53,8 @@ pub struct Migrate {
 #[serde(rename_all = "camelCase")]
 pub struct RepoOp {
     pub action: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cid: Option<cid::Cid>,
     pub path: String,
 }
 #[doc = "`com.atproto.sync.subscribeRepos#tombstone`"]
@@ -54,4 +64,18 @@ pub struct Tombstone {
     pub did: String,
     pub seq: i32,
     pub time: String,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum Message {
+    #[serde(rename = "com.atproto.sync.subscribeRepos#commit")]
+    Commit(Box<Commit>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#handle")]
+    Handle(Box<Handle>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#migrate")]
+    Migrate(Box<Migrate>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#tombstone")]
+    Tombstone(Box<Tombstone>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#info")]
+    Info(Box<Info>),
 }

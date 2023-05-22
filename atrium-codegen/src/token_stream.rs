@@ -334,11 +334,16 @@ impl LexConverter {
         let description = self.description(&object.description);
         let derives = self::derives()?;
         let struct_name = format_ident!("{}", name.to_pascal_case());
-        let required = if let Some(required) = &object.required {
+        let mut required = if let Some(required) = &object.required {
             HashSet::from_iter(required)
         } else {
             HashSet::new()
         };
+        if let Some(nullable) = &object.nullable {
+            for key in nullable {
+                required.remove(&key);
+            }
+        }
         let mut fields = Vec::new();
         if let Some(properties) = &object.properties {
             for key in properties.keys().sorted() {
@@ -366,7 +371,7 @@ impl LexConverter {
         is_required: bool,
         object_name: &str,
     ) -> Result<TokenStream> {
-        let (description, field_type) = match property {
+        let (description, mut field_type) = match property {
             LexObjectProperty::Ref(r#ref) => self.ref_type(r#ref)?,
             LexObjectProperty::Union(union) => self.union_type(
                 union,
@@ -399,17 +404,23 @@ impl LexConverter {
                 name.to_snake_case()
             }
         );
-        Ok(if is_required {
-            quote! {
-                #description
-                pub #field_name: #field_type,
-            }
-        } else {
-            quote! {
-                #description
+        let mut attributes = match property {
+            LexObjectProperty::Bytes(_) => quote! {
+                #[serde(with = "serde_bytes")]
+            },
+            _ => quote!(),
+        };
+        if !is_required {
+            field_type = quote!(Option<#field_type>);
+            attributes = quote! {
+                #attributes
                 #[serde(skip_serializing_if = "Option::is_none")]
-                pub #field_name: Option<#field_type>,
-            }
+            };
+        }
+        Ok(quote! {
+            #description
+            #attributes
+            pub #field_name: #field_type,
         })
     }
     fn string(&self, name: &str, string: &LexString) -> Result<TokenStream> {
@@ -431,18 +442,15 @@ impl LexConverter {
     ) -> Result<(TokenStream, TokenStream)> {
         let description = self.description(&union.description);
         let enum_type_name = format_ident!("{}", enum_name);
-        // Use `Box` to avoid recursive.
-        Ok((description, quote!(Box<#enum_type_name>)))
+        Ok((description, quote!(#enum_type_name)))
     }
     fn bytes_type(&self, bytes: &LexBytes) -> Result<(TokenStream, TokenStream)> {
         let description = self.description(&bytes.description);
-        // TODO
-        Ok((description, quote!()))
+        Ok((description, quote!(Vec<u8>)))
     }
     fn cid_link_type(&self, cid_link: &LexCidLink) -> Result<(TokenStream, TokenStream)> {
         let description = self.description(&cid_link.description);
-        // TODO
-        Ok((description, quote!()))
+        Ok((description, quote!(cid::Cid)))
     }
     fn array_type(
         &self,
@@ -539,7 +547,7 @@ pub(crate) fn refs_enum(
         let name = format_ident!("{}", parts.join(""));
         variants.push(quote! {
             #[serde(rename = #rename)]
-            #name(#path)
+            #name(Box<#path>)
         });
     }
     Ok(quote! {

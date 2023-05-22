@@ -1,0 +1,15 @@
+[package]
+name = "firehose"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+atrium-api = { path = "../../atrium-api" }
+atrium-xrpc-server = { path = "../../atrium-xrpc-server" }
+ciborium = "0.2.1"
+futures = "0.3.28"
+rs-car = "0.4.1"
+tokio = { version = "1.28.1", features = ["full"] }
+tokio-tungstenite = { version = "0.18.0", features = ["native-tls"] }

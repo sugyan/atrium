@@ -29,11 +29,19 @@ pub(crate) fn find_ref_unions(defs: &HashMap<String, LexUserType>) -> Vec<(Strin
                     }
                 }
             }
-            LexUserType::XrpcSubscription(_) => {
-                // TODO
+            LexUserType::XrpcSubscription(subscription) => {
+                if let Some(message) = &subscription.message {
+                    if let Some(schema) = &message.schema {
+                        find_ref_unions_in_subscription_message_schema(
+                            schema,
+                            "Message",
+                            &mut unions,
+                        );
+                    }
+                }
             }
             LexUserType::Array(array) => {
-                find_ref_unions_in_array(array, &key.to_pascal_case(), &mut unions)
+                find_ref_unions_in_array(array, &key.to_pascal_case(), &mut unions);
             }
             LexUserType::Object(object) => {
                 find_ref_unions_in_object(object, &key.to_pascal_case(), &mut unions);
@@ -53,6 +61,22 @@ fn find_ref_unions_in_body_schema(
     match schema {
         LexXrpcBodySchema::Union(_) => unimplemented!(),
         LexXrpcBodySchema::Object(object) => find_ref_unions_in_object(object, name, unions),
+        _ => {}
+    }
+}
+
+fn find_ref_unions_in_subscription_message_schema(
+    schema: &LexXrpcSubscriptionMessageSchema,
+    name: &str,
+    unions: &mut Vec<(String, LexRefUnion)>,
+) {
+    match schema {
+        LexXrpcSubscriptionMessageSchema::Union(union) => {
+            unions.push((name.into(), union.clone()));
+        }
+        LexXrpcSubscriptionMessageSchema::Object(object) => {
+            find_ref_unions_in_object(object, name, unions)
+        }
         _ => {}
     }
 }

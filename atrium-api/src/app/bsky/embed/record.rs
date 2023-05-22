@@ -11,7 +11,7 @@ pub struct Main {
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
-    pub record: Box<ViewRecordEnum>,
+    pub record: ViewRecordEnum,
 }
 #[doc = "`app.bsky.embed.record#viewBlocked`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -32,7 +32,7 @@ pub struct ViewRecord {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embeds: Option<Vec<Box<ViewRecordEmbedsItem>>>,
+    pub embeds: Option<Vec<ViewRecordEmbedsItem>>,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
@@ -43,21 +43,21 @@ pub struct ViewRecord {
 #[serde(tag = "$type")]
 pub enum ViewRecordEmbedsItem {
     #[serde(rename = "app.bsky.embed.images#view")]
-    AppBskyEmbedImagesView(crate::app::bsky::embed::images::View),
+    AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
-    AppBskyEmbedExternalView(crate::app::bsky::embed::external::View),
+    AppBskyEmbedExternalView(Box<crate::app::bsky::embed::external::View>),
     #[serde(rename = "app.bsky.embed.record#view")]
-    AppBskyEmbedRecordView(crate::app::bsky::embed::record::View),
+    AppBskyEmbedRecordView(Box<crate::app::bsky::embed::record::View>),
     #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
-    AppBskyEmbedRecordWithMediaView(crate::app::bsky::embed::record_with_media::View),
+    AppBskyEmbedRecordWithMediaView(Box<crate::app::bsky::embed::record_with_media::View>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ViewRecordEnum {
     #[serde(rename = "app.bsky.embed.record#viewRecord")]
-    ViewRecord(ViewRecord),
+    ViewRecord(Box<ViewRecord>),
     #[serde(rename = "app.bsky.embed.record#viewNotFound")]
-    ViewNotFound(ViewNotFound),
+    ViewNotFound(Box<ViewNotFound>),
     #[serde(rename = "app.bsky.embed.record#viewBlocked")]
-    ViewBlocked(ViewBlocked),
+    ViewBlocked(Box<ViewBlocked>),
 }

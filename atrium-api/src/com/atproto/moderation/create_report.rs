@@ -23,7 +23,7 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
-    pub subject: Box<InputSubjectEnum>,
+    pub subject: InputSubjectEnum,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -34,7 +34,7 @@ pub struct Output {
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
-    pub subject: Box<OutputSubjectEnum>,
+    pub subject: OutputSubjectEnum,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -43,15 +43,15 @@ pub enum Error {}
 #[serde(tag = "$type")]
 pub enum InputSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
-    ComAtprotoAdminDefsRepoRef(crate::com::atproto::admin::defs::RepoRef),
+    ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
-    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
+    ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum OutputSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
-    ComAtprotoAdminDefsRepoRef(crate::com::atproto::admin::defs::RepoRef),
+    ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
-    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
+    ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
 }
