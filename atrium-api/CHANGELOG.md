@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.2.0...atrium-api-v0.3.0) - 2023-05-22
+
+### Added
+- *(api)* Re-export `http` in `xrpc` module
+- *(api)* Update API from latest lexicon schemas
+- Implement subscription, add firehose examples (#15)
+
 ## [0.2.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.1.1...atrium-api-v0.2.0) - 2023-05-13
 
 ### Added
