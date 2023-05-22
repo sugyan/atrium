@@ -77,6 +77,13 @@ pub struct ProfileViewDetailed {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
+#[doc = "`app.bsky.actor.defs#savedFeedsPref`"]
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SavedFeedsPref {
+    pub pinned: Vec<String>,
+    pub saved: Vec<String>,
+}
 #[doc = "`app.bsky.actor.defs#viewerState`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -101,4 +108,6 @@ pub enum PreferencesItem {
     AdultContentPref(Box<AdultContentPref>),
     #[serde(rename = "app.bsky.actor.defs#contentLabelPref")]
     ContentLabelPref(Box<ContentLabelPref>),
+    #[serde(rename = "app.bsky.actor.defs#savedFeedsPref")]
+    SavedFeedsPref(Box<SavedFeedsPref>),
 }
