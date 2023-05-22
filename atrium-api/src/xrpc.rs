@@ -1,4 +1,6 @@
 //! Definitions for XRPC request/response, as well as their associated errors.
+pub use http;
+
 use async_trait::async_trait;
 use http::{header, Method, Request, Response};
 use serde::de::DeserializeOwned;
