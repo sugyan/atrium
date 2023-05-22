@@ -18,3 +18,11 @@ pub struct Labels {
     pub labels: Vec<crate::com::atproto::label::defs::Label>,
     pub seq: i32,
 }
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum Message {
+    #[serde(rename = "com.atproto.label.subscribeLabels#labels")]
+    Labels(Box<Labels>),
+    #[serde(rename = "com.atproto.label.subscribeLabels#info")]
+    Info(Box<Info>),
+}

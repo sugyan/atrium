@@ -4,7 +4,7 @@
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
-    pub features: Vec<Box<MainFeaturesItem>>,
+    pub features: Vec<MainFeaturesItem>,
     pub index: ByteSlice,
 }
 #[doc = "`app.bsky.richtext.facet#byteSlice`"]
@@ -33,7 +33,7 @@ pub struct Mention {
 #[serde(tag = "$type")]
 pub enum MainFeaturesItem {
     #[serde(rename = "app.bsky.richtext.facet#mention")]
-    Mention(Mention),
+    Mention(Box<Mention>),
     #[serde(rename = "app.bsky.richtext.facet#link")]
-    Link(Link),
+    Link(Box<Link>),
 }

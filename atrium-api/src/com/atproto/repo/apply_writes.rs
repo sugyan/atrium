@@ -27,7 +27,7 @@ pub struct Input {
     #[doc = "Validate the records?"]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
-    pub writes: Vec<Box<InputWritesItem>>,
+    pub writes: Vec<InputWritesItem>,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -65,9 +65,9 @@ pub struct Update {
 #[serde(tag = "$type")]
 pub enum InputWritesItem {
     #[serde(rename = "com.atproto.repo.applyWrites#create")]
-    Create(Create),
+    Create(Box<Create>),
     #[serde(rename = "com.atproto.repo.applyWrites#update")]
-    Update(Update),
+    Update(Box<Update>),
     #[serde(rename = "com.atproto.repo.applyWrites#delete")]
-    Delete(Delete),
+    Delete(Box<Delete>),
 }

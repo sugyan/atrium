@@ -5,29 +5,29 @@
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Main {
-    pub media: Box<MainMediaEnum>,
+    pub media: MainMediaEnum,
     pub record: crate::app::bsky::embed::record::Main,
 }
 #[doc = "`app.bsky.embed.recordWithMedia#view`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
-    pub media: Box<ViewMediaEnum>,
+    pub media: ViewMediaEnum,
     pub record: crate::app::bsky::embed::record::View,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum MainMediaEnum {
     #[serde(rename = "app.bsky.embed.images")]
-    AppBskyEmbedImagesMain(crate::app::bsky::embed::images::Main),
+    AppBskyEmbedImagesMain(Box<crate::app::bsky::embed::images::Main>),
     #[serde(rename = "app.bsky.embed.external")]
-    AppBskyEmbedExternalMain(crate::app::bsky::embed::external::Main),
+    AppBskyEmbedExternalMain(Box<crate::app::bsky::embed::external::Main>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ViewMediaEnum {
     #[serde(rename = "app.bsky.embed.images#view")]
-    AppBskyEmbedImagesView(crate::app::bsky::embed::images::View),
+    AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
-    AppBskyEmbedExternalView(crate::app::bsky::embed::external::View),
+    AppBskyEmbedExternalView(Box<crate::app::bsky::embed::external::View>),
 }

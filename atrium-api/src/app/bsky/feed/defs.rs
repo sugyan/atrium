@@ -13,7 +13,7 @@ pub struct BlockedPost {
 pub struct FeedViewPost {
     pub post: crate::app::bsky::feed::defs::PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<Box<FeedViewPostReasonEnum>>,
+    pub reason: Option<FeedViewPostReasonEnum>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
 }
@@ -31,7 +31,7 @@ pub struct PostView {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<Box<PostViewEmbedEnum>>,
+    pub embed: Option<PostViewEmbedEnum>,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
@@ -65,10 +65,10 @@ pub struct ReplyRef {
 #[serde(rename_all = "camelCase")]
 pub struct ThreadViewPost {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent: Option<Box<ThreadViewPostParentEnum>>,
+    pub parent: Option<ThreadViewPostParentEnum>,
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub replies: Option<Vec<Box<ThreadViewPostRepliesItem>>>,
+    pub replies: Option<Vec<ThreadViewPostRepliesItem>>,
 }
 #[doc = "`app.bsky.feed.defs#viewerState`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -83,37 +83,37 @@ pub struct ViewerState {
 #[serde(tag = "$type")]
 pub enum FeedViewPostReasonEnum {
     #[serde(rename = "app.bsky.feed.defs#reasonRepost")]
-    ReasonRepost(ReasonRepost),
+    ReasonRepost(Box<ReasonRepost>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum PostViewEmbedEnum {
     #[serde(rename = "app.bsky.embed.images#view")]
-    AppBskyEmbedImagesView(crate::app::bsky::embed::images::View),
+    AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
-    AppBskyEmbedExternalView(crate::app::bsky::embed::external::View),
+    AppBskyEmbedExternalView(Box<crate::app::bsky::embed::external::View>),
     #[serde(rename = "app.bsky.embed.record#view")]
-    AppBskyEmbedRecordView(crate::app::bsky::embed::record::View),
+    AppBskyEmbedRecordView(Box<crate::app::bsky::embed::record::View>),
     #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
-    AppBskyEmbedRecordWithMediaView(crate::app::bsky::embed::record_with_media::View),
+    AppBskyEmbedRecordWithMediaView(Box<crate::app::bsky::embed::record_with_media::View>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ThreadViewPostParentEnum {
     #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
-    ThreadViewPost(ThreadViewPost),
+    ThreadViewPost(Box<ThreadViewPost>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
-    NotFoundPost(NotFoundPost),
+    NotFoundPost(Box<NotFoundPost>),
     #[serde(rename = "app.bsky.feed.defs#blockedPost")]
-    BlockedPost(BlockedPost),
+    BlockedPost(Box<BlockedPost>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ThreadViewPostRepliesItem {
     #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
-    ThreadViewPost(ThreadViewPost),
+    ThreadViewPost(Box<ThreadViewPost>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
-    NotFoundPost(NotFoundPost),
+    NotFoundPost(Box<NotFoundPost>),
     #[serde(rename = "app.bsky.feed.defs#blockedPost")]
-    BlockedPost(BlockedPost),
+    BlockedPost(Box<BlockedPost>),
 }

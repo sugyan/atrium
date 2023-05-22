@@ -29,7 +29,7 @@ pub struct ActionView {
     pub resolved_report_ids: Vec<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reversal: Option<ActionReversal>,
-    pub subject: Box<ActionViewSubjectEnum>,
+    pub subject: ActionViewSubjectEnum,
     pub subject_blob_cids: Vec<String>,
 }
 #[doc = "`com.atproto.admin.defs#actionViewCurrent`"]
@@ -55,7 +55,7 @@ pub struct ActionViewDetail {
     pub resolved_reports: Vec<ReportView>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reversal: Option<ActionReversal>,
-    pub subject: Box<ActionViewDetailSubjectEnum>,
+    pub subject: ActionViewDetailSubjectEnum,
     pub subject_blobs: Vec<BlobView>,
 }
 #[doc = "`com.atproto.admin.defs#blobView`"]
@@ -65,7 +65,7 @@ pub struct BlobView {
     pub cid: String,
     pub created_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub details: Option<Box<BlobViewDetailsEnum>>,
+    pub details: Option<BlobViewDetailsEnum>,
     pub mime_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
@@ -179,7 +179,7 @@ pub struct ReportView {
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
     pub resolved_by_action_ids: Vec<i32>,
-    pub subject: Box<ReportViewSubjectEnum>,
+    pub subject: ReportViewSubjectEnum,
 }
 #[doc = "`com.atproto.admin.defs#reportViewDetail`"]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -192,7 +192,7 @@ pub struct ReportViewDetail {
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
     pub resolved_by_actions: Vec<crate::com::atproto::admin::defs::ActionView>,
-    pub subject: Box<ReportViewDetailSubjectEnum>,
+    pub subject: ReportViewDetailSubjectEnum,
 }
 #[doc = "`com.atproto.admin.defs#takedown`"]
 #[doc = "Moderation action type: Takedown. Indicates that content should not be served by the PDS."]
@@ -209,39 +209,39 @@ pub struct VideoDetails {
 #[serde(tag = "$type")]
 pub enum ActionViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
-    RepoView(RepoView),
+    RepoView(Box<RepoView>),
     #[serde(rename = "com.atproto.admin.defs#recordView")]
-    RecordView(RecordView),
+    RecordView(Box<RecordView>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ActionViewSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
-    RepoRef(RepoRef),
+    RepoRef(Box<RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
-    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
+    ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum BlobViewDetailsEnum {
     #[serde(rename = "com.atproto.admin.defs#imageDetails")]
-    ImageDetails(ImageDetails),
+    ImageDetails(Box<ImageDetails>),
     #[serde(rename = "com.atproto.admin.defs#videoDetails")]
-    VideoDetails(VideoDetails),
+    VideoDetails(Box<VideoDetails>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ReportViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
-    RepoView(RepoView),
+    RepoView(Box<RepoView>),
     #[serde(rename = "com.atproto.admin.defs#recordView")]
-    RecordView(RecordView),
+    RecordView(Box<RecordView>),
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ReportViewSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
-    RepoRef(RepoRef),
+    RepoRef(Box<RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
-    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
+    ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
 }

@@ -30,7 +30,7 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
     pub reason: String,
-    pub subject: Box<InputSubjectEnum>,
+    pub subject: InputSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<String>>,
 }
@@ -44,7 +44,7 @@ pub enum Error {
 #[serde(tag = "$type")]
 pub enum InputSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
-    ComAtprotoAdminDefsRepoRef(crate::com::atproto::admin::defs::RepoRef),
+    ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
-    ComAtprotoRepoStrongRefMain(crate::com::atproto::repo::strong_ref::Main),
+    ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
 }

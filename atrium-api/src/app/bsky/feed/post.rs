@@ -6,7 +6,7 @@
 pub struct Record {
     pub created_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<Box<RecordEmbedEnum>>,
+    pub embed: Option<RecordEmbedEnum>,
     #[doc = "Deprecated: replaced by app.bsky.richtext.facet."]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entities: Option<Vec<Entity>>,
@@ -45,11 +45,11 @@ pub struct TextSlice {
 #[serde(tag = "$type")]
 pub enum RecordEmbedEnum {
     #[serde(rename = "app.bsky.embed.images")]
-    AppBskyEmbedImagesMain(crate::app::bsky::embed::images::Main),
+    AppBskyEmbedImagesMain(Box<crate::app::bsky::embed::images::Main>),
     #[serde(rename = "app.bsky.embed.external")]
-    AppBskyEmbedExternalMain(crate::app::bsky::embed::external::Main),
+    AppBskyEmbedExternalMain(Box<crate::app::bsky::embed::external::Main>),
     #[serde(rename = "app.bsky.embed.record")]
-    AppBskyEmbedRecordMain(crate::app::bsky::embed::record::Main),
+    AppBskyEmbedRecordMain(Box<crate::app::bsky::embed::record::Main>),
     #[serde(rename = "app.bsky.embed.recordWithMedia")]
-    AppBskyEmbedRecordWithMediaMain(crate::app::bsky::embed::record_with_media::Main),
+    AppBskyEmbedRecordWithMediaMain(Box<crate::app::bsky::embed::record_with_media::Main>),
 }

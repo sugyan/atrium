@@ -29,7 +29,7 @@ pub struct Parameters {
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub thread: Box<OutputThreadEnum>,
+    pub thread: OutputThreadEnum,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -40,9 +40,9 @@ pub enum Error {
 #[serde(tag = "$type")]
 pub enum OutputThreadEnum {
     #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
-    AppBskyFeedDefsThreadViewPost(crate::app::bsky::feed::defs::ThreadViewPost),
+    AppBskyFeedDefsThreadViewPost(Box<crate::app::bsky::feed::defs::ThreadViewPost>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
-    AppBskyFeedDefsNotFoundPost(crate::app::bsky::feed::defs::NotFoundPost),
+    AppBskyFeedDefsNotFoundPost(Box<crate::app::bsky::feed::defs::NotFoundPost>),
     #[serde(rename = "app.bsky.feed.defs#blockedPost")]
-    AppBskyFeedDefsBlockedPost(crate::app::bsky::feed::defs::BlockedPost),
+    AppBskyFeedDefsBlockedPost(Box<crate::app::bsky::feed::defs::BlockedPost>),
 }
