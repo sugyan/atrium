@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
+async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     match Frame::try_from(message)? {
         Frame::Message(message) => {
             match message.body {

@@ -1,19 +1,6 @@
 use atrium_api::com::atproto::sync::subscribe_repos::{Commit, Message};
 use libipld_core::ipld::Ipld;
-use std::error::Error;
-use std::fmt::{Display, Formatter};
 use std::io::Cursor;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct FrameTypeError;
-
-impl Display for FrameTypeError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "invalid frame type")
-    }
-}
-
-impl Error for FrameTypeError {}
 
 // original definition:
 //```
@@ -38,7 +25,7 @@ enum FrameHeader {
 }
 
 impl TryFrom<Ipld> for FrameHeader {
-    type Error = FrameTypeError;
+    type Error = anyhow::Error;
 
     fn try_from(value: Ipld) -> Result<Self, <FrameHeader as TryFrom<Ipld>>::Error> {
         if let Ipld::Map(map) = value {
@@ -57,7 +44,7 @@ impl TryFrom<Ipld> for FrameHeader {
                 }
             }
         }
-        Err(FrameTypeError)
+        Err(anyhow::anyhow!("invalid frame type"))
     }
 }
 
@@ -79,7 +66,7 @@ pub struct ErrorFrame {
 }
 
 impl TryFrom<&[u8]> for Frame {
-    type Error = Box<dyn Error>;
+    type Error = anyhow::Error;
 
     fn try_from(value: &[u8]) -> Result<Self, <Frame as TryFrom<&[u8]>>::Error> {
         let mut cursor = Cursor::new(value);
@@ -89,7 +76,7 @@ impl TryFrom<&[u8]> for Frame {
             }
             _ => {
                 // TODO
-                return Err(Box::new(FrameTypeError));
+                return Err(anyhow::anyhow!("invalid frame type"));
             }
         };
         let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(left)?;
@@ -130,9 +117,10 @@ mod tests {
         // {"op": 1, "t": "#commit"}
         let data = serialized_data("a2626f700161746723636f6d6d6974");
         let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
+        let result = FrameHeader::try_from(ipld);
         assert_eq!(
-            FrameHeader::try_from(ipld),
-            Ok(FrameHeader::Message(Some(String::from("#commit"))))
+            result.expect("failed to deserialize"),
+            FrameHeader::Message(Some(String::from("#commit")))
         );
     }
 
@@ -141,7 +129,8 @@ mod tests {
         // {"op": -1}
         let data = serialized_data("a1626f7020");
         let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
-        assert_eq!(FrameHeader::try_from(ipld), Ok(FrameHeader::Error));
+        let result = FrameHeader::try_from(ipld);
+        assert_eq!(result.expect("failed to deserialize"), FrameHeader::Error);
     }
 
     #[test]
@@ -151,14 +140,22 @@ mod tests {
             let data = serialized_data("a2626f700261746723636f6d6d6974");
             let ipld =
                 serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
-            assert_eq!(FrameHeader::try_from(ipld), Err(FrameTypeError));
+            let result = FrameHeader::try_from(ipld);
+            assert_eq!(
+                result.expect_err("must be failed").to_string(),
+                "invalid frame type"
+            );
         }
         {
             // {"op": -2}
             let data = serialized_data("a1626f7021");
             let ipld =
                 serde_ipld_dagcbor::from_slice::<Ipld>(&data).expect("failed to deserialize");
-            assert_eq!(FrameHeader::try_from(ipld), Err(FrameTypeError));
+            let result = FrameHeader::try_from(ipld);
+            assert_eq!(
+                result.expect_err("must be failed").to_string(),
+                "invalid frame type"
+            );
         }
     }
 }
