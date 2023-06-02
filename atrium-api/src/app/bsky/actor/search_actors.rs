@@ -4,11 +4,8 @@
 #[doc = "Find actors matching search criteria."]
 #[async_trait::async_trait]
 pub trait SearchActors: crate::xrpc::XrpcClient {
-    async fn search_actors(
-        &self,
-        params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn search_actors(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.actor.searchActors",

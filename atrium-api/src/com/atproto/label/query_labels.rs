@@ -4,8 +4,8 @@
 #[doc = "Find labels relevant to the provided URI patterns."]
 #[async_trait::async_trait]
 pub trait QueryLabels: crate::xrpc::XrpcClient {
-    async fn query_labels(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn query_labels(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.label.queryLabels",

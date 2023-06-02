@@ -4,11 +4,8 @@
 #[doc = "Get information about the repo, including the list of collections."]
 #[async_trait::async_trait]
 pub trait DescribeRepo: crate::xrpc::XrpcClient {
-    async fn describe_repo(
-        &self,
-        params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn describe_repo(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.repo.describeRepo",

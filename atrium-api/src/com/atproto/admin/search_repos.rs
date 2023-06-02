@@ -4,8 +4,8 @@
 #[doc = "Find repositories based on a search term."]
 #[async_trait::async_trait]
 pub trait SearchRepos: crate::xrpc::XrpcClient {
-    async fn search_repos(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn search_repos(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.admin.searchRepos",

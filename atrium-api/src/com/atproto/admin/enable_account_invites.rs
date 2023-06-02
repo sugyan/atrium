@@ -4,8 +4,8 @@
 #[doc = "Re-enable an accounts ability to receive invite codes"]
 #[async_trait::async_trait]
 pub trait EnableAccountInvites: crate::xrpc::XrpcClient {
-    async fn enable_account_invites(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn enable_account_invites(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.enableAccountInvites",

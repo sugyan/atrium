@@ -7,8 +7,8 @@ pub trait GetCommitPath: crate::xrpc::XrpcClient {
     async fn get_commit_path(
         &self,
         params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.getCommitPath",

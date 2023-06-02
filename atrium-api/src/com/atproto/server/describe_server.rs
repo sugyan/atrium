@@ -4,8 +4,8 @@
 #[doc = "Get a document describing the service's accounts configuration."]
 #[async_trait::async_trait]
 pub trait DescribeServer: crate::xrpc::XrpcClient {
-    async fn describe_server(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn describe_server(&self) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.server.describeServer",

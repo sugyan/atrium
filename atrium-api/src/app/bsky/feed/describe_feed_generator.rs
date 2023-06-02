@@ -4,8 +4,8 @@
 #[doc = "Returns information about a given feed generator including TOS & offered feed URIs"]
 #[async_trait::async_trait]
 pub trait DescribeFeedGenerator: crate::xrpc::XrpcClient {
-    async fn describe_feed_generator(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn describe_feed_generator(&self) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.feed.describeFeedGenerator",

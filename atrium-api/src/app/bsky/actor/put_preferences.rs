@@ -4,8 +4,8 @@
 #[doc = "Sets the private preferences attached to the account."]
 #[async_trait::async_trait]
 pub trait PutPreferences: crate::xrpc::XrpcClient {
-    async fn put_preferences(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn put_preferences(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "app.bsky.actor.putPreferences",

@@ -4,8 +4,8 @@
 #[doc = "Apply a batch transaction of creates, updates, and deletes."]
 #[async_trait::async_trait]
 pub trait ApplyWrites: crate::xrpc::XrpcClient {
-    async fn apply_writes(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn apply_writes(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.repo.applyWrites",

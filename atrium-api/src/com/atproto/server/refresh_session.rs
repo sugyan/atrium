@@ -4,8 +4,8 @@
 #[doc = "Refresh an authentication session."]
 #[async_trait::async_trait]
 pub trait RefreshSession: crate::xrpc::XrpcClient {
-    async fn refresh_session(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn refresh_session(&self) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.refreshSession",

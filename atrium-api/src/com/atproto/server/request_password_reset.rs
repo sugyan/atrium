@@ -4,8 +4,8 @@
 #[doc = "Initiate a user account password reset via email."]
 #[async_trait::async_trait]
 pub trait RequestPasswordReset: crate::xrpc::XrpcClient {
-    async fn request_password_reset(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn request_password_reset(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.requestPasswordReset",

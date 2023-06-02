@@ -4,8 +4,8 @@
 #[doc = "Fetch a list of lists that belong to an actor"]
 #[async_trait::async_trait]
 pub trait GetLists: crate::xrpc::XrpcClient {
-    async fn get_lists(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_lists(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.graph.getLists",

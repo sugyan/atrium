@@ -3,8 +3,8 @@
 #[doc = "`app.bsky.actor.getProfiles`"]
 #[async_trait::async_trait]
 pub trait GetProfiles: crate::xrpc::XrpcClient {
-    async fn get_profiles(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_profiles(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.actor.getProfiles",

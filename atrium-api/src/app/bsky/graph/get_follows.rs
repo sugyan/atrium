@@ -4,8 +4,8 @@
 #[doc = "Who is an actor following?"]
 #[async_trait::async_trait]
 pub trait GetFollows: crate::xrpc::XrpcClient {
-    async fn get_follows(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_follows(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.graph.getFollows",

@@ -7,8 +7,8 @@ pub trait ResolveHandle: crate::xrpc::XrpcClient {
     async fn resolve_handle(
         &self,
         params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.identity.resolveHandle",
@@ -23,9 +23,8 @@ pub trait ResolveHandle: crate::xrpc::XrpcClient {
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    #[doc = "The handle to resolve. If not supplied, will resolve the host's own handle."]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub handle: Option<String>,
+    #[doc = "The handle to resolve."]
+    pub handle: String,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

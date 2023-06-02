@@ -1,6 +1,6 @@
 use crate::fs::find_dirs;
 use crate::schema::find_ref_unions;
-use crate::token_stream::{modules, refs_enum, traits_macro, LexConverter};
+use crate::token_stream::{modules, refs_enum, traits_impl, LexConverter};
 use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
@@ -108,9 +108,9 @@ pub(crate) fn generate_traits(
         })
         .sorted()
         .collect_vec();
-    let tokens = traits_macro(&traits)?;
+    let tokens = traits_impl(&traits)?;
     let content = quote! {
-        #![doc = "A macro for implementing the traits of all XRPC requests."]
+        #![doc = "Implementing the traits of all XRPC requests for agent."]
         #tokens
     };
     let path = outdir.join("traits.rs");

@@ -4,8 +4,8 @@
 #[doc = "Gets the repo state."]
 #[async_trait::async_trait]
 pub trait GetCheckout: crate::xrpc::XrpcClient {
-    async fn get_checkout(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_checkout(&self, params: Parameters) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.getCheckout",

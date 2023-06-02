@@ -4,8 +4,8 @@
 #[doc = "Mute a list of actors."]
 #[async_trait::async_trait]
 pub trait MuteActorList: crate::xrpc::XrpcClient {
-    async fn mute_actor_list(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn mute_actor_list(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "app.bsky.graph.muteActorList",

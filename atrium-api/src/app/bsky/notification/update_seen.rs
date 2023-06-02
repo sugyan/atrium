@@ -4,8 +4,8 @@
 #[doc = "Notify server that the user has seen notifications."]
 #[async_trait::async_trait]
 pub trait UpdateSeen: crate::xrpc::XrpcClient {
-    async fn update_seen(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn update_seen(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "app.bsky.notification.updateSeen",

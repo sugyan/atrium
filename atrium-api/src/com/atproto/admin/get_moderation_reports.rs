@@ -7,8 +7,8 @@ pub trait GetModerationReports: crate::xrpc::XrpcClient {
     async fn get_moderation_reports(
         &self,
         params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.admin.getModerationReports",
@@ -28,9 +28,14 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub ignore_subjects: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub resolved: Option<bool>,
+    #[doc = "Reverse the order of the returned records? when true, returns reports in chronological order"]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reverse: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
 }

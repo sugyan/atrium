@@ -7,8 +7,8 @@ pub trait GetInviteCodes: crate::xrpc::XrpcClient {
     async fn get_invite_codes(
         &self,
         params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.admin.getInviteCodes",

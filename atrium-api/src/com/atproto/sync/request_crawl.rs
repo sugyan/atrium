@@ -4,8 +4,8 @@
 #[doc = "Request a service to persistently crawl hosted repos."]
 #[async_trait::async_trait]
 pub trait RequestCrawl: crate::xrpc::XrpcClient {
-    async fn request_crawl(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn request_crawl(&self, params: Parameters) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.requestCrawl",

@@ -4,8 +4,8 @@
 #[doc = "List blob cids for some range of commits"]
 #[async_trait::async_trait]
 pub trait ListBlobs: crate::xrpc::XrpcClient {
-    async fn list_blobs(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn list_blobs(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.listBlobs",

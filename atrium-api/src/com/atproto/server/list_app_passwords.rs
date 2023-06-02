@@ -4,8 +4,8 @@
 #[doc = "List all app-specific passwords."]
 #[async_trait::async_trait]
 pub trait ListAppPasswords: crate::xrpc::XrpcClient {
-    async fn list_app_passwords(&self) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn list_app_passwords(&self) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.server.listAppPasswords",

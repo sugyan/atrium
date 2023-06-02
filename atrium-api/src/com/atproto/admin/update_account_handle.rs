@@ -4,8 +4,8 @@
 #[doc = "Administrative action to update an account's handle"]
 #[async_trait::async_trait]
 pub trait UpdateAccountHandle: crate::xrpc::XrpcClient {
-    async fn update_account_handle(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn update_account_handle(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.updateAccountHandle",

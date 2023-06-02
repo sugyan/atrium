@@ -4,8 +4,8 @@
 #[doc = "Simple rebase of repo that deletes history"]
 #[async_trait::async_trait]
 pub trait RebaseRepo: crate::xrpc::XrpcClient {
-    async fn rebase_repo(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn rebase_repo(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.repo.rebaseRepo",
@@ -30,4 +30,5 @@ pub struct Input {
 #[serde(tag = "error", content = "message")]
 pub enum Error {
     InvalidSwap(Option<String>),
+    ConcurrentWrites(Option<String>),
 }

@@ -4,8 +4,8 @@
 #[doc = "Disable some set of codes and/or all codes associated with a set of users"]
 #[async_trait::async_trait]
 pub trait DisableInviteCodes: crate::xrpc::XrpcClient {
-    async fn disable_invite_codes(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn disable_invite_codes(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.disableInviteCodes",

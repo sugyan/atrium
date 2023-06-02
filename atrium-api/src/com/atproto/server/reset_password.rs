@@ -4,8 +4,8 @@
 #[doc = "Reset a user account password using a token."]
 #[async_trait::async_trait]
 pub trait ResetPassword: crate::xrpc::XrpcClient {
-    async fn reset_password(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn reset_password(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.resetPassword",

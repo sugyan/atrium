@@ -4,8 +4,8 @@
 #[doc = "Create an authentication session."]
 #[async_trait::async_trait]
 pub trait CreateSession: crate::xrpc::XrpcClient {
-    async fn create_session(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn create_session(&self, input: Input) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.createSession",

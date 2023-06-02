@@ -220,7 +220,7 @@ impl LexConverter {
         };
         let nsid = &self.schema_id;
         let xrpc_call = quote! {
-            crate::xrpc::XrpcClient::send::<Error>(
+            crate::xrpc::XrpcClient::send(
                 self,
                 http::Method::GET,
                 #nsid,
@@ -261,7 +261,7 @@ impl LexConverter {
         };
         let nsid = &self.schema_id;
         let xrpc_call = quote! {
-            crate::xrpc::XrpcClient::send::<Error>(
+            crate::xrpc::XrpcClient::send(
                 self,
                 http::Method::POST,
                 #nsid,
@@ -284,14 +284,14 @@ impl LexConverter {
         let method_name = format_ident!("{}", name.to_snake_case());
         let body = if has_output {
             quote! {
-                async fn #method_name(#(#args),*) -> Result<Output, Box<dyn std::error::Error>> {
+                async fn #method_name(#(#args),*) -> Result<Output, crate::xrpc::Error<Error>> {
                     let body = #xrpc_call;
                     serde_json::from_slice(&body).map_err(|e| e.into())
                 }
             }
         } else {
             quote! {
-                async fn #method_name(#(#args),*) -> Result<(), Box<dyn std::error::Error>> {
+                async fn #method_name(#(#args),*) -> Result<(), crate::xrpc::Error<Error>> {
                     let _ = #xrpc_call;
                     Ok(())
                 }
@@ -559,32 +559,22 @@ pub(crate) fn refs_enum(
     })
 }
 
-pub(crate) fn traits_macro(traits: &[String]) -> Result<TokenStream> {
-    let mut paths = Vec::new();
-    let mut roots = HashSet::new();
+pub(crate) fn traits_impl(traits: &[String]) -> Result<TokenStream> {
+    let mut impls = Vec::new();
     for t in traits {
         let parts = t.split('.').collect_vec();
-        roots.insert(format_ident!("{}", parts[0].to_snake_case()));
         let basename = parts.last().unwrap();
         let path = syn::parse_str::<Path>(&format!(
             "{}::{}",
             parts.iter().map(|s| s.to_snake_case()).join("::"),
             basename.to_pascal_case()
         ))?;
-        paths.push(quote! {
-            impl #path for $type {}
+        impls.push(quote! {
+            impl<T> crate::#path for crate::agent::AtpAgent<T> where
+                T: crate::xrpc::XrpcClient + Send + Sync {}
         });
     }
-    let roots = roots.into_iter().sorted().collect_vec();
-    Ok(quote! {
-        #[macro_export]
-        macro_rules! impl_traits {
-            ($type:ty) => {
-                use atrium_api::{#(#roots),*};
-                #(#paths)*
-            }
-        }
-    })
+    Ok(quote!(#(#impls)*))
 }
 
 pub(crate) fn modules(names: &[String]) -> Result<TokenStream> {

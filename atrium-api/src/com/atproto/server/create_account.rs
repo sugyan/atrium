@@ -4,8 +4,8 @@
 #[doc = "Create an account."]
 #[async_trait::async_trait]
 pub trait CreateAccount: crate::xrpc::XrpcClient {
-    async fn create_account(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn create_account(&self, input: Input) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.createAccount",

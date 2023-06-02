@@ -4,8 +4,8 @@
 #[doc = "Gets blocks from a given repo."]
 #[async_trait::async_trait]
 pub trait GetBlocks: crate::xrpc::XrpcClient {
-    async fn get_blocks(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_blocks(&self, params: Parameters) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.getBlocks",

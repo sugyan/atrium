@@ -4,11 +4,8 @@
 #[doc = "Disable an account from receiving new invite codes, but does not invalidate existing codes"]
 #[async_trait::async_trait]
 pub trait DisableAccountInvites: crate::xrpc::XrpcClient {
-    async fn disable_account_invites(
-        &self,
-        input: Input,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn disable_account_invites(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.disableAccountInvites",

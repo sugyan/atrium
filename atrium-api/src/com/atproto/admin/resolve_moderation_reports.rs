@@ -7,8 +7,8 @@ pub trait ResolveModerationReports: crate::xrpc::XrpcClient {
     async fn resolve_moderation_reports(
         &self,
         input: Input,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.resolveModerationReports",

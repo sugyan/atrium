@@ -7,8 +7,8 @@ pub trait TakeModerationAction: crate::xrpc::XrpcClient {
     async fn take_moderation_action(
         &self,
         input: Input,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.admin.takeModerationAction",

@@ -4,8 +4,8 @@
 #[doc = "Write a record, creating or updating it as needed."]
 #[async_trait::async_trait]
 pub trait PutRecord: crate::xrpc::XrpcClient {
-    async fn put_record(&self, input: Input) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn put_record(&self, input: Input) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.repo.putRecord",

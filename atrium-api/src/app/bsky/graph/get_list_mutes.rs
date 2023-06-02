@@ -7,8 +7,8 @@ pub trait GetListMutes: crate::xrpc::XrpcClient {
     async fn get_list_mutes(
         &self,
         params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.graph.getListMutes",

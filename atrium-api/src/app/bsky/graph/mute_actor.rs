@@ -4,8 +4,8 @@
 #[doc = "Mute an actor by did or handle."]
 #[async_trait::async_trait]
 pub trait MuteActor: crate::xrpc::XrpcClient {
-    async fn mute_actor(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn mute_actor(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "app.bsky.graph.muteActor",

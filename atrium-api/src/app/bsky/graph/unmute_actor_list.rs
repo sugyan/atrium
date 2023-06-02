@@ -4,8 +4,8 @@
 #[doc = "Unmute a list of actors."]
 #[async_trait::async_trait]
 pub trait UnmuteActorList: crate::xrpc::XrpcClient {
-    async fn unmute_actor_list(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn unmute_actor_list(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "app.bsky.graph.unmuteActorList",

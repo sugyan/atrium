@@ -4,8 +4,8 @@
 #[doc = "Notify a crawling service of a recent update. Often when a long break between updates causes the connection with the crawling service to break."]
 #[async_trait::async_trait]
 pub trait NotifyOfUpdate: crate::xrpc::XrpcClient {
-    async fn notify_of_update(&self, params: Parameters) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn notify_of_update(&self, params: Parameters) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "com.atproto.sync.notifyOfUpdate",

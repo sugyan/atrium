@@ -4,8 +4,8 @@
 #[doc = "Who does the viewer mute?"]
 #[async_trait::async_trait]
 pub trait GetMutes: crate::xrpc::XrpcClient {
-    async fn get_mutes(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_mutes(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.graph.getMutes",

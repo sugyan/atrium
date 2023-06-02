@@ -4,8 +4,8 @@
 #[doc = "Initiate a user account deletion via email."]
 #[async_trait::async_trait]
 pub trait RequestAccountDelete: crate::xrpc::XrpcClient {
-    async fn request_account_delete(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn request_account_delete(&self) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.requestAccountDelete",

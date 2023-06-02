@@ -4,8 +4,8 @@
 #[doc = "Revoke an app-specific password by name."]
 #[async_trait::async_trait]
 pub trait RevokeAppPassword: crate::xrpc::XrpcClient {
-    async fn revoke_app_password(&self, input: Input) -> Result<(), Box<dyn std::error::Error>> {
-        let _ = crate::xrpc::XrpcClient::send::<Error>(
+    async fn revoke_app_password(&self, input: Input) -> Result<(), crate::xrpc::Error<Error>> {
+        let _ = crate::xrpc::XrpcClient::send(
             self,
             http::Method::POST,
             "com.atproto.server.revokeAppPassword",

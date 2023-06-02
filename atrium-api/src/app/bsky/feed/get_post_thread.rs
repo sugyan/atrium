@@ -6,8 +6,8 @@ pub trait GetPostThread: crate::xrpc::XrpcClient {
     async fn get_post_thread(
         &self,
         params: Parameters,
-    ) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    ) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.feed.getPostThread",
@@ -24,6 +24,8 @@ pub trait GetPostThread: crate::xrpc::XrpcClient {
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub depth: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub parent_height: Option<i32>,
     pub uri: String,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -4,7 +4,6 @@ pub use http;
 use async_trait::async_trait;
 use http::{header, Method, Request, Response};
 use serde::de::DeserializeOwned;
-use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 
 /// [Custom error codes and descriptions](https://atproto.com/specs/xrpc#custom-error-codes-and-descriptions)
@@ -24,7 +23,7 @@ pub struct ErrorResponseBody {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum XrpcError<E>
+pub enum XrpcErrorKind<E>
 where
     E: Debug,
 {
@@ -33,48 +32,70 @@ where
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct XrpcResponseError<E>
+pub struct XrpcError<E>
 where
-    E: Debug + PartialEq + Eq,
+    E: Debug,
 {
     pub status: http::StatusCode,
-    pub error: Option<XrpcError<E>>,
+    pub error: Option<XrpcErrorKind<E>>,
 }
 
-impl<E> Display for XrpcResponseError<E>
+impl<E> Display for XrpcError<E>
 where
-    E: Debug + PartialEq + Eq,
+    E: Debug,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("XrpcResponseError({})", self.status))?;
+        f.write_fmt(format_args!("{}", self.status))?;
         if let Some(error) = &self.error {
-            f.write_str(": ")?;
+            f.write_str(" (")?;
             match error {
-                XrpcError::Custom(err) => {
+                XrpcErrorKind::Custom(err) => {
                     err.fmt(f)?;
                 }
-                XrpcError::Undefined(err) => {
+                XrpcErrorKind::Undefined(err) => {
                     if let Some(e) = &err.error {
                         f.write_fmt(format_args!("`{}` {:?}", e, err.message))?;
                     }
                 }
             }
+            f.write_str(")")?;
         }
         Ok(())
     }
 }
 
-impl<E> Error for XrpcResponseError<E> where E: Debug + PartialEq + Eq {}
+#[derive(thiserror::Error, Debug)]
+pub enum Error<E>
+where
+    E: Debug,
+{
+    #[error("XRPC response error: {0}")]
+    XrpcResponse(XrpcError<E>),
+    #[error("HTTP request error: {0}")]
+    HttpRequest(#[from] http::Error),
+    #[error("HTTP client error: {0}")]
+    HttpClient(Box<dyn std::error::Error + Send + Sync + 'static>),
+    #[error("serde_json error: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+    #[error("serde_urlencoded error: {0}")]
+    SerdeUrlencoded(#[from] serde_urlencoded::ser::Error),
+}
 
 #[async_trait]
 pub trait HttpClient {
-    async fn send(&self, req: Request<Vec<u8>>) -> Result<Response<Vec<u8>>, Box<dyn Error>>;
+    async fn send(
+        &self,
+        req: Request<Vec<u8>>,
+    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>;
 }
 
 #[async_trait]
 pub trait XrpcClient: HttpClient {
     fn host(&self) -> &str;
-    fn auth(&self) -> Option<&str>;
+    #[allow(unused_variables)]
+    fn auth(&self, is_refresh: bool) -> Option<&str> {
+        None
+    }
     async fn send<E>(
         &self,
         method: Method,
@@ -82,31 +103,34 @@ pub trait XrpcClient: HttpClient {
         query: Option<String>,
         input: Option<Vec<u8>>,
         encoding: Option<String>,
-    ) -> Result<Vec<u8>, Box<dyn Error>>
+    ) -> Result<Vec<u8>, self::Error<E>>
     where
-        E: Debug + DeserializeOwned + PartialEq + Eq + 'static,
+        E: DeserializeOwned + Debug + PartialEq + Eq + 'static,
     {
         let mut uri = format!("{}/xrpc/{path}", self.host());
         if let Some(query) = &query {
             uri += "?";
             uri += query;
         };
-        let mut builder = Request::builder().method(method).uri(uri);
+        let mut builder = Request::builder().method(&method).uri(&uri);
         if let Some(encoding) = encoding {
             builder = builder.header(header::CONTENT_TYPE, encoding);
         }
-        if let Some(token) = self.auth() {
+        if let Some(token) =
+            self.auth(method == http::Method::POST && path == "com.atproto.server.refreshSession")
+        {
             builder = builder.header(header::AUTHORIZATION, format!("Bearer {}", token));
         }
         let (parts, body) = HttpClient::send(self, builder.body(input.unwrap_or_default())?)
-            .await?
+            .await
+            .map_err(Error::HttpClient)?
             .into_parts();
         if parts.status.is_success() {
             Ok(body)
         } else {
-            Err(Box::new(XrpcResponseError {
+            Err(Error::XrpcResponse(XrpcError {
                 status: parts.status,
-                error: serde_json::from_slice::<XrpcError<E>>(&body).ok(),
+                error: serde_json::from_slice::<XrpcErrorKind<E>>(&body).ok(),
             }))
         }
     }
@@ -120,7 +144,7 @@ mod tests {
             async fn get_example(
                 &self,
                 params: Parameters,
-            ) -> Result<Output, Box<dyn std::error::Error>> {
+            ) -> Result<Output, crate::xrpc::Error<Error>> {
                 let body = crate::xrpc::XrpcClient::send::<Error>(
                     self,
                     http::Method::GET,
@@ -162,7 +186,10 @@ mod tests {
 
     #[async_trait]
     impl HttpClient for DummyClient {
-        async fn send(&self, _req: Request<Vec<u8>>) -> Result<Response<Vec<u8>>, Box<dyn Error>> {
+        async fn send(
+            &self,
+            _req: Request<Vec<u8>>,
+        ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
             Response::builder()
                 .status(self.status)
                 .body(self.body.clone())
@@ -175,9 +202,6 @@ mod tests {
         fn host(&self) -> &str {
             "https://example.com"
         }
-        fn auth(&self) -> Option<&str> {
-            None
-        }
     }
 
     impl example::GetExample for DummyClient {}
@@ -186,25 +210,29 @@ mod tests {
     fn deserialize_xrpc_error() {
         {
             let body = r#"{"error":"InvalidToken","message":"Invalid token"}"#;
-            let err = serde_json::from_str::<XrpcError<_>>(body).expect("deserialize");
+            let err = serde_json::from_str::<XrpcErrorKind<_>>(body).expect("deserialize");
             assert_eq!(
                 err,
-                XrpcError::Custom(example::Error::InvalidToken(Some(String::from(
+                XrpcErrorKind::Custom(example::Error::InvalidToken(Some(String::from(
                     "Invalid token"
                 ))))
             );
         }
         {
             let body = r#"{"error":"ExpiredToken"}"#;
-            let err = serde_json::from_str::<XrpcError<_>>(body).expect("deserialize");
-            assert_eq!(err, XrpcError::Custom(example::Error::ExpiredToken(None)));
+            let err = serde_json::from_str::<XrpcErrorKind<_>>(body).expect("deserialize");
+            assert_eq!(
+                err,
+                XrpcErrorKind::Custom(example::Error::ExpiredToken(None))
+            );
         }
         {
             let body = r#"{"error":"Unknown","message":"Something wrong"}"#;
-            let err = serde_json::from_str::<XrpcError<example::Error>>(body).expect("deserialize");
+            let err =
+                serde_json::from_str::<XrpcErrorKind<example::Error>>(body).expect("deserialize");
             assert_eq!(
                 err,
-                XrpcError::Undefined(ErrorResponseBody {
+                XrpcErrorKind::Undefined(ErrorResponseBody {
                     error: Some(String::from("Unknown")),
                     message: Some(String::from("Something wrong")),
                 })
@@ -231,22 +259,25 @@ mod tests {
             status: http::StatusCode::BAD_REQUEST,
             body: r#"{"error":"InvalidToken","message":"Message"}"#.as_bytes().to_vec(),
         };
-        let error = client
-            .get_example(example::Parameters {})
-            .await
-            .expect_err("must be error");
-        assert_eq!(
-            error.downcast_ref::<XrpcResponseError<example::Error>>(),
-            Some(&XrpcResponseError {
-                status: http::StatusCode::BAD_REQUEST,
-                error: Some(XrpcError::Custom(example::Error::InvalidToken(Some(
-                    String::from("Message")
-                ))))
-            })
-        );
+        let result = client.get_example(example::Parameters {}).await;
+        let error = result.expect_err("must be error");
+        match &error {
+            Error::XrpcResponse(err) => {
+                assert_eq!(
+                    err,
+                    &XrpcError {
+                        status: http::StatusCode::BAD_REQUEST,
+                        error: Some(XrpcErrorKind::Custom(example::Error::InvalidToken(Some(
+                            String::from("Message")
+                        ))))
+                    }
+                );
+            }
+            _ => panic!("must be Error::XrpcResponse"),
+        }
         assert_eq!(
             error.to_string(),
-            r#"XrpcResponseError(400 Bad Request): InvalidToken(Some("Message"))"#
+            r#"XRPC response error: 400 Bad Request (InvalidToken(Some("Message")))"#
         );
     }
 
@@ -258,23 +289,26 @@ mod tests {
                 .as_bytes()
                 .to_vec(),
         };
-        let error = client
-            .get_example(example::Parameters {})
-            .await
-            .expect_err("must be error");
-        assert_eq!(
-            error.downcast_ref::<XrpcResponseError<example::Error>>(),
-            Some(&XrpcResponseError {
-                status: http::StatusCode::INTERNAL_SERVER_ERROR,
-                error: Some(XrpcError::Undefined(ErrorResponseBody {
-                    error: Some(String::from("Unknown")),
-                    message: Some(String::from("Something wrong"))
-                }))
-            })
-        );
+        let result = client.get_example(example::Parameters {}).await;
+        let error = result.expect_err("must be error");
+        match &error {
+            Error::XrpcResponse(err) => {
+                assert_eq!(
+                    err,
+                    &XrpcError {
+                        status: http::StatusCode::INTERNAL_SERVER_ERROR,
+                        error: Some(XrpcErrorKind::Undefined(ErrorResponseBody {
+                            error: Some(String::from("Unknown")),
+                            message: Some(String::from("Something wrong"))
+                        }))
+                    }
+                );
+            }
+            _ => panic!("must be Error::XrpcResponse"),
+        };
         assert_eq!(
             error.to_string(),
-            r#"XrpcResponseError(500 Internal Server Error): `Unknown` Some("Something wrong")"#
+            r#"XRPC response error: 500 Internal Server Error (`Unknown` Some("Something wrong"))"#
         );
     }
 }

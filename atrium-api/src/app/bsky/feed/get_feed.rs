@@ -4,8 +4,8 @@
 #[doc = "Compose and hydrate a feed from a user's selected feed generator"]
 #[async_trait::async_trait]
 pub trait GetFeed: crate::xrpc::XrpcClient {
-    async fn get_feed(&self, params: Parameters) -> Result<Output, Box<dyn std::error::Error>> {
-        let body = crate::xrpc::XrpcClient::send::<Error>(
+    async fn get_feed(&self, params: Parameters) -> Result<Output, crate::xrpc::Error<Error>> {
+        let body = crate::xrpc::XrpcClient::send(
             self,
             http::Method::GET,
             "app.bsky.feed.getFeed",
