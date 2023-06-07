@@ -1,10 +1,23 @@
 [package]
 name = "atrium-xrpc"
 version = "0.1.0"
-edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition = "2021"
+description = "XRPC library for AT Protocol (Bluesky)"
+documentation = "https://docs.rs/atrium-xrpc"
+readme = "README.md"
+repository = "https://github.com/sugyan/atrium"
+license = "MIT"
+keywords = ["atproto", "bluesky"]
 
 [dependencies]
-atrium-api = "0.3"
 async-trait = "0.1.68"
+http = "0.2.9"
 reqwest = "0.11.16"
+serde = { version = "1.0.160", features = ["derive"] }
+serde_json = "1.0.96"
+serde_urlencoded = "0.7.1"
+thiserror = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1.28.0", features = ["macros", "rt"] }
