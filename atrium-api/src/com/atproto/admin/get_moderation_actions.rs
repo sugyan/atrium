@@ -12,7 +12,7 @@ pub trait GetModerationActions: crate::xrpc::XrpcClient {
             self,
             http::Method::GET,
             "com.atproto.admin.getModerationActions",
-            Some(serde_urlencoded::to_string(&params)?),
+            Some(serde_qs::to_string(&params)?),
             None,
             None,
         )

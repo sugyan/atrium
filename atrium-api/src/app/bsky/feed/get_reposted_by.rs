@@ -11,7 +11,7 @@ pub trait GetRepostedBy: crate::xrpc::XrpcClient {
             self,
             http::Method::GET,
             "app.bsky.feed.getRepostedBy",
-            Some(serde_urlencoded::to_string(&params)?),
+            Some(serde_qs::to_string(&params)?),
             None,
             None,
         )

@@ -73,6 +73,6 @@ where
     HttpClient(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
-    #[error("serde_urlencoded error: {0}")]
-    SerdeUrlencoded(#[from] serde_urlencoded::ser::Error),
+    #[error("serde_qs error: {0}")]
+    SerdeQs(#[from] serde_qs::ser::Error),
 }
