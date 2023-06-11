@@ -12,7 +12,7 @@ pub trait GetFeedSkeleton: crate::xrpc::XrpcClient {
             self,
             http::Method::GET,
             "app.bsky.feed.getFeedSkeleton",
-            Some(serde_urlencoded::to_string(&params)?),
+            Some(serde_qs::to_string(&params)?),
             None,
             None,
         )

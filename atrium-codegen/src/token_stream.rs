@@ -214,7 +214,7 @@ impl LexConverter {
             args.push(quote!(params: Parameters));
         }
         let param_value = if has_params {
-            quote!(Some(serde_urlencoded::to_string(&params)?))
+            quote!(Some(serde_qs::to_string(&params)?))
         } else {
             quote!(None)
         };

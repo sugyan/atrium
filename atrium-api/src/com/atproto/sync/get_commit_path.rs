@@ -12,7 +12,7 @@ pub trait GetCommitPath: crate::xrpc::XrpcClient {
             self,
             http::Method::GET,
             "com.atproto.sync.getCommitPath",
-            Some(serde_urlencoded::to_string(&params)?),
+            Some(serde_qs::to_string(&params)?),
             None,
             None,
         )

@@ -9,7 +9,7 @@ pub trait GetRepo: crate::xrpc::XrpcClient {
             self,
             http::Method::GET,
             "com.atproto.admin.getRepo",
-            Some(serde_urlencoded::to_string(&params)?),
+            Some(serde_qs::to_string(&params)?),
             None,
             None,
         )
