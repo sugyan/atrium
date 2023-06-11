@@ -74,5 +74,5 @@ where
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
     #[error("serde_qs error: {0}")]
-    SerdeQs(#[from] serde_qs::ser::Error),
+    SerdeQs(#[from] serde_qs::Error),
 }
