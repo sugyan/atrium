@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.1.0...atrium-xrpc-v0.2.0) - 2023-06-11
+
+### Other
+- Fix reference to serde_qs::ser::Error
+- Fix broken array URL encoding
+- release
+
 ## [0.1.0](https://github.com/sugyan/atrium/releases/tag/atrium-xrpc-v0.1.0) - 2023-06-07
 
 ### Added
