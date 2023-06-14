@@ -37,7 +37,7 @@ impl atrium_api::xrpc::XrpcClient for MyClient {
     fn host(&self) -> &str {
         "https://bsky.social"
     }
-    fn auth(&self) -> Option<&str> {
+    fn auth(&self, _: bool) -> Option<&str> {
         None
     }
 }
