@@ -1,6 +1,6 @@
 #![doc = "Error types."]
 use http::StatusCode;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::Debug;
 
 /// [Custom error codes and descriptions](https://atproto.com/specs/xrpc#custom-error-codes-and-descriptions)
 ///
@@ -19,53 +19,20 @@ pub struct ErrorResponseBody {
 
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
-pub enum XrpcErrorKind<E>
-where
-    E: Debug,
-{
+pub enum XrpcErrorKind<E> {
     Custom(E),
     Undefined(ErrorResponseBody),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct XrpcError<E>
-where
-    E: Debug,
-{
+pub struct XrpcError<E> {
     pub status: StatusCode,
     pub error: Option<XrpcErrorKind<E>>,
 }
 
-impl<E> Display for XrpcError<E>
-where
-    E: Debug,
-{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{}", self.status))?;
-        if let Some(error) = &self.error {
-            f.write_str(" (")?;
-            match error {
-                XrpcErrorKind::Custom(err) => {
-                    err.fmt(f)?;
-                }
-                XrpcErrorKind::Undefined(err) => {
-                    if let Some(e) = &err.error {
-                        f.write_fmt(format_args!("`{}` {:?}", e, err.message))?;
-                    }
-                }
-            }
-            f.write_str(")")?;
-        }
-        Ok(())
-    }
-}
-
 #[derive(thiserror::Error, Debug)]
-pub enum Error<E>
-where
-    E: Debug,
-{
-    #[error("XRPC response error: {0}")]
+pub enum Error<E> {
+    #[error("XRPC response error: {0:?}")]
     XrpcResponse(XrpcError<E>),
     #[error("HTTP request error: {0}")]
     HttpRequest(#[from] http::Error),
