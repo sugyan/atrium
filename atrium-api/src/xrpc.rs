@@ -74,7 +74,7 @@ pub trait HttpClient {
 #[async_trait]
 pub trait XrpcClient: HttpClient {
     fn host(&self) -> &str;
-    fn auth(&self) -> Option<&str>;
+    fn auth(&self, is_refresh: bool) -> Option<&str>;
     async fn send<E>(
         &self,
         method: Method,
@@ -91,11 +91,13 @@ pub trait XrpcClient: HttpClient {
             uri += "?";
             uri += query;
         };
-        let mut builder = Request::builder().method(method).uri(uri);
+        let mut builder = Request::builder().method(&method).uri(uri);
         if let Some(encoding) = encoding {
             builder = builder.header(header::CONTENT_TYPE, encoding);
         }
-        if let Some(token) = self.auth() {
+        if let Some(token) =
+            self.auth(method == Method::POST && path == "com.atproto.server.refreshSession")
+        {
             builder = builder.header(header::AUTHORIZATION, format!("Bearer {}", token));
         }
         let (parts, body) = HttpClient::send(self, builder.body(input.unwrap_or_default())?)
@@ -175,7 +177,7 @@ mod tests {
         fn host(&self) -> &str {
             "https://example.com"
         }
-        fn auth(&self) -> Option<&str> {
+        fn auth(&self, _: bool) -> Option<&str> {
             None
         }
     }
