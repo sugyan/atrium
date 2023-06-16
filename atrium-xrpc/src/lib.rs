@@ -8,6 +8,22 @@ use async_trait::async_trait;
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 
+pub enum InputDataOrBytes<T>
+where
+    T: Serialize,
+{
+    Data(T),
+    Bytes(Vec<u8>),
+}
+
+pub enum OutputDataOrBytes<T>
+where
+    T: DeserializeOwned,
+{
+    Data(T),
+    Bytes(Vec<u8>),
+}
+
 #[async_trait]
 pub trait HttpClient {
     async fn send(
@@ -26,11 +42,11 @@ pub trait XrpcClient: HttpClient {
     async fn send<P, I, O, E>(
         &self,
         method: Method,
-        path: String,
+        path: &str,
         parameters: Option<P>,
-        input: Option<I>,
+        input: Option<InputDataOrBytes<I>>,
         encoding: Option<String>,
-    ) -> Result<O, self::Error<E>>
+    ) -> Result<OutputDataOrBytes<O>, self::Error<E>>
     where
         P: Serialize + Send,
         I: Serialize + Send,
@@ -54,7 +70,10 @@ pub trait XrpcClient: HttpClient {
             builder = builder.header(http::header::AUTHORIZATION, format!("Bearer {}", token));
         }
         let body = if let Some(input) = input {
-            serde_json::to_vec(&input)?
+            match input {
+                InputDataOrBytes::Data(data) => serde_json::to_vec(&data)?,
+                InputDataOrBytes::Bytes(bytes) => bytes,
+            }
         } else {
             Vec::new()
         };
@@ -63,13 +82,12 @@ pub trait XrpcClient: HttpClient {
             .map_err(Error::HttpClient)?
             .into_parts();
         if parts.status.is_success() {
-            if body.is_empty() {
-                // An empty response body can not be deserialized,
-                // but then the Output schema should be defined as a unit structure.
-                // so `"null"` is used to match the structure.
-                Ok(serde_json::from_str("null")?)
+            if parts.headers.get(http::header::CONTENT_TYPE)
+                == Some(&http::HeaderValue::from_static("application/json"))
+            {
+                Ok(OutputDataOrBytes::Data(serde_json::from_slice(&body)?))
             } else {
-                Ok(serde_json::from_slice(&body)?)
+                Ok(OutputDataOrBytes::Bytes(body))
             }
         } else {
             Err(Error::XrpcResponse(XrpcError {
@@ -86,6 +104,7 @@ mod tests {
 
     struct DummyClient {
         status: http::StatusCode,
+        json: bool,
         body: Vec<u8>,
     }
 
@@ -95,10 +114,11 @@ mod tests {
             &self,
             _req: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-            Response::builder()
-                .status(self.status)
-                .body(self.body.clone())
-                .map_err(|e| e.into())
+            let mut builder = Response::builder().status(self.status);
+            if self.json {
+                builder = builder.header(http::header::CONTENT_TYPE, "application/json")
+            }
+            Ok(builder.body(self.body.clone())?)
         }
     }
 
@@ -116,15 +136,19 @@ mod tests {
         where
             T: crate::XrpcClient + Send + Sync,
         {
-            crate::XrpcClient::send::<_, Input, _, _>(
+            let response = crate::XrpcClient::send::<_, (), _, _>(
                 xrpc,
                 http::Method::GET,
-                String::from("example"),
+                "example",
                 Some(params),
                 None,
                 None,
             )
-            .await
+            .await?;
+            match response {
+                crate::OutputDataOrBytes::Data(data) => Ok(data),
+                _ => Err(crate::Error::UnexpectedResponseType),
+            }
         }
 
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
@@ -133,12 +157,8 @@ mod tests {
 
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
         #[serde(rename_all = "camelCase")]
-        struct Input;
-
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
-        #[serde(rename_all = "camelCase")]
         struct Output {
-            pub return_value: i32,
+            return_value: i32,
         }
 
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -180,6 +200,7 @@ mod tests {
         async fn response_ok() {
             let client = DummyClient {
                 status: http::StatusCode::OK,
+                json: true,
                 body: r#"{"returnValue":42}"#.as_bytes().to_vec(),
             };
             let out = get_example(&client, Parameters {})
@@ -192,6 +213,7 @@ mod tests {
         async fn response_custom_error() {
             let client = DummyClient {
                 status: http::StatusCode::BAD_REQUEST,
+                json: true,
                 body: r#"{"error":"InvalidToken","message":"Message"}"#.as_bytes().to_vec(),
             };
             let result = get_example(&client, Parameters {}).await;
@@ -208,7 +230,7 @@ mod tests {
                         }
                     );
                 }
-                _ => panic!("must be Error::XrpcResponse"),
+                _ => panic!("must be Error::XrpcResponse, got {error:?}"),
             }
         }
 
@@ -216,6 +238,7 @@ mod tests {
         async fn response_undefined_error() {
             let client = DummyClient {
                 status: http::StatusCode::INTERNAL_SERVER_ERROR,
+                json: true,
                 body: r#"{"error":"Unknown","message":"Something wrong"}"#
                     .as_bytes()
                     .to_vec(),
@@ -237,8 +260,212 @@ mod tests {
                         }
                     );
                 }
-                _ => panic!("must be Error::XrpcResponse"),
+                _ => panic!("must be Error::XrpcResponse, got {error:?}"),
             };
+        }
+    }
+
+    mod query {
+        use super::*;
+
+        mod bytes {
+            use super::*;
+
+            async fn get_bytes<T>(
+                xrpc: &T,
+                params: Parameters,
+            ) -> Result<Vec<u8>, crate::Error<Error>>
+            where
+                T: crate::XrpcClient + Send + Sync,
+            {
+                let response = crate::XrpcClient::send::<_, (), (), _>(
+                    xrpc,
+                    http::Method::GET,
+                    "example",
+                    Some(params),
+                    None,
+                    None,
+                )
+                .await?;
+                match response {
+                    crate::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
+                    _ => Err(crate::Error::UnexpectedResponseType),
+                }
+            }
+
+            #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+            #[serde(rename_all = "camelCase")]
+            struct Parameters {
+                query: String,
+            }
+
+            #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+            #[serde(tag = "error", content = "message")]
+            enum Error {}
+
+            #[tokio::test]
+            async fn response_ok() {
+                let body = r"data".as_bytes().to_vec();
+                let client = DummyClient {
+                    status: http::StatusCode::OK,
+                    json: false,
+                    body: body.clone(),
+                };
+                let out = get_bytes(
+                    &client,
+                    Parameters {
+                        query: "foo".into(),
+                    },
+                )
+                .await
+                .expect("must be ok");
+                assert_eq!(out, body);
+            }
+
+            #[tokio::test]
+            async fn response_unexpected() {
+                let client = DummyClient {
+                    status: http::StatusCode::OK,
+                    json: true,
+                    body: r"null".as_bytes().to_vec(),
+                };
+                let result = get_bytes(
+                    &client,
+                    Parameters {
+                        query: "foo".into(),
+                    },
+                )
+                .await;
+                let error = result.expect_err("must be error");
+                match &error {
+                    crate::Error::UnexpectedResponseType => {}
+                    _ => panic!("must be Error::UnexpectedResponseType, got {error:?}"),
+                }
+            }
+        }
+    }
+
+    mod procedure {
+        use super::*;
+
+        mod no_content {
+            use super::*;
+
+            async fn create_data<T>(xrpc: &T, input: Input) -> Result<(), crate::Error<Error>>
+            where
+                T: crate::XrpcClient + Send + Sync,
+            {
+                let response = crate::XrpcClient::send::<(), Input, (), _>(
+                    xrpc,
+                    http::Method::POST,
+                    "example",
+                    None,
+                    Some(InputDataOrBytes::Data(input)),
+                    None,
+                )
+                .await?;
+                match response {
+                    crate::OutputDataOrBytes::Bytes(_) => Ok(()),
+                    _ => Err(crate::Error::UnexpectedResponseType),
+                }
+            }
+
+            #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+            #[serde(rename_all = "camelCase")]
+            struct Input {
+                value: i32,
+            }
+
+            #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+            #[serde(tag = "error", content = "message")]
+            enum Error {}
+
+            #[tokio::test]
+            async fn response_ok() {
+                let client = DummyClient {
+                    status: http::StatusCode::OK,
+                    json: false,
+                    body: Vec::new(),
+                };
+                create_data(&client, Input { value: 42 })
+                    .await
+                    .expect("must be ok");
+            }
+
+            #[tokio::test]
+            async fn response_unexpected() {
+                let client = DummyClient {
+                    status: http::StatusCode::OK,
+                    json: true,
+                    body: r"null".as_bytes().to_vec(),
+                };
+                let result = create_data(&client, Input { value: 42 }).await;
+                let error = result.expect_err("must be error");
+                match &error {
+                    crate::Error::UnexpectedResponseType => {}
+                    _ => panic!("must be Error::UnexpectedResponseType, got {error:?}"),
+                }
+            }
+        }
+
+        mod bytes {
+            use super::*;
+
+            async fn create_data<T>(xrpc: &T, input: Vec<u8>) -> Result<Output, crate::Error<Error>>
+            where
+                T: crate::XrpcClient + Send + Sync,
+            {
+                let response = crate::XrpcClient::send::<(), Vec<u8>, _, _>(
+                    xrpc,
+                    http::Method::POST,
+                    "example",
+                    None,
+                    Some(InputDataOrBytes::Data(input)),
+                    None,
+                )
+                .await?;
+                match response {
+                    crate::OutputDataOrBytes::Data(data) => Ok(data),
+                    _ => Err(crate::Error::UnexpectedResponseType),
+                }
+            }
+
+            #[derive(serde::Serialize, serde::Deserialize, Debug, Clone)]
+            #[serde(rename_all = "camelCase")]
+            struct Output {
+                return_value: i32,
+            }
+
+            #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+            #[serde(tag = "error", content = "message")]
+            enum Error {}
+
+            #[tokio::test]
+            async fn response_ok() {
+                let client = DummyClient {
+                    status: http::StatusCode::OK,
+                    json: true,
+                    body: r#"{"returnValue":42}"#.as_bytes().to_vec(),
+                };
+                create_data(&client, "data".as_bytes().to_vec())
+                    .await
+                    .expect("must be ok");
+            }
+
+            #[tokio::test]
+            async fn response_unexpected() {
+                let client = DummyClient {
+                    status: http::StatusCode::OK,
+                    json: false,
+                    body: r#"{"returnValue":42}"#.as_bytes().to_vec(),
+                };
+                let result = create_data(&client, "data".as_bytes().to_vec()).await;
+                let error = result.expect_err("must be error");
+                match &error {
+                    crate::Error::UnexpectedResponseType => {}
+                    _ => panic!("must be Error::UnexpectedResponseType, got {error:?}"),
+                }
+            }
         }
     }
 }

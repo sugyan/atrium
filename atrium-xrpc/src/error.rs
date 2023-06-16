@@ -32,14 +32,16 @@ pub struct XrpcError<E> {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error<E> {
-    #[error("XRPC response error: {0:?}")]
+    #[error("xrpc response error: {0:?}")]
     XrpcResponse(XrpcError<E>),
-    #[error("HTTP request error: {0}")]
+    #[error("http request error: {0}")]
     HttpRequest(#[from] http::Error),
-    #[error("HTTP client error: {0}")]
+    #[error("http client error: {0}")]
     HttpClient(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
     #[error("serde_qs error: {0}")]
     SerdeQs(#[from] serde_qs::Error),
+    #[error("unexpected response type")]
+    UnexpectedResponseType,
 }
