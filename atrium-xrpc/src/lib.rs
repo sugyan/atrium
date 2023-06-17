@@ -355,7 +355,7 @@ mod tests {
             where
                 T: crate::XrpcClient + Send + Sync,
             {
-                let response = crate::XrpcClient::send::<(), Input, (), _>(
+                let response = crate::XrpcClient::send::<(), _, (), _>(
                     xrpc,
                     http::Method::POST,
                     "example",
@@ -420,7 +420,7 @@ mod tests {
                     http::Method::POST,
                     "example",
                     None,
-                    Some(InputDataOrBytes::Data(input)),
+                    Some(InputDataOrBytes::Bytes(input)),
                     None,
                 )
                 .await?;
