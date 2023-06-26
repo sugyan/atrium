@@ -5,12 +5,12 @@ use http::{Request, Response};
 use std::error::Error;
 
 #[derive(Debug, Default)]
-pub struct Client {
+pub struct ReqwestClient {
     client: reqwest::Client,
     host: String,
 }
 
-impl Client {
+impl ReqwestClient {
     pub fn new(host: String) -> Self {
         Self {
             host,
@@ -20,7 +20,7 @@ impl Client {
 }
 
 #[async_trait]
-impl HttpClient for Client {
+impl HttpClient for ReqwestClient {
     async fn send(
         &self,
         req: Request<Vec<u8>>,
@@ -36,7 +36,7 @@ impl HttpClient for Client {
     }
 }
 
-impl XrpcClient for Client {
+impl XrpcClient for ReqwestClient {
     fn host(&self) -> &str {
         &self.host
     }

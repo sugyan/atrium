@@ -82,8 +82,13 @@ pub trait XrpcClient: HttpClient {
             .map_err(Error::HttpClient)?
             .into_parts();
         if parts.status.is_success() {
-            if parts.headers.get(http::header::CONTENT_TYPE)
-                == Some(&http::HeaderValue::from_static("application/json"))
+            if parts
+                .headers
+                .get(http::header::CONTENT_TYPE)
+                .and_then(|value| value.to_str().ok())
+                .map_or(false, |content_type| {
+                    content_type.starts_with("application/json")
+                })
             {
                 Ok(OutputDataOrBytes::Data(serde_json::from_slice(&body)?))
             } else {
