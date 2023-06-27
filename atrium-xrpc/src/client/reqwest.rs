@@ -1,17 +1,16 @@
-#![doc = "Default client implementation."]
+#![doc = "Default client implementation using [`reqwest`](https://crates.io/crates/reqwest)."]
 use crate::{HttpClient, XrpcClient};
 use async_trait::async_trait;
 use http::{Request, Response};
-use reqwest::Client;
 use std::error::Error;
 
 #[derive(Debug, Default)]
-pub struct XrpcReqwestClient {
-    client: Client,
+pub struct ReqwestClient {
+    client: reqwest::Client,
     host: String,
 }
 
-impl XrpcReqwestClient {
+impl ReqwestClient {
     pub fn new(host: String) -> Self {
         Self {
             host,
@@ -21,7 +20,7 @@ impl XrpcReqwestClient {
 }
 
 #[async_trait]
-impl HttpClient for XrpcReqwestClient {
+impl HttpClient for ReqwestClient {
     async fn send(
         &self,
         req: Request<Vec<u8>>,
@@ -37,7 +36,7 @@ impl HttpClient for XrpcReqwestClient {
     }
 }
 
-impl XrpcClient for XrpcReqwestClient {
+impl XrpcClient for ReqwestClient {
     fn host(&self) -> &str {
         &self.host
     }
