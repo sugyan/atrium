@@ -24,6 +24,7 @@ pub enum XrpcErrorKind<E> {
     Undefined(ErrorResponseBody),
 }
 
+/// XRPC response error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct XrpcError<E> {
     pub status: StatusCode,

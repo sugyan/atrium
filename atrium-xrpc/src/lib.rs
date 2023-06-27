@@ -1,7 +1,6 @@
 #![doc = include_str!("../README.md")]
 pub mod client;
 pub mod error;
-pub use http;
 
 use crate::error::{Error, XrpcError, XrpcErrorKind};
 use async_trait::async_trait;
