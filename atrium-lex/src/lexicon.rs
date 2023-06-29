@@ -34,6 +34,7 @@ pub enum LexStringFormat {
     AtIdentifier,
     Nsid,
     Cid,
+    Language,
 }
 #[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]

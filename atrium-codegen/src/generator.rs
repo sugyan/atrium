@@ -1,12 +1,13 @@
 use crate::fs::find_dirs;
 use crate::schema::find_ref_unions;
-use crate::token_stream::{modules, refs_enum, traits_macro, LexConverter};
+use crate::token_stream::{client, modules, ref_unions, refs_enum, user_type};
 use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::quote;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fs::{create_dir_all, read_dir, File};
 use std::io::Write;
@@ -23,21 +24,20 @@ pub(crate) fn generate_schemas(
     if let Some(basename) = paths.pop() {
         let mut tokens = Vec::new();
         let mut names = Vec::new();
-        let converter = LexConverter::new(schema.id.clone());
         // main def
         for (name, def) in &schema.defs {
             if name == "main" {
-                tokens.push(converter.convert(basename, def, true)?);
+                tokens.push(user_type(def, basename, true)?);
             } else {
                 names.push(name);
             }
         }
         // other defs
         for &name in names.iter().sorted() {
-            tokens.push(converter.convert(name, &schema.defs[name], false)?);
+            tokens.push(user_type(&schema.defs[name], name, false)?);
         }
         // ref unions
-        tokens.push(converter.ref_unions(&find_ref_unions(&schema.defs))?);
+        tokens.push(ref_unions(&schema.id, &find_ref_unions(&schema.defs))?);
 
         let documentation = {
             let doc = format!("Definitions for the `{}` namespace.", schema.id);
@@ -91,29 +91,37 @@ pub(crate) fn generate_records(
     Ok(path)
 }
 
-pub(crate) fn generate_traits(
+pub(crate) fn generate_client(
     outdir: &Path,
     schemas: &[LexiconDoc],
 ) -> Result<PathBuf, Box<dyn Error>> {
-    let traits = schemas
-        .iter()
-        .filter_map(|schema| {
-            if let Some(LexUserType::XrpcQuery(_) | LexUserType::XrpcProcedure(_)) =
-                schema.defs.get("main")
-            {
-                Some(schema.id.clone())
-            } else {
-                None
+    let mut schema_map = HashMap::new();
+    let mut tree = HashMap::new();
+    for schema in schemas {
+        if let Some(def) = schema.defs.get("main") {
+            if matches!(
+                def,
+                LexUserType::XrpcQuery(_) | LexUserType::XrpcProcedure(_)
+            ) {
+                schema_map.insert(schema.id.clone(), def);
+                let mut parts = schema.id.split('.').collect_vec();
+                let mut is_leaf = true;
+                while let Some(part) = parts.pop() {
+                    let key = parts.join(".");
+                    tree.entry(key)
+                        .or_insert_with(HashSet::new)
+                        .insert((part, is_leaf));
+                    is_leaf = false;
+                }
             }
-        })
-        .sorted()
-        .collect_vec();
-    let tokens = traits_macro(&traits)?;
+        }
+    }
+    let tokens = client(&tree, &schema_map)?;
     let content = quote! {
-        #![doc = "A macro for implementing the traits of all XRPC requests."]
+        #![doc = r#"An ATP "Client". Implements all HTTP APIs of XRPC."#]
         #tokens
     };
-    let path = outdir.join("traits.rs");
+    let path = outdir.join("client.rs");
     write_to_file(File::create(&path)?, content)?;
     Ok(path)
 }
@@ -144,7 +152,7 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
             })
             .sorted()
             .collect_vec();
-        let tokens = modules(&names)?;
+        let modules = modules(&names)?;
         let documentation = if path.as_ref() == outdir {
             quote!(#![doc = include_str!("../README.md")])
         } else {
@@ -152,7 +160,7 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
         };
         let content = quote! {
             #documentation
-            #tokens
+            #modules
         };
         write_to_file(File::create(filepath)?, content)?;
     }
