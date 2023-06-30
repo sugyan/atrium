@@ -6,4 +6,3 @@ pub mod blob;
 pub mod client;
 pub mod com;
 pub mod records;
-pub mod traits;
