@@ -3,528 +3,409 @@ use heck::{ToPascalCase, ToSnakeCase};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use syn::{Path, Result};
 
-pub(crate) struct LexConverter {
-    schema_id: String,
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum OutputType {
+    None,
+    Data,
+    Bytes,
 }
 
-impl LexConverter {
-    pub fn new(schema_id: String) -> Self {
-        Self { schema_id }
+pub fn user_type(def: &LexUserType, name: &str, is_main: bool) -> Result<TokenStream> {
+    let user_type = match def {
+        LexUserType::Record(record) => lex_record(record)?,
+        LexUserType::XrpcQuery(query) => lex_query(query)?,
+        LexUserType::XrpcProcedure(procedure) => lex_procedure(procedure)?,
+        LexUserType::XrpcSubscription(subscription) => lex_subscription(subscription)?,
+        LexUserType::Array(array) => lex_array(array, name)?,
+        LexUserType::Token(token) => lex_token(token, name)?,
+        LexUserType::Object(object) => lex_object(object, if is_main { "Main" } else { name })?,
+        LexUserType::String(string) => lex_string(string, name)?,
+        _ => unimplemented!("{def:?}"),
+    };
+    Ok(quote! {
+        // #[doc = #description]
+        #user_type
+    })
+}
+
+pub fn ref_unions(schema_id: &str, ref_unions: &[(String, LexRefUnion)]) -> Result<TokenStream> {
+    let mut enums = Vec::new();
+    for (name, ref_union) in ref_unions {
+        enums.push(refs_enum(&ref_union.refs, name, Some(schema_id))?);
     }
-    pub fn convert(&self, name: &str, def: &LexUserType, is_main: bool) -> Result<TokenStream> {
-        let def_name = if is_main {
-            String::new()
-        } else {
-            format!("#{name}")
-        };
-        let description = format!("`{}{}`", self.schema_id, def_name);
-        let user_type = match def {
-            LexUserType::Record(record) => self.record(record)?,
-            LexUserType::XrpcQuery(query) => self.query(name, query)?,
-            LexUserType::XrpcProcedure(procedure) => self.procedure(name, procedure)?,
-            LexUserType::XrpcSubscription(subscription) => self.subscription(name, subscription)?,
-            LexUserType::Array(array) => self.array(name, array)?,
-            LexUserType::Token(token) => self.token(name, token)?,
-            LexUserType::Object(object) => {
-                self.object(if is_main { "Main" } else { name }, object)?
-            }
-            LexUserType::String(string) => self.string(name, string)?,
-            _ => unimplemented!("{def:?}"),
-        };
-        Ok(quote! {
-            #[doc = #description]
-            #user_type
+    Ok(quote!(#(#enums)*))
+}
+
+fn lex_record(record: &LexRecord) -> Result<TokenStream> {
+    let LexRecordRecord::Object(object) = &record.record;
+    lex_object(object, "Record")
+}
+
+fn xrpc_parameters(parameters: &LexXrpcParameters) -> Result<TokenStream> {
+    let properties = parameters
+        .properties
+        .iter()
+        .map(|(k, v)| {
+            let value = match v {
+                LexXrpcParametersProperty::Boolean(boolean) => {
+                    LexObjectProperty::Boolean(boolean.clone())
+                }
+                LexXrpcParametersProperty::Integer(integer) => {
+                    LexObjectProperty::Integer(integer.clone())
+                }
+                LexXrpcParametersProperty::String(string) => {
+                    LexObjectProperty::String(string.clone())
+                }
+                LexXrpcParametersProperty::Unknown(unknown) => {
+                    LexObjectProperty::Unknown(unknown.clone())
+                }
+                LexXrpcParametersProperty::Array(primitive_array) => {
+                    LexObjectProperty::Array(LexArray {
+                        description: primitive_array.description.clone(),
+                        items: match &primitive_array.items {
+                            LexPrimitiveArrayItem::Boolean(b) => LexArrayItem::Boolean(b.clone()),
+                            LexPrimitiveArrayItem::Integer(i) => LexArrayItem::Integer(i.clone()),
+                            LexPrimitiveArrayItem::String(s) => LexArrayItem::String(s.clone()),
+                            LexPrimitiveArrayItem::Unknown(u) => LexArrayItem::Unknown(u.clone()),
+                        },
+                        min_length: primitive_array.min_length,
+                        max_length: primitive_array.max_length,
+                    })
+                }
+            };
+            (k.clone(), value)
         })
+        .collect();
+    lex_object(
+        &LexObject {
+            description: parameters.description.clone(),
+            required: parameters.required.clone(),
+            nullable: None,
+            properties: Some(properties),
+        },
+        "Parameters",
+    )
+}
+
+fn xrpc_body(body: &LexXrpcBody, name: &str) -> Result<TokenStream> {
+    let description = description(&body.description);
+    let schema = if let Some(schema) = &body.schema {
+        match schema {
+            LexXrpcBodySchema::Ref(r#ref) => {
+                let type_name = format_ident!("{}", name.to_pascal_case());
+                let (description, ref_type) = ref_type(r#ref)?;
+                quote! {
+                    #description
+                    pub type #type_name = #ref_type;
+                }
+            }
+            LexXrpcBodySchema::Object(object) => lex_object(object, name)?,
+            _ => unimplemented!("{schema:?}"),
+        }
+    } else {
+        return Ok(quote!());
+    };
+    Ok(quote! {
+        #description
+        #schema
+    })
+}
+
+fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
+    let derives = derives()?;
+    let variants = errors.as_ref().map_or(Vec::new(), |e| {
+        e.iter()
+            .map(|error| {
+                let description = description(&error.description);
+                let name = format_ident!("{}", error.name.to_pascal_case());
+                quote! {
+                    #description
+                    #name(Option<String>)
+                }
+            })
+            .collect()
+    });
+    Ok(quote! {
+        #derives
+        #[serde(tag = "error", content = "message")]
+        pub enum Error {
+            #(#variants),*
+        }
+    })
+}
+
+fn lex_query(query: &LexXrpcQuery) -> Result<TokenStream> {
+    let params = if let Some(LexXrpcQueryParameter::Params(parameters)) = &query.parameters {
+        xrpc_parameters(parameters)?
+    } else {
+        quote!()
+    };
+    let outputs = if let Some(body) = &query.output {
+        xrpc_body(body, "Output")?
+    } else {
+        quote!()
+    };
+    let errors = xrpc_errors(&query.errors)?;
+    Ok(quote! {
+        #params
+        #outputs
+        #errors
+    })
+}
+
+fn lex_procedure(procedure: &LexXrpcProcedure) -> Result<TokenStream> {
+    let inputs = if let Some(body) = &procedure.input {
+        xrpc_body(body, "Input")?
+    } else {
+        quote!()
+    };
+    let outputs = if let Some(body) = &procedure.output {
+        xrpc_body(body, "Output")?
+    } else {
+        quote!()
+    };
+    let errors = xrpc_errors(&procedure.errors)?;
+    Ok(quote! {
+        #inputs
+        #outputs
+        #errors
+    })
+}
+
+fn lex_subscription(subscription: &LexXrpcSubscription) -> Result<TokenStream> {
+    let params =
+        if let Some(LexXrpcSubscriptionParameter::Params(parameters)) = &subscription.parameters {
+            xrpc_parameters(parameters)?
+        } else {
+            quote!()
+        };
+    // TODO: message
+    let errors = xrpc_errors(&subscription.errors)?;
+    Ok(quote! {
+        #params
+        #errors
+    })
+}
+
+fn lex_array(array: &LexArray, name: &str) -> Result<TokenStream> {
+    let (description, array_type) = array_type(array, name, None)?;
+    let type_name = format_ident!("{}", name.to_pascal_case());
+    Ok(quote! {
+        #description
+        pub type #type_name = #array_type;
+    })
+}
+
+fn lex_token(token: &LexToken, name: &str) -> Result<TokenStream> {
+    let description = description(&token.description);
+    let token_name = format_ident!("{}", name.to_pascal_case());
+    // TODO
+    Ok(quote! {
+        #description
+        pub struct #token_name;
+    })
+}
+
+fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
+    let description = description(&object.description);
+    let derives = derives()?;
+    let struct_name = format_ident!("{}", name.to_pascal_case());
+    let mut required = if let Some(required) = &object.required {
+        HashSet::from_iter(required)
+    } else {
+        HashSet::new()
+    };
+    if let Some(nullable) = &object.nullable {
+        for key in nullable {
+            required.remove(&key);
+        }
     }
-    pub fn ref_unions(&self, ref_unions: &[(String, LexRefUnion)]) -> Result<TokenStream> {
-        let mut enums = Vec::new();
-        for (name, ref_union) in ref_unions {
-            enums.push(self::refs_enum(
+    let mut fields = Vec::new();
+    if let Some(properties) = &object.properties {
+        for key in properties.keys().sorted() {
+            fields.push(lex_object_property(
+                &properties[key],
+                key,
+                required.contains(key),
                 name,
-                &ref_union.refs,
-                Some(&self.schema_id),
             )?);
         }
-        Ok(quote!(#(#enums)*))
     }
-    fn record(&self, record: &LexRecord) -> Result<TokenStream> {
-        let LexRecordRecord::Object(object) = &record.record;
-        self.object("Record", object)
-    }
-    fn xrpc_parameters(&self, parameters: &LexXrpcParameters) -> Result<TokenStream> {
-        let properties = parameters
-            .properties
-            .iter()
-            .map(|(k, v)| {
-                let value = match v {
-                    LexXrpcParametersProperty::Boolean(boolean) => {
-                        LexObjectProperty::Boolean(boolean.clone())
-                    }
-                    LexXrpcParametersProperty::Integer(integer) => {
-                        LexObjectProperty::Integer(integer.clone())
-                    }
-                    LexXrpcParametersProperty::String(string) => {
-                        LexObjectProperty::String(string.clone())
-                    }
-                    LexXrpcParametersProperty::Unknown(unknown) => {
-                        LexObjectProperty::Unknown(unknown.clone())
-                    }
-                    LexXrpcParametersProperty::Array(primitive_array) => {
-                        LexObjectProperty::Array(LexArray {
-                            description: primitive_array.description.clone(),
-                            items: match &primitive_array.items {
-                                LexPrimitiveArrayItem::Boolean(b) => {
-                                    LexArrayItem::Boolean(b.clone())
-                                }
-                                LexPrimitiveArrayItem::Integer(i) => {
-                                    LexArrayItem::Integer(i.clone())
-                                }
-                                LexPrimitiveArrayItem::String(s) => LexArrayItem::String(s.clone()),
-                                LexPrimitiveArrayItem::Unknown(u) => {
-                                    LexArrayItem::Unknown(u.clone())
-                                }
-                            },
-                            min_length: primitive_array.min_length,
-                            max_length: primitive_array.max_length,
-                        })
-                    }
-                };
-                (k.clone(), value)
-            })
-            .collect();
-        self.object(
-            "Parameters",
-            &LexObject {
-                description: parameters.description.clone(),
-                required: parameters.required.clone(),
-                nullable: None,
-                properties: Some(properties),
-            },
-        )
-    }
-    fn xrpc_body(&self, name: &str, body: &LexXrpcBody) -> Result<TokenStream> {
-        let description = self.description(&body.description);
-        let schema = if let Some(schema) = &body.schema {
-            match schema {
-                LexXrpcBodySchema::Ref(r#ref) => {
-                    let type_name = format_ident!("{}", name.to_pascal_case());
-                    let (description, ref_type) = self.ref_type(r#ref)?;
-                    quote! {
-                        #description
-                        pub type #type_name = #ref_type;
-                    }
-                }
-                LexXrpcBodySchema::Object(object) => self.object(name, object)?,
-                _ => unimplemented!("{schema:?}"),
-            }
-        } else {
-            return Ok(quote!());
-        };
-        Ok(quote! {
-            #description
-            #schema
-        })
-    }
-    fn xrpc_errors(&self, errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
-        let derives = self::derives()?;
-        let variants = errors.as_ref().map_or(Vec::new(), |e| {
-            e.iter()
-                .map(|error| {
-                    let description = self.description(&error.description);
-                    let name = format_ident!("{}", error.name.to_pascal_case());
-                    quote! {
-                        #description
-                        #name(Option<String>)
-                    }
-                })
-                .collect()
-        });
-        Ok(quote! {
-            #derives
-            #[serde(tag = "error", content = "message")]
-            pub enum Error {
-                #(#variants),*
-            }
-        })
-    }
-    fn query(&self, name: &str, query: &LexXrpcQuery) -> Result<TokenStream> {
-        let description = self.description(&query.description);
-        let parameters = &query.parameters;
-        let output = query.output.as_ref();
-        let trait_impl: TokenStream = self.xrpc_trait_query(
-            name,
-            parameters.is_some(),
-            output.map_or(false, |o| o.schema.is_some()),
-        )?;
-        let params = if let Some(LexXrpcQueryParameter::Params(parameters)) = parameters {
-            self.xrpc_parameters(parameters)?
-        } else {
-            quote!()
-        };
-        let outputs = if let Some(body) = output {
-            self.xrpc_body("Output", body)?
-        } else {
-            quote!()
-        };
-        let errors = self.xrpc_errors(&query.errors)?;
-        Ok(quote! {
-            #description
-            #trait_impl
-            #params
-            #outputs
-            #errors
-        })
-    }
-    fn procedure(&self, name: &str, procedure: &LexXrpcProcedure) -> Result<TokenStream> {
-        let description = self.description(&procedure.description);
-        let input = procedure.input.as_ref();
-        let output = procedure.output.as_ref();
-        let trait_impl: TokenStream =
-            self.xrpc_trait_procedure(name, input, output.map_or(false, |o| o.schema.is_some()))?;
-        let inputs = if let Some(body) = input {
-            self.xrpc_body("Input", body)?
-        } else {
-            quote!()
-        };
-        let outputs = if let Some(body) = output {
-            self.xrpc_body("Output", body)?
-        } else {
-            quote!()
-        };
-        let errors = self.xrpc_errors(&procedure.errors)?;
-        Ok(quote! {
-            #description
-            #trait_impl
-            #inputs
-            #outputs
-            #errors
-        })
-    }
-    fn xrpc_trait_query(
-        &self,
-        name: &str,
-        has_params: bool,
-        has_output: bool,
-    ) -> Result<TokenStream> {
-        let mut args = vec![quote!(&self)];
-        if has_params {
-            args.push(quote!(params: Parameters));
+    Ok(quote! {
+        #description
+        #derives
+        #[serde(rename_all = "camelCase")]
+        pub struct #struct_name {
+            #(#fields)*
         }
-        let param_value = if has_params {
-            quote!(Some(serde_qs::to_string(&params)?))
-        } else {
-            quote!(None)
-        };
-        let nsid = &self.schema_id;
-        let xrpc_call = quote! {
-            crate::xrpc::XrpcClient::send::<Error>(
-                self,
-                http::Method::GET,
-                #nsid,
-                #param_value,
-                None,
-                None,
+    })
+}
+
+fn lex_object_property(
+    property: &LexObjectProperty,
+    name: &str,
+    is_required: bool,
+    object_name: &str,
+) -> Result<TokenStream> {
+    let (description, mut field_type) = match property {
+        LexObjectProperty::Ref(r#ref) => ref_type(r#ref)?,
+        LexObjectProperty::Union(union) => union_type(
+            union,
+            format!(
+                "{}{}Enum",
+                object_name.to_pascal_case(),
+                name.to_pascal_case()
             )
-            .await?
-        };
-        self.xrpc_trait_common(name, &xrpc_call, &args, has_output)
+            .as_str(),
+        )?,
+        LexObjectProperty::Bytes(bytes) => bytes_type(bytes)?,
+        LexObjectProperty::CidLink(cid_link) => cid_link_type(cid_link)?,
+        LexObjectProperty::Array(array) => array_type(array, name, Some(object_name))?,
+        LexObjectProperty::Blob(blob) => blob_type(blob)?,
+        LexObjectProperty::Boolean(boolean) => boolean_type(boolean)?,
+        LexObjectProperty::Integer(integer) => integer_type(integer)?,
+        LexObjectProperty::String(string) => string_type(string)?,
+        LexObjectProperty::Unknown(unknown) => unknown_type(unknown)?,
+    };
+    // TODO: must be determined
+    if field_type.is_empty() {
+        return Ok(quote!());
     }
-    fn xrpc_trait_procedure(
-        &self,
-        name: &str,
-        input: Option<&LexXrpcBody>,
-        has_output: bool,
-    ) -> Result<TokenStream> {
-        let mut args = vec![quote!(&self)];
-        if let Some(body) = &input {
-            if body.schema.is_some() {
-                args.push(quote!(input: Input));
-            } else {
-                args.push(quote!(input: Vec<u8>));
-            }
-        }
-        let (input_value, encoding) = if let Some(body) = &input {
-            let encoding = &body.encoding;
-            if body.schema.is_some() {
-                (
-                    quote!(Some(serde_json::to_vec(&input)?)),
-                    quote!(Some(String::from(#encoding))),
-                )
-            } else {
-                (quote!(Some(input)), quote!(Some(String::from(#encoding))))
-            }
+    // TODO: other keywords?
+    let field_name = format_ident!(
+        "{}",
+        if name == "type" {
+            String::from("r#type")
         } else {
-            (quote!(None), quote!(None))
-        };
-        let nsid = &self.schema_id;
-        let xrpc_call = quote! {
-            crate::xrpc::XrpcClient::send::<Error>(
-                self,
-                http::Method::POST,
-                #nsid,
-                None,
-                #input_value,
-                #encoding,
-            )
-            .await?
-        };
-        self.xrpc_trait_common(name, &xrpc_call, &args, has_output)
-    }
-    fn xrpc_trait_common(
-        &self,
-        name: &str,
-        xrpc_call: &TokenStream,
-        args: &[TokenStream],
-        has_output: bool,
-    ) -> Result<TokenStream> {
-        let trait_name = format_ident!("{}", name.to_pascal_case());
-        let method_name = format_ident!("{}", name.to_snake_case());
-        let body = if has_output {
-            quote! {
-                async fn #method_name(#(#args),*) -> Result<Output, Box<dyn std::error::Error>> {
-                    let body = #xrpc_call;
-                    serde_json::from_slice(&body).map_err(|e| e.into())
-                }
-            }
-        } else {
-            quote! {
-                async fn #method_name(#(#args),*) -> Result<(), Box<dyn std::error::Error>> {
-                    let _ = #xrpc_call;
-                    Ok(())
-                }
-            }
-        };
-        Ok(quote! {
-            #[async_trait::async_trait]
-            pub trait #trait_name: crate::xrpc::XrpcClient {
-                #body
-            }
-        })
-    }
-    fn subscription(&self, name: &str, subscription: &LexXrpcSubscription) -> Result<TokenStream> {
-        let description = self.description(&subscription.description);
-        let subscription_name = format_ident!("{}", name.to_pascal_case());
-        // TODO
-        Ok(quote! {
-            #description
-            pub struct #subscription_name;
-        })
-    }
-    fn array(&self, name: &str, array: &LexArray) -> Result<TokenStream> {
-        let (description, array_type) = self.array_type(array, name, None)?;
-        let type_name = format_ident!("{}", name.to_pascal_case());
-        Ok(quote! {
-            #description
-            pub type #type_name = #array_type;
-        })
-    }
-    fn token(&self, name: &str, token: &LexToken) -> Result<TokenStream> {
-        let description = self.description(&token.description);
-        let token_name = format_ident!("{}", name.to_pascal_case());
-        // TODO
-        Ok(quote! {
-            #description
-            pub struct #token_name;
-        })
-    }
-    fn object(&self, name: &str, object: &LexObject) -> Result<TokenStream> {
-        let description = self.description(&object.description);
-        let derives = self::derives()?;
-        let struct_name = format_ident!("{}", name.to_pascal_case());
-        let mut required = if let Some(required) = &object.required {
-            HashSet::from_iter(required)
-        } else {
-            HashSet::new()
-        };
-        if let Some(nullable) = &object.nullable {
-            for key in nullable {
-                required.remove(&key);
-            }
+            name.to_snake_case()
         }
-        let mut fields = Vec::new();
-        if let Some(properties) = &object.properties {
-            for key in properties.keys().sorted() {
-                fields.push(self.object_property(
-                    key,
-                    &properties[key],
-                    required.contains(key),
-                    name,
-                )?);
-            }
-        }
-        Ok(quote! {
-            #description
-            #derives
-            #[serde(rename_all = "camelCase")]
-            pub struct #struct_name {
-                #(#fields)*
-            }
-        })
-    }
-    fn object_property(
-        &self,
-        name: &str,
-        property: &LexObjectProperty,
-        is_required: bool,
-        object_name: &str,
-    ) -> Result<TokenStream> {
-        let (description, mut field_type) = match property {
-            LexObjectProperty::Ref(r#ref) => self.ref_type(r#ref)?,
-            LexObjectProperty::Union(union) => self.union_type(
-                union,
-                format!(
-                    "{}{}Enum",
-                    object_name.to_pascal_case(),
-                    name.to_pascal_case()
-                )
-                .as_str(),
-            )?,
-            LexObjectProperty::Bytes(bytes) => self.bytes_type(bytes)?,
-            LexObjectProperty::CidLink(cid_link) => self.cid_link_type(cid_link)?,
-            LexObjectProperty::Array(array) => self.array_type(array, name, Some(object_name))?,
-            LexObjectProperty::Blob(blob) => self.blob_type(blob)?,
-            LexObjectProperty::Boolean(boolean) => self.boolean_type(boolean)?,
-            LexObjectProperty::Integer(integer) => self.integer_type(integer)?,
-            LexObjectProperty::String(string) => self.string_type(string)?,
-            LexObjectProperty::Unknown(unknown) => self.unknown_type(unknown)?,
-        };
-        // TODO: must be determined
-        if field_type.is_empty() {
-            return Ok(quote!());
-        }
-        // TODO: other keywords?
-        let field_name = format_ident!(
-            "{}",
-            if name == "type" {
-                String::from("r#type")
-            } else {
-                name.to_snake_case()
-            }
-        );
-        let mut attributes = match property {
-            LexObjectProperty::Bytes(_) => quote! {
-                #[serde(with = "serde_bytes")]
-            },
-            _ => quote!(),
-        };
-        if !is_required {
-            field_type = quote!(Option<#field_type>);
-            attributes = quote! {
-                #attributes
-                #[serde(skip_serializing_if = "Option::is_none")]
-            };
-        }
-        Ok(quote! {
-            #description
+    );
+    let mut attributes = match property {
+        LexObjectProperty::Bytes(_) => quote! {
+            #[serde(with = "serde_bytes")]
+        },
+        _ => quote!(),
+    };
+    if !is_required {
+        field_type = quote!(Option<#field_type>);
+        attributes = quote! {
             #attributes
-            pub #field_name: #field_type,
-        })
-    }
-    fn string(&self, name: &str, string: &LexString) -> Result<TokenStream> {
-        let description = self.description(&string.description);
-        let string_name = format_ident!("{}", name.to_pascal_case());
-        Ok(quote! {
-            #description
-            pub type #string_name = String;
-        })
-    }
-    fn ref_type(&self, r#ref: &LexRef) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&r#ref.description);
-        Ok((description, self::resolve_ref(&r#ref.r#ref, "main")?))
-    }
-    fn union_type(
-        &self,
-        union: &LexRefUnion,
-        enum_name: &str,
-    ) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&union.description);
-        let enum_type_name = format_ident!("{}", enum_name);
-        Ok((description, quote!(#enum_type_name)))
-    }
-    fn bytes_type(&self, bytes: &LexBytes) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&bytes.description);
-        Ok((description, quote!(Vec<u8>)))
-    }
-    fn cid_link_type(&self, cid_link: &LexCidLink) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&cid_link.description);
-        Ok((description, quote!(cid::Cid)))
-    }
-    fn array_type(
-        &self,
-        array: &LexArray,
-        name: &str,
-        object_name: Option<&str>,
-    ) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&array.description);
-        let (_, item_type) = match &array.items {
-            LexArrayItem::Integer(integer) => self.integer_type(integer)?,
-            LexArrayItem::String(string) => self.string_type(string)?,
-            LexArrayItem::Unknown(unknown) => self.unknown_type(unknown)?,
-            LexArrayItem::CidLink(cid_link) => self.cid_link_type(cid_link)?,
-            LexArrayItem::Ref(r#ref) => self.ref_type(r#ref)?,
-            LexArrayItem::Union(union) => self.union_type(
-                union,
-                format!(
-                    "{}{}Item",
-                    object_name.map_or(String::new(), str::to_pascal_case),
-                    name.to_pascal_case()
-                )
-                .as_str(),
-            )?,
-            _ => unimplemented!("{:?}", array.items),
+            #[serde(skip_serializing_if = "Option::is_none")]
         };
-        // TODO: must be determined
-        if item_type.is_empty() {
-            return Ok((description, quote!()));
-        }
-        Ok((description, quote!(Vec<#item_type>)))
     }
-    fn blob_type(&self, blob: &LexBlob) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&blob.description);
-        Ok((description, quote!(crate::blob::BlobRef)))
+    Ok(quote! {
+        #description
+        #attributes
+        pub #field_name: #field_type,
+    })
+}
+
+fn lex_string(string: &LexString, name: &str) -> Result<TokenStream> {
+    let description = description(&string.description);
+    let string_name = format_ident!("{}", name.to_pascal_case());
+    Ok(quote! {
+        #description
+        pub type #string_name = String;
+    })
+}
+
+fn ref_type(r#ref: &LexRef) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&r#ref.description);
+    Ok((description, resolve_path(&r#ref.r#ref, "main")?))
+}
+
+fn union_type(union: &LexRefUnion, enum_name: &str) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&union.description);
+    let enum_type_name = format_ident!("{}", enum_name);
+    Ok((description, quote!(#enum_type_name)))
+}
+
+fn bytes_type(bytes: &LexBytes) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&bytes.description);
+    Ok((description, quote!(Vec<u8>)))
+}
+
+fn cid_link_type(cid_link: &LexCidLink) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&cid_link.description);
+    Ok((description, quote!(cid::Cid)))
+}
+
+fn array_type(
+    array: &LexArray,
+    name: &str,
+    object_name: Option<&str>,
+) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&array.description);
+    let (_, item_type) = match &array.items {
+        LexArrayItem::Integer(integer) => integer_type(integer)?,
+        LexArrayItem::String(string) => string_type(string)?,
+        LexArrayItem::Unknown(unknown) => unknown_type(unknown)?,
+        LexArrayItem::CidLink(cid_link) => cid_link_type(cid_link)?,
+        LexArrayItem::Ref(r#ref) => ref_type(r#ref)?,
+        LexArrayItem::Union(union) => union_type(
+            union,
+            format!(
+                "{}{}Item",
+                object_name.map_or(String::new(), str::to_pascal_case),
+                name.to_pascal_case()
+            )
+            .as_str(),
+        )?,
+        _ => unimplemented!("{:?}", array.items),
+    };
+    // TODO: must be determined
+    if item_type.is_empty() {
+        return Ok((description, quote!()));
     }
-    fn boolean_type(&self, boolean: &LexBoolean) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&boolean.description);
-        Ok((description, quote!(bool)))
-    }
-    fn integer_type(&self, integer: &LexInteger) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&integer.description);
-        // TODO: usize?
-        Ok((description, quote!(i32)))
-    }
-    fn string_type(&self, string: &LexString) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&string.description);
-        // TODO: format, enum?
-        Ok((description, quote!(String)))
-    }
-    fn unknown_type(&self, unknown: &LexUnknown) -> Result<(TokenStream, TokenStream)> {
-        let description = self.description(&unknown.description);
-        Ok((description, quote!(crate::records::Record)))
-    }
-    fn description(&self, description: &Option<String>) -> TokenStream {
-        if let Some(description) = description {
-            quote!(#[doc = #description])
-        } else {
-            quote!()
-        }
+    Ok((description, quote!(Vec<#item_type>)))
+}
+
+fn blob_type(blob: &LexBlob) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&blob.description);
+    Ok((description, quote!(crate::blob::BlobRef)))
+}
+
+fn boolean_type(boolean: &LexBoolean) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&boolean.description);
+    Ok((description, quote!(bool)))
+}
+
+fn integer_type(integer: &LexInteger) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&integer.description);
+    // TODO: usize?
+    Ok((description, quote!(i32)))
+}
+
+fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&string.description);
+    // TODO: format, enum?
+    Ok((description, quote!(String)))
+}
+
+fn unknown_type(unknown: &LexUnknown) -> Result<(TokenStream, TokenStream)> {
+    let description = description(&unknown.description);
+    Ok((description, quote!(crate::records::Record)))
+}
+
+fn description(description: &Option<String>) -> TokenStream {
+    if let Some(description) = description {
+        quote!(#[doc = #description])
+    } else {
+        quote!()
     }
 }
 
-pub(crate) fn refs_enum(
-    name: &str,
-    refs: &[String],
-    schema_id: Option<&String>,
-) -> Result<TokenStream> {
+pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
     let is_record = schema_id.is_none();
-    let derives = self::derives()?;
+    let derives = derives()?;
     let enum_name = format_ident!("{name}");
     let mut variants = Vec::new();
     for r#ref in refs {
         let default = if is_record { "record" } else { "main" };
-        let path = self::resolve_ref(r#ref, default)?;
+        let path = resolve_path(r#ref, default)?;
         let rename = if r#ref.starts_with('#') {
             format!(
                 "{}{}",
@@ -559,35 +440,7 @@ pub(crate) fn refs_enum(
     })
 }
 
-pub(crate) fn traits_macro(traits: &[String]) -> Result<TokenStream> {
-    let mut paths = Vec::new();
-    let mut roots = HashSet::new();
-    for t in traits {
-        let parts = t.split('.').collect_vec();
-        roots.insert(format_ident!("{}", parts[0].to_snake_case()));
-        let basename = parts.last().unwrap();
-        let path = syn::parse_str::<Path>(&format!(
-            "{}::{}",
-            parts.iter().map(|s| s.to_snake_case()).join("::"),
-            basename.to_pascal_case()
-        ))?;
-        paths.push(quote! {
-            impl #path for $type {}
-        });
-    }
-    let roots = roots.into_iter().sorted().collect_vec();
-    Ok(quote! {
-        #[macro_export]
-        macro_rules! impl_traits {
-            ($type:ty) => {
-                use atrium_api::{#(#roots),*};
-                #(#paths)*
-            }
-        }
-    })
-}
-
-pub(crate) fn modules(names: &[String]) -> Result<TokenStream> {
+pub fn modules(names: &[String]) -> Result<TokenStream> {
     let v = names
         .iter()
         .filter_map(|s| {
@@ -600,6 +453,300 @@ pub(crate) fn modules(names: &[String]) -> Result<TokenStream> {
         })
         .collect_vec();
     Ok(quote!(#(#v)*))
+}
+
+pub fn client(
+    tree: &HashMap<String, HashSet<(&str, bool)>>,
+    schemas: &HashMap<String, &LexUserType>,
+) -> Result<TokenStream> {
+    let services = client_services("", tree)?;
+    let mut impls = Vec::new();
+    for key in tree.keys().sorted() {
+        let type_name = if key.is_empty() {
+            quote!(AtpServiceClient)
+        } else {
+            let path = syn::parse_str::<Path>(&key.split('.').join("::"))?;
+            quote!(#path::Service)
+        };
+        let fn_new = client_new(tree, key)?;
+        let mut methods = Vec::new();
+        for (name, _) in tree[key].iter().filter(|(_, b)| *b).sorted() {
+            let nsid = format!("{key}.{name}");
+            let method = match schemas[&nsid] {
+                LexUserType::XrpcQuery(query) => xrpc_impl_query(query, &nsid)?,
+                LexUserType::XrpcProcedure(procedure) => xrpc_impl_procedure(procedure, &nsid)?,
+                _ => unreachable!(),
+            };
+            methods.push(method);
+        }
+        impls.push(quote! {
+            impl<T> #type_name<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                #fn_new
+                #(#methods)*
+            }
+        });
+    }
+    Ok(quote! {
+        #services
+        #(#impls)*
+    })
+}
+
+fn client_services(
+    target: &str,
+    tree: &HashMap<String, HashSet<(&str, bool)>>,
+) -> Result<TokenStream> {
+    let mut fields = Vec::new();
+    let mut mods = Vec::new();
+    if let Some(children) = tree.get(target) {
+        let mut has_leaf = false;
+        for &(child, is_leaf) in children.iter().sorted() {
+            if is_leaf {
+                has_leaf = true;
+            } else {
+                let name = format_ident!("{child}");
+                fields.push(quote! {
+                    pub #name: #name::Service<T>,
+                });
+                let target = if target.is_empty() {
+                    child.to_string()
+                } else {
+                    format!("{target}.{child}")
+                };
+                let submodule = client_services(&target, tree)?;
+                mods.push(quote! {
+                    pub mod #name { #submodule }
+                });
+            }
+        }
+        if has_leaf {
+            fields.push(quote! {
+                pub xrpc: std::sync::Arc<T>,
+            });
+        }
+    }
+    let struct_name = if target.is_empty() {
+        quote!(AtpServiceClient)
+    } else {
+        quote!(Service)
+    };
+    let service = quote! {
+        pub struct #struct_name<T>
+        where T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            #(#fields)*
+        }
+    };
+    Ok(quote! {
+        #service
+        #(#mods)*
+    })
+}
+
+fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Result<TokenStream> {
+    let children = tree[key].iter().sorted().collect_vec();
+    let mut members = Vec::new();
+    for (name, is_leaf) in &children {
+        if *is_leaf {
+            continue;
+        }
+        let parts = if key.is_empty() {
+            vec![*name]
+        } else {
+            key.split('.').chain([*name]).collect_vec()
+        };
+        let path = syn::parse_str::<Path>(&parts.join("::"))?;
+        let name = format_ident!("{}", name.to_snake_case());
+        members.push(quote! {
+            #name: #path::Service::new(std::sync::Arc::clone(&xrpc)),
+        });
+    }
+    if children.iter().any(|(_, b)| *b) {
+        members.push(quote! {
+            xrpc,
+        });
+    }
+    Ok(quote! {
+        pub fn new(xrpc: std::sync::Arc<T>) -> Self {
+            Self {
+                #(#members)*
+            }
+        }
+    })
+}
+
+fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
+    let description = description(&query.description);
+    let has_params = query.parameters.is_some();
+    let output = query.output.as_ref();
+    let output_type = output.map_or(OutputType::None, |o| {
+        if o.schema.is_some() {
+            OutputType::Data
+        } else {
+            OutputType::Bytes
+        }
+    });
+
+    let mut args = vec![quote!(&self)];
+    if has_params {
+        let parameters = resolve_path(nsid, "Parameters")?;
+        args.push(quote!(params: #parameters));
+    }
+    let generic_args = vec![
+        if has_params { quote!(_) } else { quote!(()) },
+        quote!(()),
+        if output_type == OutputType::Data {
+            quote!(_)
+        } else {
+            quote!(())
+        },
+        quote!(_),
+    ];
+    let param_value = if has_params {
+        quote!(Some(params))
+    } else {
+        quote!(None)
+    };
+    let xrpc_call = quote! {
+        atrium_xrpc::XrpcClient::send::<#(#generic_args),*>(
+            self.xrpc.as_ref(),
+            http::Method::GET,
+            #nsid,
+            #param_value,
+            None,
+            None,
+        )
+        .await?
+    };
+    xrpc_impl_common(nsid, &description, &xrpc_call, &args, output_type)
+}
+
+fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<TokenStream> {
+    let description = description(&procedure.description);
+    let input = procedure.input.as_ref();
+    let output = procedure.output.as_ref();
+    let output_type = output.map_or(OutputType::None, |o| {
+        if o.schema.is_some() {
+            OutputType::Data
+        } else {
+            OutputType::Bytes
+        }
+    });
+    let mut args = vec![quote!(&self)];
+    if let Some(body) = &input {
+        if body.schema.is_some() {
+            let input = resolve_path(nsid, "Input")?;
+            args.push(quote!(input: #input));
+        } else {
+            args.push(quote!(input: Vec<u8>));
+        }
+    }
+    let generic_args = vec![
+        quote!(()),
+        if let Some(body) = &input {
+            if body.schema.is_some() {
+                quote!(_)
+            } else {
+                quote!(Vec<u8>)
+            }
+        } else {
+            quote!(())
+        },
+        if output_type == OutputType::Data {
+            quote!(_)
+        } else {
+            quote!(())
+        },
+        quote!(_),
+    ];
+    let input_value = if let Some(body) = input {
+        if body.schema.is_some() {
+            quote!(Some(atrium_xrpc::InputDataOrBytes::Data(input)))
+        } else {
+            quote!(Some(atrium_xrpc::InputDataOrBytes::Bytes(input)))
+        }
+    } else {
+        quote!(None)
+    };
+    let encoding = if let Some(body) = input {
+        let encoding = &body.encoding;
+        quote!(Some(String::from(#encoding)))
+    } else {
+        quote!(None)
+    };
+    let xrpc_call = quote! {
+        atrium_xrpc::XrpcClient::send::<#(#generic_args),*>(
+            self.xrpc.as_ref(),
+            http::Method::POST,
+            #nsid,
+            None,
+            #input_value,
+            #encoding,
+        )
+        .await?
+    };
+    xrpc_impl_common(nsid, &description, &xrpc_call, &args, output_type)
+}
+
+fn xrpc_impl_common(
+    nsid: &str,
+    description: &TokenStream,
+    xrpc_call: &TokenStream,
+    args: &[TokenStream],
+    output_type: OutputType,
+) -> Result<TokenStream> {
+    let name = nsid.split('.').last().unwrap();
+    let method_name = format_ident!("{}", name.to_snake_case());
+    let error = resolve_path(nsid, "Error")?;
+    let body = match output_type {
+        OutputType::None => {
+            quote! {
+                pub async fn #method_name(
+                    #(#args),*
+                ) -> Result<(), atrium_xrpc::error::Error<#error>> {
+                    let response = #xrpc_call;
+                    match response {
+                        atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                    }
+                }
+            }
+        }
+        OutputType::Data => {
+            let output = resolve_path(nsid, "Output")?;
+            quote! {
+                pub async fn #method_name(
+                    #(#args),*
+                ) -> Result<#output, atrium_xrpc::error::Error<#error>> {
+                    let response = #xrpc_call;
+                    match response {
+                        atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                    }
+                }
+            }
+        }
+        OutputType::Bytes => {
+            quote! {
+                pub async fn #method_name(
+                    #(#args),*
+                ) -> Result<Vec<u8>, atrium_xrpc::error::Error<#error>> {
+                    let response = #xrpc_call;
+                    match response {
+                        atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
+                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                    }
+                }
+            }
+        }
+    };
+    Ok(quote! {
+        #description
+        #body
+    })
 }
 
 fn derives() -> Result<TokenStream> {
@@ -617,7 +764,7 @@ fn derives() -> Result<TokenStream> {
     Ok(quote!(#[derive(#(#derives),*)]))
 }
 
-fn resolve_ref(r#ref: &str, default: &str) -> Result<TokenStream> {
+fn resolve_path(r#ref: &str, default: &str) -> Result<TokenStream> {
     let (namespace, def) = r#ref.split_once('#').unwrap_or((r#ref, default));
     let path = syn::parse_str::<Path>(&if namespace.is_empty() {
         def.to_pascal_case()

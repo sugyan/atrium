@@ -9,51 +9,27 @@ ATrium API is a Rust library that includes the definitions of XRPC requests and 
 
 ## Usage
 
-You can use any HTTP client that implements `xrpc::HttpClient` to make use of the XRPC requests. Below is the simplest example using [`reqwest`](https://crates.io/crates/reqwest).
+You can use any HTTP client that implements [`atrium_xrpc::HttpClient`](https://docs.rs/atrium-xrpc/latest/atrium_xrpc/trait.HttpClient.html) to make use of the XRPC requests. [`atrium_xrpc`](https://docs.rs/atrium-xrpc) also includes a default implementation using [`reqwest`](https://crates.io/crates/reqwest).
 
-```rust,ignore
-#[derive(Default)]
-struct MyClient(reqwest::Client);
-
-#[async_trait::async_trait]
-impl atrium_api::xrpc::HttpClient for MyClient {
-    async fn send(
-        &self,
-        req: http::Request<Vec<u8>>,
-    ) -> Result<http::Response<Vec<u8>>, Box<dyn std::error::Error>> {
-        let res = self.0.execute(req.try_into()?).await?;
-        let mut builder = http::Response::builder().status(res.status());
-        for (k, v) in res.headers() {
-            builder = builder.header(k, v);
-        }
-        builder
-            .body(res.bytes().await?.to_vec())
-            .map_err(Into::into)
-    }
-}
-
-#[async_trait::async_trait]
-impl atrium_api::xrpc::XrpcClient for MyClient {
-    fn host(&self) -> &str {
-        "https://bsky.social"
-    }
-    fn auth(&self, _: bool) -> Option<&str> {
-        None
-    }
-}
-
-atrium_api::impl_traits!(MyClient);
+```rust,no_run
+use atrium_api::client::AtpServiceClient;
+use atrium_api::com::atproto::server::create_session::Input;
+use atrium_xrpc::client::reqwest::ReqwestClient;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    use atrium_api::com::atproto::server::create_session::{CreateSession, Input};
-    let session = MyClient::default()
+    let client = AtpServiceClient::new(Arc::new(ReqwestClient::new("https://bsky.social".into())));
+    let result = client
+        .com
+        .atproto
+        .server
         .create_session(Input {
-            identifier: "<your handle>.bsky.social".into(),
-            password: "<your app password>".into(),
+            identifier: "example.bsky.social".into(),
+            password: "********".into(),
         })
-        .await?;
-    println!("{:?}", session);
+        .await;
+    println!("{:?}", result);
     Ok(())
 }
 ```

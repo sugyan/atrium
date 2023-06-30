@@ -3,7 +3,7 @@ mod generator;
 mod schema;
 mod token_stream;
 
-use crate::generator::{generate_modules, generate_records, generate_schemas, generate_traits};
+use crate::generator::{generate_client, generate_modules, generate_records, generate_schemas};
 use atrium_lex::LexiconDoc;
 use itertools::Itertools;
 use serde_json::from_reader;
@@ -29,10 +29,10 @@ pub fn genapi(
             .iter()
             .filter(|schema| schema.id.starts_with(prefix))
             .collect_vec();
-        results.extend(self::gen(&outdir, &targets)?);
+        results.extend(gen(&outdir, &targets)?);
     }
     results.push(generate_records(&outdir, &schemas)?);
-    results.push(generate_traits(&outdir, &schemas)?);
+    results.push(generate_client(&outdir, &schemas)?);
     results.extend(generate_modules(&outdir)?);
     Ok(results)
 }
