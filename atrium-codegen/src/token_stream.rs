@@ -15,14 +15,14 @@ enum OutputType {
 
 pub fn user_type(def: &LexUserType, name: &str, is_main: bool) -> Result<TokenStream> {
     let user_type = match def {
-        LexUserType::Record(record) => self::record(record)?,
-        LexUserType::XrpcQuery(query) => self::query(query)?,
-        LexUserType::XrpcProcedure(procedure) => self::procedure(procedure)?,
-        LexUserType::XrpcSubscription(subscription) => self::subscription(subscription)?,
-        LexUserType::Array(array) => self::array(name, array)?,
-        LexUserType::Token(token) => self::token(name, token)?,
-        LexUserType::Object(object) => self::object(if is_main { "Main" } else { name }, object)?,
-        LexUserType::String(string) => self::string(name, string)?,
+        LexUserType::Record(record) => lex_record(record)?,
+        LexUserType::XrpcQuery(query) => lex_query(query)?,
+        LexUserType::XrpcProcedure(procedure) => lex_procedure(procedure)?,
+        LexUserType::XrpcSubscription(subscription) => lex_subscription(subscription)?,
+        LexUserType::Array(array) => lex_array(array, name)?,
+        LexUserType::Token(token) => lex_token(token, name)?,
+        LexUserType::Object(object) => lex_object(object, if is_main { "Main" } else { name })?,
+        LexUserType::String(string) => lex_string(string, name)?,
         _ => unimplemented!("{def:?}"),
     };
     Ok(quote! {
@@ -34,14 +34,14 @@ pub fn user_type(def: &LexUserType, name: &str, is_main: bool) -> Result<TokenSt
 pub fn ref_unions(schema_id: &str, ref_unions: &[(String, LexRefUnion)]) -> Result<TokenStream> {
     let mut enums = Vec::new();
     for (name, ref_union) in ref_unions {
-        enums.push(self::refs_enum(name, &ref_union.refs, Some(schema_id))?);
+        enums.push(refs_enum(&ref_union.refs, name, Some(schema_id))?);
     }
     Ok(quote!(#(#enums)*))
 }
 
-fn record(record: &LexRecord) -> Result<TokenStream> {
+fn lex_record(record: &LexRecord) -> Result<TokenStream> {
     let LexRecordRecord::Object(object) = &record.record;
-    self::object("Record", object)
+    lex_object(object, "Record")
 }
 
 fn xrpc_parameters(parameters: &LexXrpcParameters) -> Result<TokenStream> {
@@ -79,18 +79,18 @@ fn xrpc_parameters(parameters: &LexXrpcParameters) -> Result<TokenStream> {
             (k.clone(), value)
         })
         .collect();
-    object(
-        "Parameters",
+    lex_object(
         &LexObject {
             description: parameters.description.clone(),
             required: parameters.required.clone(),
             nullable: None,
             properties: Some(properties),
         },
+        "Parameters",
     )
 }
 
-fn xrpc_body(name: &str, body: &LexXrpcBody) -> Result<TokenStream> {
+fn xrpc_body(body: &LexXrpcBody, name: &str) -> Result<TokenStream> {
     let description = description(&body.description);
     let schema = if let Some(schema) = &body.schema {
         match schema {
@@ -102,7 +102,7 @@ fn xrpc_body(name: &str, body: &LexXrpcBody) -> Result<TokenStream> {
                     pub type #type_name = #ref_type;
                 }
             }
-            LexXrpcBodySchema::Object(object) => self::object(name, object)?,
+            LexXrpcBodySchema::Object(object) => lex_object(object, name)?,
             _ => unimplemented!("{schema:?}"),
         }
     } else {
@@ -115,7 +115,7 @@ fn xrpc_body(name: &str, body: &LexXrpcBody) -> Result<TokenStream> {
 }
 
 fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
-    let derives = self::derives()?;
+    let derives = derives()?;
     let variants = errors.as_ref().map_or(Vec::new(), |e| {
         e.iter()
             .map(|error| {
@@ -137,14 +137,14 @@ fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
     })
 }
 
-fn query(query: &LexXrpcQuery) -> Result<TokenStream> {
+fn lex_query(query: &LexXrpcQuery) -> Result<TokenStream> {
     let params = if let Some(LexXrpcQueryParameter::Params(parameters)) = &query.parameters {
         xrpc_parameters(parameters)?
     } else {
         quote!()
     };
     let outputs = if let Some(body) = &query.output {
-        xrpc_body("Output", body)?
+        xrpc_body(body, "Output")?
     } else {
         quote!()
     };
@@ -156,14 +156,14 @@ fn query(query: &LexXrpcQuery) -> Result<TokenStream> {
     })
 }
 
-fn procedure(procedure: &LexXrpcProcedure) -> Result<TokenStream> {
+fn lex_procedure(procedure: &LexXrpcProcedure) -> Result<TokenStream> {
     let inputs = if let Some(body) = &procedure.input {
-        xrpc_body("Input", body)?
+        xrpc_body(body, "Input")?
     } else {
         quote!()
     };
     let outputs = if let Some(body) = &procedure.output {
-        xrpc_body("Output", body)?
+        xrpc_body(body, "Output")?
     } else {
         quote!()
     };
@@ -175,7 +175,7 @@ fn procedure(procedure: &LexXrpcProcedure) -> Result<TokenStream> {
     })
 }
 
-fn subscription(subscription: &LexXrpcSubscription) -> Result<TokenStream> {
+fn lex_subscription(subscription: &LexXrpcSubscription) -> Result<TokenStream> {
     let params =
         if let Some(LexXrpcSubscriptionParameter::Params(parameters)) = &subscription.parameters {
             xrpc_parameters(parameters)?
@@ -190,8 +190,8 @@ fn subscription(subscription: &LexXrpcSubscription) -> Result<TokenStream> {
     })
 }
 
-fn array(name: &str, array: &LexArray) -> Result<TokenStream> {
-    let (description, array_type) = self::array_type(array, name, None)?;
+fn lex_array(array: &LexArray, name: &str) -> Result<TokenStream> {
+    let (description, array_type) = array_type(array, name, None)?;
     let type_name = format_ident!("{}", name.to_pascal_case());
     Ok(quote! {
         #description
@@ -199,7 +199,7 @@ fn array(name: &str, array: &LexArray) -> Result<TokenStream> {
     })
 }
 
-fn token(name: &str, token: &LexToken) -> Result<TokenStream> {
+fn lex_token(token: &LexToken, name: &str) -> Result<TokenStream> {
     let description = description(&token.description);
     let token_name = format_ident!("{}", name.to_pascal_case());
     // TODO
@@ -209,9 +209,9 @@ fn token(name: &str, token: &LexToken) -> Result<TokenStream> {
     })
 }
 
-fn object(name: &str, object: &LexObject) -> Result<TokenStream> {
+fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
     let description = description(&object.description);
-    let derives = self::derives()?;
+    let derives = derives()?;
     let struct_name = format_ident!("{}", name.to_pascal_case());
     let mut required = if let Some(required) = &object.required {
         HashSet::from_iter(required)
@@ -226,9 +226,9 @@ fn object(name: &str, object: &LexObject) -> Result<TokenStream> {
     let mut fields = Vec::new();
     if let Some(properties) = &object.properties {
         for key in properties.keys().sorted() {
-            fields.push(object_property(
-                key,
+            fields.push(lex_object_property(
                 &properties[key],
+                key,
                 required.contains(key),
                 name,
             )?);
@@ -244,9 +244,9 @@ fn object(name: &str, object: &LexObject) -> Result<TokenStream> {
     })
 }
 
-fn object_property(
-    name: &str,
+fn lex_object_property(
     property: &LexObjectProperty,
+    name: &str,
     is_required: bool,
     object_name: &str,
 ) -> Result<TokenStream> {
@@ -303,7 +303,7 @@ fn object_property(
     })
 }
 
-fn string(name: &str, string: &LexString) -> Result<TokenStream> {
+fn lex_string(string: &LexString, name: &str) -> Result<TokenStream> {
     let description = description(&string.description);
     let string_name = format_ident!("{}", name.to_pascal_case());
     Ok(quote! {
@@ -314,7 +314,7 @@ fn string(name: &str, string: &LexString) -> Result<TokenStream> {
 
 fn ref_type(r#ref: &LexRef) -> Result<(TokenStream, TokenStream)> {
     let description = description(&r#ref.description);
-    Ok((description, self::resolve_ref(&r#ref.r#ref, "main")?))
+    Ok((description, resolve_path(&r#ref.r#ref, "main")?))
 }
 
 fn union_type(union: &LexRefUnion, enum_name: &str) -> Result<(TokenStream, TokenStream)> {
@@ -398,14 +398,14 @@ fn description(description: &Option<String>) -> TokenStream {
     }
 }
 
-pub fn refs_enum(name: &str, refs: &[String], schema_id: Option<&str>) -> Result<TokenStream> {
+pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
     let is_record = schema_id.is_none();
-    let derives = self::derives()?;
+    let derives = derives()?;
     let enum_name = format_ident!("{name}");
     let mut variants = Vec::new();
     for r#ref in refs {
         let default = if is_record { "record" } else { "main" };
-        let path = self::resolve_ref(r#ref, default)?;
+        let path = resolve_path(r#ref, default)?;
         let rename = if r#ref.starts_with('#') {
             format!(
                 "{}{}",
@@ -509,7 +509,7 @@ fn client_services(
             } else {
                 let name = format_ident!("{child}");
                 fields.push(quote! {
-                    pub #name: self::#name::Service<T>,
+                    pub #name: #name::Service<T>,
                 });
                 let target = if target.is_empty() {
                     child.to_string()
@@ -592,7 +592,7 @@ fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
 
     let mut args = vec![quote!(&self)];
     if has_params {
-        let parameters = resolve_ref(nsid, "Parameters")?;
+        let parameters = resolve_path(nsid, "Parameters")?;
         args.push(quote!(params: #parameters));
     }
     let generic_args = vec![
@@ -638,7 +638,7 @@ fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<Token
     let mut args = vec![quote!(&self)];
     if let Some(body) = &input {
         if body.schema.is_some() {
-            let input = resolve_ref(nsid, "Input")?;
+            let input = resolve_path(nsid, "Input")?;
             args.push(quote!(input: #input));
         } else {
             args.push(quote!(input: Vec<u8>));
@@ -700,7 +700,7 @@ fn xrpc_impl_common(
 ) -> Result<TokenStream> {
     let name = nsid.split('.').last().unwrap();
     let method_name = format_ident!("{}", name.to_snake_case());
-    let error = resolve_ref(nsid, "Error")?;
+    let error = resolve_path(nsid, "Error")?;
     let body = match output_type {
         OutputType::None => {
             quote! {
@@ -716,7 +716,7 @@ fn xrpc_impl_common(
             }
         }
         OutputType::Data => {
-            let output = resolve_ref(nsid, "Output")?;
+            let output = resolve_path(nsid, "Output")?;
             quote! {
                 pub async fn #method_name(
                     #(#args),*
@@ -764,7 +764,7 @@ fn derives() -> Result<TokenStream> {
     Ok(quote!(#[derive(#(#derives),*)]))
 }
 
-fn resolve_ref(r#ref: &str, default: &str) -> Result<TokenStream> {
+fn resolve_path(r#ref: &str, default: &str) -> Result<TokenStream> {
     let (namespace, def) = r#ref.split_once('#').unwrap_or((r#ref, default));
     let path = syn::parse_str::<Path>(&if namespace.is_empty() {
         def.to_pascal_case()

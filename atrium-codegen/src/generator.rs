@@ -81,7 +81,7 @@ pub(crate) fn generate_records(
         })
         .sorted()
         .collect_vec();
-    let tokens = refs_enum("Record", &records, None)?;
+    let tokens = refs_enum(&records, "Record", None)?;
     let content = quote! {
         #![doc = "A collection of ATP repository record types."]
         #tokens

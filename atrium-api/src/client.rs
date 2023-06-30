@@ -4,26 +4,26 @@ pub struct AtpServiceClient<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
-    pub app: self::app::Service<T>,
-    pub com: self::com::Service<T>,
+    pub app: app::Service<T>,
+    pub com: com::Service<T>,
 }
 pub mod app {
     pub struct Service<T>
     where
         T: atrium_xrpc::XrpcClient + Send + Sync,
     {
-        pub bsky: self::bsky::Service<T>,
+        pub bsky: bsky::Service<T>,
     }
     pub mod bsky {
         pub struct Service<T>
         where
             T: atrium_xrpc::XrpcClient + Send + Sync,
         {
-            pub actor: self::actor::Service<T>,
-            pub feed: self::feed::Service<T>,
-            pub graph: self::graph::Service<T>,
-            pub notification: self::notification::Service<T>,
-            pub unspecced: self::unspecced::Service<T>,
+            pub actor: actor::Service<T>,
+            pub feed: feed::Service<T>,
+            pub graph: graph::Service<T>,
+            pub notification: notification::Service<T>,
+            pub unspecced: unspecced::Service<T>,
         }
         pub mod actor {
             pub struct Service<T>
@@ -72,20 +72,20 @@ pub mod com {
     where
         T: atrium_xrpc::XrpcClient + Send + Sync,
     {
-        pub atproto: self::atproto::Service<T>,
+        pub atproto: atproto::Service<T>,
     }
     pub mod atproto {
         pub struct Service<T>
         where
             T: atrium_xrpc::XrpcClient + Send + Sync,
         {
-            pub admin: self::admin::Service<T>,
-            pub identity: self::identity::Service<T>,
-            pub label: self::label::Service<T>,
-            pub moderation: self::moderation::Service<T>,
-            pub repo: self::repo::Service<T>,
-            pub server: self::server::Service<T>,
-            pub sync: self::sync::Service<T>,
+            pub admin: admin::Service<T>,
+            pub identity: identity::Service<T>,
+            pub label: label::Service<T>,
+            pub moderation: moderation::Service<T>,
+            pub repo: repo::Service<T>,
+            pub server: server::Service<T>,
+            pub sync: sync::Service<T>,
         }
         pub mod admin {
             pub struct Service<T>
