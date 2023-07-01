@@ -14,7 +14,7 @@ You can use any HTTP client that implements [`atrium_xrpc::HttpClient`](https://
 ```rust,no_run
 use atrium_api::client::AtpServiceClient;
 use atrium_api::com::atproto::server::create_session::Input;
-use atrium_xrpc::client::reqwest::ReqwestClient;
+use atrium_api::xrpc::client::reqwest::ReqwestClient;
 use std::sync::Arc;
 
 #[tokio::main]
@@ -25,8 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .atproto
         .server
         .create_session(Input {
-            identifier: "example.bsky.social".into(),
-            password: "********".into(),
+            identifier: "alice@mail.com".into(),
+            password: "hunter2".into(),
         })
         .await;
     println!("{:?}", result);
