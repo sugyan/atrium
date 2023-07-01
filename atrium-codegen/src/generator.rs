@@ -154,7 +154,10 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
             .collect_vec();
         let modules = modules(&names)?;
         let documentation = if path.as_ref() == outdir {
-            quote!(#![doc = include_str!("../README.md")])
+            quote! {
+                #![doc = include_str!("../README.md")]
+                pub use atrium_xrpc as xrpc;
+            }
         } else {
             quote!()
         };
