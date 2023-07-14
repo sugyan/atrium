@@ -108,7 +108,10 @@ impl TryFrom<&[u8]> for Frame {
                         right
                     )?))
                 }))),
-                _ => unimplemented!("{t:?}"),
+                _ => {
+                    let tag = t.as_deref();
+                    Err(anyhow::anyhow!("frame not implemented: tag={tag:?}"))
+                },
             },
             FrameHeader::Error => Ok(Frame::Error(ErrorFrame {})),
         }
