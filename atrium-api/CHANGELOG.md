@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.4.0...atrium-api-v0.4.1) - 2023-08-21
+
+### Added
+- re-export atrium_xrpc as xrpc ([#35](https://github.com/sugyan/atrium/pull/35))
+
+### Other
+- remove unused codes
+
 ## [0.4.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.3.2...atrium-api-v0.4.0) - 2023-06-30
 
 ### Added

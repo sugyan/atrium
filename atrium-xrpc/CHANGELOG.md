@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.3.0...atrium-xrpc-v0.4.0) - 2023-08-21
+
+### Added
+- Change trait method names ([#40](https://github.com/sugyan/atrium/pull/40))
+
 ## [0.3.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.2.0...atrium-xrpc-v0.3.0) - 2023-06-27
 
 ### Other
