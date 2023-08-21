@@ -25,7 +25,7 @@ where
 
 #[async_trait]
 pub trait HttpClient {
-    async fn send(
+    async fn send_http(
         &self,
         req: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>;
@@ -38,7 +38,7 @@ pub trait XrpcClient: HttpClient {
     fn auth(&self, is_refresh: bool) -> Option<String> {
         None
     }
-    async fn send<P, I, O, E>(
+    async fn send_xrpc<P, I, O, E>(
         &self,
         method: Method,
         path: &str,
@@ -76,7 +76,8 @@ pub trait XrpcClient: HttpClient {
         } else {
             Vec::new()
         };
-        let (parts, body) = HttpClient::send(self, builder.body(body)?)
+        let (parts, body) = self
+            .send_http(builder.body(body)?)
             .await
             .map_err(Error::HttpClient)?
             .into_parts();
@@ -114,7 +115,7 @@ mod tests {
 
     #[async_trait]
     impl HttpClient for DummyClient {
-        async fn send(
+        async fn send_http(
             &self,
             _req: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
@@ -140,15 +141,9 @@ mod tests {
         where
             T: crate::XrpcClient + Send + Sync,
         {
-            let response = crate::XrpcClient::send::<_, (), _, _>(
-                xrpc,
-                http::Method::GET,
-                "example",
-                Some(params),
-                None,
-                None,
-            )
-            .await?;
+            let response = xrpc
+                .send_xrpc::<_, (), _, _>(http::Method::GET, "example", Some(params), None, None)
+                .await?;
             match response {
                 crate::OutputDataOrBytes::Data(data) => Ok(data),
                 _ => Err(crate::Error::UnexpectedResponseType),
@@ -282,15 +277,15 @@ mod tests {
             where
                 T: crate::XrpcClient + Send + Sync,
             {
-                let response = crate::XrpcClient::send::<_, (), (), _>(
-                    xrpc,
-                    http::Method::GET,
-                    "example",
-                    Some(params),
-                    None,
-                    None,
-                )
-                .await?;
+                let response = xrpc
+                    .send_xrpc::<_, (), (), _>(
+                        http::Method::GET,
+                        "example",
+                        Some(params),
+                        None,
+                        None,
+                    )
+                    .await?;
                 match response {
                     crate::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
                     _ => Err(crate::Error::UnexpectedResponseType),
@@ -359,15 +354,15 @@ mod tests {
             where
                 T: crate::XrpcClient + Send + Sync,
             {
-                let response = crate::XrpcClient::send::<(), _, (), _>(
-                    xrpc,
-                    http::Method::POST,
-                    "example",
-                    None,
-                    Some(InputDataOrBytes::Data(input)),
-                    None,
-                )
-                .await?;
+                let response = xrpc
+                    .send_xrpc::<(), _, (), _>(
+                        http::Method::POST,
+                        "example",
+                        None,
+                        Some(InputDataOrBytes::Data(input)),
+                        None,
+                    )
+                    .await?;
                 match response {
                     crate::OutputDataOrBytes::Bytes(_) => Ok(()),
                     _ => Err(crate::Error::UnexpectedResponseType),
@@ -419,15 +414,15 @@ mod tests {
             where
                 T: crate::XrpcClient + Send + Sync,
             {
-                let response = crate::XrpcClient::send::<(), Vec<u8>, _, _>(
-                    xrpc,
-                    http::Method::POST,
-                    "example",
-                    None,
-                    Some(InputDataOrBytes::Bytes(input)),
-                    None,
-                )
-                .await?;
+                let response = xrpc
+                    .send_xrpc::<(), Vec<u8>, _, _>(
+                        http::Method::POST,
+                        "example",
+                        None,
+                        Some(InputDataOrBytes::Bytes(input)),
+                        None,
+                    )
+                    .await?;
                 match response {
                     crate::OutputDataOrBytes::Data(data) => Ok(data),
                     _ => Err(crate::Error::UnexpectedResponseType),

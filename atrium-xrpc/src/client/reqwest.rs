@@ -21,7 +21,7 @@ impl ReqwestClient {
 
 #[async_trait]
 impl HttpClient for ReqwestClient {
-    async fn send(
+    async fn send_http(
         &self,
         req: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn Error + Send + Sync + 'static>> {
