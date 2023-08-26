@@ -118,10 +118,10 @@ pub(crate) fn generate_client(
     }
     let tokens = client(&tree, &schema_map)?;
     let content = quote! {
-        #![doc = r#"An ATP "Client". Implements all HTTP APIs of XRPC."#]
+        #![doc = r#"Structs for ATP client, implements all HTTP APIs of XRPC."#]
         #tokens
     };
-    let path = outdir.join("client.rs");
+    let path = outdir.join("client_services.rs");
     write_to_file(File::create(&path)?, content)?;
     Ok(path)
 }
@@ -158,6 +158,12 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
                 #![doc = include_str!("../README.md")]
                 pub use atrium_xrpc as xrpc;
             }
+        } else if let Ok(relative) = path.as_ref().strip_prefix(outdir) {
+            let doc = format!(
+                "Definitions for the `{}` namespace.",
+                relative.to_string_lossy().replace('/', ".")
+            );
+            quote!(#![doc = #doc])
         } else {
             quote!()
         };
