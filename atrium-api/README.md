@@ -19,8 +19,9 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = AtpServiceClient::new(Arc::new(ReqwestClient::new("https://bsky.social".into())));
+    let client = AtpServiceClient::new(ReqwestClient::new("https://bsky.social".into()));
     let result = client
+        .service
         .com
         .atproto
         .server
