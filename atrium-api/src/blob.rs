@@ -1,3 +1,4 @@
+//! Definitions for Blob types.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type", rename_all = "lowercase")]
 pub enum BlobRef {

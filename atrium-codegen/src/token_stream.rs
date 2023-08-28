@@ -463,7 +463,7 @@ pub fn client(
     let mut impls = Vec::new();
     for key in tree.keys().sorted() {
         let type_name = if key.is_empty() {
-            quote!(AtpServiceClient)
+            quote!(self::Service)
         } else {
             let path = syn::parse_str::<Path>(&key.split('.').join("::"))?;
             quote!(#path::Service)
@@ -482,7 +482,7 @@ pub fn client(
         impls.push(quote! {
             impl<T> #type_name<T>
             where
-                T: atrium_xrpc::XrpcClient + Send + Sync,
+                T: crate::client::AtpService,
             {
                 #fn_new
                 #(#methods)*
@@ -524,18 +524,13 @@ fn client_services(
         }
         if has_leaf {
             fields.push(quote! {
-                pub xrpc: std::sync::Arc<T>,
+                pub(crate) xrpc: std::sync::Arc<T>,
             });
         }
     }
-    let struct_name = if target.is_empty() {
-        quote!(AtpServiceClient)
-    } else {
-        quote!(Service)
-    };
     let service = quote! {
-        pub struct #struct_name<T>
-        where T: atrium_xrpc::XrpcClient + Send + Sync,
+        pub struct Service<T>
+        where T: crate::client::AtpService,
         {
             #(#fields)*
         }
@@ -570,7 +565,7 @@ fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Resul
         });
     }
     Ok(quote! {
-        pub fn new(xrpc: std::sync::Arc<T>) -> Self {
+        pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
             Self {
                 #(#members)*
             }
@@ -611,8 +606,7 @@ fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
         quote!(None)
     };
     let xrpc_call = quote! {
-        atrium_xrpc::XrpcClient::send::<#(#generic_args),*>(
-            self.xrpc.as_ref(),
+        self.xrpc.send::<#(#generic_args),*>(
             http::Method::GET,
             #nsid,
             #param_value,
@@ -678,8 +672,7 @@ fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<Token
         quote!(None)
     };
     let xrpc_call = quote! {
-        atrium_xrpc::XrpcClient::send::<#(#generic_args),*>(
-            self.xrpc.as_ref(),
+        self.xrpc.send::<#(#generic_args),*>(
             http::Method::POST,
             #nsid,
             None,
