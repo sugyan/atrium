@@ -11,4 +11,12 @@ pub struct Record {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<RecordLabelsEnum>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum RecordLabelsEnum {
+    #[serde(rename = "com.atproto.label.defs#selfLabels")]
+    ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

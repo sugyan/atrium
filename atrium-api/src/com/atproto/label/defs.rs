@@ -19,3 +19,16 @@ pub struct Label {
     #[doc = "the short string name of the value or type of this label"]
     pub val: String,
 }
+#[doc = "Metadata tag on an atproto record, published by the author within the record. Note -- schemas should use #selfLabels, not #selfLabel."]
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SelfLabel {
+    #[doc = "the short string name of the value or type of this label"]
+    pub val: String,
+}
+#[doc = "Metadata tags on an atproto record, published by the author within the record."]
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SelfLabels {
+    pub values: Vec<SelfLabel>,
+}

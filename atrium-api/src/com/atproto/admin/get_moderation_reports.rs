@@ -5,6 +5,9 @@
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub action_type: Option<String>,
+    #[doc = "Get all reports that were actioned by a specific moderator"]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub actioned_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

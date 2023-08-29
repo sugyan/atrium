@@ -15,6 +15,7 @@ pub mod rebase_repo;
 pub mod resolve_moderation_reports;
 pub mod reverse_moderation_action;
 pub mod search_repos;
+pub mod send_email;
 pub mod take_moderation_action;
 pub mod update_account_email;
 pub mod update_account_handle;

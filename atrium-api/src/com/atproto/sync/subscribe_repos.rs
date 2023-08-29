@@ -54,6 +54,7 @@ pub struct Migrate {
     pub seq: i32,
     pub time: String,
 }
+#[doc = "A repo operation, ie a write of a single record. For creates and updates, cid is the record's CID as of this operation. For deletes, it's null."]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoOp {

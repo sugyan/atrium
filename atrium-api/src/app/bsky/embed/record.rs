@@ -14,11 +14,14 @@ pub struct View {
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewBlocked {
+    pub author: crate::app::bsky::feed::defs::BlockedAuthor,
+    pub blocked: bool,
     pub uri: String,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewNotFound {
+    pub not_found: bool,
     pub uri: String,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]

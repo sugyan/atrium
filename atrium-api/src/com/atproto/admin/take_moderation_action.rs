@@ -7,6 +7,9 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub create_label_vals: Option<Vec<String>>,
     pub created_by: String,
+    #[doc = "Indicates how long this action was meant to be in effect before automatically expiring."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_in_hours: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
     pub reason: String,

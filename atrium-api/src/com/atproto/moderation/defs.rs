@@ -6,7 +6,7 @@ pub struct ReasonMisleading;
 pub struct ReasonOther;
 #[doc = "Rude, harassing, explicit, or otherwise unwelcoming behavior"]
 pub struct ReasonRude;
-#[doc = "Unwanted or mis-labeled sexual content"]
+#[doc = "Unwanted or mislabeled sexual content"]
 pub struct ReasonSexual;
 #[doc = "Spam: frequent unwanted promotion, replies, mentions"]
 pub struct ReasonSpam;

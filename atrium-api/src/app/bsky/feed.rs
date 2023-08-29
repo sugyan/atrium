@@ -4,6 +4,7 @@ pub mod defs;
 pub mod describe_feed_generator;
 pub mod generator;
 pub mod get_actor_feeds;
+pub mod get_actor_likes;
 pub mod get_author_feed;
 pub mod get_feed;
 pub mod get_feed_generator;
