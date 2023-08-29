@@ -18,6 +18,9 @@ pub struct ActionView {
     pub create_label_vals: Option<Vec<String>>,
     pub created_at: String,
     pub created_by: String,
+    #[doc = "Indicates how long this action was meant to be in effect before automatically expiring."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_in_hours: Option<i32>,
     pub id: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
@@ -32,6 +35,9 @@ pub struct ActionView {
 #[serde(rename_all = "camelCase")]
 pub struct ActionViewCurrent {
     pub action: ActionType,
+    #[doc = "Indicates how long this action was meant to be in effect before automatically expiring."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_in_hours: Option<i32>,
     pub id: i32,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -42,6 +48,9 @@ pub struct ActionViewDetail {
     pub create_label_vals: Option<Vec<String>>,
     pub created_at: String,
     pub created_by: String,
+    #[doc = "Indicates how long this action was meant to be in effect before automatically expiring."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_in_hours: Option<i32>,
     pub id: i32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub negate_label_vals: Option<Vec<String>>,
@@ -131,6 +140,8 @@ pub struct RepoView {
     pub handle: String,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub invite_note: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invites_disabled: Option<bool>,
@@ -145,6 +156,8 @@ pub struct RepoViewDetail {
     pub email: Option<String>,
     pub handle: String,
     pub indexed_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub invite_note: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
     #[serde(skip_serializing_if = "Option::is_none")]

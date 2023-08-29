@@ -12,4 +12,12 @@ pub struct Record {
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub did: String,
     pub display_name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<RecordLabelsEnum>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum RecordLabelsEnum {
+    #[serde(rename = "com.atproto.label.defs#selfLabels")]
+    ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

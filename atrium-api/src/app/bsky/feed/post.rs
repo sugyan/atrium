@@ -12,6 +12,8 @@ pub struct Record {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<RecordLabelsEnum>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub langs: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
@@ -50,4 +52,10 @@ pub enum RecordEmbedEnum {
     AppBskyEmbedRecordMain(Box<crate::app::bsky::embed::record::Main>),
     #[serde(rename = "app.bsky.embed.recordWithMedia")]
     AppBskyEmbedRecordWithMediaMain(Box<crate::app::bsky::embed::record_with_media::Main>),
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum RecordLabelsEnum {
+    #[serde(rename = "com.atproto.label.defs#selfLabels")]
+    ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

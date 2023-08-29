@@ -397,6 +397,29 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "A view of the posts liked by an actor."]
+    pub async fn get_actor_likes(
+        &self,
+        params: crate::app::bsky::feed::get_actor_likes::Parameters,
+    ) -> Result<
+        crate::app::bsky::feed::get_actor_likes::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::feed::get_actor_likes::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.feed.getActorLikes",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "A view of an actor's feed."]
     pub async fn get_author_feed(
         &self,
@@ -927,6 +950,27 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "Register for push notifications with a service"]
+    pub async fn register_push(
+        &self,
+        input: crate::app::bsky::notification::register_push::Input,
+    ) -> Result<(), atrium_xrpc::error::Error<crate::app::bsky::notification::register_push::Error>>
+    {
+        let response = self
+            .xrpc
+            .send::<(), _, (), _>(
+                http::Method::POST,
+                "app.bsky.notification.registerPush",
+                None,
+                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                Some(String::from("application/json")),
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "Notify server that the user has seen notifications."]
     pub async fn update_seen(
         &self,
@@ -955,6 +999,27 @@ where
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
+    }
+    #[doc = "Allow a labeler to apply labels directly."]
+    pub async fn apply_labels(
+        &self,
+        input: crate::app::bsky::unspecced::apply_labels::Input,
+    ) -> Result<(), atrium_xrpc::error::Error<crate::app::bsky::unspecced::apply_labels::Error>>
+    {
+        let response = self
+            .xrpc
+            .send::<(), _, (), _>(
+                http::Method::POST,
+                "app.bsky.unspecced.applyLabels",
+                None,
+                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                Some(String::from("application/json")),
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
     }
     #[doc = "An unspecced view of globally popular items"]
     pub async fn get_popular(
@@ -1371,6 +1436,29 @@ where
                 Some(params),
                 None,
                 None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Send email to a user's primary email address"]
+    pub async fn send_email(
+        &self,
+        input: crate::com::atproto::admin::send_email::Input,
+    ) -> Result<
+        crate::com::atproto::admin::send_email::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::admin::send_email::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<(), _, _, _>(
+                http::Method::POST,
+                "com.atproto.admin.sendEmail",
+                None,
+                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                Some(String::from("application/json")),
             )
             .await?;
         match response {

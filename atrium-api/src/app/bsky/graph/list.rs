@@ -10,6 +10,14 @@ pub struct Record {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<RecordLabelsEnum>,
     pub name: String,
     pub purpose: crate::app::bsky::graph::defs::ListPurpose,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum RecordLabelsEnum {
+    #[serde(rename = "com.atproto.label.defs#selfLabels")]
+    ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

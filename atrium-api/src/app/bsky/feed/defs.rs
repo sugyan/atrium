@@ -2,7 +2,15 @@
 #![doc = "Definitions for the `app.bsky.feed.defs` namespace."]
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct BlockedAuthor {
+    pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct BlockedPost {
+    pub author: BlockedAuthor,
     pub blocked: bool,
     pub uri: String,
 }
