@@ -624,6 +624,29 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "Get a list of suggested feeds for the viewer."]
+    pub async fn get_suggested_feeds(
+        &self,
+        params: crate::app::bsky::feed::get_suggested_feeds::Parameters,
+    ) -> Result<
+        crate::app::bsky::feed::get_suggested_feeds::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::feed::get_suggested_feeds::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.feed.getSuggestedFeeds",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "A view of the user's home timeline."]
     pub async fn get_timeline(
         &self,
@@ -737,6 +760,29 @@ where
             .send::<_, (), _, _>(
                 http::Method::GET,
                 "app.bsky.graph.getList",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Which lists is the requester's account blocking?"]
+    pub async fn get_list_blocks(
+        &self,
+        params: crate::app::bsky::graph::get_list_blocks::Parameters,
+    ) -> Result<
+        crate::app::bsky::graph::get_list_blocks::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::graph::get_list_blocks::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.graph.getListBlocks",
                 Some(params),
                 None,
                 None,
@@ -1354,26 +1400,6 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "Administrative action to rebase an account's repo"]
-    pub async fn rebase_repo(
-        &self,
-        input: crate::com::atproto::admin::rebase_repo::Input,
-    ) -> Result<(), atrium_xrpc::error::Error<crate::com::atproto::admin::rebase_repo::Error>> {
-        let response = self
-            .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.admin.rebaseRepo",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
     #[doc = "Resolve moderation reports by an action."]
     pub async fn resolve_moderation_reports(
         &self,
@@ -1810,26 +1836,6 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    #[doc = "Simple rebase of repo that deletes history"]
-    pub async fn rebase_repo(
-        &self,
-        input: crate::com::atproto::repo::rebase_repo::Input,
-    ) -> Result<(), atrium_xrpc::error::Error<crate::com::atproto::repo::rebase_repo::Error>> {
-        let response = self
-            .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.repo.rebaseRepo",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -2270,7 +2276,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "Gets the repo state."]
+    #[doc = "DEPRECATED - please use com.atproto.sync.getRepo instead"]
     pub async fn get_checkout(
         &self,
         params: crate::com::atproto::sync::get_checkout::Parameters,
@@ -2291,30 +2297,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "Gets the path of repo commits"]
-    pub async fn get_commit_path(
-        &self,
-        params: crate::com::atproto::sync::get_commit_path::Parameters,
-    ) -> Result<
-        crate::com::atproto::sync::get_commit_path::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_commit_path::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.sync.getCommitPath",
-                Some(params),
-                None,
-                None,
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    #[doc = "Gets the current HEAD CID of a repo."]
+    #[doc = "DEPRECATED - please use com.atproto.sync.getLatestCommit instead"]
     pub async fn get_head(
         &self,
         params: crate::com::atproto::sync::get_head::Parameters,
@@ -2327,6 +2310,29 @@ where
             .send::<_, (), _, _>(
                 http::Method::GET,
                 "com.atproto.sync.getHead",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Gets the current commit CID & revision of the repo."]
+    pub async fn get_latest_commit(
+        &self,
+        params: crate::com::atproto::sync::get_latest_commit::Parameters,
+    ) -> Result<
+        crate::com::atproto::sync::get_latest_commit::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::sync::get_latest_commit::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "com.atproto.sync.getLatestCommit",
                 Some(params),
                 None,
                 None,
@@ -2358,7 +2364,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "Gets the repo state."]
+    #[doc = "Gets the did's repo, optionally catching up from a specific revision."]
     pub async fn get_repo(
         &self,
         params: crate::com::atproto::sync::get_repo::Parameters,
@@ -2379,7 +2385,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "List blob cids for some range of commits"]
+    #[doc = "List blob cids since some revision"]
     pub async fn list_blobs(
         &self,
         params: crate::com::atproto::sync::list_blobs::Parameters,

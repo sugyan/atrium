@@ -19,6 +19,8 @@ pub enum Record {
     AppBskyGraphFollow(Box<crate::app::bsky::graph::follow::Record>),
     #[serde(rename = "app.bsky.graph.list")]
     AppBskyGraphList(Box<crate::app::bsky::graph::list::Record>),
+    #[serde(rename = "app.bsky.graph.listblock")]
+    AppBskyGraphListblock(Box<crate::app::bsky::graph::listblock::Record>),
     #[serde(rename = "app.bsky.graph.listitem")]
     AppBskyGraphListitem(Box<crate::app::bsky::graph::listitem::Record>),
 }

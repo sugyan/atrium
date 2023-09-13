@@ -42,6 +42,8 @@ pub struct ListViewBasic {
 #[serde(rename_all = "camelCase")]
 pub struct ListViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocked: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
 }
 #[doc = "A list of actors to apply an aggregate moderation action (mute/block) on"]

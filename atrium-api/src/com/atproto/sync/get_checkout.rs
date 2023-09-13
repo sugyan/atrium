@@ -3,9 +3,6 @@
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    #[doc = "The commit to get the checkout from. Defaults to current HEAD."]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<String>,
     #[doc = "The DID of the repo."]
     pub did: String,
 }

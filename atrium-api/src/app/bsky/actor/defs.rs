@@ -12,6 +12,13 @@ pub struct ContentLabelPref {
     pub label: String,
     pub visibility: String,
 }
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PersonalDetailsPref {
+    #[doc = "The birth date of the owner of the account."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub birth_date: Option<String>,
+}
 pub type Preferences = Vec<PreferencesItem>;
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -102,4 +109,6 @@ pub enum PreferencesItem {
     ContentLabelPref(Box<ContentLabelPref>),
     #[serde(rename = "app.bsky.actor.defs#savedFeedsPref")]
     SavedFeedsPref(Box<SavedFeedsPref>),
+    #[serde(rename = "app.bsky.actor.defs#personalDetailsPref")]
+    PersonalDetailsPref(Box<PersonalDetailsPref>),
 }
