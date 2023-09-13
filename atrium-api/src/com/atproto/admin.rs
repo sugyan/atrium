@@ -11,7 +11,6 @@ pub mod get_moderation_report;
 pub mod get_moderation_reports;
 pub mod get_record;
 pub mod get_repo;
-pub mod rebase_repo;
 pub mod resolve_moderation_reports;
 pub mod reverse_moderation_action;
 pub mod search_repos;

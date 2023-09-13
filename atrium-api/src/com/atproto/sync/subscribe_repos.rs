@@ -26,7 +26,12 @@ pub struct Commit {
     pub prev: Option<cid::Cid>,
     pub rebase: bool,
     pub repo: String,
+    #[doc = "The rev of the emitted commit"]
+    pub rev: String,
     pub seq: i32,
+    #[doc = "The rev of the last emitted commit from this repo"]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub since: Option<String>,
     pub time: String,
     pub too_big: bool,
 }
