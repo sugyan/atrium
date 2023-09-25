@@ -557,6 +557,29 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "A view of a recent posts from actors in a list"]
+    pub async fn get_list_feed(
+        &self,
+        params: crate::app::bsky::feed::get_list_feed::Parameters,
+    ) -> Result<
+        crate::app::bsky::feed::get_list_feed::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::feed::get_list_feed::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.feed.getListFeed",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     pub async fn get_post_thread(
         &self,
         params: crate::app::bsky::feed::get_post_thread::Parameters,
@@ -862,6 +885,29 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "Get suggested follows related to a given actor."]
+    pub async fn get_suggested_follows_by_actor(
+        &self,
+        params: crate::app::bsky::graph::get_suggested_follows_by_actor::Parameters,
+    ) -> Result<
+        crate::app::bsky::graph::get_suggested_follows_by_actor::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::graph::get_suggested_follows_by_actor::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.graph.getSuggestedFollowsByActor",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "Mute an actor by did or handle."]
     pub async fn mute_actor(
         &self,
@@ -1067,7 +1113,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "An unspecced view of globally popular items"]
+    #[doc = "DEPRECATED: will be removed soon, please find a feed generator alternative"]
     pub async fn get_popular(
         &self,
         params: crate::app::bsky::unspecced::get_popular::Parameters,
