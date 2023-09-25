@@ -14,6 +14,27 @@ pub struct ContentLabelPref {
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct FeedViewPref {
+    #[doc = "The URI of the feed, or an identifier which describes the feed."]
+    pub feed: String,
+    #[doc = "Hide quote posts in the feed."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hide_quote_posts: Option<bool>,
+    #[doc = "Hide replies in the feed."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hide_replies: Option<bool>,
+    #[doc = "Hide replies in the feed if they do not have this number of likes."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hide_replies_by_like_count: Option<i32>,
+    #[doc = "Hide replies in the feed if they are not by followed users."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hide_replies_by_unfollowed: Option<bool>,
+    #[doc = "Hide reposts in the feed."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hide_reposts: Option<bool>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct PersonalDetailsPref {
     #[doc = "The birth date of the owner of the account."]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,6 +107,16 @@ pub struct SavedFeedsPref {
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct ThreadViewPref {
+    #[doc = "Show followed users at the top of all replies."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub prioritize_followed_users: Option<bool>,
+    #[doc = "Sorting mode."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sort: Option<String>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct ViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_by: Option<bool>,
@@ -111,4 +142,8 @@ pub enum PreferencesItem {
     SavedFeedsPref(Box<SavedFeedsPref>),
     #[serde(rename = "app.bsky.actor.defs#personalDetailsPref")]
     PersonalDetailsPref(Box<PersonalDetailsPref>),
+    #[serde(rename = "app.bsky.actor.defs#feedViewPref")]
+    FeedViewPref(Box<FeedViewPref>),
+    #[serde(rename = "app.bsky.actor.defs#threadViewPref")]
+    ThreadViewPref(Box<ThreadViewPref>),
 }

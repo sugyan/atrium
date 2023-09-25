@@ -13,6 +13,8 @@ pub enum Record {
     AppBskyFeedPost(Box<crate::app::bsky::feed::post::Record>),
     #[serde(rename = "app.bsky.feed.repost")]
     AppBskyFeedRepost(Box<crate::app::bsky::feed::repost::Record>),
+    #[serde(rename = "app.bsky.feed.threadgate")]
+    AppBskyFeedThreadgate(Box<crate::app::bsky::feed::threadgate::Record>),
     #[serde(rename = "app.bsky.graph.block")]
     AppBskyGraphBlock(Box<crate::app::bsky::graph::block::Record>),
     #[serde(rename = "app.bsky.graph.follow")]

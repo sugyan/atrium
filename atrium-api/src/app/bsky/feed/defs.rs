@@ -72,6 +72,8 @@ pub struct PostView {
     pub reply_count: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repost_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub threadgate: Option<ThreadgateView>,
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
@@ -108,6 +110,20 @@ pub struct ThreadViewPost {
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replies: Option<Vec<ThreadViewPostRepliesItem>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub viewer: Option<ViewerThreadState>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ThreadgateView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cid: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<Vec<crate::app::bsky::graph::defs::ListViewBasic>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub record: Option<crate::records::Record>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -116,6 +132,12 @@ pub struct ViewerState {
     pub like: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repost: Option<String>,
+}
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ViewerThreadState {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub can_reply: Option<bool>,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
