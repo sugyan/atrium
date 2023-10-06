@@ -20,4 +20,5 @@ pub mod get_timeline;
 pub mod like;
 pub mod post;
 pub mod repost;
+pub mod search_posts;
 pub mod threadgate;

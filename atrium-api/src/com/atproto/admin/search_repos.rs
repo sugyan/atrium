@@ -10,6 +10,9 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub q: Option<String>,
+    #[doc = "DEPRECATED: use 'q' instead"]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub term: Option<String>,
 }
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -25,6 +25,12 @@ pub struct Link {
 pub struct Mention {
     pub did: String,
 }
+#[doc = "A hashtag."]
+#[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Tag {
+    pub tag: String,
+}
 #[derive(serde :: Serialize, serde :: Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum MainFeaturesItem {
@@ -32,4 +38,6 @@ pub enum MainFeaturesItem {
     Mention(Box<Mention>),
     #[serde(rename = "app.bsky.richtext.facet#link")]
     Link(Box<Link>),
+    #[serde(rename = "app.bsky.richtext.facet#tag")]
+    Tag(Box<Tag>),
 }
