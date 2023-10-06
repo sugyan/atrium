@@ -298,7 +298,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    #[doc = "Find actors matching search criteria."]
+    #[doc = "Find actors (profiles) matching search criteria."]
     pub async fn search_actors(
         &self,
         params: crate::app::bsky::actor::search_actors::Parameters,
@@ -683,6 +683,29 @@ where
             .send::<_, (), _, _>(
                 http::Method::GET,
                 "app.bsky.feed.getTimeline",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Find posts matching search criteria"]
+    pub async fn search_posts(
+        &self,
+        params: crate::app::bsky::feed::search_posts::Parameters,
+    ) -> Result<
+        crate::app::bsky::feed::search_posts::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::feed::search_posts::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.feed.searchPosts",
                 Some(params),
                 None,
                 None,
@@ -1092,27 +1115,6 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
-    #[doc = "Allow a labeler to apply labels directly."]
-    pub async fn apply_labels(
-        &self,
-        input: crate::app::bsky::unspecced::apply_labels::Input,
-    ) -> Result<(), atrium_xrpc::error::Error<crate::app::bsky::unspecced::apply_labels::Error>>
-    {
-        let response = self
-            .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.unspecced.applyLabels",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
     #[doc = "DEPRECATED: will be removed soon, please find a feed generator alternative"]
     pub async fn get_popular(
         &self,
@@ -1172,6 +1174,52 @@ where
             .send::<_, (), _, _>(
                 http::Method::GET,
                 "app.bsky.unspecced.getTimelineSkeleton",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Backend Actors (profile) search, returning only skeleton"]
+    pub async fn search_actors_skeleton(
+        &self,
+        params: crate::app::bsky::unspecced::search_actors_skeleton::Parameters,
+    ) -> Result<
+        crate::app::bsky::unspecced::search_actors_skeleton::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::unspecced::search_actors_skeleton::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.unspecced.searchActorsSkeleton",
+                Some(params),
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Backend Posts search, returning only skeleton"]
+    pub async fn search_posts_skeleton(
+        &self,
+        params: crate::app::bsky::unspecced::search_posts_skeleton::Parameters,
+    ) -> Result<
+        crate::app::bsky::unspecced::search_posts_skeleton::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::unspecced::search_posts_skeleton::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<_, (), _, _>(
+                http::Method::GET,
+                "app.bsky.unspecced.searchPostsSkeleton",
                 Some(params),
                 None,
                 None,
@@ -1916,6 +1964,27 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
+    #[doc = "Confirm an email using a token from com.atproto.server.requestEmailConfirmation."]
+    pub async fn confirm_email(
+        &self,
+        input: crate::com::atproto::server::confirm_email::Input,
+    ) -> Result<(), atrium_xrpc::error::Error<crate::com::atproto::server::confirm_email::Error>>
+    {
+        let response = self
+            .xrpc
+            .send::<(), _, (), _>(
+                http::Method::POST,
+                "com.atproto.server.confirmEmail",
+                None,
+                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                Some(String::from("application/json")),
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "Create an account."]
     pub async fn create_account(
         &self,
@@ -2205,6 +2274,50 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "Request an email with a code to confirm ownership of email"]
+    pub async fn request_email_confirmation(
+        &self,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<crate::com::atproto::server::request_email_confirmation::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<(), (), (), _>(
+                http::Method::POST,
+                "com.atproto.server.requestEmailConfirmation",
+                None,
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Request a token in order to update email."]
+    pub async fn request_email_update(
+        &self,
+    ) -> Result<
+        crate::com::atproto::server::request_email_update::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::server::request_email_update::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send::<(), (), _, _>(
+                http::Method::POST,
+                "com.atproto.server.requestEmailUpdate",
+                None,
+                None,
+                None,
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "Initiate a user account password reset via email."]
     pub async fn request_password_reset(
         &self,
@@ -2262,6 +2375,27 @@ where
             .send::<(), _, (), _>(
                 http::Method::POST,
                 "com.atproto.server.revokeAppPassword",
+                None,
+                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                Some(String::from("application/json")),
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Update an account's email."]
+    pub async fn update_email(
+        &self,
+        input: crate::com::atproto::server::update_email::Input,
+    ) -> Result<(), atrium_xrpc::error::Error<crate::com::atproto::server::update_email::Error>>
+    {
+        let response = self
+            .xrpc
+            .send::<(), _, (), _>(
+                http::Method::POST,
+                "com.atproto.server.updateEmail",
                 None,
                 Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                 Some(String::from("application/json")),

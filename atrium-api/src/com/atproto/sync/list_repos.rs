@@ -23,4 +23,5 @@ pub enum Error {}
 pub struct Repo {
     pub did: String,
     pub head: String,
+    pub rev: String,
 }

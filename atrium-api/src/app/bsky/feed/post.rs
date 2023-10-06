@@ -17,6 +17,9 @@ pub struct Record {
     pub langs: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
+    #[doc = "Additional non-inline tags describing this post."]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
     pub text: String,
 }
 #[doc = "Deprecated: use facets instead."]
