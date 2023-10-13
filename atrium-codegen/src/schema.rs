@@ -92,21 +92,15 @@ fn find_ref_unions_in_object(
     name: &str,
     unions: &mut Vec<(String, LexRefUnion)>,
 ) {
-    if let Some(properties) = &object.properties {
-        for (k, property) in properties {
-            match property {
-                LexObjectProperty::Union(union) => {
-                    unions.push((format!("{name}{}Enum", k.to_pascal_case()), union.clone()));
-                }
-                LexObjectProperty::Array(array) => {
-                    find_ref_unions_in_array(
-                        array,
-                        &(name.to_string() + &k.to_pascal_case()),
-                        unions,
-                    );
-                }
-                _ => {}
+    for (k, property) in &object.properties {
+        match property {
+            LexObjectProperty::Union(union) => {
+                unions.push((format!("{name}{}Enum", k.to_pascal_case()), union.clone()));
             }
+            LexObjectProperty::Array(array) => {
+                find_ref_unions_in_array(array, &(name.to_string() + &k.to_pascal_case()), unions);
+            }
+            _ => {}
         }
     }
 }
