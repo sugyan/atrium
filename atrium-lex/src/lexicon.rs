@@ -182,7 +182,7 @@ pub struct LexObject {
     pub description: Option<String>,
     pub required: Option<Vec<String>>,
     pub nullable: Option<Vec<String>>,
-    pub properties: Option<HashMap<String, LexObjectProperty>>,
+    pub properties: HashMap<String, LexObjectProperty>,
 }
 
 // xrpc

@@ -84,7 +84,7 @@ fn xrpc_parameters(parameters: &LexXrpcParameters) -> Result<TokenStream> {
             description: parameters.description.clone(),
             required: parameters.required.clone(),
             nullable: None,
-            properties: Some(properties),
+            properties,
         },
         "Parameters",
     )
@@ -224,15 +224,13 @@ fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
         }
     }
     let mut fields = Vec::new();
-    if let Some(properties) = &object.properties {
-        for key in properties.keys().sorted() {
-            fields.push(lex_object_property(
-                &properties[key],
-                key,
-                required.contains(key),
-                name,
-            )?);
-        }
+    for key in object.properties.keys().sorted() {
+        fields.push(lex_object_property(
+            &object.properties[key],
+            key,
+            required.contains(key),
+            name,
+        )?);
     }
     Ok(quote! {
         #description
