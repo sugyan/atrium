@@ -1,7 +1,10 @@
-#![doc = r#"An ATP service client."#]
+#![doc = "An ATP service client."]
 use crate::client_services::Service;
 use async_trait::async_trait;
+use atrium_xrpc::error::Error;
 use atrium_xrpc::{HttpClient, InputDataOrBytes, OutputDataOrBytes, XrpcClient};
+use http::{Method, Request, Response};
+use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 
 /// Wrapper trait of the [`XrpcClient`] trait.
@@ -9,63 +12,63 @@ use std::sync::Arc;
 pub trait AtpService: XrpcClient + Send + Sync {
     async fn send<P, I, O, E>(
         &self,
-        method: http::Method,
+        method: Method,
         path: &str,
         parameters: Option<P>,
         input: Option<InputDataOrBytes<I>>,
         encoding: Option<String>,
-    ) -> Result<OutputDataOrBytes<O>, atrium_xrpc::error::Error<E>>
+    ) -> Result<OutputDataOrBytes<O>, Error<E>>
     where
-        P: serde::Serialize + Send,
-        I: serde::Serialize + Send,
-        O: serde::de::DeserializeOwned,
-        E: serde::de::DeserializeOwned,
+        P: Serialize + Send,
+        I: Serialize + Send,
+        O: DeserializeOwned,
+        E: DeserializeOwned,
     {
         self.send_xrpc(method, path, parameters, input, encoding)
             .await
     }
 }
 
-/// Wrapper struct for the AtpServiceClient.
-pub struct AtpServiceWrapper<T>
+/// Wrapper struct for [`AtpServiceClient`].
+pub struct AtpServiceWrapper<X>
 where
-    T: XrpcClient + Send + Sync,
+    X: XrpcClient + Send + Sync,
 {
-    xrpc: T,
+    xrpc: X,
 }
 
-impl<T> AtpServiceWrapper<T>
+impl<X> AtpServiceWrapper<X>
 where
-    T: XrpcClient + Send + Sync,
+    X: XrpcClient + Send + Sync,
 {
-    pub fn new(xrpc: T) -> Self {
+    pub fn new(xrpc: X) -> Self {
         Self { xrpc }
     }
 }
 
 #[async_trait]
-impl<T> HttpClient for AtpServiceWrapper<T>
+impl<X> HttpClient for AtpServiceWrapper<X>
 where
-    T: XrpcClient + Send + Sync,
+    X: XrpcClient + Send + Sync,
 {
     async fn send_http(
         &self,
-        req: http::Request<Vec<u8>>,
-    ) -> Result<http::Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync>> {
+        req: Request<Vec<u8>>,
+    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync>> {
         self.xrpc.send_http(req).await
     }
 }
 
-impl<T> XrpcClient for AtpServiceWrapper<T>
+impl<X> XrpcClient for AtpServiceWrapper<X>
 where
-    T: XrpcClient + Send + Sync,
+    X: XrpcClient + Send + Sync,
 {
     fn host(&self) -> &str {
         self.xrpc.host()
     }
 }
 
-impl<T> AtpService for AtpServiceWrapper<T> where T: XrpcClient + Send + Sync {}
+impl<X> AtpService for AtpServiceWrapper<X> where X: XrpcClient + Send + Sync {}
 
 /// Client struct for the ATP service.
 pub struct AtpServiceClient<T>
@@ -75,11 +78,11 @@ where
     pub service: Service<T>,
 }
 
-impl<T> AtpServiceClient<AtpServiceWrapper<T>>
+impl<X> AtpServiceClient<AtpServiceWrapper<X>>
 where
-    T: XrpcClient + Send + Sync,
+    X: XrpcClient + Send + Sync,
 {
-    pub fn new(xrpc: T) -> Self {
+    pub fn new(xrpc: X) -> Self {
         Self {
             service: Service::new(Arc::new(AtpServiceWrapper::new(xrpc))),
         }
