@@ -5,6 +5,7 @@ use crate::client::AtpServiceClient;
 use crate::client_services::Service;
 use async_trait::async_trait;
 use atrium_xrpc::error::Error;
+use atrium_xrpc::error::XrpcErrorKind;
 use atrium_xrpc::{HttpClient, InputDataOrBytes, OutputDataOrBytes, XrpcClient};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
@@ -13,16 +14,16 @@ use std::sync::{Arc, RwLock};
 /// Type alias for the [com::atproto::server::create_session::Output](crate::com::atproto::server::create_session::Output)
 pub type Session = crate::com::atproto::server::create_session::Output;
 
-pub struct BaseClient<T>
+pub struct AuthWrapper<T>
 where
-    T: XrpcClient,
+    T: XrpcClient + Send + Sync,
 {
-    xrpc: T,
     session: Arc<RwLock<Option<Session>>>,
+    inner: T,
 }
 
 #[async_trait]
-impl<T> HttpClient for BaseClient<T>
+impl<T> HttpClient for AuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
@@ -30,17 +31,25 @@ where
         &self,
         req: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        self.send_http(req).await
+        self.inner.send_http(req).await
     }
 }
 
-#[async_trait]
-impl<T> XrpcClient for BaseClient<T>
+impl<T> AuthWrapper<T>
+where
+    T: XrpcClient + Send + Sync,
+{
+    fn new(session: Arc<RwLock<Option<Session>>>, inner: T) -> Self {
+        Self { session, inner }
+    }
+}
+
+impl<T> XrpcClient for AuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
     fn host(&self) -> &str {
-        self.xrpc.host()
+        self.inner.host()
     }
     fn auth(&self, is_refresh: bool) -> Option<String> {
         self.session.read().ok().and_then(|lock| {
@@ -55,51 +64,120 @@ where
     }
 }
 
-#[async_trait]
-impl<T> AtpService for BaseClient<T>
+pub struct RefreshWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    async fn send<P, I, O, E>(
+    #[allow(dead_code)]
+    session: Arc<RwLock<Option<Session>>>,
+    inner: T,
+}
+
+impl<T> RefreshWrapper<T>
+where
+    T: XrpcClient + Send + Sync,
+{
+    fn new(session: Arc<RwLock<Option<Session>>>, inner: T) -> Self {
+        Self { session, inner }
+    }
+    async fn do_send<P, I, O, E>(
         &self,
         method: Method,
         path: &str,
         parameters: Option<P>,
         input: Option<InputDataOrBytes<I>>,
         encoding: Option<String>,
-    ) -> Result<OutputDataOrBytes<O>, Error<E>>
+    ) -> Result<OutputDataOrBytes<O>, self::Error<E>>
     where
         P: Serialize + Send,
         I: Serialize + Send,
         O: DeserializeOwned,
         E: DeserializeOwned,
     {
-        self.xrpc
+        self.inner
             .send_xrpc(method, path, parameters, input, encoding)
             .await
     }
 }
 
+#[async_trait]
+impl<T> HttpClient for RefreshWrapper<T>
+where
+    T: XrpcClient + Send + Sync,
+{
+    async fn send_http(
+        &self,
+        req: Request<Vec<u8>>,
+    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        self.inner.send_http(req).await
+    }
+}
+
+#[async_trait]
+impl<T> XrpcClient for RefreshWrapper<T>
+where
+    T: XrpcClient + Send + Sync,
+{
+    fn host(&self) -> &str {
+        self.inner.host()
+    }
+    fn auth(&self, is_refresh: bool) -> Option<String> {
+        self.inner.auth(is_refresh)
+    }
+    async fn send_xrpc<P, I, O, E>(
+        &self,
+        method: Method,
+        path: &str,
+        parameters: Option<P>,
+        input: Option<InputDataOrBytes<I>>,
+        encoding: Option<String>,
+    ) -> Result<OutputDataOrBytes<O>, self::Error<E>>
+    where
+        P: Serialize + Send,
+        I: Serialize + Send,
+        O: DeserializeOwned,
+        E: DeserializeOwned,
+    {
+        match self
+            .do_send(method, path, parameters, input, encoding)
+            .await
+        {
+            Err(err) => {
+                if let Error::XrpcResponse(res) = &err {
+                    if let Some(XrpcErrorKind::Undefined(body)) = &res.error {
+                        if let Some("ExpiredToken") = &body.error.as_deref() {
+                            println!("refreshing token");
+                        }
+                    }
+                }
+                Err(err)
+            }
+            ok => ok,
+        }
+    }
+}
+
+impl<T> AtpService for RefreshWrapper<T> where T: XrpcClient + Send + Sync {}
+
 pub struct AtpAgent<T>
 where
-    T: AtpService,
+    T: XrpcClient + Send + Sync,
 {
-    pub api: AtpServiceClient<T>,
+    pub api: AtpServiceClient<RefreshWrapper<AuthWrapper<T>>>,
     session: Arc<RwLock<Option<Session>>>,
 }
 
-impl<T> AtpAgent<BaseClient<T>>
+impl<T> AtpAgent<T>
 where
     T: XrpcClient + Send + Sync,
 {
     pub fn new(xrpc: T) -> Self {
         let session = Arc::new(RwLock::new(None));
-        let api = AtpServiceClient {
-            service: Service::new(Arc::new(BaseClient {
-                xrpc,
-                session: Arc::clone(&session),
-            })),
-        };
+        let service = Service::new(Arc::new(RefreshWrapper::new(
+            Arc::clone(&session),
+            AuthWrapper::new(Arc::clone(&session), xrpc),
+        )));
+        let api = AtpServiceClient { service };
         Self { api, session }
     }
     pub fn get_session(&self) -> Option<Session> {
@@ -190,18 +268,18 @@ mod tests {
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
             let builder =
                 Response::builder().header(http::header::CONTENT_TYPE, "application/json");
-            // if req
-            //     .headers()
-            //     .get(http::header::AUTHORIZATION)
-            //     .map_or(false, |value| value.to_str().unwrap().contains("expired"))
-            // {
-            //     return Ok(builder.status(http::StatusCode::BAD_REQUEST).body(
-            //         serde_json::to_vec(&atrium_xrpc::error::ErrorResponseBody {
-            //             error: Some(String::from("ExpiredToken")),
-            //             message: Some(String::from("Token has expired"))),
-            //         })?,
-            //     )?);
-            // }
+            if req
+                .headers()
+                .get(http::header::AUTHORIZATION)
+                .map_or(false, |value| value.to_str().unwrap().contains("expired"))
+            {
+                return Ok(builder.status(http::StatusCode::BAD_REQUEST).body(
+                    serde_json::to_vec(&atrium_xrpc::error::ErrorResponseBody {
+                        error: Some(String::from("ExpiredToken")),
+                        message: Some(String::from("Token has expired")),
+                    })?,
+                )?);
+            }
             let mut body = Vec::new();
             match req.uri().path().strip_prefix("/xrpc/") {
                 Some("com.atproto.server.createSession") => {
@@ -338,7 +416,34 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_refresh_token() {
-        todo!()
+    async fn test_refresh_session() {
+        let session = Session {
+            access_jwt: String::from("access"),
+            did: String::from("did"),
+            email: None,
+            email_confirmed: None,
+            handle: String::from("handle"),
+            refresh_jwt: String::from("refresh"),
+        };
+        let client = DummyClient {
+            responses: DummyResponses {
+                get_session: Some(crate::com::atproto::server::get_session::Output {
+                    did: session.did.clone(),
+                    email: session.email.clone(),
+                    email_confirmed: session.email_confirmed,
+                    handle: session.handle.clone(),
+                }),
+                ..Default::default()
+            },
+        };
+        let agent = AtpAgent::new(client);
+        agent
+            .resume_session(Session {
+                access_jwt: "expired".into(),
+                ..session.clone()
+            })
+            .await
+            .expect("resume_session should be succeeded");
+        assert_eq!(agent.get_session(), Some(session));
     }
 }
