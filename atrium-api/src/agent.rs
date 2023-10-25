@@ -107,6 +107,20 @@ where
             _ => Err(Error::UnexpectedResponseType),
         }
     }
+    fn is_expired<O, E>(result: &XrpcResult<O, E>) -> bool
+    where
+        O: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync,
+    {
+        if let Err(Error::XrpcResponse(response)) = &result {
+            if let Some(XrpcErrorKind::Undefined(body)) = &response.error {
+                if let Some("ExpiredToken") = &body.error.as_deref() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }
 
 #[async_trait]
@@ -141,37 +155,32 @@ where
         E: DeserializeOwned + Send + Sync,
     {
         let result = self.do_send(request).await;
-        if let Err(Error::XrpcResponse(res)) = &result {
-            if let Some(XrpcErrorKind::Undefined(body)) = &res.error {
-                if let Some("ExpiredToken") = &body.error.as_deref() {
-                    let result = self.refresh_session().await;
-                    match result {
-                        Ok(output) => {
-                            let mut session = self
-                                .session
-                                .write()
-                                .expect("write lock on session should not be poisoned");
-                            let email = session.as_ref().and_then(|session| session.email.clone());
-                            let email_confirmed =
-                                session.as_ref().and_then(|session| session.email_confirmed);
-                            session.replace(Session {
-                                access_jwt: output.access_jwt,
-                                did: output.did,
-                                email,
-                                email_confirmed,
-                                handle: output.handle,
-                                refresh_jwt: output.refresh_jwt,
-                            });
-                        }
-                        Err(err) => {
-                            return Err(Error::Other(err.to_string()));
-                        }
-                    }
-                    return self.do_send(request).await;
+        if Self::is_expired(&result) {
+            match self.refresh_session().await {
+                Ok(output) => {
+                    let mut session = self
+                        .session
+                        .write()
+                        .expect("write lock on session should not be poisoned");
+                    let email = session.as_ref().and_then(|s| s.email.clone());
+                    let email_confirmed = session.as_ref().and_then(|s| s.email_confirmed);
+                    session.replace(Session {
+                        access_jwt: output.access_jwt,
+                        did: output.did,
+                        email,
+                        email_confirmed,
+                        handle: output.handle,
+                        refresh_jwt: output.refresh_jwt,
+                    });
+                }
+                Err(err) => {
+                    return Err(Error::Other(err.to_string()));
                 }
             }
+            self.do_send(request).await
+        } else {
+            result
         }
-        result
     }
 }
 
@@ -232,19 +241,19 @@ where
             .write()
             .expect("write lock on session should not be poisoned")
             .replace(session.clone());
-        let res = self.api.com.atproto.server.get_session().await;
-        match res {
-            Ok(result) => {
-                assert_eq!(result.did, session.did);
+        let result = self.api.com.atproto.server.get_session().await;
+        match result {
+            Ok(output) => {
+                assert_eq!(output.did, session.did);
                 if let Some(session) = self
                     .session
                     .write()
                     .expect("write lock on session should not be poisoned")
                     .as_mut()
                 {
-                    session.email = result.email;
-                    session.email_confirmed = result.email_confirmed;
-                    session.handle = result.handle;
+                    session.email = output.email;
+                    session.email_confirmed = output.email_confirmed;
+                    session.handle = output.handle;
                 }
                 Ok(())
             }
@@ -283,11 +292,12 @@ mod tests {
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
             let builder =
                 Response::builder().header(http::header::CONTENT_TYPE, "application/json");
-            if request
+            let token = request
                 .headers()
                 .get(http::header::AUTHORIZATION)
-                .map_or(false, |value| value.to_str().unwrap().contains("expired"))
-            {
+                .and_then(|value| value.to_str().ok())
+                .and_then(|value| value.split(' ').last());
+            if token == Some("expired") {
                 return Ok(builder.status(http::StatusCode::BAD_REQUEST).body(
                     serde_json::to_vec(&atrium_xrpc::error::ErrorResponseBody {
                         error: Some(String::from("ExpiredToken")),
@@ -303,19 +313,23 @@ mod tests {
                     }
                 }
                 Some("com.atproto.server.getSession") => {
-                    if let Some(output) = &self.responses.get_session {
-                        body.extend(serde_json::to_vec(output)?);
+                    if token == Some("access") {
+                        if let Some(output) = &self.responses.get_session {
+                            body.extend(serde_json::to_vec(output)?);
+                        }
                     }
                 }
                 Some("com.atproto.server.refreshSession") => {
-                    body.extend(serde_json::to_vec(
-                        &crate::com::atproto::server::refresh_session::Output {
-                            access_jwt: String::from("access"),
-                            did: String::from("did"),
-                            handle: String::from("handle"),
-                            refresh_jwt: String::from("refresh"),
-                        },
-                    )?);
+                    if token == Some("refresh") {
+                        body.extend(serde_json::to_vec(
+                            &crate::com::atproto::server::refresh_session::Output {
+                                access_jwt: String::from("access"),
+                                did: String::from("did"),
+                                handle: String::from("handle"),
+                                refresh_jwt: String::from("refresh"),
+                            },
+                        )?);
+                    }
                 }
                 _ => {}
             }
@@ -340,6 +354,17 @@ mod tests {
         }
     }
 
+    fn session() -> Session {
+        Session {
+            access_jwt: String::from("access"),
+            did: String::from("did"),
+            email: None,
+            email_confirmed: None,
+            handle: String::from("handle"),
+            refresh_jwt: String::from("refresh"),
+        }
+    }
+
     #[test]
     fn test_new() {
         let agent = AtpAgent::new(ReqwestClient::new("http://localhost:8080".into()));
@@ -348,14 +373,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_login() {
-        let session = Session {
-            access_jwt: String::from("access"),
-            did: String::from("did"),
-            email: None,
-            email_confirmed: None,
-            handle: String::from("handle"),
-            refresh_jwt: String::from("refresh"),
-        };
+        let session = session();
         // success
         {
             let client = DummyClient {
@@ -390,15 +408,67 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_resume_session() {
-        let session = Session {
-            access_jwt: String::from("access"),
-            did: String::from("did"),
-            email: None,
-            email_confirmed: None,
-            handle: String::from("handle"),
-            refresh_jwt: String::from("refresh"),
+    async fn test_xrpc_get_session() {
+        let session = session();
+        let client = DummyClient {
+            responses: DummyResponses {
+                get_session: Some(crate::com::atproto::server::get_session::Output {
+                    did: session.did.clone(),
+                    email: session.email.clone(),
+                    email_confirmed: session.email_confirmed,
+                    handle: session.handle.clone(),
+                }),
+                ..Default::default()
+            },
         };
+        let agent = AtpAgent::new(client);
+        agent.session.write().unwrap().replace(session);
+        let output = agent
+            .api
+            .com
+            .atproto
+            .server
+            .get_session()
+            .await
+            .expect("get session should be succeeded");
+        assert_eq!(output.did, "did");
+    }
+
+    #[tokio::test]
+    async fn test_xrpc_get_session_with_refresh() {
+        let mut session = session();
+        session.access_jwt = String::from("expired");
+        let client = DummyClient {
+            responses: DummyResponses {
+                get_session: Some(crate::com::atproto::server::get_session::Output {
+                    did: session.did.clone(),
+                    email: session.email.clone(),
+                    email_confirmed: session.email_confirmed,
+                    handle: session.handle.clone(),
+                }),
+                ..Default::default()
+            },
+        };
+        let agent = AtpAgent::new(client);
+        agent.session.write().unwrap().replace(session);
+        let output = agent
+            .api
+            .com
+            .atproto
+            .server
+            .get_session()
+            .await
+            .expect("get session should be succeeded");
+        assert_eq!(output.did, "did");
+        assert_eq!(
+            agent.get_session().map(|session| session.access_jwt),
+            Some("access".into())
+        );
+    }
+
+    #[tokio::test]
+    async fn test_resume_session() {
+        let session = session();
         // success
         {
             let client = DummyClient {
@@ -441,15 +511,8 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_refresh_session() {
-        let session = Session {
-            access_jwt: String::from("access"),
-            did: String::from("did"),
-            email: None,
-            email_confirmed: None,
-            handle: String::from("handle"),
-            refresh_jwt: String::from("refresh"),
-        };
+    async fn test_resume_session_with_refresh() {
+        let session = session();
         let client = DummyClient {
             responses: DummyResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
