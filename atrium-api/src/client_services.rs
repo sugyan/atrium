@@ -2,7 +2,7 @@
 #![doc = r#"Structs for ATP client, implements all HTTP APIs of XRPC."#]
 pub struct Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub app: app::Service<T>,
     pub com: com::Service<T>,
@@ -10,14 +10,14 @@ where
 pub mod app {
     pub struct Service<T>
     where
-        T: crate::client::AtpService,
+        T: atrium_xrpc::XrpcClient + Send + Sync,
     {
         pub bsky: bsky::Service<T>,
     }
     pub mod bsky {
         pub struct Service<T>
         where
-            T: crate::client::AtpService,
+            T: atrium_xrpc::XrpcClient + Send + Sync,
         {
             pub actor: actor::Service<T>,
             pub feed: feed::Service<T>,
@@ -28,7 +28,7 @@ pub mod app {
         pub mod actor {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -36,7 +36,7 @@ pub mod app {
         pub mod feed {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -44,7 +44,7 @@ pub mod app {
         pub mod graph {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -52,7 +52,7 @@ pub mod app {
         pub mod notification {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -60,7 +60,7 @@ pub mod app {
         pub mod unspecced {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -70,14 +70,14 @@ pub mod app {
 pub mod com {
     pub struct Service<T>
     where
-        T: crate::client::AtpService,
+        T: atrium_xrpc::XrpcClient + Send + Sync,
     {
         pub atproto: atproto::Service<T>,
     }
     pub mod atproto {
         pub struct Service<T>
         where
-            T: crate::client::AtpService,
+            T: atrium_xrpc::XrpcClient + Send + Sync,
         {
             pub admin: admin::Service<T>,
             pub identity: identity::Service<T>,
@@ -90,7 +90,7 @@ pub mod com {
         pub mod admin {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -98,7 +98,7 @@ pub mod com {
         pub mod identity {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -106,7 +106,7 @@ pub mod com {
         pub mod label {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -114,7 +114,7 @@ pub mod com {
         pub mod moderation {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -122,7 +122,7 @@ pub mod com {
         pub mod repo {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -130,7 +130,7 @@ pub mod com {
         pub mod server {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -138,7 +138,7 @@ pub mod com {
         pub mod sync {
             pub struct Service<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
             }
@@ -147,7 +147,7 @@ pub mod com {
 }
 impl<T> self::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
@@ -158,7 +158,7 @@ where
 }
 impl<T> app::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
@@ -168,7 +168,7 @@ where
 }
 impl<T> app::bsky::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
@@ -182,7 +182,7 @@ where
 }
 impl<T> app::bsky::actor::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -197,13 +197,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.actor.getPreferences",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.actor.getPreferences".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -219,13 +219,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.actor.getProfile",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.actor.getProfile".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -241,13 +241,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.actor.getProfiles",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.actor.getProfiles".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -264,13 +264,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.actor.getSuggestions",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.actor.getSuggestions".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -285,13 +285,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.actor.putPreferences",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.actor.putPreferences".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -308,13 +308,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.actor.searchActors",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.actor.searchActors".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -331,13 +331,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.actor.searchActorsTypeahead",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.actor.searchActorsTypeahead".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -347,7 +347,7 @@ where
 }
 impl<T> app::bsky::feed::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -361,13 +361,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.describeFeedGenerator",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.describeFeedGenerator".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -384,13 +384,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getActorFeeds",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getActorFeeds".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -407,13 +407,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getActorLikes",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getActorLikes".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -430,13 +430,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getAuthorFeed",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getAuthorFeed".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -453,13 +453,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getFeed",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getFeed".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -476,13 +476,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getFeedGenerator",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getFeedGenerator".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -499,13 +499,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getFeedGenerators",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getFeedGenerators".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -522,13 +522,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getFeedSkeleton",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getFeedSkeleton".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -544,13 +544,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getLikes",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getLikes".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -567,13 +567,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getListFeed",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getListFeed".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -589,13 +589,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getPostThread",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getPostThread".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -612,13 +612,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getPosts",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getPosts".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -634,13 +634,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getRepostedBy",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getRepostedBy".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -657,13 +657,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getSuggestedFeeds",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getSuggestedFeeds".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -680,13 +680,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.getTimeline",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.getTimeline".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -703,13 +703,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.feed.searchPosts",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.feed.searchPosts".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -719,7 +719,7 @@ where
 }
 impl<T> app::bsky::graph::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -734,13 +734,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getBlocks",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getBlocks".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -757,13 +757,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getFollowers",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getFollowers".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -780,13 +780,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getFollows",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getFollows".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -803,13 +803,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getList",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getList".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -826,13 +826,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getListBlocks",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getListBlocks".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -849,13 +849,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getListMutes",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getListMutes".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -872,13 +872,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getLists",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getLists".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -895,13 +895,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getMutes",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getMutes".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -918,13 +918,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.graph.getSuggestedFollowsByActor",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.graph.getSuggestedFollowsByActor".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -938,13 +938,13 @@ where
     ) -> Result<(), atrium_xrpc::error::Error<crate::app::bsky::graph::mute_actor::Error>> {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.graph.muteActor",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.graph.muteActor".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -959,13 +959,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.graph.muteActorList",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.graph.muteActorList".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -979,13 +979,13 @@ where
     ) -> Result<(), atrium_xrpc::error::Error<crate::app::bsky::graph::unmute_actor::Error>> {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.graph.unmuteActor",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.graph.unmuteActor".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1000,13 +1000,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.graph.unmuteActorList",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.graph.unmuteActorList".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1016,7 +1016,7 @@ where
 }
 impl<T> app::bsky::notification::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1030,13 +1030,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.notification.getUnreadCount",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.notification.getUnreadCount".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1052,13 +1052,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.notification.listNotifications",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.notification.listNotifications".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1073,13 +1073,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.notification.registerPush",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.notification.registerPush".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1094,13 +1094,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "app.bsky.notification.updateSeen",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "app.bsky.notification.updateSeen".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1110,7 +1110,7 @@ where
 }
 impl<T> app::bsky::unspecced::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1125,13 +1125,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.unspecced.getPopular",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.unspecced.getPopular".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1148,13 +1148,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.unspecced.getPopularFeedGenerators",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.unspecced.getPopularFeedGenerators".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1171,13 +1171,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.unspecced.getTimelineSkeleton",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.unspecced.getTimelineSkeleton".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1194,13 +1194,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.unspecced.searchActorsSkeleton",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.unspecced.searchActorsSkeleton".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1217,13 +1217,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "app.bsky.unspecced.searchPostsSkeleton",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "app.bsky.unspecced.searchPostsSkeleton".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1233,7 +1233,7 @@ where
 }
 impl<T> com::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
@@ -1243,7 +1243,7 @@ where
 }
 impl<T> com::atproto::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
@@ -1259,7 +1259,7 @@ where
 }
 impl<T> com::atproto::admin::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1274,13 +1274,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.admin.disableAccountInvites",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.disableAccountInvites".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1297,13 +1297,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.admin.disableInviteCodes",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.disableInviteCodes".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1320,13 +1320,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.admin.enableAccountInvites",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.enableAccountInvites".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1343,13 +1343,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getInviteCodes",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getInviteCodes".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1366,13 +1366,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getModerationAction",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getModerationAction".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1389,13 +1389,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getModerationActions",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getModerationActions".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1412,13 +1412,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getModerationReport",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getModerationReport".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1435,13 +1435,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getModerationReports",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getModerationReports".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1458,13 +1458,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getRecord",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getRecord".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1481,13 +1481,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.getRepo",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getRepo".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1504,13 +1504,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.admin.resolveModerationReports",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.resolveModerationReports".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1527,13 +1527,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.admin.reverseModerationAction",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.reverseModerationAction".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1550,13 +1550,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.admin.searchRepos",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.searchRepos".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1573,13 +1573,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.admin.sendEmail",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.sendEmail".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1596,13 +1596,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.admin.takeModerationAction",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.takeModerationAction".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1619,13 +1619,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.admin.updateAccountEmail",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.updateAccountEmail".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1642,13 +1642,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.admin.updateAccountHandle",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.updateAccountHandle".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1658,7 +1658,7 @@ where
 }
 impl<T> com::atproto::identity::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1673,13 +1673,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.identity.resolveHandle",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.identity.resolveHandle".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1694,13 +1694,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.identity.updateHandle",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.identity.updateHandle".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1710,7 +1710,7 @@ where
 }
 impl<T> com::atproto::label::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1725,13 +1725,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.label.queryLabels",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.label.queryLabels".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1741,7 +1741,7 @@ where
 }
 impl<T> com::atproto::moderation::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1756,13 +1756,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.moderation.createReport",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.moderation.createReport".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1772,7 +1772,7 @@ where
 }
 impl<T> com::atproto::repo::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1784,13 +1784,13 @@ where
     ) -> Result<(), atrium_xrpc::error::Error<crate::com::atproto::repo::apply_writes::Error>> {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.repo.applyWrites",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.repo.applyWrites".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1807,13 +1807,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.repo.createRecord",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.repo.createRecord".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1828,13 +1828,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.repo.deleteRecord",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.repo.deleteRecord".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1851,13 +1851,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.repo.describeRepo",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.repo.describeRepo".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1874,13 +1874,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.repo.getRecord",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.repo.getRecord".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1897,13 +1897,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.repo.listRecords",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.repo.listRecords".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1920,13 +1920,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.repo.putRecord",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.repo.putRecord".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1943,13 +1943,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), Vec<u8>, _, _>(
-                http::Method::POST,
-                "com.atproto.repo.uploadBlob",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
-                Some(String::from("*/*")),
-            )
+            .send_xrpc::<(), Vec<u8>, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.repo.uploadBlob".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
+                encoding: Some(String::from("*/*")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1959,7 +1959,7 @@ where
 }
 impl<T> com::atproto::server::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -1972,13 +1972,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.server.confirmEmail",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.confirmEmail".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1995,13 +1995,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.server.createAccount",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.createAccount".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2018,13 +2018,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.server.createAppPassword",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.createAppPassword".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2041,13 +2041,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.server.createInviteCode",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.createInviteCode".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2064,13 +2064,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.server.createInviteCodes",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.createInviteCodes".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2087,13 +2087,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, _, _>(
-                http::Method::POST,
-                "com.atproto.server.createSession",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.createSession".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2108,13 +2108,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.server.deleteAccount",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.deleteAccount".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2128,13 +2128,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), (), (), _>(
-                http::Method::POST,
-                "com.atproto.server.deleteSession",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.deleteSession".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2150,13 +2150,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), _, _>(
-                http::Method::GET,
-                "com.atproto.server.describeServer",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.server.describeServer".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2173,13 +2173,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.server.getAccountInviteCodes",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.server.getAccountInviteCodes".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2195,13 +2195,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), _, _>(
-                http::Method::GET,
-                "com.atproto.server.getSession",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.server.getSession".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2217,13 +2217,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), _, _>(
-                http::Method::GET,
-                "com.atproto.server.listAppPasswords",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.server.listAppPasswords".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2239,13 +2239,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), _, _>(
-                http::Method::POST,
-                "com.atproto.server.refreshSession",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.refreshSession".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2261,13 +2261,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), (), _>(
-                http::Method::POST,
-                "com.atproto.server.requestAccountDelete",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.requestAccountDelete".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2283,13 +2283,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), (), _>(
-                http::Method::POST,
-                "com.atproto.server.requestEmailConfirmation",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.requestEmailConfirmation".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2305,13 +2305,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), (), _, _>(
-                http::Method::POST,
-                "com.atproto.server.requestEmailUpdate",
-                None,
-                None,
-                None,
-            )
+            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.requestEmailUpdate".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2328,13 +2328,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.server.requestPasswordReset",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.requestPasswordReset".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2349,13 +2349,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.server.resetPassword",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.resetPassword".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2372,13 +2372,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.server.revokeAppPassword",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.revokeAppPassword".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2393,13 +2393,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.server.updateEmail",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.updateEmail".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2409,7 +2409,7 @@ where
 }
 impl<T> com::atproto::sync::Service<T>
 where
-    T: crate::client::AtpService,
+    T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
@@ -2422,13 +2422,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<_, (), (), _>(
-                http::Method::GET,
-                "com.atproto.sync.getBlob",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getBlob".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -2443,13 +2443,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<_, (), (), _>(
-                http::Method::GET,
-                "com.atproto.sync.getBlocks",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getBlocks".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -2464,13 +2464,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<_, (), (), _>(
-                http::Method::GET,
-                "com.atproto.sync.getCheckout",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getCheckout".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -2487,13 +2487,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.sync.getHead",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getHead".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2510,13 +2510,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.sync.getLatestCommit",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getLatestCommit".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2531,13 +2531,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<_, (), (), _>(
-                http::Method::GET,
-                "com.atproto.sync.getRecord",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getRecord".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -2552,13 +2552,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<_, (), (), _>(
-                http::Method::GET,
-                "com.atproto.sync.getRepo",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.getRepo".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -2575,13 +2575,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.sync.listBlobs",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.listBlobs".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2598,13 +2598,13 @@ where
     > {
         let response = self
             .xrpc
-            .send::<_, (), _, _>(
-                http::Method::GET,
-                "com.atproto.sync.listRepos",
-                Some(params),
-                None,
-                None,
-            )
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.sync.listRepos".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2619,13 +2619,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.sync.notifyOfUpdate",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.sync.notifyOfUpdate".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2640,13 +2640,13 @@ where
     {
         let response = self
             .xrpc
-            .send::<(), _, (), _>(
-                http::Method::POST,
-                "com.atproto.sync.requestCrawl",
-                None,
-                Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                Some(String::from("application/json")),
-            )
+            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.sync.requestCrawl".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),

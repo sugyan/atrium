@@ -1,12 +1,9 @@
 //! An ATP "Agent".
 //! Manages session token lifecycles and provides all XRPC methods.
-use crate::client::AtpService;
-use crate::client::AtpServiceClient;
 use crate::client_services::Service;
 use async_trait::async_trait;
-use atrium_xrpc::error::Error;
-use atrium_xrpc::error::XrpcErrorKind;
-use atrium_xrpc::{HttpClient, InputDataOrBytes, OutputDataOrBytes, XrpcClient};
+use atrium_xrpc::error::{Error, XrpcErrorKind};
+use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest, XrpcResult};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::{Arc, RwLock};
@@ -80,23 +77,35 @@ where
     fn new(session: Arc<RwLock<Option<Session>>>, inner: T) -> Self {
         Self { session, inner }
     }
-    async fn do_send<P, I, O, E>(
-        &self,
-        method: Method,
-        path: &str,
-        parameters: Option<P>,
-        input: Option<InputDataOrBytes<I>>,
-        encoding: Option<String>,
-    ) -> Result<OutputDataOrBytes<O>, self::Error<E>>
+    async fn do_send<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
     where
-        P: Serialize + Send,
-        I: Serialize + Send,
-        O: DeserializeOwned,
-        E: DeserializeOwned,
+        P: Serialize + Send + Sync,
+        I: Serialize + Send + Sync,
+        O: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync,
     {
-        self.inner
-            .send_xrpc(method, path, parameters, input, encoding)
-            .await
+        self.inner.send_xrpc(request).await
+    }
+    async fn refresh_session(
+        &self,
+    ) -> Result<
+        crate::com::atproto::server::refresh_session::Output,
+        Error<crate::com::atproto::server::refresh_session::Error>,
+    > {
+        let response = self
+            .inner
+            .send_xrpc::<(), (), _, _>(&XrpcRequest {
+                method: Method::POST,
+                path: "com.atproto.server.refreshSession".into(),
+                parameters: None,
+                input: None,
+                encoding: None,
+            })
+            .await?;
+        match response {
+            OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(Error::UnexpectedResponseType),
+        }
     }
 }
 
@@ -124,46 +133,53 @@ where
     fn auth(&self, is_refresh: bool) -> Option<String> {
         self.inner.auth(is_refresh)
     }
-    async fn send_xrpc<P, I, O, E>(
-        &self,
-        method: Method,
-        path: &str,
-        parameters: Option<P>,
-        input: Option<InputDataOrBytes<I>>,
-        encoding: Option<String>,
-    ) -> Result<OutputDataOrBytes<O>, self::Error<E>>
+    async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
     where
-        P: Serialize + Send,
-        I: Serialize + Send,
-        O: DeserializeOwned,
-        E: DeserializeOwned,
+        P: Serialize + Send + Sync,
+        I: Serialize + Send + Sync,
+        O: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync,
     {
-        match self
-            .do_send(method, path, parameters, input, encoding)
-            .await
-        {
-            Err(err) => {
-                if let Error::XrpcResponse(res) = &err {
-                    if let Some(XrpcErrorKind::Undefined(body)) = &res.error {
-                        if let Some("ExpiredToken") = &body.error.as_deref() {
-                            println!("refreshing token");
+        let result = self.do_send(request).await;
+        if let Err(Error::XrpcResponse(res)) = &result {
+            if let Some(XrpcErrorKind::Undefined(body)) = &res.error {
+                if let Some("ExpiredToken") = &body.error.as_deref() {
+                    let result = self.refresh_session().await;
+                    match result {
+                        Ok(output) => {
+                            let mut session = self
+                                .session
+                                .write()
+                                .expect("write lock on session should not be poisoned");
+                            let email = session.as_ref().and_then(|session| session.email.clone());
+                            let email_confirmed =
+                                session.as_ref().and_then(|session| session.email_confirmed);
+                            session.replace(Session {
+                                access_jwt: output.access_jwt,
+                                did: output.did,
+                                email,
+                                email_confirmed,
+                                handle: output.handle,
+                                refresh_jwt: output.refresh_jwt,
+                            });
+                        }
+                        Err(err) => {
+                            return Err(Error::Other(err.to_string()));
                         }
                     }
+                    return self.do_send(request).await;
                 }
-                Err(err)
             }
-            ok => ok,
         }
+        result
     }
 }
-
-impl<T> AtpService for RefreshWrapper<T> where T: XrpcClient + Send + Sync {}
 
 pub struct AtpAgent<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    pub api: AtpServiceClient<RefreshWrapper<AuthWrapper<T>>>,
+    pub api: Service<RefreshWrapper<AuthWrapper<T>>>,
     session: Arc<RwLock<Option<Session>>>,
 }
 
@@ -173,11 +189,10 @@ where
 {
     pub fn new(xrpc: T) -> Self {
         let session = Arc::new(RwLock::new(None));
-        let service = Service::new(Arc::new(RefreshWrapper::new(
+        let api = Service::new(Arc::new(RefreshWrapper::new(
             Arc::clone(&session),
             AuthWrapper::new(Arc::clone(&session), xrpc),
         )));
-        let api = AtpServiceClient { service };
         Self { api, session }
     }
     pub fn get_session(&self) -> Option<Session> {
@@ -194,7 +209,6 @@ where
     ) -> Result<Session, Error<crate::com::atproto::server::create_session::Error>> {
         let result = self
             .api
-            .service
             .com
             .atproto
             .server
@@ -218,19 +232,20 @@ where
             .write()
             .expect("write lock on session should not be poisoned")
             .replace(session.clone());
-        let res = self.api.service.com.atproto.server.get_session().await;
+        let res = self.api.com.atproto.server.get_session().await;
         match res {
             Ok(result) => {
                 assert_eq!(result.did, session.did);
-                self.session
+                if let Some(session) = self
+                    .session
                     .write()
                     .expect("write lock on session should not be poisoned")
-                    .replace(Session {
-                        email: result.email,
-                        handle: result.handle,
-                        email_confirmed: result.email_confirmed,
-                        ..session
-                    });
+                    .as_mut()
+                {
+                    session.email = result.email;
+                    session.email_confirmed = result.email_confirmed;
+                    session.handle = result.handle;
+                }
                 Ok(())
             }
             Err(err) => {
@@ -264,11 +279,11 @@ mod tests {
     impl HttpClient for DummyClient {
         async fn send_http(
             &self,
-            req: Request<Vec<u8>>,
+            request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
             let builder =
                 Response::builder().header(http::header::CONTENT_TYPE, "application/json");
-            if req
+            if request
                 .headers()
                 .get(http::header::AUTHORIZATION)
                 .map_or(false, |value| value.to_str().unwrap().contains("expired"))
@@ -281,7 +296,7 @@ mod tests {
                 )?);
             }
             let mut body = Vec::new();
-            match req.uri().path().strip_prefix("/xrpc/") {
+            match request.uri().path().strip_prefix("/xrpc/") {
                 Some("com.atproto.server.createSession") => {
                     if let Some(output) = &self.responses.create_session {
                         body.extend(serde_json::to_vec(output)?);
@@ -291,6 +306,16 @@ mod tests {
                     if let Some(output) = &self.responses.get_session {
                         body.extend(serde_json::to_vec(output)?);
                     }
+                }
+                Some("com.atproto.server.refreshSession") => {
+                    body.extend(serde_json::to_vec(
+                        &crate::com::atproto::server::refresh_session::Output {
+                            access_jwt: String::from("access"),
+                            did: String::from("did"),
+                            handle: String::from("handle"),
+                            refresh_jwt: String::from("refresh"),
+                        },
+                    )?);
                 }
                 _ => {}
             }

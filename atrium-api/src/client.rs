@@ -1,90 +1,93 @@
 #![doc = "An ATP service client."]
 use crate::client_services::Service;
-use async_trait::async_trait;
-use atrium_xrpc::error::Error;
-use atrium_xrpc::{HttpClient, InputDataOrBytes, OutputDataOrBytes, XrpcClient};
-use http::{Method, Request, Response};
-use serde::{de::DeserializeOwned, Serialize};
+use atrium_xrpc::XrpcClient;
 use std::sync::Arc;
-
-/// Wrapper trait of the [`XrpcClient`] trait.
-#[async_trait]
-pub trait AtpService: XrpcClient + Send + Sync {
-    async fn send<P, I, O, E>(
-        &self,
-        method: Method,
-        path: &str,
-        parameters: Option<P>,
-        input: Option<InputDataOrBytes<I>>,
-        encoding: Option<String>,
-    ) -> Result<OutputDataOrBytes<O>, Error<E>>
-    where
-        P: Serialize + Send,
-        I: Serialize + Send,
-        O: DeserializeOwned,
-        E: DeserializeOwned,
-    {
-        self.send_xrpc(method, path, parameters, input, encoding)
-            .await
-    }
-}
-
-/// Wrapper struct for [`AtpServiceClient`].
-pub struct AtpServiceWrapper<X>
-where
-    X: XrpcClient + Send + Sync,
-{
-    xrpc: X,
-}
-
-impl<X> AtpServiceWrapper<X>
-where
-    X: XrpcClient + Send + Sync,
-{
-    pub fn new(xrpc: X) -> Self {
-        Self { xrpc }
-    }
-}
-
-#[async_trait]
-impl<X> HttpClient for AtpServiceWrapper<X>
-where
-    X: XrpcClient + Send + Sync,
-{
-    async fn send_http(
-        &self,
-        req: Request<Vec<u8>>,
-    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync>> {
-        self.xrpc.send_http(req).await
-    }
-}
-
-impl<X> XrpcClient for AtpServiceWrapper<X>
-where
-    X: XrpcClient + Send + Sync,
-{
-    fn host(&self) -> &str {
-        self.xrpc.host()
-    }
-}
-
-impl<X> AtpService for AtpServiceWrapper<X> where X: XrpcClient + Send + Sync {}
 
 /// Client struct for the ATP service.
 pub struct AtpServiceClient<T>
 where
-    T: AtpService,
+    T: XrpcClient + Send + Sync,
 {
     pub service: Service<T>,
 }
 
-impl<X> AtpServiceClient<AtpServiceWrapper<X>>
+impl<T> AtpServiceClient<T>
 where
-    X: XrpcClient + Send + Sync,
+    T: XrpcClient + Send + Sync,
 {
-    pub fn new(xrpc: X) -> Self {
+    pub fn new(xrpc: T) -> Self {
         Self {
-            service: Service::new(Arc::new(AtpServiceWrapper::new(xrpc))),
+            service: Service::new(Arc::new(xrpc)),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use async_trait::async_trait;
+    use atrium_xrpc::HttpClient;
+    use http::{Request, Response, StatusCode};
+
+    struct DummyXrpcClient;
+
+    #[async_trait]
+    impl HttpClient for DummyXrpcClient {
+        async fn send_http(
+            &self,
+            _request: Request<Vec<u8>>,
+        ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            Ok(Response::builder()
+                .status(StatusCode::UNAUTHORIZED)
+                .header(http::header::CONTENT_TYPE, "application/json")
+                .body(serde_json::to_vec(
+                    &atrium_xrpc::error::ErrorResponseBody {
+                        error: Some(String::from("AuthenticationRequired")),
+                        message: Some(String::from("Invalid identifier or password")),
+                    },
+                )?)?)
+        }
+    }
+
+    impl XrpcClient for DummyXrpcClient {
+        fn host(&self) -> &str {
+            "http://localhost:8080"
+        }
+    }
+
+    #[test]
+    fn test_new() {
+        let _ = AtpServiceClient::new(DummyXrpcClient);
+    }
+
+    #[tokio::test]
+    async fn test_xrpc() {
+        let client = AtpServiceClient::new(DummyXrpcClient);
+        let result = client
+            .service
+            .com
+            .atproto
+            .server
+            .create_session(crate::com::atproto::server::create_session::Input {
+                identifier: String::from("test"),
+                password: String::from("test"),
+            })
+            .await
+            .expect_err("response should be error");
+        match &result {
+            atrium_xrpc::error::Error::XrpcResponse(xrpc_error) => {
+                assert_eq!(xrpc_error.status, StatusCode::UNAUTHORIZED);
+                assert_eq!(
+                    xrpc_error.error,
+                    Some(atrium_xrpc::error::XrpcErrorKind::Undefined(
+                        atrium_xrpc::error::ErrorResponseBody {
+                            error: Some(String::from("AuthenticationRequired")),
+                            message: Some(String::from("Invalid identifier or password")),
+                        }
+                    ))
+                );
+            }
+            _ => panic!("unexpected error type"),
         }
     }
 }
