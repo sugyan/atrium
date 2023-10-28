@@ -56,12 +56,34 @@ where
     }
 }
 
+#[async_trait]
 impl<T> XrpcClient for AtpServiceWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
     fn host(&self) -> &str {
         self.xrpc.host()
+    }
+    fn auth(&self, is_refresh: bool) -> Option<String> {
+        self.xrpc.auth(is_refresh)
+    }
+    async fn send_xrpc<P, I, O, E>(
+        &self,
+        method: http::Method,
+        path: &str,
+        parameters: Option<P>,
+        input: Option<InputDataOrBytes<I>>,
+        encoding: Option<String>,
+    ) -> Result<OutputDataOrBytes<O>, atrium_xrpc::error::Error<E>>
+    where
+        P: serde::Serialize + Send,
+        I: serde::Serialize + Send,
+        O: serde::de::DeserializeOwned,
+        E: serde::de::DeserializeOwned,
+    {
+        self.xrpc
+            .send_xrpc(method, path, parameters, input, encoding)
+            .await
     }
 }
 
