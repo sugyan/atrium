@@ -11,7 +11,7 @@ use std::sync::{Arc, RwLock};
 /// Type alias for the [com::atproto::server::create_session::Output](crate::com::atproto::server::create_session::Output)
 pub type Session = crate::com::atproto::server::create_session::Output;
 
-pub struct AuthWrapper<T>
+pub struct SessionAuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
@@ -20,7 +20,7 @@ where
 }
 
 #[async_trait]
-impl<T> HttpClient for AuthWrapper<T>
+impl<T> HttpClient for SessionAuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
@@ -32,16 +32,7 @@ where
     }
 }
 
-impl<T> AuthWrapper<T>
-where
-    T: XrpcClient + Send + Sync,
-{
-    fn new(session: Arc<RwLock<Option<Session>>>, inner: T) -> Self {
-        Self { session, inner }
-    }
-}
-
-impl<T> XrpcClient for AuthWrapper<T>
+impl<T> XrpcClient for SessionAuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
@@ -65,7 +56,6 @@ pub struct RefreshWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    #[allow(dead_code)]
     session: Arc<RwLock<Option<Session>>>,
     inner: T,
 }
@@ -74,9 +64,6 @@ impl<T> RefreshWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    fn new(session: Arc<RwLock<Option<Session>>>, inner: T) -> Self {
-        Self { session, inner }
-    }
     async fn do_send<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
     where
         P: Serialize + Send + Sync,
@@ -86,7 +73,25 @@ where
     {
         self.inner.send_xrpc(request).await
     }
-    async fn refresh_session(
+    async fn refresh_session(&self) {
+        if let Ok(output) = self.refresh_session_inner().await {
+            let mut session = self
+                .session
+                .write()
+                .expect("write lock on session should not be poisoned");
+            let email = session.as_ref().and_then(|s| s.email.clone());
+            let email_confirmed = session.as_ref().and_then(|s| s.email_confirmed);
+            session.replace(Session {
+                access_jwt: output.access_jwt,
+                did: output.did,
+                email,
+                email_confirmed,
+                handle: output.handle,
+                refresh_jwt: output.refresh_jwt,
+            });
+        }
+    }
+    async fn refresh_session_inner(
         &self,
     ) -> Result<
         crate::com::atproto::server::refresh_session::Output,
@@ -156,27 +161,7 @@ where
     {
         let result = self.do_send(request).await;
         if Self::is_expired(&result) {
-            match self.refresh_session().await {
-                Ok(output) => {
-                    let mut session = self
-                        .session
-                        .write()
-                        .expect("write lock on session should not be poisoned");
-                    let email = session.as_ref().and_then(|s| s.email.clone());
-                    let email_confirmed = session.as_ref().and_then(|s| s.email_confirmed);
-                    session.replace(Session {
-                        access_jwt: output.access_jwt,
-                        did: output.did,
-                        email,
-                        email_confirmed,
-                        handle: output.handle,
-                        refresh_jwt: output.refresh_jwt,
-                    });
-                }
-                Err(err) => {
-                    return Err(Error::Other(err.to_string()));
-                }
-            }
+            self.refresh_session().await;
             self.do_send(request).await
         } else {
             result
@@ -188,7 +173,7 @@ pub struct AtpAgent<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    pub api: Service<RefreshWrapper<AuthWrapper<T>>>,
+    pub api: Service<RefreshWrapper<SessionAuthWrapper<T>>>,
     session: Arc<RwLock<Option<Session>>>,
 }
 
@@ -198,10 +183,13 @@ where
 {
     pub fn new(xrpc: T) -> Self {
         let session = Arc::new(RwLock::new(None));
-        let api = Service::new(Arc::new(RefreshWrapper::new(
-            Arc::clone(&session),
-            AuthWrapper::new(Arc::clone(&session), xrpc),
-        )));
+        let api = Service::new(Arc::new(RefreshWrapper {
+            session: Arc::clone(&session),
+            inner: SessionAuthWrapper {
+                session: Arc::clone(&session),
+                inner: xrpc,
+            },
+        }));
         Self { api, session }
     }
     pub fn get_session(&self) -> Option<Session> {
@@ -271,7 +259,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atrium_xrpc::client::reqwest::ReqwestClient;
+    use std::collections::HashMap;
 
     #[derive(Default)]
     struct DummyResponses {
@@ -282,6 +270,7 @@ mod tests {
     #[derive(Default)]
     struct DummyClient {
         responses: DummyResponses,
+        counts: Arc<RwLock<HashMap<String, usize>>>,
     }
 
     #[async_trait]
@@ -290,6 +279,7 @@ mod tests {
             &self,
             request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            tokio::time::sleep(std::time::Duration::from_micros(10)).await;
             let builder =
                 Response::builder().header(http::header::CONTENT_TYPE, "application/json");
             let token = request
@@ -306,32 +296,40 @@ mod tests {
                 )?);
             }
             let mut body = Vec::new();
-            match request.uri().path().strip_prefix("/xrpc/") {
-                Some("com.atproto.server.createSession") => {
-                    if let Some(output) = &self.responses.create_session {
-                        body.extend(serde_json::to_vec(output)?);
-                    }
-                }
-                Some("com.atproto.server.getSession") => {
-                    if token == Some("access") {
-                        if let Some(output) = &self.responses.get_session {
+            if let Some(nsid) = request.uri().path().strip_prefix("/xrpc/") {
+                *self
+                    .counts
+                    .write()
+                    .expect("write lock on counts should not be poisoned")
+                    .entry(nsid.into())
+                    .or_default() += 1;
+                match nsid {
+                    "com.atproto.server.createSession" => {
+                        if let Some(output) = &self.responses.create_session {
                             body.extend(serde_json::to_vec(output)?);
                         }
                     }
-                }
-                Some("com.atproto.server.refreshSession") => {
-                    if token == Some("refresh") {
-                        body.extend(serde_json::to_vec(
-                            &crate::com::atproto::server::refresh_session::Output {
-                                access_jwt: String::from("access"),
-                                did: String::from("did"),
-                                handle: String::from("handle"),
-                                refresh_jwt: String::from("refresh"),
-                            },
-                        )?);
+                    "com.atproto.server.getSession" => {
+                        if token == Some("access") {
+                            if let Some(output) = &self.responses.get_session {
+                                body.extend(serde_json::to_vec(output)?);
+                            }
+                        }
                     }
+                    "com.atproto.server.refreshSession" => {
+                        if token == Some("refresh") {
+                            body.extend(serde_json::to_vec(
+                                &crate::com::atproto::server::refresh_session::Output {
+                                    access_jwt: String::from("access"),
+                                    did: String::from("did"),
+                                    handle: String::from("handle"),
+                                    refresh_jwt: String::from("refresh"),
+                                },
+                            )?);
+                        }
+                    }
+                    _ => {}
                 }
-                _ => {}
             }
             if body.is_empty() {
                 Ok(builder
@@ -367,7 +365,7 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let agent = AtpAgent::new(ReqwestClient::new("http://localhost:8080".into()));
+        let agent = AtpAgent::new(DummyClient::default());
         assert_eq!(agent.get_session(), None);
     }
 
@@ -383,6 +381,7 @@ mod tests {
                     }),
                     ..Default::default()
                 },
+                ..Default::default()
             };
             let agent = AtpAgent::new(client);
             agent
@@ -397,6 +396,7 @@ mod tests {
                 responses: DummyResponses {
                     ..Default::default()
                 },
+                ..Default::default()
             };
             let agent = AtpAgent::new(client);
             agent
@@ -420,6 +420,7 @@ mod tests {
                 }),
                 ..Default::default()
             },
+            ..Default::default()
         };
         let agent = AtpAgent::new(client);
         agent.session.write().unwrap().replace(session);
@@ -448,6 +449,7 @@ mod tests {
                 }),
                 ..Default::default()
             },
+            ..Default::default()
         };
         let agent = AtpAgent::new(client);
         agent.session.write().unwrap().replace(session);
@@ -466,6 +468,55 @@ mod tests {
         );
     }
 
+    // TODO: fix this test
+    // #[tokio::test]
+    // async fn test_xrpc_get_session_with_duplicated_refresh() {
+    //     let mut session = session();
+    //     session.access_jwt = String::from("expired");
+    //     let client = DummyClient {
+    //         responses: DummyResponses {
+    //             get_session: Some(crate::com::atproto::server::get_session::Output {
+    //                 did: session.did.clone(),
+    //                 email: session.email.clone(),
+    //                 email_confirmed: session.email_confirmed,
+    //                 handle: session.handle.clone(),
+    //             }),
+    //             ..Default::default()
+    //         },
+    //         ..Default::default()
+    //     };
+    //     let counts = Arc::clone(&client.counts);
+    //     let agent = Arc::new(AtpAgent::new(client));
+    //     agent.session.write().unwrap().replace(session);
+    //     let handles = (0..3).map(|_| {
+    //         let agent = Arc::clone(&agent);
+    //         tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
+    //     });
+    //     let results = join_all(handles).await;
+    //     for result in &results {
+    //         let output = result
+    //             .as_ref()
+    //             .expect("task should be successfully executed")
+    //             .as_ref()
+    //             .expect("get session should be succeeded");
+    //         assert_eq!(output.did, "did");
+    //     }
+    //     assert_eq!(
+    //         agent.get_session().map(|session| session.access_jwt),
+    //         Some("access".into())
+    //     );
+    //     assert_eq!(
+    //         counts
+    //             .read()
+    //             .expect("read lock on counts should not be poisoned")
+    //             .clone(),
+    //         HashMap::from_iter([
+    //             ("com.atproto.server.refreshSession".into(), 1),
+    //             ("com.atproto.server.getSession".into(), 3)
+    //         ])
+    //     );
+    // }
+
     #[tokio::test]
     async fn test_resume_session() {
         let session = session();
@@ -481,6 +532,7 @@ mod tests {
                     }),
                     ..Default::default()
                 },
+                ..Default::default()
             };
             let agent = AtpAgent::new(client);
             assert_eq!(agent.get_session(), None);
@@ -499,6 +551,7 @@ mod tests {
                 responses: DummyResponses {
                     ..Default::default()
                 },
+                ..Default::default()
             };
             let agent = AtpAgent::new(client);
             assert_eq!(agent.get_session(), None);
@@ -523,6 +576,7 @@ mod tests {
                 }),
                 ..Default::default()
             },
+            ..Default::default()
         };
         let agent = AtpAgent::new(client);
         agent
