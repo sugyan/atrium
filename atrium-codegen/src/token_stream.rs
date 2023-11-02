@@ -275,8 +275,8 @@ fn lex_object_property(
     // TODO: other keywords?
     let field_name = format_ident!(
         "{}",
-        if name == "type" {
-            String::from("r#type")
+        if name == "ref" || name == "type" {
+            format!("r#{name}")
         } else {
             name.to_snake_case()
         }

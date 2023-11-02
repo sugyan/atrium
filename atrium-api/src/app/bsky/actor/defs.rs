@@ -123,6 +123,8 @@ pub struct ViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocking: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub blocking_by_list: Option<crate::app::bsky::graph::defs::ListViewBasic>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub followed_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,

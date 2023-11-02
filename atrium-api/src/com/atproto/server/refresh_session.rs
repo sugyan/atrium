@@ -5,6 +5,8 @@
 pub struct Output {
     pub access_jwt: String,
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub did_doc: Option<crate::records::Record>,
     pub handle: String,
     pub refresh_jwt: String,
 }

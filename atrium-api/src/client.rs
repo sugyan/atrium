@@ -1350,6 +1350,29 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    #[doc = "View details about an account."]
+    pub async fn get_account_info(
+        &self,
+        params: crate::com::atproto::admin::get_account_info::Parameters,
+    ) -> Result<
+        crate::com::atproto::admin::get_account_info::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::admin::get_account_info::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getAccountInfo".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     #[doc = "Admin view of invite codes"]
     pub async fn get_invite_codes(
         &self,
@@ -1501,6 +1524,29 @@ where
             .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
                 method: http::Method::GET,
                 path: "com.atproto.admin.getRepo".into(),
+                parameters: Some(params),
+                input: None,
+                encoding: None,
+            })
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Fetch the service-specific the admin status of a subject (account, record, or blob)"]
+    pub async fn get_subject_status(
+        &self,
+        params: crate::com::atproto::admin::get_subject_status::Parameters,
+    ) -> Result<
+        crate::com::atproto::admin::get_subject_status::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::admin::get_subject_status::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::GET,
+                path: "com.atproto.admin.getSubjectStatus".into(),
                 parameters: Some(params),
                 input: None,
                 encoding: None,
@@ -1669,6 +1715,29 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Update the service-specific admin status of a subject (account, record, or blob)"]
+    pub async fn update_subject_status(
+        &self,
+        input: crate::com::atproto::admin::update_subject_status::Input,
+    ) -> Result<
+        crate::com::atproto::admin::update_subject_status::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::admin::update_subject_status::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.admin.updateSubjectStatus".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -2355,6 +2424,29 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    #[doc = "Reserve a repo signing key for account creation."]
+    pub async fn reserve_signing_key(
+        &self,
+        input: crate::com::atproto::server::reserve_signing_key::Input,
+    ) -> Result<
+        crate::com::atproto::server::reserve_signing_key::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::server::reserve_signing_key::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
+                method: http::Method::POST,
+                path: "com.atproto.server.reserveSigningKey".into(),
+                parameters: None,
+                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                encoding: Some(String::from("application/json")),
+            })
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
