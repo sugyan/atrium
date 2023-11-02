@@ -1,6 +1,6 @@
 //! An ATP "Agent".
 //! Manages session token lifecycles and provides all XRPC methods.
-use crate::client_services::Service;
+use crate::client::Service;
 use async_trait::async_trait;
 use atrium_xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest, XrpcResult};

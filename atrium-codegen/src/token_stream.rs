@@ -488,6 +488,23 @@ pub fn client(
         });
     }
     Ok(quote! {
+        #[doc = "Client struct for the ATP service."]
+        pub struct AtpServiceClient<T>
+        where
+            T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            pub service: Service<T>,
+        }
+        impl<T> AtpServiceClient<T>
+        where
+            T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            pub fn new(xrpc: T) -> Self {
+                Self {
+                    service: Service::new(std::sync::Arc::new(xrpc)),
+                }
+            }
+        }
         #services
         #(#impls)*
     })

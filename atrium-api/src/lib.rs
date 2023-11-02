@@ -5,6 +5,5 @@ pub mod agent;
 pub mod app;
 pub mod blob;
 pub mod client;
-pub mod client_services;
 pub mod com;
 pub mod records;
