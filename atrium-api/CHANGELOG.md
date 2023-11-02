@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.9.0...atrium-api-v0.9.1) - 2023-10-28
+
+### Other
+- Delegate to inner in AtpServiceWrapper ([#52](https://github.com/sugyan/atrium/pull/52))
+
 ## [0.9.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.8.0...atrium-api-v0.9.0) - 2023-10-06
 
 ### Added
