@@ -64,17 +64,9 @@ impl<T> RefreshWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    async fn do_send<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
-    where
-        P: Serialize + Send + Sync,
-        I: Serialize + Send + Sync,
-        O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
-    {
-        self.inner.send_xrpc(request).await
-    }
     async fn refresh_session(&self) {
-        if let Ok(output) = self.refresh_session_inner().await {
+        // TODO: Wraps the actual implementation in a promise-guard to ensure only one refresh is attempted at a time.
+        if let Ok(output) = self.call_refresh_session().await {
             let mut session = self
                 .session
                 .write()
@@ -91,7 +83,7 @@ where
             });
         }
     }
-    async fn refresh_session_inner(
+    async fn call_refresh_session(
         &self,
     ) -> Result<
         crate::com::atproto::server::refresh_session::Output,
@@ -159,10 +151,10 @@ where
         O: DeserializeOwned + Send + Sync,
         E: DeserializeOwned + Send + Sync,
     {
-        let result = self.do_send(request).await;
+        let result = self.inner.send_xrpc(request).await;
         if Self::is_expired(&result) {
             self.refresh_session().await;
-            self.do_send(request).await
+            self.inner.send_xrpc(request).await
         } else {
             result
         }
