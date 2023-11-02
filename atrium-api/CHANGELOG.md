@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.9.1...atrium-api-v0.9.2) - 2023-11-02
+
+### Added
+- Implement AtpAgent ([#53](https://github.com/sugyan/atrium/pull/53))
+
 ## [0.9.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.9.0...atrium-api-v0.9.1) - 2023-10-28
 
 ### Other
