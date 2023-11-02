@@ -18,6 +18,7 @@ pub mod request_account_delete;
 pub mod request_email_confirmation;
 pub mod request_email_update;
 pub mod request_password_reset;
+pub mod reserve_signing_key;
 pub mod reset_password;
 pub mod revoke_app_password;
 pub mod update_email;

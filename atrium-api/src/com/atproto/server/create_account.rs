@@ -5,11 +5,15 @@
 pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub did: Option<String>,
-    pub email: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
     pub handle: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_code: Option<String>,
-    pub password: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub plc_op: Option<crate::records::Record>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recovery_key: Option<String>,
 }
@@ -18,6 +22,8 @@ pub struct Input {
 pub struct Output {
     pub access_jwt: String,
     pub did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub did_doc: Option<crate::records::Record>,
     pub handle: String,
     pub refresh_jwt: String,
 }
