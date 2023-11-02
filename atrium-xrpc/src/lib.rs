@@ -27,9 +27,22 @@ where
 pub trait HttpClient {
     async fn send_http(
         &self,
-        req: Request<Vec<u8>>,
+        request: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>;
 }
+
+pub struct XrpcRequest<P, I>
+where
+    I: Serialize,
+{
+    pub method: Method,
+    pub path: String,
+    pub parameters: Option<P>,
+    pub input: Option<InputDataOrBytes<I>>,
+    pub encoding: Option<String>,
+}
+
+pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
 
 #[async_trait]
 pub trait XrpcClient: HttpClient {
@@ -38,40 +51,33 @@ pub trait XrpcClient: HttpClient {
     fn auth(&self, is_refresh: bool) -> Option<String> {
         None
     }
-    async fn send_xrpc<P, I, O, E>(
-        &self,
-        method: Method,
-        path: &str,
-        parameters: Option<P>,
-        input: Option<InputDataOrBytes<I>>,
-        encoding: Option<String>,
-    ) -> Result<OutputDataOrBytes<O>, self::Error<E>>
+    async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
     where
-        P: Serialize + Send,
-        I: Serialize + Send,
-        O: DeserializeOwned,
-        E: DeserializeOwned,
+        P: Serialize + Send + Sync,
+        I: Serialize + Send + Sync,
+        O: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync,
     {
-        let mut uri = format!("{}/xrpc/{path}", self.host());
-        if let Some(p) = &parameters {
+        let mut uri = format!("{}/xrpc/{}", self.host(), request.path);
+        if let Some(p) = &request.parameters {
             serde_qs::to_string(p).map(|qs| {
                 uri += "?";
                 uri += &qs;
             })?;
         };
-        let mut builder = Request::builder().method(&method).uri(&uri);
-        if let Some(encoding) = encoding {
+        let mut builder = Request::builder().method(&request.method).uri(&uri);
+        if let Some(encoding) = &request.encoding {
             builder = builder.header(http::header::CONTENT_TYPE, encoding);
         }
-        if let Some(token) =
-            self.auth(method == Method::POST && path == "com.atproto.server.refreshSession")
-        {
+        if let Some(token) = self.auth(
+            request.method == Method::POST && request.path == "com.atproto.server.refreshSession",
+        ) {
             builder = builder.header(http::header::AUTHORIZATION, format!("Bearer {}", token));
         }
-        let body = if let Some(input) = input {
+        let body = if let Some(input) = &request.input {
             match input {
                 InputDataOrBytes::Data(data) => serde_json::to_vec(&data)?,
-                InputDataOrBytes::Bytes(bytes) => bytes,
+                InputDataOrBytes::Bytes(bytes) => bytes.clone(),
             }
         } else {
             Vec::new()
@@ -117,7 +123,7 @@ mod tests {
     impl HttpClient for DummyClient {
         async fn send_http(
             &self,
-            _req: Request<Vec<u8>>,
+            _request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
             let mut builder = Response::builder().status(self.status);
             if self.json {
@@ -142,7 +148,13 @@ mod tests {
             T: crate::XrpcClient + Send + Sync,
         {
             let response = xrpc
-                .send_xrpc::<_, (), _, _>(http::Method::GET, "example", Some(params), None, None)
+                .send_xrpc::<_, (), _, _>(&XrpcRequest {
+                    method: http::Method::GET,
+                    path: "example".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                })
                 .await?;
             match response {
                 crate::OutputDataOrBytes::Data(data) => Ok(data),
@@ -278,13 +290,13 @@ mod tests {
                 T: crate::XrpcClient + Send + Sync,
             {
                 let response = xrpc
-                    .send_xrpc::<_, (), (), _>(
-                        http::Method::GET,
-                        "example",
-                        Some(params),
-                        None,
-                        None,
-                    )
+                    .send_xrpc::<_, (), (), _>(&XrpcRequest {
+                        method: http::Method::GET,
+                        path: "example".into(),
+                        parameters: Some(params),
+                        input: None,
+                        encoding: None,
+                    })
                     .await?;
                 match response {
                     crate::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -355,13 +367,13 @@ mod tests {
                 T: crate::XrpcClient + Send + Sync,
             {
                 let response = xrpc
-                    .send_xrpc::<(), _, (), _>(
-                        http::Method::POST,
-                        "example",
-                        None,
-                        Some(InputDataOrBytes::Data(input)),
-                        None,
-                    )
+                    .send_xrpc::<(), _, (), _>(&XrpcRequest {
+                        method: http::Method::POST,
+                        path: "example".into(),
+                        parameters: None,
+                        input: Some(InputDataOrBytes::Data(input)),
+                        encoding: None,
+                    })
                     .await?;
                 match response {
                     crate::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -415,13 +427,13 @@ mod tests {
                 T: crate::XrpcClient + Send + Sync,
             {
                 let response = xrpc
-                    .send_xrpc::<(), Vec<u8>, _, _>(
-                        http::Method::POST,
-                        "example",
-                        None,
-                        Some(InputDataOrBytes::Bytes(input)),
-                        None,
-                    )
+                    .send_xrpc::<(), Vec<u8>, _, _>(&XrpcRequest {
+                        method: http::Method::POST,
+                        path: "example".into(),
+                        parameters: None,
+                        input: Some(InputDataOrBytes::Bytes(input)),
+                        encoding: None,
+                    })
                     .await?;
                 match response {
                     crate::OutputDataOrBytes::Data(data) => Ok(data),
