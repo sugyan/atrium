@@ -71,11 +71,13 @@ where
                 .session
                 .write()
                 .expect("write lock on session should not be poisoned");
+            let did_doc = session.as_ref().and_then(|s| s.did_doc.clone());
             let email = session.as_ref().and_then(|s| s.email.clone());
             let email_confirmed = session.as_ref().and_then(|s| s.email_confirmed);
             session.replace(Session {
                 access_jwt: output.access_jwt,
                 did: output.did,
+                did_doc,
                 email,
                 email_confirmed,
                 handle: output.handle,
@@ -314,6 +316,7 @@ mod tests {
                                 &crate::com::atproto::server::refresh_session::Output {
                                     access_jwt: String::from("access"),
                                     did: String::from("did"),
+                                    did_doc: None,
                                     handle: String::from("handle"),
                                     refresh_jwt: String::from("refresh"),
                                 },
@@ -348,6 +351,7 @@ mod tests {
         Session {
             access_jwt: String::from("access"),
             did: String::from("did"),
+            did_doc: None,
             email: None,
             email_confirmed: None,
             handle: String::from("handle"),
