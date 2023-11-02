@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.9.2...atrium-api-v0.10.0) - 2023-11-02
+
+### Added
+- Update API, based on the latest lexicon schemas ([#58](https://github.com/sugyan/atrium/pull/58))
+
 ## [0.9.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.9.1...atrium-api-v0.9.2) - 2023-11-02
 
 ### Added
