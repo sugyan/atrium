@@ -12,7 +12,7 @@ keywords = ["atproto", "bluesky"]
 
 
 [dependencies]
-atrium-xrpc = "0.4"
+atrium-xrpc = "^0.4.1"
 async-trait = "0.1.68"
 cid = { version = "0.10.1", features = ["serde-codec"] }
 http = "0.2.9"
