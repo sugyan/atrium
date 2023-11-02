@@ -121,7 +121,7 @@ pub(crate) fn generate_client(
         #![doc = r#"Structs for ATP client, implements all HTTP APIs of XRPC."#]
         #tokens
     };
-    let path = outdir.join("client_services.rs");
+    let path = outdir.join("client.rs");
     write_to_file(File::create(&path)?, content)?;
     Ok(path)
 }

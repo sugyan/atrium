@@ -480,7 +480,7 @@ pub fn client(
         impls.push(quote! {
             impl<T> #type_name<T>
             where
-                T: crate::client::AtpService,
+                T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 #fn_new
                 #(#methods)*
@@ -488,6 +488,23 @@ pub fn client(
         });
     }
     Ok(quote! {
+        #[doc = "Client struct for the ATP service."]
+        pub struct AtpServiceClient<T>
+        where
+            T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            pub service: Service<T>,
+        }
+        impl<T> AtpServiceClient<T>
+        where
+            T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            pub fn new(xrpc: T) -> Self {
+                Self {
+                    service: Service::new(std::sync::Arc::new(xrpc)),
+                }
+            }
+        }
         #services
         #(#impls)*
     })
@@ -528,7 +545,7 @@ fn client_services(
     }
     let service = quote! {
         pub struct Service<T>
-        where T: crate::client::AtpService,
+        where T: atrium_xrpc::XrpcClient + Send + Sync,
         {
             #(#fields)*
         }
@@ -604,13 +621,13 @@ fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
         quote!(None)
     };
     let xrpc_call = quote! {
-        self.xrpc.send::<#(#generic_args),*>(
-            http::Method::GET,
-            #nsid,
-            #param_value,
-            None,
-            None,
-        )
+        self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
+            method: http::Method::GET,
+            path: #nsid.into(),
+            parameters: #param_value,
+            input: None,
+            encoding: None,
+        })
         .await?
     };
     xrpc_impl_common(nsid, &description, &xrpc_call, &args, output_type)
@@ -670,13 +687,13 @@ fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<Token
         quote!(None)
     };
     let xrpc_call = quote! {
-        self.xrpc.send::<#(#generic_args),*>(
-            http::Method::POST,
-            #nsid,
-            None,
-            #input_value,
-            #encoding,
-        )
+        self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
+            method: http::Method::POST,
+            path: #nsid.into(),
+            parameters: None,
+            input: #input_value,
+            encoding: #encoding,
+        })
         .await?
     };
     xrpc_impl_common(nsid, &description, &xrpc_call, &args, output_type)
