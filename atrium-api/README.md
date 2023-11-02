@@ -15,9 +15,8 @@ You can use any HTTP client that implements [`atrium_xrpc::HttpClient`](https://
 use atrium_api::client::AtpServiceClient;
 use atrium_api::com::atproto::server::create_session::Input;
 use atrium_api::xrpc::client::reqwest::ReqwestClient;
-use std::sync::Arc;
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = AtpServiceClient::new(ReqwestClient::new("https://bsky.social".into()));
     let result = client
