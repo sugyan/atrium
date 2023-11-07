@@ -30,3 +30,11 @@ isahc = ["dep:isahc"]
 reqwest-native = ["reqwest/native-tls"]
 reqwest-rustls = ["reqwest/rustls-tls"]
 surf = ["dep:surf"]
+
+[dev-dependencies]
+surf = { version = "2.3.2", default-features = false, features = ["h1-client-rustls"] }
+http-client = { version = "6.5.3", default-features = false, features = ["h1_client", "rustls"] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

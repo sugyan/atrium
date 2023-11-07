@@ -1,3 +1,4 @@
+#![doc = "XrpcClient implementation for [reqwest]"]
 use async_trait::async_trait;
 use atrium_xrpc::{HttpClient, XrpcClient};
 use http::{Request, Response};
@@ -34,7 +35,7 @@ impl ReqwestClientBuilder {
     pub fn build(self) -> ReqwestClient {
         ReqwestClient {
             host: self.host,
-            client: Arc::new(self.client.unwrap_or_else(Client::new)),
+            client: Arc::new(self.client.unwrap_or_default()),
         }
     }
 }

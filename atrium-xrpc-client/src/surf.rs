@@ -1,3 +1,4 @@
+#![doc = "XrpcClient implementation for [surf]"]
 use async_trait::async_trait;
 use atrium_xrpc::{HttpClient, XrpcClient};
 use http::{Request, Response};
