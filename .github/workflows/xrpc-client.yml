@@ -19,4 +19,4 @@ jobs:
       - name: Run tests
         run: cargo test -p atrium-xrpc-client --verbose --lib
       - name: Run doctests
-        run: cargo test -p atrium-xrpc-client --verbose --doc --all-feature
+        run: cargo test -p atrium-xrpc-client --verbose --doc --all-features
