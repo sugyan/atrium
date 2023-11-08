@@ -34,6 +34,10 @@ surf = ["dep:surf"]
 [dev-dependencies]
 surf = { version = "2.3.2", default-features = false, features = ["h1-client-rustls"] }
 http-client = { version = "6.5.3", default-features = false, features = ["h1_client", "rustls"] }
+mockito = "1.2.0"
+tokio = { version = "1.33.0", features = ["macros"] }
+serde = { version = "1.0.192", features = ["derive"] }
+futures = { version = "0.3.29", default-features = false }
 
 [package.metadata.docs.rs]
 all-features = true

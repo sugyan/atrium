@@ -13,3 +13,6 @@ pub mod reqwest;
 #[cfg_attr(docsrs, doc(cfg(feature = "surf")))]
 #[cfg(feature = "surf")]
 pub mod surf;
+
+#[cfg(test)]
+mod tests;
