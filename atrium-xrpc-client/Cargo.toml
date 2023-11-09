@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.74"
-atrium-xrpc = { path = "../atrium-xrpc" }
+atrium-xrpc = "0.5.0"
 http = "0.2.9"
 
 [dependencies.isahc]

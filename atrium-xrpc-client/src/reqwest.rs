@@ -6,25 +6,25 @@ use reqwest::Client;
 use std::sync::Arc;
 
 pub struct ReqwestClient {
-    host: String,
+    base_uri: String,
     client: Arc<Client>,
 }
 
 impl ReqwestClient {
-    pub fn new(host: impl AsRef<str>) -> ReqwestClient {
-        ReqwestClientBuilder::new(host).build()
+    pub fn new(base_uri: impl AsRef<str>) -> ReqwestClient {
+        ReqwestClientBuilder::new(base_uri).build()
     }
 }
 
 pub struct ReqwestClientBuilder {
-    host: String,
+    base_uri: String,
     client: Option<Client>,
 }
 
 impl ReqwestClientBuilder {
-    pub fn new(host: impl AsRef<str>) -> Self {
+    pub fn new(base_uri: impl AsRef<str>) -> Self {
         Self {
-            host: host.as_ref().into(),
+            base_uri: base_uri.as_ref().into(),
             client: None,
         }
     }
@@ -34,7 +34,7 @@ impl ReqwestClientBuilder {
     }
     pub fn build(self) -> ReqwestClient {
         ReqwestClient {
-            host: self.host,
+            base_uri: self.base_uri,
             client: Arc::new(self.client.unwrap_or_default()),
         }
     }
@@ -58,8 +58,8 @@ impl HttpClient for ReqwestClient {
 }
 
 impl XrpcClient for ReqwestClient {
-    fn host(&self) -> &str {
-        &self.host
+    fn base_uri(&self) -> &str {
+        &self.base_uri
     }
 }
 
@@ -71,14 +71,14 @@ mod tests {
     #[test]
     fn new() -> Result<(), Box<dyn std::error::Error>> {
         let client = ReqwestClient::new("http://localhost:8080");
-        assert_eq!(client.host(), "http://localhost:8080");
+        assert_eq!(client.base_uri(), "http://localhost:8080");
         Ok(())
     }
 
     #[test]
     fn builder_without_client() -> Result<(), Box<dyn std::error::Error>> {
         let client = ReqwestClientBuilder::new("http://localhost:8080").build();
-        assert_eq!(client.host(), "http://localhost:8080");
+        assert_eq!(client.base_uri(), "http://localhost:8080");
         Ok(())
     }
 
@@ -92,7 +92,7 @@ mod tests {
                     .build()?,
             )
             .build();
-        assert_eq!(client.host(), "http://localhost:8080");
+        assert_eq!(client.base_uri(), "http://localhost:8080");
         Ok(())
     }
 }

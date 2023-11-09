@@ -6,14 +6,14 @@ use std::sync::Arc;
 use surf::Client;
 
 pub struct SurfClient {
-    host: String,
+    base_uri: String,
     client: Arc<Client>,
 }
 
 impl SurfClient {
-    pub fn new(host: impl AsRef<str>, client: Client) -> Self {
+    pub fn new(base_uri: impl AsRef<str>, client: Client) -> Self {
         Self {
-            host: host.as_ref().to_string(),
+            base_uri: base_uri.as_ref().to_string(),
             client: Arc::new(client),
         }
     }
@@ -53,8 +53,8 @@ impl HttpClient for SurfClient {
 }
 
 impl XrpcClient for SurfClient {
-    fn host(&self) -> &str {
-        &self.host
+    fn base_uri(&self) -> &str {
+        &self.base_uri
     }
 }
 
@@ -77,7 +77,7 @@ mod tests {
                     .add_header(surf::http::headers::USER_AGENT, "USER_AGENT")?,
             )?,
         );
-        assert_eq!(client.host(), "http://localhost:8080");
+        assert_eq!(client.base_uri(), "http://localhost:8080");
         Ok(())
     }
 }

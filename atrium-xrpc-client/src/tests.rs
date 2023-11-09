@@ -92,13 +92,13 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
         .await;
 
     async fn run(
-        host: &str,
+        base_uri: &str,
         path: &str,
     ) -> Vec<Result<Result<Output, atrium_xrpc::error::Error<Error>>, JoinError>> {
         let handles = vec![
             #[cfg(feature = "isahc")]
             tokio::spawn(run_query(
-                crate::isahc::IsahcClientBuilder::new(host)
+                crate::isahc::IsahcClientBuilder::new(base_uri)
                     .client(
                         isahc::HttpClient::builder()
                             .build()
@@ -109,7 +109,7 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
             )),
             #[cfg(feature = "reqwest-native")]
             tokio::spawn(run_query(
-                crate::reqwest::ReqwestClientBuilder::new(host)
+                crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
                         reqwest::ClientBuilder::new()
                             .use_native_tls()
@@ -121,7 +121,7 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
             )),
             #[cfg(feature = "reqwest-rustls")]
             tokio::spawn(run_query(
-                crate::reqwest::ReqwestClientBuilder::new(host)
+                crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
                         reqwest::ClientBuilder::new()
                             .use_rustls_tls()
@@ -134,7 +134,7 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
             #[cfg(feature = "surf")]
             tokio::spawn(run_query(
                 crate::surf::SurfClient::new(
-                    host,
+                    base_uri,
                     surf::Client::with_http_client(http_client::h1::H1Client::new()),
                 ),
                 path.to_string(),
@@ -217,13 +217,13 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
         .await;
 
     async fn run(
-        host: &str,
+        base_uri: &str,
         path: &str,
     ) -> Vec<Result<Result<Output, atrium_xrpc::error::Error<Error>>, JoinError>> {
         let handles = vec![
             #[cfg(feature = "isahc")]
             tokio::spawn(run_procedure(
-                crate::isahc::IsahcClientBuilder::new(host)
+                crate::isahc::IsahcClientBuilder::new(base_uri)
                     .client(
                         isahc::HttpClient::builder()
                             .build()
@@ -234,7 +234,7 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
             )),
             #[cfg(feature = "reqwest-native")]
             tokio::spawn(run_procedure(
-                crate::reqwest::ReqwestClientBuilder::new(host)
+                crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
                         reqwest::ClientBuilder::new()
                             .use_native_tls()
@@ -246,7 +246,7 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
             )),
             #[cfg(feature = "reqwest-rustls")]
             tokio::spawn(run_procedure(
-                crate::reqwest::ReqwestClientBuilder::new(host)
+                crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
                         reqwest::ClientBuilder::new()
                             .use_rustls_tls()
@@ -259,7 +259,7 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
             #[cfg(feature = "surf")]
             tokio::spawn(run_procedure(
                 crate::surf::SurfClient::new(
-                    host,
+                    base_uri,
                     surf::Client::with_http_client(http_client::h1::H1Client::new()),
                 ),
                 path.to_string(),
