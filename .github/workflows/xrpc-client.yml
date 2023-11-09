@@ -18,12 +18,11 @@ jobs:
         run: cargo build -p atrium-xrpc-client --verbose
       - name: Run tests
         run: |
-          cargo test -p atrium-xrpc-client --verbose --lib
-          cargo test -p atrium-xrpc-client --verbose --lib --no-default-features
-          cargo test -p atrium-xrpc-client --verbose --lib --no-default-features --features=reqwest-native
-          cargo test -p atrium-xrpc-client --verbose --lib --no-default-features --features=reqwest-rustls
-          cargo test -p atrium-xrpc-client --verbose --lib --no-default-features --features=isahc
-          cargo test -p atrium-xrpc-client --verbose --lib --no-default-features --features=surf
-          cargo test -p atrium-xrpc-client --verbose --lib --all-features
+          cargo test -p atrium-xrpc-client --lib
+          cargo test -p atrium-xrpc-client --lib --no-default-features --features=reqwest-native
+          cargo test -p atrium-xrpc-client --lib --no-default-features --features=reqwest-rustls
+          cargo test -p atrium-xrpc-client --lib --no-default-features --features=isahc
+          cargo test -p atrium-xrpc-client --lib --no-default-features --features=surf
+          cargo test -p atrium-xrpc-client --lib --all-features
       - name: Run doctests
-        run: cargo test -p atrium-xrpc-client --verbose --doc --all-features
+        run: cargo test -p atrium-xrpc-client --doc --all-features
