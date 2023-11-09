@@ -7,13 +7,13 @@ use std::error::Error;
 #[derive(Debug, Default)]
 pub struct ReqwestClient {
     client: reqwest::Client,
-    host: String,
+    base_uri: String,
 }
 
 impl ReqwestClient {
-    pub fn new(host: String) -> Self {
+    pub fn new(base_uri: String) -> Self {
         Self {
-            host,
+            base_uri,
             ..Default::default()
         }
     }
@@ -37,7 +37,7 @@ impl HttpClient for ReqwestClient {
 }
 
 impl XrpcClient for ReqwestClient {
-    fn host(&self) -> &str {
-        &self.host
+    fn base_uri(&self) -> &str {
+        &self.base_uri
     }
 }

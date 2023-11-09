@@ -46,7 +46,7 @@ pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
 
 #[async_trait]
 pub trait XrpcClient: HttpClient {
-    fn host(&self) -> &str;
+    fn base_uri(&self) -> &str;
     #[allow(unused_variables)]
     fn auth(&self, is_refresh: bool) -> Option<String> {
         None
@@ -58,7 +58,7 @@ pub trait XrpcClient: HttpClient {
         O: DeserializeOwned + Send + Sync,
         E: DeserializeOwned + Send + Sync,
     {
-        let mut uri = format!("{}/xrpc/{}", self.host(), request.path);
+        let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.path);
         if let Some(p) = &request.parameters {
             serde_qs::to_string(p).map(|qs| {
                 uri += "?";
@@ -135,7 +135,7 @@ mod tests {
 
     #[async_trait]
     impl XrpcClient for DummyClient {
-        fn host(&self) -> &str {
+        fn base_uri(&self) -> &str {
             "https://example.com"
         }
     }

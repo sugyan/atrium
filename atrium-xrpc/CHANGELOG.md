@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.4.1...atrium-xrpc-v0.5.0) - 2023-11-09
+
+### Added
+- *(xrpc)* Rename XrpcClient method: `host` to `base_uri` ([#64](https://github.com/sugyan/atrium/pull/64))
+
 ## [0.4.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.4.0...atrium-xrpc-v0.4.1) - 2023-11-02
 
 ### Added
