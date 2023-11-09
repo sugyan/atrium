@@ -65,3 +65,38 @@ impl XrpcClient for IsahcClient {
         &self.host
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use isahc::config::Configurable;
+    use std::time::Duration;
+
+    #[test]
+    fn new() -> Result<(), Box<dyn std::error::Error>> {
+        let client = IsahcClient::new("http://localhost:8080");
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+
+    #[test]
+    fn builder_without_client() -> Result<(), Box<dyn std::error::Error>> {
+        let client = IsahcClientBuilder::new("http://localhost:8080").build();
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+
+    #[test]
+    fn builder_with_client() -> Result<(), Box<dyn std::error::Error>> {
+        let client = IsahcClientBuilder::new("http://localhost:8080")
+            .client(
+                Client::builder()
+                    .default_header(http::header::USER_AGENT, "USER_AGENT")
+                    .timeout(Duration::from_millis(500))
+                    .build()?,
+            )
+            .build();
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+}

@@ -62,3 +62,37 @@ impl XrpcClient for ReqwestClient {
         &self.host
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::Duration;
+
+    #[test]
+    fn new() -> Result<(), Box<dyn std::error::Error>> {
+        let client = ReqwestClient::new("http://localhost:8080");
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+
+    #[test]
+    fn builder_without_client() -> Result<(), Box<dyn std::error::Error>> {
+        let client = ReqwestClientBuilder::new("http://localhost:8080").build();
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+
+    #[test]
+    fn builder_with_client() -> Result<(), Box<dyn std::error::Error>> {
+        let client = ReqwestClientBuilder::new("http://localhost:8080")
+            .client(
+                Client::builder()
+                    .user_agent("USER_AGENT")
+                    .timeout(Duration::from_millis(500))
+                    .build()?,
+            )
+            .build();
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+}

@@ -57,3 +57,27 @@ impl XrpcClient for SurfClient {
         &self.host
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use http_client::h1::H1Client;
+    use std::time::Duration;
+
+    #[test]
+    fn new() -> Result<(), Box<dyn std::error::Error>> {
+        let client = SurfClient::new(
+            "http://localhost:8080",
+            Client::try_from(
+                surf::Config::default()
+                    .set_http_client(H1Client::try_from(
+                        http_client::Config::default()
+                            .set_timeout(Some(Duration::from_millis(500))),
+                    )?)
+                    .add_header(surf::http::headers::USER_AGENT, "USER_AGENT")?,
+            )?,
+        );
+        assert_eq!(client.host(), "http://localhost:8080");
+        Ok(())
+    }
+}
