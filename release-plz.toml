@@ -13,5 +13,10 @@ publish = true
 changelog_update = true
 
 [[package]]
+name = "atrium-xrpc-client"
+publish = true
+changelog_update = true
+
+[[package]]
 name = "atrium-cli"
 changelog_update = true
