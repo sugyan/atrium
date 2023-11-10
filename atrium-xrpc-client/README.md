@@ -1,5 +1,10 @@
 # ATrium XRPC Client
 
+[![](https://img.shields.io/crates/v/atrium-xrpc-client)](https://crates.io/crates/atrium-xrpc-client)
+[![](https://img.shields.io/docsrs/atrium-xrpc-client)](https://docs.rs/atrium-xrpc-client)
+[![](https://img.shields.io/crates/l/atrium-xrpc-client)](https://github.com/sugyan/atrium/blob/main/LICENSE)
+[![Rust](https://github.com/sugyan/atrium/actions/workflows/xrpc-client.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/xrpc-client.yml)
+
 This library provides clients that implement the [`XrpcClient`](https://docs.rs/atrium-xrpc/latest/atrium_xrpc/trait.XrpcClient.html) defined in [`atrium-xrpc`](../atrium-xrpc/). To accommodate a wide range of use cases, four feature flags are provided to allow developers to choose the best asynchronous HTTP client library for their project as a backend.
 
 ## Features
