@@ -30,7 +30,14 @@ A library that generates Rust code for the `atrium-api` based on the analyzed le
 [![](https://img.shields.io/crates/v/atrium-xrpc)](https://crates.io/crates/atrium-xrpc)
 [![](https://img.shields.io/docsrs/atrium-xrpc)](https://docs.rs/atrium-xrpc)
 
-A client library that offers a convenient way to interact with the `atrium-api` and utilize its features.
+Definitions for XRPC request/response, and their associated errors.
+
+### [`atrium-xrpc-client`](./atrium-xrpc-client/)
+
+[![](https://img.shields.io/crates/v/atrium-xrpc-client)](https://crates.io/crates/atrium-xrpc-client)
+[![](https://img.shields.io/docsrs/atrium-xrpc-client)](https://docs.rs/atrium-xrpc-client)
+
+A library provides clients that implement the `XrpcClient` defined in [atrium-xrpc](./atrium-xrpc/)
 
 ### [`atrium-cli`](./atrium-cli/)
 
