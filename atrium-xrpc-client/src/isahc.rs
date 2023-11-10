@@ -5,33 +5,47 @@ use http::{Request, Response};
 use isahc::{AsyncReadResponseExt, HttpClient as Client};
 use std::sync::Arc;
 
+/// A [`isahc`] based asynchronous client to make XRPC requests with.
+///
+/// To change the [`isahc::HttpClient`] used internally to a custom configured one,
+/// use the [`IsahcClientBuilder`].
+///
+/// You do **not** have to wrap the `Client` in an [`Rc`] or [`Arc`] to **reuse** it,
+/// because it already uses an [`Arc`] internally.
+///
+/// [`Rc`]: std::rc::Rc
 pub struct IsahcClient {
     base_uri: String,
     client: Arc<Client>,
 }
 
 impl IsahcClient {
+    /// Create a new [`IsahcClient`] using the default configuration.
     pub fn new(base_uri: impl AsRef<str>) -> Self {
         IsahcClientBuilder::new(base_uri).build()
     }
 }
 
+/// A client builder, capable of creating custom [`IsahcClient`] instances.
 pub struct IsahcClientBuilder {
     base_uri: String,
     client: Option<Client>,
 }
 
 impl IsahcClientBuilder {
+    /// Create a new [`IsahcClientBuilder`] for building a custom client.
     pub fn new(base_uri: impl AsRef<str>) -> Self {
         Self {
             base_uri: base_uri.as_ref().into(),
             client: None,
         }
     }
+    /// Sets the [`isahc::HttpClient`] to use.
     pub fn client(mut self, client: Client) -> Self {
         self.client = Some(client);
         self
     }
+    /// Build an [`IsahcClient`] using the configured options.
     pub fn build(self) -> IsahcClient {
         IsahcClient {
             base_uri: self.base_uri,

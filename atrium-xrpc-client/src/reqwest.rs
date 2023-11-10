@@ -5,33 +5,47 @@ use http::{Request, Response};
 use reqwest::Client;
 use std::sync::Arc;
 
+/// A [`reqwest`] based asynchronous client to make XRPC requests with.
+///
+/// To change the [`reqwest::Client`] used internally to a custom configured one,
+/// use the [`ReqwestClientBuilder`].
+///
+/// You do **not** have to wrap the `Client` in an [`Rc`] or [`Arc`] to **reuse** it,
+/// because it already uses an [`Arc`] internally.
+///
+/// [`Rc`]: std::rc::Rc
 pub struct ReqwestClient {
     base_uri: String,
     client: Arc<Client>,
 }
 
 impl ReqwestClient {
+    /// Create a new [`ReqwestClient`] using the default configuration.
     pub fn new(base_uri: impl AsRef<str>) -> ReqwestClient {
         ReqwestClientBuilder::new(base_uri).build()
     }
 }
 
+/// A client builder, capable of creating custom [`ReqwestClient`] instances.
 pub struct ReqwestClientBuilder {
     base_uri: String,
     client: Option<Client>,
 }
 
 impl ReqwestClientBuilder {
+    /// Create a new [`ReqwestClientBuilder`] for building a custom client.
     pub fn new(base_uri: impl AsRef<str>) -> Self {
         Self {
             base_uri: base_uri.as_ref().into(),
             client: None,
         }
     }
+    /// Sets the [`reqwest::Client`] to use.
     pub fn client(mut self, client: Client) -> Self {
         self.client = Some(client);
         self
     }
+    /// Build an [`ReqwestClient`] using the configured options.
     pub fn build(self) -> ReqwestClient {
         ReqwestClient {
             base_uri: self.base_uri,

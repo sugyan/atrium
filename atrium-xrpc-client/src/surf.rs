@@ -5,12 +5,19 @@ use http::{Request, Response};
 use std::sync::Arc;
 use surf::Client;
 
+/// A [`surf`] based asynchronous client to make XRPC requests with.
+///
+/// You do **not** have to wrap the `Client` in an [`Rc`] or [`Arc`] to **reuse** it,
+/// because it already uses an [`Arc`] internally.
+///
+/// [`Rc`]: std::rc::Rc
 pub struct SurfClient {
     base_uri: String,
     client: Arc<Client>,
 }
 
 impl SurfClient {
+    /// Create a new [`SurfClient`] using the passed [`surf::Client`].
     pub fn new(base_uri: impl AsRef<str>, client: Client) -> Self {
         Self {
             base_uri: base_uri.as_ref().to_string(),

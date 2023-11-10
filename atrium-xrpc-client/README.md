@@ -1,6 +1,6 @@
 # ATrium XRPC Client
 
-This library provides clients that implement the `XrpcClient` defined in [`atrium-xrpc`](../atrium-xrpc/). To accommodate a wide range of use cases, four feature flags are provided to allow developers to choose the best asynchronous HTTP client library for their project as a backend.
+This library provides clients that implement the [`XrpcClient`](https://docs.rs/atrium-xrpc/latest/atrium_xrpc/trait.XrpcClient.html) defined in [`atrium-xrpc`](../atrium-xrpc/). To accommodate a wide range of use cases, four feature flags are provided to allow developers to choose the best asynchronous HTTP client library for their project as a backend.
 
 ## Features
 
