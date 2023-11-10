@@ -1,5 +1,4 @@
 #![doc = include_str!("../README.md")]
-pub mod client;
 pub mod error;
 
 use crate::error::{Error, XrpcError, XrpcErrorKind};
@@ -7,6 +6,9 @@ use async_trait::async_trait;
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 
+/// A type which can be used as a parameter of [`XrpcRequest`].
+///
+/// JSON serializable data or raw bytes.
 pub enum InputDataOrBytes<T>
 where
     T: Serialize,
@@ -15,6 +17,9 @@ where
     Bytes(Vec<u8>),
 }
 
+/// A type which can be used as a return value of [`XrpcClient::send_xrpc()`].
+///
+/// JSON deserializable data or raw bytes.
 pub enum OutputDataOrBytes<T>
 where
     T: DeserializeOwned,
@@ -23,6 +28,7 @@ where
     Bytes(Vec<u8>),
 }
 
+/// An abstract HTTP client.
 #[async_trait]
 pub trait HttpClient {
     async fn send_http(
@@ -31,6 +37,7 @@ pub trait HttpClient {
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>;
 }
 
+/// A request which can be executed with [`XrpcClient::send_xrpc()`].
 pub struct XrpcRequest<P, I>
 where
     I: Serialize,
@@ -44,6 +51,10 @@ where
 
 pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
 
+/// An abstract XRPC client.
+///
+/// [`send_xrpc()`](XrpcClient::send_xrpc) method has a default implementation,
+/// which wraps the [`HttpClient::send_http()`]` method to handle input and output as an XRPC Request.
 #[async_trait]
 pub trait XrpcClient: HttpClient {
     fn base_uri(&self) -> &str;

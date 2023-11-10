@@ -2,7 +2,7 @@
 use http::StatusCode;
 use std::fmt::Debug;
 
-/// [Custom error codes and descriptions](https://atproto.com/specs/xrpc#custom-error-codes-and-descriptions)
+/// [A standard error response schema](https://atproto.com/specs/xrpc#error-responses)
 ///
 /// ```typescript
 /// export const errorResponseBody = z.object({
@@ -17,6 +17,9 @@ pub struct ErrorResponseBody {
     pub message: Option<String>,
 }
 
+/// An enum of possible XRPC error kinds.
+///
+/// Error defined in Lexicon schema or other standard error.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum XrpcErrorKind<E> {
@@ -31,6 +34,7 @@ pub struct XrpcError<E> {
     pub error: Option<XrpcErrorKind<E>>,
 }
 
+/// An enum of possible error kinds.
 #[derive(thiserror::Error, Debug)]
 pub enum Error<E> {
     #[error("xrpc response error: {0:?}")]

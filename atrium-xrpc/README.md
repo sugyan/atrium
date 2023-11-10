@@ -6,10 +6,5 @@
 [![Rust](https://github.com/sugyan/atrium/actions/workflows/xrpc.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/xrpc.yml)
 
 Definitions for ATProto's [XRPC](https://atproto.com/specs/xrpc) request/response, and their associated errors.
-And a client using [`reqwest`](https://crates.io/crates/reqwest) that can be used as its default implementation is included.
 
-```rust
-use atrium_xrpc::client::reqwest::ReqwestClient;
-
-let client = ReqwestClient::new("https://bsky.social".into());
-```
+The `XrpcClient` trait inherits from and uses `HttpClient` to provide a default implementation for handling XRPC requests. So developers can create their own Client for XRPC by implementing an `HttpClient` that sends asynchronous HTTP requests according to this interface.
