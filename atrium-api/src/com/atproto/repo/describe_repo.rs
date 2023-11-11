@@ -11,7 +11,7 @@ pub struct Parameters {
 pub struct Output {
     pub collections: Vec<String>,
     pub did: String,
-    pub did_doc: crate::records::Record,
+    pub did_doc: crate::did_doc::DidDocument,
     pub handle: String,
     pub handle_is_correct: bool,
 }

@@ -266,7 +266,7 @@ fn lex_object_property(
         LexObjectProperty::Boolean(boolean) => boolean_type(boolean)?,
         LexObjectProperty::Integer(integer) => integer_type(integer)?,
         LexObjectProperty::String(string) => string_type(string)?,
-        LexObjectProperty::Unknown(unknown) => unknown_type(unknown)?,
+        LexObjectProperty::Unknown(unknown) => unknown_type(unknown, Some(name))?,
     };
     // TODO: must be determined
     if field_type.is_empty() {
@@ -340,7 +340,7 @@ fn array_type(
     let (_, item_type) = match &array.items {
         LexArrayItem::Integer(integer) => integer_type(integer)?,
         LexArrayItem::String(string) => string_type(string)?,
-        LexArrayItem::Unknown(unknown) => unknown_type(unknown)?,
+        LexArrayItem::Unknown(unknown) => unknown_type(unknown, None)?,
         LexArrayItem::CidLink(cid_link) => cid_link_type(cid_link)?,
         LexArrayItem::Ref(r#ref) => ref_type(r#ref)?,
         LexArrayItem::Union(union) => union_type(
@@ -383,9 +383,13 @@ fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
     Ok((description, quote!(String)))
 }
 
-fn unknown_type(unknown: &LexUnknown) -> Result<(TokenStream, TokenStream)> {
+fn unknown_type(unknown: &LexUnknown, name: Option<&str>) -> Result<(TokenStream, TokenStream)> {
     let description = description(&unknown.description);
-    Ok((description, quote!(crate::records::Record)))
+    if name == Some("didDoc") {
+        Ok((description, quote!(crate::did_doc::DidDocument)))
+    } else {
+        Ok((description, quote!(crate::records::Record)))
+    }
 }
 
 fn description(description: &Option<String>) -> TokenStream {
