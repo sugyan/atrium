@@ -6,6 +6,8 @@ pub struct AccountView {
     pub did: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email_confirmed_at: Option<String>,
     pub handle: String,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -179,6 +181,8 @@ pub struct RepoViewDetail {
     pub did: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email_confirmed_at: Option<String>,
     pub handle: String,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
