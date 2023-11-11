@@ -6,4 +6,5 @@ pub mod app;
 pub mod blob;
 pub mod client;
 pub mod com;
+pub mod did_doc;
 pub mod records;
