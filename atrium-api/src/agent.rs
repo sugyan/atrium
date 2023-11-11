@@ -37,8 +37,8 @@ impl<T> XrpcClient for SessionAuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    fn host(&self) -> &str {
-        self.inner.host()
+    fn base_uri(&self) -> &str {
+        self.inner.base_uri()
     }
     fn auth(&self, is_refresh: bool) -> Option<String> {
         self.session.read().ok().and_then(|lock| {
@@ -164,8 +164,8 @@ impl<T> XrpcClient for RefreshWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    fn host(&self) -> &str {
-        self.inner.host()
+    fn base_uri(&self) -> &str {
+        self.inner.base_uri()
     }
     fn auth(&self, is_refresh: bool) -> Option<String> {
         self.inner.auth(is_refresh)
@@ -370,7 +370,7 @@ mod tests {
     }
 
     impl XrpcClient for DummyClient {
-        fn host(&self) -> &str {
+        fn base_uri(&self) -> &str {
             "http://localhost:8080"
         }
     }
@@ -438,6 +438,7 @@ mod tests {
             responses: DummyResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
                     did: session.did.clone(),
+                    did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
@@ -467,6 +468,7 @@ mod tests {
             responses: DummyResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
                     did: session.did.clone(),
+                    did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
@@ -500,6 +502,7 @@ mod tests {
             responses: DummyResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
                     did: session.did.clone(),
+                    did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
@@ -549,6 +552,7 @@ mod tests {
                 responses: DummyResponses {
                     get_session: Some(crate::com::atproto::server::get_session::Output {
                         did: session.did.clone(),
+                        did_doc: session.did_doc.clone(),
                         email: session.email.clone(),
                         email_confirmed: session.email_confirmed,
                         handle: session.handle.clone(),
@@ -593,6 +597,7 @@ mod tests {
             responses: DummyResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
                     did: session.did.clone(),
+                    did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
