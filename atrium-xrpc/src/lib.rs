@@ -59,7 +59,7 @@ pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
 pub trait XrpcClient: HttpClient {
     fn base_uri(&self) -> &str;
     #[allow(unused_variables)]
-    fn auth(&self, is_refresh: bool) -> Option<String> {
+    async fn auth(&self, is_refresh: bool) -> Option<String> {
         None
     }
     async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
@@ -80,9 +80,13 @@ pub trait XrpcClient: HttpClient {
         if let Some(encoding) = &request.encoding {
             builder = builder.header(http::header::CONTENT_TYPE, encoding);
         }
-        if let Some(token) = self.auth(
-            request.method == Method::POST && request.path == "com.atproto.server.refreshSession",
-        ) {
+        if let Some(token) = self
+            .auth(
+                request.method == Method::POST
+                    && request.path == "com.atproto.server.refreshSession",
+            )
+            .await
+        {
             builder = builder.header(http::header::AUTHORIZATION, format!("Bearer {}", token));
         }
         let body = if let Some(input) = &request.input {
