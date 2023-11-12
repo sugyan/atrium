@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.1.1...atrium-xrpc-client-v0.1.2) - 2023-11-12
+
+### Added
+- Update dependencies ([#74](https://github.com/sugyan/atrium/pull/74))
+
 ## [0.1.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.1.0...atrium-xrpc-client-v0.1.1) - 2023-11-10
 
 ### Other
