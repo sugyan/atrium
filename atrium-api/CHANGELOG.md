@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.12.0...atrium-api-v0.13.0) - 2023-11-13
+
+### Added
+- Allow AtpAgent to be excluded as a default feature ([#79](https://github.com/sugyan/atrium/pull/79))
+- Update xprc, use tokio::sync::RwLock for agent ([#76](https://github.com/sugyan/atrium/pull/76))
+
+### Fixed
+- Update formatter ([#80](https://github.com/sugyan/atrium/pull/80))
+
 ## [0.12.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.11.0...atrium-api-v0.12.0) - 2023-11-11
 
 ### Added
