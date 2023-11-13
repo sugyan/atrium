@@ -445,12 +445,10 @@ pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result
 pub fn modules(names: &[String]) -> Result<TokenStream> {
     let v = names
         .iter()
-        .filter_map(|s| {
-            if s != "lib" {
-                let m = format_ident!("{s}");
-                Some(quote!(pub mod #m;))
-            } else {
-                None
+        .map(|s| {
+            let m = format_ident!("{s}");
+            quote! {
+                pub mod #m;
             }
         })
         .collect_vec();

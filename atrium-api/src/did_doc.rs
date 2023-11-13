@@ -1,3 +1,4 @@
+//! Definitions for DID document types.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct DidDocument {
