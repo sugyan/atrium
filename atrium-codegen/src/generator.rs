@@ -127,17 +127,14 @@ pub(crate) fn generate_client(
 }
 
 pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
-    let paths = find_dirs(outdir)?;
+    let mut paths = find_dirs(outdir)?;
+    paths.retain(|p| p.as_ref() != outdir);
     let mut files = Vec::with_capacity(paths.len());
     // generate ".rs" files names
     for path in &paths {
-        if path.as_ref() == outdir {
-            files.push(outdir.join("lib.rs"));
-        } else {
-            let mut p = path.as_ref().to_path_buf();
-            p.set_extension("rs");
-            files.push(p);
-        }
+        let mut p = path.as_ref().to_path_buf();
+        p.set_extension("rs");
+        files.push(p);
     }
     // write "mod" statements
     for (path, filepath) in paths.iter().zip(&files) {
