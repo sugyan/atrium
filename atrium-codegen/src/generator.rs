@@ -173,8 +173,9 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
     Ok(files)
 }
 
-fn write_to_file(mut file: impl Write, content: TokenStream) -> Result<(), std::io::Error> {
+fn write_to_file(mut file: impl Write, content: TokenStream) -> Result<(), Box<dyn Error>> {
+    let parsed = syn::parse_file(&content.to_string())?;
     writeln!(file, "{HEADER}")?;
-    writeln!(file, "{content}")?;
+    write!(file, "{}", prettyplease::unparse(&parsed))?;
     Ok(())
 }

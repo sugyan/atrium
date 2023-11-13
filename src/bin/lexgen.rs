@@ -1,7 +1,7 @@
 use atrium_codegen::genapi;
 use clap::Parser;
+use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
 
 #[derive(Parser, Debug)]
 struct Args {
@@ -16,17 +16,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let results = genapi(&args.lexdir, &args.outdir, &["app.bsky", "com.atproto"])?;
     for path in &results {
-        match Command::new("rustfmt")
-            .arg("--edition")
-            .arg("2021")
-            .arg(path.as_ref())
-            .status()
-        {
-            Ok(status) if status.success() => {}
-            _ => {
-                eprintln!("Failed to run rustfmt on {}", path.as_ref().display());
-            }
-        }
+        println!(
+            "{} ({} bytes)",
+            path.as_ref().display(),
+            fs::metadata(path.as_ref())?.len()
+        );
     }
     Ok(())
 }

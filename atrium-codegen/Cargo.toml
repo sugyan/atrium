@@ -8,6 +8,7 @@ authors = ["sugyan <sugi1982+github@gmail.com>"]
 atrium-lex = { path = "../atrium-lex" }
 heck = "0.4.1"
 itertools = "0.10.5"
+prettyplease = "0.2.15"
 proc-macro2 = "1.0.56"
 quote = "1.0.26"
 serde_json = "1.0"
