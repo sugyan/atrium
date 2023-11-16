@@ -27,7 +27,7 @@ agent = ["tokio/sync"]
 atrium-xrpc-client = "0.1"
 futures = "0.3.28"
 serde_json = "1.0.107"
-tokio = { version = "1.33.0", features = ["test-util", "macros"] }
+tokio = { version = "1.33.0", features = ["macros", "rt-multi-thread"] }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -17,7 +17,7 @@ use atrium_api::client::AtpServiceClient;
 use atrium_api::com::atproto::server::create_session::Input;
 use atrium_xrpc_client::reqwest::ReqwestClient;
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = AtpServiceClient::new(ReqwestClient::new("https://bsky.social"));
     let result = client
