@@ -1,6 +1,9 @@
 use super::*;
 use crate::agent::store::MemorySessionStore;
+use async_trait::async_trait;
+use atrium_xrpc::HttpClient;
 use futures::future::join_all;
+use http::{Request, Response};
 use std::collections::HashMap;
 use tokio::sync::RwLock;
 
@@ -107,7 +110,7 @@ fn session() -> Session {
 #[tokio::test]
 async fn test_new() {
     let agent = AtpAgent::new(DummyClient::default(), MemorySessionStore::default());
-    assert_eq!(agent.get_session().await, None);
+    assert_eq!(agent.store.get_session().await, None);
 }
 
 #[tokio::test]
@@ -129,7 +132,7 @@ async fn test_login() {
             .login("test", "pass")
             .await
             .expect("login should be succeeded");
-        assert_eq!(agent.get_session().await, Some(session));
+        assert_eq!(agent.store.get_session().await, Some(session));
     }
     // failure with `createSession` error
     {
@@ -144,7 +147,7 @@ async fn test_login() {
             .login("test", "bad")
             .await
             .expect_err("login should be failed");
-        assert_eq!(agent.get_session().await, None);
+        assert_eq!(agent.store.get_session().await, None);
     }
 }
 
@@ -206,7 +209,11 @@ async fn test_xrpc_get_session_with_refresh() {
         .expect("get session should be succeeded");
     assert_eq!(output.did, "did");
     assert_eq!(
-        agent.get_session().await.map(|session| session.access_jwt),
+        agent
+            .store
+            .get_session()
+            .await
+            .map(|session| session.access_jwt),
         Some("access".into())
     );
 }
@@ -245,7 +252,11 @@ async fn test_xrpc_get_session_with_duplicated_refresh() {
         assert_eq!(output.did, "did");
     }
     assert_eq!(
-        agent.get_session().await.map(|session| session.access_jwt),
+        agent
+            .store
+            .get_session()
+            .await
+            .map(|session| session.access_jwt),
         Some("access".into())
     );
     assert_eq!(
@@ -276,7 +287,7 @@ async fn test_resume_session() {
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        assert_eq!(agent.get_session().await, None);
+        assert_eq!(agent.store.get_session().await, None);
         agent
             .resume_session(Session {
                 email: Some(String::from("test@example.com")),
@@ -284,7 +295,7 @@ async fn test_resume_session() {
             })
             .await
             .expect("resume_session should be succeeded");
-        assert_eq!(agent.get_session().await, Some(session.clone()));
+        assert_eq!(agent.store.get_session().await, Some(session.clone()));
     }
     // failure with `getSession` error
     {
@@ -295,12 +306,12 @@ async fn test_resume_session() {
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        assert_eq!(agent.get_session().await, None);
+        assert_eq!(agent.store.get_session().await, None);
         agent
             .resume_session(session)
             .await
             .expect_err("resume_session should be failed");
-        assert_eq!(agent.get_session().await, None);
+        assert_eq!(agent.store.get_session().await, None);
     }
 }
 
@@ -328,5 +339,5 @@ async fn test_resume_session_with_refresh() {
         })
         .await
         .expect("resume_session should be succeeded");
-    assert_eq!(agent.get_session().await, Some(session));
+    assert_eq!(agent.store.get_session().await, Some(session));
 }
