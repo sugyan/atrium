@@ -11,7 +11,7 @@ const REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
 
 struct SessionAuthWrapper<S, T> {
     store: Arc<S>,
-    inner: Arc<T>,
+    inner: T,
 }
 
 #[async_trait]
@@ -50,9 +50,9 @@ where
 
 pub struct Inner<S, T> {
     store: Arc<S>,
-    inner: Arc<SessionAuthWrapper<S, T>>,
-    is_refreshing: Arc<Mutex<bool>>,
-    notify: Arc<Notify>,
+    inner: SessionAuthWrapper<S, T>,
+    is_refreshing: Mutex<bool>,
+    notify: Notify,
 }
 
 impl<S, T> Inner<S, T>
@@ -61,14 +61,15 @@ where
     T: XrpcClient + Send + Sync,
 {
     pub(crate) fn new(store: Arc<S>, xrpc: T) -> Self {
-        Self {
+        let inner = SessionAuthWrapper {
             store: Arc::clone(&store),
-            inner: Arc::new(SessionAuthWrapper {
-                store: Arc::clone(&store),
-                inner: Arc::new(xrpc),
-            }),
-            is_refreshing: Arc::new(Mutex::new(false)),
-            notify: Arc::new(Notify::new()),
+            inner: xrpc,
+        };
+        Self {
+            store,
+            inner,
+            is_refreshing: Mutex::new(false),
+            notify: Notify::new(),
         }
     }
     // Internal helper to refresh sessions
