@@ -38,7 +38,7 @@ impl<T> XrpcClient for SessionAuthWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    fn base_uri(&self) -> &str {
+    fn base_uri(&self) -> String {
         self.inner.base_uri()
     }
     async fn auth(&self, is_refresh: bool) -> Option<String> {
@@ -157,7 +157,7 @@ impl<T> XrpcClient for RefreshWrapper<T>
 where
     T: XrpcClient + Send + Sync,
 {
-    fn base_uri(&self) -> &str {
+    fn base_uri(&self) -> String {
         self.inner.base_uri()
     }
     async fn auth(&self, is_refresh: bool) -> Option<String> {
@@ -341,8 +341,8 @@ mod tests {
     }
 
     impl XrpcClient for DummyClient {
-        fn base_uri(&self) -> &str {
-            "http://localhost:8080"
+        fn base_uri(&self) -> String {
+            "http://localhost:8080".into()
         }
     }
 
