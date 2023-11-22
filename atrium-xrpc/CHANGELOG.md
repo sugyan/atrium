@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.7.0...atrium-xrpc-v0.7.1) - 2023-11-22
+## [0.8.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.7.0...atrium-xrpc-v0.8.0) - 2023-11-22
 
 ### Added
 - Update return type of base_uri ([#82](https://github.com/sugyan/atrium/pull/82))
