@@ -171,8 +171,8 @@ mod tests {
     }
 
     impl XrpcClient for DummyClient {
-        fn base_uri(&self) -> &str {
-            "http://localhost:8080"
+        fn base_uri(&self) -> String {
+            "http://localhost:8080".into()
         }
     }
 

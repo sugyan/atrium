@@ -57,7 +57,7 @@ pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
 /// which wraps the [`HttpClient::send_http()`]` method to handle input and output as an XRPC Request.
 #[async_trait]
 pub trait XrpcClient: HttpClient {
-    fn base_uri(&self) -> &str;
+    fn base_uri(&self) -> String;
     #[allow(unused_variables)]
     async fn auth(&self, is_refresh: bool) -> Option<String> {
         None
@@ -150,8 +150,8 @@ mod tests {
 
     #[async_trait]
     impl XrpcClient for DummyClient {
-        fn base_uri(&self) -> &str {
-            "https://example.com"
+        fn base_uri(&self) -> String {
+            "https://example.com".into()
         }
     }
 

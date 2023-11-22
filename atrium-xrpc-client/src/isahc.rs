@@ -75,8 +75,8 @@ impl HttpClient for IsahcClient {
 }
 
 impl XrpcClient for IsahcClient {
-    fn base_uri(&self) -> &str {
-        &self.base_uri
+    fn base_uri(&self) -> String {
+        self.base_uri.clone()
     }
 }
 

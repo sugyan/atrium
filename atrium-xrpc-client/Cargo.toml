@@ -1,6 +1,6 @@
 [package]
 name = "atrium-xrpc-client"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition = "2021"
 description = "XRPC Client library for AT Protocol (Bluesky)"
@@ -12,7 +12,7 @@ keywords = ["atproto", "bluesky"]
 
 [dependencies]
 async-trait = "0.1.74"
-atrium-xrpc = "0.7.0"
+atrium-xrpc = "0.8.0"
 http = "0.2.9"
 
 [dependencies.isahc]

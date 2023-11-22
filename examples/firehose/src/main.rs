@@ -7,10 +7,10 @@ use tokio_tungstenite::{connect_async, tungstenite};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let (mut stream, _) =
-        connect_async("wss://bsky.social/xrpc/com.atproto.sync.subscribeRepos").await?;
+        connect_async("wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos").await?;
 
     while let Some(Ok(tungstenite::Message::Binary(message))) = stream.next().await {
-        process_message(&message).await?;
+        process_message(&message).await.unwrap();
     }
     Ok(())
 }

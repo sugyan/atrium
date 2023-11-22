@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 atrium-xrpc-server = { path = "../../atrium-xrpc-server" }
-atrium-api = "0.3"
+atrium-api = "0.13"
 ciborium = "0.2.1"
 futures = "0.3.28"
 rs-car = "0.4.1"

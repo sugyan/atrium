@@ -72,8 +72,8 @@ impl HttpClient for ReqwestClient {
 }
 
 impl XrpcClient for ReqwestClient {
-    fn base_uri(&self) -> &str {
-        &self.base_uri
+    fn base_uri(&self) -> String {
+        self.base_uri.clone()
     }
 }
 
