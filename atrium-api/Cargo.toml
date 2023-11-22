@@ -11,7 +11,7 @@ license = "MIT"
 keywords = ["atproto", "bluesky"]
 
 [dependencies]
-atrium-xrpc = "0.7.0"
+atrium-xrpc = "0.8.0"
 async-trait = "0.1.68"
 cid = { version = "0.10.1", features = ["serde-codec"] }
 http = "0.2.9"
@@ -24,7 +24,7 @@ default = ["agent"]
 agent = ["tokio/sync"]
 
 [dev-dependencies]
-atrium-xrpc-client = "0.1"
+atrium-xrpc-client = "0.2.0"
 futures = "0.3.28"
 serde_json = "1.0.107"
 tokio = { version = "1.33.0", features = ["test-util", "macros"] }
