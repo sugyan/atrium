@@ -60,8 +60,8 @@ impl HttpClient for SurfClient {
 }
 
 impl XrpcClient for SurfClient {
-    fn base_uri(&self) -> &str {
-        &self.base_uri
+    fn base_uri(&self) -> String {
+        self.base_uri.clone()
     }
 }
 
