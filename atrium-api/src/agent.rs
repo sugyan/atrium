@@ -1,5 +1,4 @@
-//! An ATP "Agent".
-//! Manages session token lifecycles and provides all XRPC methods.
+//! Implementation of [`AtpAgent`] and definitions of [`SessionStore`] for it.
 mod inner;
 pub mod store;
 
@@ -12,6 +11,8 @@ use std::sync::Arc;
 /// Type alias for the [com::atproto::server::create_session::Output](crate::com::atproto::server::create_session::Output)
 pub type Session = crate::com::atproto::server::create_session::Output;
 
+/// An ATP "Agent".
+/// Manages session token lifecycles and provides convenience methods.
 pub struct AtpAgent<S, T>
 where
     S: SessionStore + Send + Sync,
@@ -35,8 +36,8 @@ where
     /// Start a new session with this agent.
     pub async fn login(
         &self,
-        identifier: &str,
-        password: &str,
+        identifier: impl AsRef<str>,
+        password: impl AsRef<str>,
     ) -> Result<Session, Error<crate::com::atproto::server::create_session::Error>> {
         let result = self
             .api
@@ -44,8 +45,8 @@ where
             .atproto
             .server
             .create_session(crate::com::atproto::server::create_session::Input {
-                identifier: identifier.into(),
-                password: password.into(),
+                identifier: identifier.as_ref().into(),
+                password: password.as_ref().into(),
             })
             .await?;
         self.store.set_session(result.clone()).await;
