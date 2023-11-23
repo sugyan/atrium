@@ -1,6 +1,6 @@
 [package]
 name = "atrium-api"
-version = "0.13.1"
+version = "0.14.0"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition = "2021"
 description = "API library for AT Protocol (Bluesky)"
