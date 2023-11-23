@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.13.1...atrium-api-v0.14.0) - 2023-11-23
+
+### Added
+- Switch PDS API endpoint dynamically ([#88](https://github.com/sugyan/atrium/pull/88))
+
 ## [0.13.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.13.0...atrium-api-v0.13.1) - 2023-11-22
 
 ### Added
