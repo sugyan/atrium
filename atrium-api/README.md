@@ -17,7 +17,7 @@ use atrium_api::client::AtpServiceClient;
 use atrium_api::com::atproto::server::create_session::Input;
 use atrium_xrpc_client::reqwest::ReqwestClient;
 
-#[tokio::main(flavor = "current_thread")]
+#[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let client = AtpServiceClient::new(ReqwestClient::new("https://bsky.social"));
     let result = client
@@ -30,6 +30,35 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             password: "hunter2".into(),
         })
         .await;
+    println!("{:?}", result);
+    Ok(())
+}
+```
+
+### `AtpAgent`
+
+While `AtpServiceClient` can be used for simple XRPC calls, it is better to use `AtpAgent`, which has practical features such as session management.
+
+```rust,no_run
+use atrium_api::agent::{store::MemorySessionStore, AtpAgent};
+use atrium_xrpc_client::reqwest::ReqwestClient;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let agent = AtpAgent::new(
+        ReqwestClient::new("https://bsky.social"),
+        MemorySessionStore::default(),
+    );
+    agent.login("alice@mail.com", "hunter2").await?;
+    let result = agent
+        .api
+        .app
+        .bsky
+        .actor
+        .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
+            actor: "bsky.app".into(),
+        })
+        .await?;
     println!("{:?}", result);
     Ok(())
 }
