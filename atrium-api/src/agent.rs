@@ -17,8 +17,8 @@ where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
-    store: Arc<S>,
-    pub api: Service<inner::Inner<S, T>>,
+    store: Arc<inner::Store<S>>,
+    pub api: Service<inner::Client<S, T>>,
 }
 
 impl<S, T> AtpAgent<S, T>
@@ -28,9 +28,9 @@ where
 {
     /// Create a new agent.
     pub fn new(xrpc: T, store: S) -> Self {
-        let store = Arc::new(store);
-        let api = Service::new(Arc::new(inner::Inner::new(Arc::clone(&store), xrpc)));
-        Self { api, store }
+        let store = Arc::new(inner::Store::new(store, xrpc.base_uri()));
+        let api = Service::new(Arc::new(inner::Client::new(Arc::clone(&store), xrpc)));
+        Self { store, api }
     }
     /// Start a new session with this agent.
     pub async fn login(
@@ -49,6 +49,9 @@ where
             })
             .await?;
         self.store.set_session(result.clone()).await;
+        if let Some(did_doc) = &result.did_doc {
+            self.store.update_endpoint(did_doc);
+        }
         Ok(result)
     }
     /// Resume a pre-existing session with this agent.
@@ -62,11 +65,14 @@ where
             Ok(output) => {
                 assert_eq!(output.did, session.did);
                 if let Some(mut session) = self.store.get_session().await {
-                    session.did_doc = output.did_doc;
+                    session.did_doc = output.did_doc.clone();
                     session.email = output.email;
                     session.email_confirmed = output.email_confirmed;
                     session.handle = output.handle;
                     self.store.set_session(session).await;
+                }
+                if let Some(did_doc) = &output.did_doc {
+                    self.store.update_endpoint(did_doc);
                 }
                 Ok(())
             }
@@ -82,6 +88,7 @@ where
 mod tests {
     use super::*;
     use crate::agent::store::MemorySessionStore;
+    use crate::did_doc::{DidDocument, Service, VerificationMethod};
     use async_trait::async_trait;
     use atrium_xrpc::HttpClient;
     use futures::future::join_all;
@@ -421,5 +428,88 @@ mod tests {
             .await
             .expect("resume_session should be succeeded");
         assert_eq!(agent.store.get_session().await, Some(session));
+    }
+
+    #[tokio::test]
+    async fn test_login_with_diddoc() {
+        let session = session();
+        let did_doc = DidDocument {
+            id: "did:plc:ewvi7nxzyoun6zhxrhs64oiz".into(),
+            also_known_as: Some(vec!["at://atproto.com".into()]),
+            verification_method: Some(vec![VerificationMethod {
+                id: "did:plc:ewvi7nxzyoun6zhxrhs64oiz#atproto".into(),
+                r#type: "Multikey".into(),
+                controller: "did:plc:ewvi7nxzyoun6zhxrhs64oiz".into(),
+                public_key_multibase: Some(
+                    "zQ3shXjHeiBuRCKmM36cuYnm7YEMzhGnCmCyW92sRJ9pribSF".into(),
+                ),
+            }]),
+            service: Some(vec![Service {
+                id: "#atproto_pds".into(),
+                r#type: "AtprotoPersonalDataServer".into(),
+                service_endpoint: "https://bsky.social".into(),
+            }]),
+        };
+        // success
+        {
+            let client = DummyClient {
+                responses: DummyResponses {
+                    create_session: Some(crate::com::atproto::server::create_session::Output {
+                        did_doc: Some(did_doc.clone()),
+                        ..session.clone()
+                    }),
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+            let agent = AtpAgent::new(client, MemorySessionStore::default());
+            agent
+                .login("test", "pass")
+                .await
+                .expect("login should be succeeded");
+            assert_eq!(agent.store.get_endpoint(), "https://bsky.social");
+            assert_eq!(
+                agent.api.com.atproto.server.xrpc.base_uri(),
+                "https://bsky.social"
+            );
+        }
+        // invalid services
+        {
+            let client = DummyClient {
+                responses: DummyResponses {
+                    create_session: Some(crate::com::atproto::server::create_session::Output {
+                        did_doc: Some(DidDocument {
+                            service: Some(vec![
+                                Service {
+                                    id: "#pds".into(), // not `#atproto_pds`
+                                    r#type: "AtprotoPersonalDataServer".into(),
+                                    service_endpoint: "https://bsky.social".into(),
+                                },
+                                Service {
+                                    id: "#atproto_pds".into(),
+                                    r#type: "AtprotoPersonalDataServer".into(),
+                                    service_endpoint: "htps://bsky.social".into(), // invalid url (not `https`)
+                                },
+                            ]),
+                            ..did_doc.clone()
+                        }),
+                        ..session.clone()
+                    }),
+                    ..Default::default()
+                },
+                ..Default::default()
+            };
+            let agent = AtpAgent::new(client, MemorySessionStore::default());
+            agent
+                .login("test", "pass")
+                .await
+                .expect("login should be succeeded");
+            // not updated
+            assert_eq!(agent.store.get_endpoint(), "http://localhost:8080");
+            assert_eq!(
+                agent.api.com.atproto.server.xrpc.base_uri(),
+                "http://localhost:8080"
+            );
+        }
     }
 }

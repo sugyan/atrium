@@ -1,21 +1,22 @@
-use super::SessionStore;
+use super::{Session, SessionStore};
+use crate::did_doc::DidDocument;
 use async_trait::async_trait;
 use atrium_xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest, XrpcResult};
-use http::{Method, Request, Response};
+use http::{Method, Request, Response, Uri};
 use serde::{de::DeserializeOwned, Serialize};
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 use tokio::sync::{Mutex, Notify};
 
 const REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
 
-struct SessionAuthWrapper<S, T> {
-    store: Arc<S>,
+struct SessionStoreClient<S, T> {
+    store: Arc<Store<S>>,
     inner: T,
 }
 
 #[async_trait]
-impl<S, T> HttpClient for SessionAuthWrapper<S, T>
+impl<S, T> HttpClient for SessionStoreClient<S, T>
 where
     S: Send + Sync,
     T: HttpClient + Send + Sync,
@@ -29,13 +30,13 @@ where
 }
 
 #[async_trait]
-impl<S, T> XrpcClient for SessionAuthWrapper<S, T>
+impl<S, T> XrpcClient for SessionStoreClient<S, T>
 where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
-    fn base_uri(&self) -> &str {
-        self.inner.base_uri()
+    fn base_uri(&self) -> String {
+        self.store.get_endpoint()
     }
     async fn auth(&self, is_refresh: bool) -> Option<String> {
         self.store.get_session().await.map(|session| {
@@ -48,20 +49,20 @@ where
     }
 }
 
-pub struct Inner<S, T> {
-    store: Arc<S>,
-    inner: SessionAuthWrapper<S, T>,
+pub struct Client<S, T> {
+    store: Arc<Store<S>>,
+    inner: SessionStoreClient<S, T>,
     is_refreshing: Mutex<bool>,
     notify: Notify,
 }
 
-impl<S, T> Inner<S, T>
+impl<S, T> Client<S, T>
 where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
-    pub(crate) fn new(store: Arc<S>, xrpc: T) -> Self {
-        let inner = SessionAuthWrapper {
+    pub(crate) fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
+        let inner = SessionStoreClient {
             store: Arc::clone(&store),
             inner: xrpc,
         };
@@ -93,10 +94,13 @@ where
             if let Some(mut session) = self.store.get_session().await {
                 session.access_jwt = output.access_jwt;
                 session.did = output.did;
-                session.did_doc = output.did_doc;
+                session.did_doc = output.did_doc.clone();
                 session.handle = output.handle;
                 session.refresh_jwt = output.refresh_jwt;
                 self.store.set_session(session).await;
+            }
+            if let Some(did_doc) = &output.did_doc {
+                self.store.update_endpoint(did_doc);
             }
         } else {
             self.store.clear_session().await;
@@ -141,7 +145,7 @@ where
 }
 
 #[async_trait]
-impl<S, T> HttpClient for Inner<S, T>
+impl<S, T> HttpClient for Client<S, T>
 where
     S: Send + Sync,
     T: HttpClient + Send + Sync,
@@ -155,12 +159,12 @@ where
 }
 
 #[async_trait]
-impl<S, T> XrpcClient for Inner<S, T>
+impl<S, T> XrpcClient for Client<S, T>
 where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
-    fn base_uri(&self) -> &str {
+    fn base_uri(&self) -> String {
         self.inner.base_uri()
     }
     async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
@@ -178,5 +182,71 @@ where
         } else {
             result
         }
+    }
+}
+
+pub struct Store<S> {
+    inner: S,
+    endpoint: RwLock<String>,
+}
+
+impl<S> Store<S> {
+    pub fn new(inner: S, initial_endpoint: String) -> Self {
+        Self {
+            inner,
+            endpoint: RwLock::new(initial_endpoint),
+        }
+    }
+    pub fn get_endpoint(&self) -> String {
+        self.endpoint
+            .read()
+            .expect("failed to read endpoint")
+            .clone()
+    }
+    pub fn update_endpoint(&self, did_doc: &DidDocument) {
+        if let Some(endpoint) = Self::get_pds_endpoint(did_doc) {
+            *self.endpoint.write().expect("failed to write endpoint") = endpoint;
+        }
+    }
+    fn get_pds_endpoint(did_doc: &DidDocument) -> Option<String> {
+        Self::get_service_endpoint(did_doc, ("#atproto_pds", "AtprotoPersonalDataServer"))
+    }
+    fn get_service_endpoint(did_doc: &DidDocument, (id, r#type): (&str, &str)) -> Option<String> {
+        let full_id = did_doc.id.clone() + id;
+        if let Some(services) = &did_doc.service {
+            let service = services
+                .iter()
+                .find(|service| service.id == id || service.id == full_id)?;
+            if service.r#type == r#type && Self::validate_url(&service.service_endpoint) {
+                return Some(service.service_endpoint.clone());
+            }
+        }
+        None
+    }
+    fn validate_url(url: &str) -> bool {
+        if let Ok(uri) = url.parse::<Uri>() {
+            if let Some(scheme) = uri.scheme() {
+                if (scheme == "https" || scheme == "http") && uri.host().is_some() {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+}
+
+#[async_trait]
+impl<S> SessionStore for Store<S>
+where
+    S: SessionStore + Send + Sync,
+{
+    async fn get_session(&self) -> Option<Session> {
+        self.inner.get_session().await
+    }
+    async fn set_session(&self, session: Session) {
+        self.inner.set_session(session).await;
+    }
+    async fn clear_session(&self) {
+        self.inner.clear_session().await;
     }
 }
