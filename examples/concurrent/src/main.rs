@@ -1,5 +1,5 @@
-use atrium_api::agent::AtpAgent;
-use atrium_api::xrpc::client::reqwest::ReqwestClient;
+use atrium_api::agent::{store::MemorySessionStore, AtpAgent};
+use atrium_xrpc_client::reqwest::ReqwestClient;
 use clap::Parser;
 use futures::future::join_all;
 use std::sync::Arc;
@@ -19,11 +19,11 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    let agent = Arc::new(AtpAgent::new(ReqwestClient::new(
-        "https://bsky.social".into(),
-    )));
+    let agent = Arc::new(AtpAgent::new(
+        ReqwestClient::new("https://bsky.social"),
+        MemorySessionStore::default(),
+    ));
     agent.login(&args.identifier, &args.password).await?;
-
     let actors = ["bsky.app", "atproto.com", "safety.bsky.app"];
     let handles = actors
         .iter()
