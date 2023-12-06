@@ -5,11 +5,12 @@ edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 
 [dependencies]
-atrium-xrpc = { path = "../atrium-xrpc" }
-atrium-api = "0.3"
+async-trait = "0.1.74"
+atrium-api = "0.14"
+atrium-xrpc-client = "0.2"
 chrono = "0.4.24"
-clap = { version = "4.2.4", features = ["derive"] }
+clap = { version = "4.4.8", features = ["derive"] }
+dirs = "5.0.1"
 serde = "1.0.160"
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
-toml = "0.7.3"
