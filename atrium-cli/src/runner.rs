@@ -3,6 +3,7 @@ use crate::store::SimpleJsonFileSessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc_client::reqwest::ReqwestClient;
+use chrono::Local;
 use serde::Serialize;
 use std::path::PathBuf;
 use tokio::fs;
@@ -110,6 +111,119 @@ impl Runner {
                             cursor: None,
                             limit: Some(10),
                             uri: args.uri.to_string(),
+                        })
+                        .await,
+                );
+            }
+            Command::GetFollows(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .graph
+                        .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
+                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            cursor: None,
+                            limit: Some(10),
+                        })
+                        .await,
+                );
+            }
+            Command::GetFollowers(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .graph
+                        .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
+                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            cursor: None,
+                            limit: Some(10),
+                        })
+                        .await,
+                );
+            }
+            Command::GetProfile(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .actor
+                        .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
+                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                        })
+                        .await,
+                );
+            }
+            Command::ListNotifications => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .notification
+                        .list_notifications(
+                            atrium_api::app::bsky::notification::list_notifications::Parameters {
+                                cursor: None,
+                                limit: Some(10),
+                                seen_at: None,
+                            },
+                        )
+                        .await,
+                );
+            }
+            Command::CreatePost(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .com
+                        .atproto
+                        .repo
+                        .create_record(atrium_api::com::atproto::repo::create_record::Input {
+                            collection: "app.bsky.feed.post".into(),
+                            record: atrium_api::records::Record::AppBskyFeedPost(Box::new(
+                                atrium_api::app::bsky::feed::post::Record {
+                                    created_at: Local::now().to_rfc3339(),
+                                    embed: None,
+                                    entities: None,
+                                    facets: None,
+                                    labels: None,
+                                    langs: None,
+                                    reply: None,
+                                    tags: None,
+                                    text: args.text,
+                                },
+                            )),
+                            repo: self.handle.clone().unwrap(),
+                            rkey: None,
+                            swap_commit: None,
+                            validate: None,
+                        })
+                        .await,
+                );
+            }
+            Command::DeletePost(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .com
+                        .atproto
+                        .repo
+                        .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
+                            collection: "app.bsky.feed.post".into(),
+                            repo: self.handle.clone().unwrap(),
+                            rkey: args.uri.rkey,
+                            swap_commit: None,
+                            swap_record: None,
                         })
                         .await,
                 );

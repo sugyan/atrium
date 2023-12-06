@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 #[derive(Parser, Debug)]
 pub enum Command {
-    /// Login (Create an authentication session.)
+    /// Login (Create an authentication session).
     Login(LoginArgs),
     /// Get a view of the actor's home timeline.
     GetTimeline,
@@ -13,6 +13,18 @@ pub enum Command {
     GetLikes(UriArgs),
     /// Get a list of reposts.
     GetRepostedBy(UriArgs),
+    /// Get a list of who the actor follows.
+    GetFollows(ActorArgs),
+    /// Get a list of an actor's followers.
+    GetFollowers(ActorArgs),
+    /// Get detailed profile view of an actor.
+    GetProfile(ActorArgs),
+    /// Get a list of notifications.
+    ListNotifications,
+    /// Create a new post.
+    CreatePost(CreatePostArgs),
+    /// Delete a post.
+    DeletePost(UriArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -37,6 +49,13 @@ pub struct UriArgs {
     /// Record's URI
     #[arg(short, long, value_parser)]
     pub(crate) uri: AtUri,
+}
+
+#[derive(Parser, Debug)]
+pub struct CreatePostArgs {
+    /// Post text
+    #[arg(short, long, value_parser)]
+    pub(crate) text: String,
 }
 
 #[derive(Debug, Clone)]
