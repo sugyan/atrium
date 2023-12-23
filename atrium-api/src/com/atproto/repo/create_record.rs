@@ -12,10 +12,10 @@ pub struct Input {
     ///The key of the record.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
-    ///Compare and swap with the previous commit by cid.
+    ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
-    ///Validate the record?
+    ///Flag for validating the record.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }

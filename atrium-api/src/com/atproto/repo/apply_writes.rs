@@ -7,7 +7,7 @@ pub struct Input {
     pub repo: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
-    ///Validate the records?
+    ///Flag for validating the records.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
     pub writes: Vec<InputWritesItem>,

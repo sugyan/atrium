@@ -9,10 +9,10 @@ pub struct Input {
     pub repo: String,
     ///The key of the record.
     pub rkey: String,
-    ///Compare and swap with the previous commit by cid.
+    ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
-    ///Compare and swap with the previous record by cid.
+    ///Compare and swap with the previous record by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_record: Option<String>,
 }

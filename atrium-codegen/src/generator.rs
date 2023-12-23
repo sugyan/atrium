@@ -128,7 +128,12 @@ pub(crate) fn generate_client(
 
 pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut paths = find_dirs(outdir)?;
-    paths.retain(|p| p.as_ref() != outdir);
+    paths.retain(|p| {
+        p.as_ref() != outdir
+            && p.as_ref()
+                .strip_prefix(outdir)
+                .map_or(true, |p| !p.starts_with("agent"))
+    });
     let mut files = Vec::with_capacity(paths.len());
     // generate ".rs" files names
     for path in &paths {
