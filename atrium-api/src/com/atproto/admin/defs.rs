@@ -19,67 +19,6 @@ pub struct AccountView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invites_disabled: Option<bool>,
 }
-///Moderation action type: Acknowledge. Indicates that the content was reviewed and not considered to violate PDS rules.
-pub struct Acknowledge;
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActionReversal {
-    pub created_at: String,
-    pub created_by: String,
-    pub reason: String,
-}
-pub type ActionType = String;
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActionView {
-    pub action: ActionType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub create_label_vals: Option<Vec<String>>,
-    pub created_at: String,
-    pub created_by: String,
-    ///Indicates how long this action was meant to be in effect before automatically expiring.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_in_hours: Option<i32>,
-    pub id: i32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub negate_label_vals: Option<Vec<String>>,
-    pub reason: String,
-    pub resolved_report_ids: Vec<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reversal: Option<ActionReversal>,
-    pub subject: ActionViewSubjectEnum,
-    pub subject_blob_cids: Vec<String>,
-}
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActionViewCurrent {
-    pub action: ActionType,
-    ///Indicates how long this action was meant to be in effect before automatically expiring.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_in_hours: Option<i32>,
-    pub id: i32,
-}
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActionViewDetail {
-    pub action: ActionType,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub create_label_vals: Option<Vec<String>>,
-    pub created_at: String,
-    pub created_by: String,
-    ///Indicates how long this action was meant to be in effect before automatically expiring.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_in_hours: Option<i32>,
-    pub id: i32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub negate_label_vals: Option<Vec<String>>,
-    pub reason: String,
-    pub resolved_reports: Vec<ReportView>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reversal: Option<ActionReversal>,
-    pub subject: ActionViewDetailSubjectEnum,
-    pub subject_blobs: Vec<BlobView>,
-}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlobView {
@@ -92,10 +31,6 @@ pub struct BlobView {
     pub moderation: Option<Moderation>,
     pub size: i32,
 }
-///Moderation action type: Escalate. Indicates that the content has been flagged for additional review.
-pub struct Escalate;
-///Moderation action type: Flag. Indicates that the content was reviewed and considered to violate PDS rules, but may still be served.
-pub struct Flag;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDetails {
@@ -104,17 +39,122 @@ pub struct ImageDetails {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct ModEventAcknowledge {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+///Add a comment to a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventComment {
+    pub comment: String,
+    ///Make the comment persistent on the subject
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sticky: Option<bool>,
+}
+///Keep a log of outgoing email to a user
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventEmail {
+    ///Additional comment about the outgoing comm.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///The subject line of the email sent to the user.
+    pub subject_line: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventEscalate {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+///Apply/Negate labels on a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventLabel {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    pub create_label_vals: Vec<String>,
+    pub negate_label_vals: Vec<String>,
+}
+///Mute incoming reports on a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventMute {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///Indicates how long the subject should remain muted.
+    pub duration_in_hours: i32,
+}
+///Report a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventReport {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    pub report_type: crate::com::atproto::moderation::defs::ReasonType,
+}
+///Revert take down action on a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventReverseTakedown {
+    ///Describe reasoning behind the reversal.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+///Take down a subject permanently or temporarily
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventTakedown {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///Indicates how long the takedown should be in effect before automatically expiring.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub duration_in_hours: Option<i32>,
+}
+///Unmute action on a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventUnmute {
+    ///Describe reasoning behind the reversal.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventView {
+    pub created_at: String,
+    pub created_by: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub creator_handle: Option<String>,
+    pub event: ModEventViewEventEnum,
+    pub id: i32,
+    pub subject: ModEventViewSubjectEnum,
+    pub subject_blob_cids: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_handle: Option<String>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventViewDetail {
+    pub created_at: String,
+    pub created_by: String,
+    pub event: ModEventViewDetailEventEnum,
+    pub id: i32,
+    pub subject: ModEventViewDetailSubjectEnum,
+    pub subject_blobs: Vec<BlobView>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct Moderation {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub current_action: Option<ActionViewCurrent>,
+    pub subject_status: Option<SubjectStatusView>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationDetail {
-    pub actions: Vec<ActionView>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub current_action: Option<ActionViewCurrent>,
-    pub reports: Vec<ReportView>,
+    pub subject_status: Option<SubjectStatusView>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -206,10 +246,10 @@ pub struct RepoViewNotFound {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
     pub created_at: String,
     pub id: i32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
     pub resolved_by_action_ids: Vec<i32>,
@@ -220,15 +260,23 @@ pub struct ReportView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReportViewDetail {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
     pub created_at: String,
     pub id: i32,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
-    pub resolved_by_actions: Vec<crate::com::atproto::admin::defs::ActionView>,
+    pub resolved_by_actions: Vec<crate::com::atproto::admin::defs::ModEventView>,
     pub subject: ReportViewDetailSubjectEnum,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_status: Option<crate::com::atproto::admin::defs::SubjectStatusView>,
 }
+///Moderator review status of a subject: Closed. Indicates that the subject was already reviewed and resolved by a moderator
+pub struct ReviewClosed;
+///Moderator review status of a subject: Escalated. Indicates that the subject was escalated for review by a moderator
+pub struct ReviewEscalated;
+///Moderator review status of a subject: Open. Indicates that the subject needs to be reviewed by a moderator
+pub struct ReviewOpen;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct StatusAttr {
@@ -236,8 +284,37 @@ pub struct StatusAttr {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#ref: Option<String>,
 }
-///Moderation action type: Takedown. Indicates that content should not be served by the PDS.
-pub struct Takedown;
+pub type SubjectReviewState = String;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SubjectStatusView {
+    ///Sticky comment on the subject.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///Timestamp referencing the first moderation status impacting event was emitted on the subject
+    pub created_at: String,
+    pub id: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_reported_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_reviewed_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_reviewed_by: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mute_until: Option<String>,
+    pub review_state: SubjectReviewState,
+    pub subject: SubjectStatusViewSubjectEnum,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_blob_cids: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_repo_handle: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub suspend_until: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub takendown: Option<bool>,
+    ///Timestamp referencing when the last update was made to the moderation status of the subject
+    pub updated_at: String,
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct VideoDetails {
@@ -247,7 +324,35 @@ pub struct VideoDetails {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ActionViewDetailSubjectEnum {
+pub enum BlobViewDetailsEnum {
+    #[serde(rename = "com.atproto.admin.defs#imageDetails")]
+    ImageDetails(Box<ImageDetails>),
+    #[serde(rename = "com.atproto.admin.defs#videoDetails")]
+    VideoDetails(Box<VideoDetails>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum ModEventViewDetailEventEnum {
+    #[serde(rename = "com.atproto.admin.defs#modEventTakedown")]
+    ModEventTakedown(Box<ModEventTakedown>),
+    #[serde(rename = "com.atproto.admin.defs#modEventReverseTakedown")]
+    ModEventReverseTakedown(Box<ModEventReverseTakedown>),
+    #[serde(rename = "com.atproto.admin.defs#modEventComment")]
+    ModEventComment(Box<ModEventComment>),
+    #[serde(rename = "com.atproto.admin.defs#modEventReport")]
+    ModEventReport(Box<ModEventReport>),
+    #[serde(rename = "com.atproto.admin.defs#modEventLabel")]
+    ModEventLabel(Box<ModEventLabel>),
+    #[serde(rename = "com.atproto.admin.defs#modEventAcknowledge")]
+    ModEventAcknowledge(Box<ModEventAcknowledge>),
+    #[serde(rename = "com.atproto.admin.defs#modEventEscalate")]
+    ModEventEscalate(Box<ModEventEscalate>),
+    #[serde(rename = "com.atproto.admin.defs#modEventMute")]
+    ModEventMute(Box<ModEventMute>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum ModEventViewDetailSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoView")]
     RepoView(Box<RepoView>),
     #[serde(rename = "com.atproto.admin.defs#repoViewNotFound")]
@@ -259,19 +364,33 @@ pub enum ActionViewDetailSubjectEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ActionViewSubjectEnum {
+pub enum ModEventViewEventEnum {
+    #[serde(rename = "com.atproto.admin.defs#modEventTakedown")]
+    ModEventTakedown(Box<ModEventTakedown>),
+    #[serde(rename = "com.atproto.admin.defs#modEventReverseTakedown")]
+    ModEventReverseTakedown(Box<ModEventReverseTakedown>),
+    #[serde(rename = "com.atproto.admin.defs#modEventComment")]
+    ModEventComment(Box<ModEventComment>),
+    #[serde(rename = "com.atproto.admin.defs#modEventReport")]
+    ModEventReport(Box<ModEventReport>),
+    #[serde(rename = "com.atproto.admin.defs#modEventLabel")]
+    ModEventLabel(Box<ModEventLabel>),
+    #[serde(rename = "com.atproto.admin.defs#modEventAcknowledge")]
+    ModEventAcknowledge(Box<ModEventAcknowledge>),
+    #[serde(rename = "com.atproto.admin.defs#modEventEscalate")]
+    ModEventEscalate(Box<ModEventEscalate>),
+    #[serde(rename = "com.atproto.admin.defs#modEventMute")]
+    ModEventMute(Box<ModEventMute>),
+    #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
+    ModEventEmail(Box<ModEventEmail>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum ModEventViewSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     RepoRef(Box<RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
     ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
-}
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(tag = "$type")]
-pub enum BlobViewDetailsEnum {
-    #[serde(rename = "com.atproto.admin.defs#imageDetails")]
-    ImageDetails(Box<ImageDetails>),
-    #[serde(rename = "com.atproto.admin.defs#videoDetails")]
-    VideoDetails(Box<VideoDetails>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
@@ -288,6 +407,14 @@ pub enum ReportViewDetailSubjectEnum {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ReportViewSubjectEnum {
+    #[serde(rename = "com.atproto.admin.defs#repoRef")]
+    RepoRef(Box<RepoRef>),
+    #[serde(rename = "com.atproto.repo.strongRef")]
+    ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum SubjectStatusViewSubjectEnum {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     RepoRef(Box<RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]

@@ -16,6 +16,8 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub notifications: Vec<Notification>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub seen_at: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

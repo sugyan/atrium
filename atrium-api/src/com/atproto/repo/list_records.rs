@@ -12,7 +12,7 @@ pub struct Parameters {
     pub limit: Option<i32>,
     ///The handle or DID of the repo.
     pub repo: String,
-    ///Reverse the order of the returned records?
+    ///Flag to reverse the order of the returned records.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reverse: Option<bool>,
     ///DEPRECATED: The highest sort-ordered rkey to stop at (exclusive)

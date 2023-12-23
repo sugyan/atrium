@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub account: String,
-    ///Additionally add a note describing why the invites were disabled
+    ///Optional reason for disabled invites.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }

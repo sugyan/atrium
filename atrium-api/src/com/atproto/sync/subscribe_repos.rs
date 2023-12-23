@@ -17,7 +17,7 @@ pub enum Error {
 #[serde(rename_all = "camelCase")]
 pub struct Commit {
     pub blobs: Vec<cid::Cid>,
-    ///CAR file containing relevant blocks
+    ///CAR file containing relevant blocks.
     #[serde(with = "serde_bytes")]
     pub blocks: Vec<u8>,
     pub commit: cid::Cid,
@@ -26,10 +26,10 @@ pub struct Commit {
     pub prev: Option<cid::Cid>,
     pub rebase: bool,
     pub repo: String,
-    ///The rev of the emitted commit
+    ///The rev of the emitted commit.
     pub rev: String,
     pub seq: i32,
-    ///The rev of the last emitted commit from this repo
+    ///The rev of the last emitted commit from this repo.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
     pub time: String,
@@ -59,7 +59,7 @@ pub struct Migrate {
     pub seq: i32,
     pub time: String,
 }
-///A repo operation, ie a write of a single record. For creates and updates, cid is the record's CID as of this operation. For deletes, it's null.
+///A repo operation, ie a write of a single record. For creates and updates, CID is the record's CID as of this operation. For deletes, it's null.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoOp {

@@ -3,12 +3,12 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    ///optional pagination mechanism; may not necessarily allow scrolling through entire result set
+    ///Optional pagination mechanism; may not necessarily allow scrolling through entire result set.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
-    ///search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended
+    ///Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.
     pub q: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -16,7 +16,7 @@ pub struct Parameters {
 pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
-    ///count of search hits. optional, may be rounded/truncated, and may not be possible to paginate through all hits
+    ///Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hits_total: Option<i32>,
     pub posts: Vec<crate::app::bsky::unspecced::defs::SkeletonSearchPost>,

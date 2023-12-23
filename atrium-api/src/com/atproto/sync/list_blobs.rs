@@ -9,7 +9,7 @@ pub struct Parameters {
     pub did: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
-    ///Optional revision of the repo to list blobs since
+    ///Optional revision of the repo to list blobs since.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
 }

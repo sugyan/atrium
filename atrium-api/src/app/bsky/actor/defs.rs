@@ -36,7 +36,7 @@ pub struct FeedViewPref {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct PersonalDetailsPref {
-    ///The birth date of the owner of the account.
+    ///The birth date of account owner.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub birth_date: Option<String>,
 }
@@ -111,7 +111,7 @@ pub struct ThreadViewPref {
     ///Show followed users at the top of all replies.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prioritize_followed_users: Option<bool>,
-    ///Sorting mode.
+    ///Sorting mode for threads.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort: Option<String>,
 }
