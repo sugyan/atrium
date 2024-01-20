@@ -34,8 +34,15 @@ async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error
                             {
                                 println!("{}: {}", value.created_at, value.text);
                             } else {
-                                // TODO
+                                println!("FAILED: could not deserialize post from item of length: {}", item.len());
+
                             }
+                        } else {
+                            println!(
+                                "FAILED: could not find item with operation cid {:?} out of {} items",
+                                op.cid,
+                                items.len()
+                            );
                         }
                     }
                 }
