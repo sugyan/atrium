@@ -29,13 +29,20 @@ async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error
                             rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
                         if let Some((_, item)) = items.iter().find(|(cid, _)| Some(*cid) == op.cid)
                         {
-                            if let Ok(value) =
+                            if let Ok(post) =
                                 ciborium::de::from_reader::<Record, _>(&mut item.as_slice())
                             {
-                                println!("{}: {}", value.created_at, value.text);
+                                println!("{}: {}", post.created_at, post.text);
                             } else {
-                                // TODO
+                                println!("FAILED: could not deserialize post from item of length: {}", item.len());
+
                             }
+                        } else {
+                            println!(
+                                "FAILED: could not find item with operation cid {:?} out of {} items",
+                                op.cid,
+                                items.len()
+                            );
                         }
                     }
                 }
