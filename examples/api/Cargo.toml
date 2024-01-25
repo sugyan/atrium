@@ -1,0 +1,15 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+atrium-xrpc-client = { path = "../../atrium-xrpc-client" }
+atrium-xrpc-server = { path = "../../atrium-xrpc-server" }
+atrium-api = { path = "../../atrium-api" }
+dotenvy = "0.15"
+http-client = "6.5"
+reqwest = { version = "0.11", default-features = false, features = ["rustls-tls"] }
+tokio = { version = "1.28.1", features = ["full"] }

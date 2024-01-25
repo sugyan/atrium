@@ -18,6 +18,7 @@ members = [
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-xrpc-server",
+    "examples/api",
     "examples/concurrent",
     "examples/firehose",
 ]
