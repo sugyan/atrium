@@ -5,7 +5,6 @@ pub use atrium_xrpc as xrpc;
 #[cfg(feature = "agent")]
 pub mod agent;
 pub mod app;
-pub mod blob;
 pub mod client;
 pub mod com;
 pub mod did_doc;

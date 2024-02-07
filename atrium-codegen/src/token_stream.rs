@@ -363,7 +363,7 @@ fn array_type(
 
 fn blob_type(blob: &LexBlob) -> Result<(TokenStream, TokenStream)> {
     let description = description(&blob.description);
-    Ok((description, quote!(crate::blob::BlobRef)))
+    Ok((description, quote!(crate::types::BlobRef)))
 }
 
 fn boolean_type(boolean: &LexBoolean) -> Result<(TokenStream, TokenStream)> {

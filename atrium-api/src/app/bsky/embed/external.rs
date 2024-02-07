@@ -11,7 +11,7 @@ pub struct Main {
 pub struct External {
     pub description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumb: Option<crate::blob::BlobRef>,
+    pub thumb: Option<crate::types::BlobRef>,
     pub title: String,
     pub uri: String,
 }
