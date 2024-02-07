@@ -10,3 +10,4 @@ pub mod client;
 pub mod com;
 pub mod did_doc;
 pub mod records;
+pub mod types;

@@ -18,16 +18,20 @@ http = "0.2.9"
 serde = { version = "1.0.160", features = ["derive"] }
 serde_bytes = "0.11.9"
 tokio = { version = "1.33.0", default-features = false, optional = true }
+libipld-core = { version = "0.16.0", optional = true }
 
 [features]
 default = ["agent"]
 agent = ["tokio/sync"]
+dag-cbor = ["libipld-core/serde-codec"]
 
 [dev-dependencies]
 atrium-xrpc-client = "0.2.0"
 futures = "0.3.28"
 serde_json = "1.0.107"
 tokio = { version = "1.33.0", features = ["macros", "rt-multi-thread"] }
+serde_ipld_dagcbor = { git = "https://github.com/sugyan/serde_ipld_dagcbor.git", rev = "345b240" }
+libipld-core = { version = "0.16.0", features = ["serde-codec"] }
 
 [package.metadata.docs.rs]
 all-features = true
