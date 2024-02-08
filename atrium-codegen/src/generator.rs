@@ -181,7 +181,6 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
             #documentation
             #modules
         };
-        // println!("{content}");
         write_to_file(File::create(filepath)?, content)?;
     }
     Ok(files)
