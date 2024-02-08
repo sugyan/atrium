@@ -24,8 +24,15 @@ pub(crate) fn generate_schemas(
     if let Some(basename) = paths.pop() {
         let mut tokens = Vec::new();
         let mut names = Vec::new();
-        // main def
         for (name, def) in &schema.defs {
+            // NSID (for XrpcSubscription only)
+            if let LexUserType::XrpcSubscription(_) = &def {
+                let nsid = schema.id.clone();
+                tokens.push(quote! {
+                    pub const NSID: &str = #nsid;
+                });
+            }
+            // main def
             if name == "main" {
                 tokens.push(user_type(def, basename, true)?);
             } else {

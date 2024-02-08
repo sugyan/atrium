@@ -182,7 +182,6 @@ fn lex_subscription(subscription: &LexXrpcSubscription) -> Result<TokenStream> {
         } else {
             quote!()
         };
-    // TODO: message
     let errors = xrpc_errors(&subscription.errors)?;
     Ok(quote! {
         #params
@@ -328,7 +327,7 @@ fn bytes_type(bytes: &LexBytes) -> Result<(TokenStream, TokenStream)> {
 
 fn cid_link_type(cid_link: &LexCidLink) -> Result<(TokenStream, TokenStream)> {
     let description = description(&cid_link.description);
-    Ok((description, quote!(cid::Cid)))
+    Ok((description, quote!(crate::types::CidLink)))
 }
 
 fn array_type(
