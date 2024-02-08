@@ -7,9 +7,10 @@ edition = "2021"
 
 [dependencies]
 atrium-xrpc-server = { path = "../../atrium-xrpc-server" }
-atrium-api = "0.15"
+atrium-api = { path = "../../atrium-api", default-features = false, features = ["dag-cbor"]}
 ciborium = "0.2.1"
 futures = "0.3.28"
 rs-car = "0.4.1"
 tokio = { version = "1.28.1", features = ["full"] }
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
+serde_ipld_dagcbor = { git = "https://github.com/sugyan/serde_ipld_dagcbor.git", rev = "345b240" }
