@@ -24,8 +24,15 @@ pub(crate) fn generate_schemas(
     if let Some(basename) = paths.pop() {
         let mut tokens = Vec::new();
         let mut names = Vec::new();
-        // main def
         for (name, def) in &schema.defs {
+            // NSID (for XrpcSubscription only)
+            if let LexUserType::XrpcSubscription(_) = &def {
+                let nsid = schema.id.clone();
+                tokens.push(quote! {
+                    pub const NSID: &str = #nsid;
+                });
+            }
+            // main def
             if name == "main" {
                 tokens.push(user_type(def, basename, true)?);
             } else {
@@ -128,11 +135,12 @@ pub(crate) fn generate_client(
 
 pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut paths = find_dirs(outdir)?;
+    paths.reverse();
     paths.retain(|p| {
         p.as_ref() != outdir
             && p.as_ref()
                 .strip_prefix(outdir)
-                .map_or(true, |p| !p.starts_with("agent"))
+                .map_or(true, |p| !p.starts_with("agent") && !p.starts_with("types"))
     });
     let mut files = Vec::with_capacity(paths.len());
     // generate ".rs" files names

@@ -17,4 +17,7 @@ jobs:
       - name: Build
         run: cargo build -p atrium-api --verbose
       - name: Run tests
-        run: cargo test -p atrium-api --verbose
+        run: |
+          cargo test -p atrium-api --lib
+          cargo test -p atrium-api --lib --no-default-features
+          cargo test -p atrium-api --lib --all-features

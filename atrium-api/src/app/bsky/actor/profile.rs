@@ -4,9 +4,9 @@
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<crate::blob::BlobRef>,
+    pub avatar: Option<crate::types::BlobRef>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub banner: Option<crate::blob::BlobRef>,
+    pub banner: Option<crate::types::BlobRef>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

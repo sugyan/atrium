@@ -19,7 +19,7 @@ pub struct Image {
     pub alt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aspect_ratio: Option<AspectRatio>,
-    pub image: crate::blob::BlobRef,
+    pub image: crate::types::BlobRef,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
