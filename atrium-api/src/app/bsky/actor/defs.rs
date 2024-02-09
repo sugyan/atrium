@@ -35,6 +35,12 @@ pub struct FeedViewPref {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct InterestsPref {
+    ///A list of tags which describe the account owner's interests gathered during onboarding.
+    pub tags: Vec<String>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct PersonalDetailsPref {
     ///The birth date of account owner.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -148,4 +154,6 @@ pub enum PreferencesItem {
     FeedViewPref(Box<FeedViewPref>),
     #[serde(rename = "app.bsky.actor.defs#threadViewPref")]
     ThreadViewPref(Box<ThreadViewPref>),
+    #[serde(rename = "app.bsky.actor.defs#interestsPref")]
+    InterestsPref(Box<InterestsPref>),
 }

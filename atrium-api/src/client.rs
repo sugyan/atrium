@@ -1162,6 +1162,36 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    ///Enumerates public relationships between one account, and a list of other accounts
+    pub async fn get_relationships(
+        &self,
+        params: crate::app::bsky::graph::get_relationships::Parameters,
+    ) -> Result<
+        crate::app::bsky::graph::get_relationships::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::graph::get_relationships::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "app.bsky.graph.getRelationships".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Get suggested follows related to a given actor.
     pub async fn get_suggested_follows_by_actor(
         &self,
@@ -1454,36 +1484,6 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
-    ///DEPRECATED: will be removed soon. Use a feed generator alternative.
-    pub async fn get_popular(
-        &self,
-        params: crate::app::bsky::unspecced::get_popular::Parameters,
-    ) -> Result<
-        crate::app::bsky::unspecced::get_popular::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::unspecced::get_popular::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "app.bsky.unspecced.getPopular".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
     ///An unspecced view of globally popular feed generators.
     pub async fn get_popular_feed_generators(
         &self,
@@ -1516,14 +1516,14 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    ///DEPRECATED: a skeleton of a timeline. Unspecced and will be unavailable soon.
-    pub async fn get_timeline_skeleton(
+    ///Get a list of suggestions (feeds and users) tagged with categories
+    pub async fn get_tagged_suggestions(
         &self,
-        params: crate::app::bsky::unspecced::get_timeline_skeleton::Parameters,
+        params: crate::app::bsky::unspecced::get_tagged_suggestions::Parameters,
     ) -> Result<
-        crate::app::bsky::unspecced::get_timeline_skeleton::Output,
+        crate::app::bsky::unspecced::get_tagged_suggestions::Output,
         atrium_xrpc::error::Error<
-            crate::app::bsky::unspecced::get_timeline_skeleton::Error,
+            crate::app::bsky::unspecced::get_tagged_suggestions::Error,
         >,
     > {
         let response = self
@@ -1536,7 +1536,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.unspecced.getTimelineSkeleton".into(),
+                    path: "app.bsky.unspecced.getTaggedSuggestions".into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1649,6 +1649,38 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
+    ///Administrative action to create a new, re-usable communication (email for now) template.
+    pub async fn create_communication_template(
+        &self,
+        input: crate::com::atproto::admin::create_communication_template::Input,
+    ) -> Result<
+        crate::com::atproto::admin::create_communication_template::Output,
+        atrium_xrpc::error::Error<
+            crate::com::atproto::admin::create_communication_template::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.admin.createCommunicationTemplate".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Delete a user account as an administrator.
     pub async fn delete_account(
         &self,
@@ -1668,6 +1700,38 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
                     path: "com.atproto.admin.deleteAccount".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Delete a communication template.
+    pub async fn delete_communication_template(
+        &self,
+        input: crate::com::atproto::admin::delete_communication_template::Input,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<
+            crate::com::atproto::admin::delete_communication_template::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.admin.deleteCommunicationTemplate".into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1837,6 +1901,36 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    ///Get details about some accounts.
+    pub async fn get_account_infos(
+        &self,
+        params: crate::com::atproto::admin::get_account_infos::Parameters,
+    ) -> Result<
+        crate::com::atproto::admin::get_account_infos::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::admin::get_account_infos::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.admin.getAccountInfos".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Get an admin view of invite codes.
     pub async fn get_invite_codes(
         &self,
@@ -1979,6 +2073,37 @@ where
                     method: http::Method::GET,
                     path: "com.atproto.admin.getSubjectStatus".into(),
                     parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get list of all communication templates.
+    pub async fn list_communication_templates(
+        &self,
+    ) -> Result<
+        crate::com::atproto::admin::list_communication_templates::Output,
+        atrium_xrpc::error::Error<
+            crate::com::atproto::admin::list_communication_templates::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.admin.listCommunicationTemplates".into(),
+                    parameters: None,
                     input: None,
                     encoding: None,
                 },
@@ -2174,6 +2299,38 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Administrative action to update an existing communication template. Allows passing partial fields to patch specific fields only.
+    pub async fn update_communication_template(
+        &self,
+        input: crate::com::atproto::admin::update_communication_template::Input,
+    ) -> Result<
+        crate::com::atproto::admin::update_communication_template::Output,
+        atrium_xrpc::error::Error<
+            crate::com::atproto::admin::update_communication_template::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.admin.updateCommunicationTemplate".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -3595,6 +3752,35 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
+    ///Check accounts location in signup queue.
+    pub async fn check_signup_queue(
+        &self,
+    ) -> Result<
+        crate::com::atproto::temp::check_signup_queue::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::temp::check_signup_queue::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.temp.checkSignupQueue".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Fetch all labels from a labeler created after a certain date.
     pub async fn fetch_labels(
         &self,
@@ -3677,6 +3863,38 @@ where
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
                     encoding: Some(String::from("*/*")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Request a verification code to be sent to the supplied phone number
+    pub async fn request_phone_verification(
+        &self,
+        input: crate::com::atproto::temp::request_phone_verification::Input,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<
+            crate::com::atproto::temp::request_phone_verification::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.temp.requestPhoneVerification".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
                 },
             )
             .await?;

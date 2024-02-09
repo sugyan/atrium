@@ -3,15 +3,35 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    ///If specified, only events where all of these labels were added are returned
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub added_labels: Option<Vec<String>>,
+    ///If specified, only events with comments containing the keyword are returned
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///Retrieve events created after a given timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_after: Option<String>,
+    ///Retrieve events created before a given timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_before: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    ///If true, only events with comments are returned
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub has_comment: Option<bool>,
     ///If true, events on all record types (posts, lists, profile etc.) owned by the did are returned
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_all_user_records: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<i32>,
+    ///If specified, only events where all of these labels were removed are returned
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub removed_labels: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub report_types: Option<Vec<String>>,
     ///Sort direction for the events. Defaults to descending order of created at timestamp.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort_direction: Option<String>,
