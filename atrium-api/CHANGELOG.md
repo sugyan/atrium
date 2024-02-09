@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.15.0...atrium-api-v0.16.0) - 2024-02-09
+
+### Added
+- Update API, based on the latest lexicon schemas ([#99](https://github.com/sugyan/atrium/pull/99))
+- *(api)* Implement CidLink, BlobRef types ([#96](https://github.com/sugyan/atrium/pull/96))
+
 ## [0.15.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.14.0...atrium-api-v0.15.0) - 2023-12-23
 
 ### Added
