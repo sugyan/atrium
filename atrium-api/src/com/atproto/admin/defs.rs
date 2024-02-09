@@ -18,6 +18,8 @@ pub struct AccountView {
     pub invites: Option<Vec<crate::com::atproto::server::defs::InviteCode>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invites_disabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub related_records: Option<Vec<crate::records::Record>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -30,6 +32,23 @@ pub struct BlobView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
     pub size: i32,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct CommunicationTemplateView {
+    ///Subject of the message, used in emails.
+    pub content_markdown: String,
+    pub created_at: String,
+    pub disabled: bool,
+    pub id: String,
+    ///DID of the user who last updated the template.
+    pub last_updated_by: String,
+    ///Name of the template.
+    pub name: String,
+    ///Content of the template, can contain markdown and variable placeholders.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject: Option<String>,
+    pub updated_at: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -93,6 +112,14 @@ pub struct ModEventReport {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     pub report_type: crate::com::atproto::moderation::defs::ReasonType,
+}
+///Resolve appeal on a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventResolveAppeal {
+    ///Describe resolution.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
 }
 ///Revert take down action on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -288,12 +315,18 @@ pub type SubjectReviewState = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SubjectStatusView {
+    ///True indicates that the a previously taken moderator action was appealed against, by the author of the content. False indicates last appeal was resolved by moderators.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub appealed: Option<bool>,
     ///Sticky comment on the subject.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Timestamp referencing the first moderation status impacting event was emitted on the subject
     pub created_at: String,
     pub id: i32,
+    ///Timestamp referencing when the author of the subject appealed a moderation action
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_appealed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_reported_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -349,6 +382,10 @@ pub enum ModEventViewDetailEventEnum {
     ModEventEscalate(Box<ModEventEscalate>),
     #[serde(rename = "com.atproto.admin.defs#modEventMute")]
     ModEventMute(Box<ModEventMute>),
+    #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
+    ModEventEmail(Box<ModEventEmail>),
+    #[serde(rename = "com.atproto.admin.defs#modEventResolveAppeal")]
+    ModEventResolveAppeal(Box<ModEventResolveAppeal>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
@@ -383,6 +420,8 @@ pub enum ModEventViewEventEnum {
     ModEventMute(Box<ModEventMute>),
     #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
     ModEventEmail(Box<ModEventEmail>),
+    #[serde(rename = "com.atproto.admin.defs#modEventResolveAppeal")]
+    ModEventResolveAppeal(Box<ModEventResolveAppeal>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

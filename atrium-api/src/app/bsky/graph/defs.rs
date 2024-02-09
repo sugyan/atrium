@@ -51,3 +51,22 @@ pub struct ListViewerState {
 }
 ///A list of actors to apply an aggregate moderation action (mute/block) on.
 pub struct Modlist;
+///indicates that a handle or DID could not be resolved
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NotFoundActor {
+    pub actor: String,
+    pub not_found: bool,
+}
+///lists the bi-directional graph relationships between one actor (not indicated in the object), and the target actors (the DID included in the object)
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Relationship {
+    pub did: String,
+    ///if the actor is followed by this DID, contains the AT-URI of the follow record
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub followed_by: Option<String>,
+    ///if the actor follows this DID, this is the AT-URI of the follow record
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub following: Option<String>,
+}

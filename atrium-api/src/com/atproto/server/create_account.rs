@@ -16,6 +16,10 @@ pub struct Input {
     pub plc_op: Option<crate::records::Record>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recovery_key: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub verification_code: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub verification_phone: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

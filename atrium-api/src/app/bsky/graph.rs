@@ -11,6 +11,7 @@ pub mod get_list_blocks;
 pub mod get_list_mutes;
 pub mod get_lists;
 pub mod get_mutes;
+pub mod get_relationships;
 pub mod get_suggested_follows_by_actor;
 pub mod list;
 pub mod listblock;

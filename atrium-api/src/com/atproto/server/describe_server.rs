@@ -8,6 +8,8 @@ pub struct Output {
     pub invite_code_required: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<Links>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub phone_verification_required: Option<bool>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
