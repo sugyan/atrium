@@ -13,13 +13,13 @@ keywords.workspace = true
 
 [dependencies]
 atrium-xrpc.workspace = true
-async-trait = "0.1.68"
-http = "0.2.9"
-serde = { version = "1.0.160", features = ["derive"] }
-serde_bytes = "0.11.9"
-tokio = { version = "1.33.0", default-features = false, optional = true }
-cid = { version = "0.10.1", optional = true }
-libipld-core = { version = "0.16.0", optional = true }
+async-trait.workspace = true
+http.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_bytes.workspace = true
+tokio = { workspace = true, optional = true }
+cid = { workspace = true, optional = true }
+libipld-core = { workspace = true, optional = true }
 
 [features]
 default = ["agent"]
@@ -28,9 +28,9 @@ dag-cbor = ["cid/serde-codec", "libipld-core/serde-codec"]
 
 [dev-dependencies]
 atrium-xrpc-client.workspace = true
-futures = "0.3.28"
-serde_json = "1.0.107"
-tokio = { version = "1.33.0", features = ["macros", "rt-multi-thread"] }
+futures.workspace = true
+serde_json.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 serde_ipld_dagcbor = { git = "https://github.com/sugyan/serde_ipld_dagcbor.git", rev = "345b240" }
 
 [package.metadata.docs.rs]

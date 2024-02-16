@@ -6,4 +6,4 @@ publish = false
 
 [dependencies]
 atrium-codegen.workspace = true
-clap = { version = "4.2.4", features = ["derive"] }
+clap.workspace = true

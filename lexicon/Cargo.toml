@@ -13,3 +13,20 @@ edition = "2021"
 # Intra-workspace dependencies
 atrium-codegen = { version = "0.1.0", path = "atrium-codegen" }
 atrium-lex = { version = "0.1.0", path = "atrium-lex" }
+
+# Serde
+serde = "1.0.160"
+serde_json = "1.0.96"
+serde_repr = "0.1.12"
+serde_with = "2.3.2"
+
+# Proc macros
+heck = "0.4.1"
+itertools = "0.10.5"
+prettyplease = "0.2.15"
+proc-macro2 = "1.0.56"
+quote = "1.0.26"
+syn = { version = "2.0.15", features = ["full"] }
+
+# CLI
+clap = { version = "4.2.4", features = ["derive"] }
