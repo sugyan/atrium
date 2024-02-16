@@ -1,23 +1,11 @@
-[package]
-name = "atrium"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-atrium-codegen = { path = "./atrium-codegen" }
-clap = { version = "4.2.4", features = ["derive"] }
-
 [workspace]
 members = [
     "atrium-api",
     "atrium-cli",
-    "atrium-codegen",
-    "atrium-lex",
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-xrpc-server",
     "examples/concurrent",
     "examples/firehose",
 ]
+resolver = "2"

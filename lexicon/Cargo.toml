@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "atrium-codegen",
+    "atrium-lex",
+    "lexgen",
+]
+resolver = "2"

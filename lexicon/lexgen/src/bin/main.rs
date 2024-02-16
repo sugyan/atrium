@@ -7,7 +7,7 @@ use std::path::PathBuf;
 struct Args {
     #[arg(short, long)]
     lexdir: PathBuf,
-    #[arg(short, long, default_value = "./atrium-api/src")]
+    #[arg(short, long, default_value = "../atrium-api/src")]
     outdir: PathBuf,
 }
 

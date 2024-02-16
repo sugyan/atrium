@@ -1,0 +1,9 @@
+[package]
+name = "lexgen"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+atrium-codegen = { path = "../atrium-codegen" }
+clap = { version = "4.2.4", features = ["derive"] }
