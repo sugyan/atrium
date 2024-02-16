@@ -11,4 +11,8 @@ members = [
 resolver = "2"
 
 [workspace.package]
+edition = "2021"
 rust-version = "1.70"
+repository = "https://github.com/sugyan/atrium"
+license = "MIT"
+keywords = ["atproto", "bluesky"]

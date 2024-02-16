@@ -1,8 +1,8 @@
 [package]
 name = "atrium-codegen"
 version = "0.1.0"
-edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
 
 [dependencies]
 atrium-lex = { path = "../atrium-lex" }
