@@ -13,7 +13,7 @@ keywords.workspace = true
 
 [dependencies]
 async-trait = "0.1.74"
-atrium-xrpc = "0.8.0"
+atrium-xrpc.workspace = true
 http = "0.2.9"
 
 [dependencies.isahc]

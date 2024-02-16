@@ -5,7 +5,7 @@ authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 
 [dependencies]
-atrium-lex = { path = "../atrium-lex" }
+atrium-lex.workspace = true
 heck = "0.4.1"
 itertools = "0.10.5"
 prettyplease = "0.2.15"

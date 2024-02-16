@@ -5,5 +5,5 @@ edition.workspace = true
 publish = false
 
 [dependencies]
-atrium-codegen = { path = "../atrium-codegen" }
+atrium-codegen.workspace = true
 clap = { version = "4.2.4", features = ["derive"] }

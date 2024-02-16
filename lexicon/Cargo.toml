@@ -8,3 +8,8 @@ resolver = "2"
 
 [workspace.package]
 edition = "2021"
+
+[workspace.dependencies]
+# Intra-workspace dependencies
+atrium-codegen = { version = "0.1.0", path = "atrium-codegen" }
+atrium-lex = { version = "0.1.0", path = "atrium-lex" }

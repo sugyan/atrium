@@ -16,3 +16,10 @@ rust-version = "1.70"
 repository = "https://github.com/sugyan/atrium"
 license = "MIT"
 keywords = ["atproto", "bluesky"]
+
+[workspace.dependencies]
+# Intra-workspace dependencies
+atrium-api = { version = "0.16.0", path = "atrium-api" }
+atrium-xrpc = { version = "0.8.0", path = "atrium-xrpc" }
+atrium-xrpc-client = { version = "0.2.0", path = "atrium-xrpc-client" }
+atrium-xrpc-server = { version = "0.1.0", path = "atrium-xrpc-server" }
