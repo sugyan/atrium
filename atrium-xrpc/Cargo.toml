@@ -3,6 +3,7 @@ name = "atrium-xrpc"
 version = "0.8.0"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition = "2021"
+rust-version.workspace = true
 description = "XRPC library for AT Protocol (Bluesky)"
 documentation = "https://docs.rs/atrium-xrpc"
 readme = "README.md"

@@ -3,6 +3,7 @@ name = "atrium-cli"
 version = "0.1.0"
 edition = "2021"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
+rust-version.workspace = true
 
 [dependencies]
 async-trait = "0.1.74"
