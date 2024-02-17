@@ -26,7 +26,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_all_user_records: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///If specified, only events where all of these labels were removed are returned
     #[serde(skip_serializing_if = "Option::is_none")]
     pub removed_labels: Option<Vec<String>>,

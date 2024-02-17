@@ -4,9 +4,9 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub depth: Option<i32>,
+    pub depth: Option<crate::types::LimitedU16<1000u16>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_height: Option<i32>,
+    pub parent_height: Option<crate::types::LimitedU16<1000u16>>,
     pub uri: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

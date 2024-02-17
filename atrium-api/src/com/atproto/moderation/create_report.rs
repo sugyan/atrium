@@ -12,7 +12,7 @@ pub struct Input {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub created_at: String,
-    pub id: i32,
+    pub id: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,

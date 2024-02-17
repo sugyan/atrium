@@ -3,10 +3,10 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
-    pub code_count: i32,
+    pub code_count: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub for_accounts: Option<Vec<String>>,
-    pub use_count: i32,
+    pub use_count: i64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

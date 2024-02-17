@@ -6,7 +6,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU16<500u16>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort: Option<String>,
 }

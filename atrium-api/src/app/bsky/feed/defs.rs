@@ -38,7 +38,7 @@ pub struct GeneratorView {
     pub display_name: String,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<i32>,
+    pub like_count: Option<usize>,
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<GeneratorViewerState>,
@@ -66,12 +66,12 @@ pub struct PostView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<i32>,
+    pub like_count: Option<i64>,
     pub record: crate::records::Record,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply_count: Option<i32>,
+    pub reply_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub repost_count: Option<i32>,
+    pub repost_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub threadgate: Option<ThreadgateView>,
     pub uri: String,

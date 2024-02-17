@@ -6,7 +6,7 @@ pub const NSID: &str = "com.atproto.sync.subscribeRepos";
 pub struct Parameters {
     ///The last known event to backfill from.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<i32>,
+    pub cursor: Option<i64>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -29,7 +29,7 @@ pub struct Commit {
     pub repo: String,
     ///The rev of the emitted commit.
     pub rev: String,
-    pub seq: i32,
+    pub seq: i64,
     ///The rev of the last emitted commit from this repo.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
@@ -41,7 +41,7 @@ pub struct Commit {
 pub struct Handle {
     pub did: String,
     pub handle: String,
-    pub seq: i32,
+    pub seq: i64,
     pub time: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -57,7 +57,7 @@ pub struct Migrate {
     pub did: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub migrate_to: Option<String>,
-    pub seq: i32,
+    pub seq: i64,
     pub time: String,
 }
 ///A repo operation, ie a write of a single record. For creates and updates, CID is the record's CID as of this operation. For deletes, it's null.
@@ -73,7 +73,7 @@ pub struct RepoOp {
 #[serde(rename_all = "camelCase")]
 pub struct Tombstone {
     pub did: String,
-    pub seq: i32,
+    pub seq: i64,
     pub time: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

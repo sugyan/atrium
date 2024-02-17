@@ -6,7 +6,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<250u8>>,
     ///Optional list of label sources (DIDs) to filter on.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sources: Option<Vec<String>>,

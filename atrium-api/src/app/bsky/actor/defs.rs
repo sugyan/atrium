@@ -25,7 +25,7 @@ pub struct FeedViewPref {
     pub hide_replies: Option<bool>,
     ///Hide replies in the feed if they do not have this number of likes.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub hide_replies_by_like_count: Option<i32>,
+    pub hide_replies_by_like_count: Option<i64>,
     ///Hide replies in the feed if they are not by followed users.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hide_replies_by_unfollowed: Option<bool>,
@@ -92,16 +92,16 @@ pub struct ProfileViewDetailed {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub followers_count: Option<i32>,
+    pub followers_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub follows_count: Option<i32>,
+    pub follows_count: Option<i64>,
     pub handle: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub posts_count: Option<i32>,
+    pub posts_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }

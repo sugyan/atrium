@@ -11,6 +11,9 @@ pub use cid_link_ipld::CidLink;
 #[cfg(not(feature = "dag-cbor"))]
 pub use cid_link_json::CidLink;
 
+mod integer;
+pub use integer::*;
+
 /// Definitions for Blob types.
 /// Usually a map with `$type` is used, but deprecated legacy formats are also supported for parsing.
 /// <https://atproto.com/specs/data-model#blob-type>

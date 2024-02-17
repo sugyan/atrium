@@ -6,7 +6,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search query string. Syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub q: Option<String>,

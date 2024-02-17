@@ -8,7 +8,7 @@ pub struct Parameters {
     ///The DID of the repo.
     pub did: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU16<1000u16>>,
     ///Optional revision of the repo to list blobs since.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,

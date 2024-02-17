@@ -6,7 +6,7 @@ pub const NSID: &str = "com.atproto.label.subscribeLabels";
 pub struct Parameters {
     ///The last known event to backfill from.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<i32>,
+    pub cursor: Option<i64>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -24,7 +24,7 @@ pub struct Info {
 #[serde(rename_all = "camelCase")]
 pub struct Labels {
     pub labels: Vec<crate::com::atproto::label::defs::Label>,
-    pub seq: i32,
+    pub seq: i64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

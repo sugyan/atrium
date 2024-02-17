@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InviteCode {
-    pub available: i32,
+    pub available: i64,
     pub code: String,
     pub created_at: String,
     pub created_by: String,

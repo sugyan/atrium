@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    pub id: i32,
+    pub id: i64,
 }
 pub type Output = crate::com::atproto::admin::defs::ModEventViewDetail;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

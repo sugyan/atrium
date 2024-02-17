@@ -5,9 +5,9 @@
 pub struct Output {
     pub activated: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub estimated_time_ms: Option<i32>,
+    pub estimated_time_ms: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub place_in_queue: Option<i32>,
+    pub place_in_queue: Option<i64>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

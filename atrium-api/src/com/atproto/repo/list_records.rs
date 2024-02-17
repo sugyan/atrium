@@ -9,7 +9,7 @@ pub struct Parameters {
     pub cursor: Option<String>,
     ///The number of records to return.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///The handle or DID of the repo.
     pub repo: String,
     ///Flag to reverse the order of the returned records.
