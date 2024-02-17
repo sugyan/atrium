@@ -5,6 +5,9 @@ members = [
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-xrpc-server",
+]
+# Examples show how to use the latest published crates, not the workspace state.
+exclude = [
     "examples/concurrent",
     "examples/firehose",
 ]
