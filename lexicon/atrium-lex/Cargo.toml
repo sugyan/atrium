@@ -1,0 +1,13 @@
+[package]
+name = "atrium-lex"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_repr.workspace = true
+serde_with.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

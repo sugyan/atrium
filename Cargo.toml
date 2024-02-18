@@ -1,23 +1,66 @@
-[package]
-name = "atrium"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-atrium-codegen = { path = "./atrium-codegen" }
-clap = { version = "4.2.4", features = ["derive"] }
-
 [workspace]
 members = [
     "atrium-api",
     "atrium-cli",
-    "atrium-codegen",
-    "atrium-lex",
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-xrpc-server",
+]
+# Examples show how to use the latest published crates, not the workspace state.
+exclude = [
     "examples/concurrent",
     "examples/firehose",
 ]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.70"
+repository = "https://github.com/sugyan/atrium"
+license = "MIT"
+keywords = ["atproto", "bluesky"]
+
+[workspace.dependencies]
+# Intra-workspace dependencies
+atrium-api = { version = "0.16.0", path = "atrium-api" }
+atrium-xrpc = { version = "0.8.0", path = "atrium-xrpc" }
+atrium-xrpc-client = { version = "0.2.0", path = "atrium-xrpc-client" }
+atrium-xrpc-server = { version = "0.1.0", path = "atrium-xrpc-server" }
+
+# async in traits
+# Can be removed once MSRV is at least 1.75.0.
+async-trait = "0.1.68"
+
+# DAG-CBOR codec and CAR format
+cid = "0.10.1"
+libipld-core = "0.16"
+serde_ipld_dagcbor = "0.3"
+
+# Serde
+serde = "1.0.160"
+serde_bytes = "0.11.9"
+serde_json = "1.0.96"
+serde_qs = "0.12"
+
+# Networking
+futures = { version = "0.3.28", default-features = false, features = ["alloc"] }
+http = "0.2.9"
+tokio = { version = "1.33", default-features = false }
+
+# HTTP client integrations
+isahc = "1.7.2"
+reqwest = { version = "0.11.22", default-features = false }
+surf = { version = "2.3.2", default-features = false }
+
+# Errors
+anyhow = "1.0.71"
+thiserror = "1"
+
+# CLI
+chrono = "0.4.24"
+clap = { version = "4.2.4", features = ["derive"] }
+dirs = "5.0.1"
+
+# Testing
+http-client = { version = "6.5.3", default-features = false }
+mockito = "1.2"

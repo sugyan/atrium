@@ -2,32 +2,22 @@
 name = "atrium-xrpc-client"
 version = "0.2.0"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 description = "XRPC Client library for AT Protocol (Bluesky)"
 documentation = "https://docs.rs/atrium-xrpc-client"
 readme = "README.md"
-repository = "https://github.com/sugyan/atrium"
-license = "MIT"
-keywords = ["atproto", "bluesky"]
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
 
 [dependencies]
-async-trait = "0.1.74"
-atrium-xrpc = "0.8.0"
-http = "0.2.9"
-
-[dependencies.isahc]
-version = "1.7.2"
-optional = true
-
-[dependencies.reqwest]
-version = "0.11.22"
-default-features = false
-optional = true
-
-[dependencies.surf]
-version = "2.3.2"
-default-features = false
-optional = true
+async-trait.workspace = true
+atrium-xrpc.workspace = true
+http.workspace = true
+isahc = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
+surf = { workspace = true, optional = true }
 
 [features]
 default = ["reqwest-native"]
@@ -37,12 +27,12 @@ reqwest-rustls = ["reqwest/rustls-tls"]
 surf = ["dep:surf"]
 
 [dev-dependencies]
-surf = { version = "2.3.2", default-features = false, features = ["h1-client-rustls"] }
-http-client = { version = "6.5.3", default-features = false, features = ["h1_client", "rustls"] }
-mockito = "1.2.0"
-tokio = { version = "1.33.0", features = ["macros"] }
-serde = { version = "1.0.192", features = ["derive"] }
-futures = { version = "0.3.29", default-features = false }
+surf = { workspace = true, features = ["h1-client-rustls"] }
+http-client = { workspace = true, features = ["h1_client", "rustls"] }
+mockito.workspace = true
+tokio = { workspace = true, features = ["macros"] }
+serde = { workspace = true, features = ["derive"] }
+futures.workspace = true
 
 [package.metadata.docs.rs]
 all-features = true

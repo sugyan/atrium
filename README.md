@@ -17,14 +17,6 @@ ATrium is divided into several sub-projects to address different aspects of the 
 
 A library consisting of models and messaging definitions for XRPC, primarily generated using the codegen library.
 
-### [`atrium-lex`](./atrium-lex/)
-
-A library that provides type definitions for parsing the AT Protocol's [Lexicon](https://atproto.com/guides/lexicon) schema, ensuring compatibility with the lexicon.
-
-### [`atrium-codegen`](./atrium-codegen/)
-
-A library that generates Rust code for the `atrium-api` based on the analyzed lexicon definitions.
-
 ### [`atrium-xrpc`](./atrium-xrpc/)
 
 [![](https://img.shields.io/crates/v/atrium-xrpc)](https://crates.io/crates/atrium-xrpc)
@@ -43,10 +35,22 @@ A library provides clients that implement the `XrpcClient` defined in [atrium-xr
 
 A command-line app using this API library.
 
+## Code generation
+
+The models and messaging definitions for XRPC are generated with these crates:
+
+### [`atrium-lex`](./lexicon/atrium-lex/)
+
+A library that provides type definitions for parsing the AT Protocol's [Lexicon](https://atproto.com/guides/lexicon) schema, ensuring compatibility with the lexicon.
+
+### [`atrium-codegen`](./lexicon/atrium-codegen/)
+
+A library that generates Rust code for the `atrium-api` based on the analyzed lexicon definitions.
+
 ### `lexgen` command
 
 ```sh
-cargo run --bin lexgen -- --lexdir $HOME/.ghq/github.com/bluesky-social/atproto/lexicons
+cd lexicon && cargo run -p lexgen -- --lexdir $HOME/.ghq/github.com/bluesky-social/atproto/lexicons
 ```
 
 ## Contribution
