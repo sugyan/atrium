@@ -20,7 +20,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_reviewed_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search subjects reported after a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reported_after: Option<String>,

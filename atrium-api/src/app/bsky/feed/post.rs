@@ -41,8 +41,8 @@ pub struct ReplyRef {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct TextSlice {
-    pub end: i32,
-    pub start: i32,
+    pub end: usize,
+    pub start: usize,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

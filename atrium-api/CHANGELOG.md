@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `atrium_api::types`:
+  - `LimitedU8`, `LimitedNonZeroU8`, `BoundedU8`
+  - `LimitedU16`, `LimitedNonZeroU16`, `BoundedU16`
+  - `LimitedU32`, `LimitedNonZeroU32`, `BoundedU32`
+  - `LimitedU64`, `LimitedNonZeroU64`, `BoundedU64`
+
+### Changed
+- All Lexicon integer fields now have a type that matches their minimum and maximum
+  accepted values, instead of `i32`.
+
 ## [0.16.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.15.0...atrium-api-v0.16.0) - 2024-02-09
 
 ### Added

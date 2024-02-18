@@ -10,8 +10,8 @@ pub struct Main {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AspectRatio {
-    pub height: i32,
-    pub width: i32,
+    pub height: core::num::NonZeroU64,
+    pub width: core::num::NonZeroU64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

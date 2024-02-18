@@ -31,7 +31,7 @@ pub struct BlobView {
     pub mime_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
-    pub size: i32,
+    pub size: i64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -53,8 +53,8 @@ pub struct CommunicationTemplateView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDetails {
-    pub height: i32,
-    pub width: i32,
+    pub height: i64,
+    pub width: i64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -103,7 +103,7 @@ pub struct ModEventMute {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Indicates how long the subject should remain muted.
-    pub duration_in_hours: i32,
+    pub duration_in_hours: i64,
 }
 ///Report a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -137,7 +137,7 @@ pub struct ModEventTakedown {
     pub comment: Option<String>,
     ///Indicates how long the takedown should be in effect before automatically expiring.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_in_hours: Option<i32>,
+    pub duration_in_hours: Option<i64>,
 }
 ///Unmute action on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -155,7 +155,7 @@ pub struct ModEventView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub creator_handle: Option<String>,
     pub event: ModEventViewEventEnum,
-    pub id: i32,
+    pub id: i64,
     pub subject: ModEventViewSubjectEnum,
     pub subject_blob_cids: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -167,7 +167,7 @@ pub struct ModEventViewDetail {
     pub created_at: String,
     pub created_by: String,
     pub event: ModEventViewDetailEventEnum,
-    pub id: i32,
+    pub id: i64,
     pub subject: ModEventViewDetailSubjectEnum,
     pub subject_blobs: Vec<BlobView>,
 }
@@ -276,10 +276,10 @@ pub struct ReportView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     pub created_at: String,
-    pub id: i32,
+    pub id: i64,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
-    pub resolved_by_action_ids: Vec<i32>,
+    pub resolved_by_action_ids: Vec<i64>,
     pub subject: ReportViewSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_repo_handle: Option<String>,
@@ -290,7 +290,7 @@ pub struct ReportViewDetail {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     pub created_at: String,
-    pub id: i32,
+    pub id: i64,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: String,
     pub resolved_by_actions: Vec<crate::com::atproto::admin::defs::ModEventView>,
@@ -323,7 +323,7 @@ pub struct SubjectStatusView {
     pub comment: Option<String>,
     ///Timestamp referencing the first moderation status impacting event was emitted on the subject
     pub created_at: String,
-    pub id: i32,
+    pub id: i64,
     ///Timestamp referencing when the author of the subject appealed a moderation action
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_appealed_at: Option<String>,
@@ -351,9 +351,9 @@ pub struct SubjectStatusView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct VideoDetails {
-    pub height: i32,
-    pub length: i32,
-    pub width: i32,
+    pub height: i64,
+    pub length: i64,
+    pub width: i64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

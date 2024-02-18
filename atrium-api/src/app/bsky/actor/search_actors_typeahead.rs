@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search query prefix; not a full query string.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub q: Option<String>,

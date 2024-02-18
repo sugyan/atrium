@@ -10,8 +10,8 @@ pub struct Main {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ByteSlice {
-    pub byte_end: i32,
-    pub byte_start: i32,
+    pub byte_end: usize,
+    pub byte_start: usize,
 }
 ///A facet feature for links.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -36,6 +36,7 @@ impl Runner {
         })
     }
     pub async fn run(&self, command: Command) {
+        let limit = 10.try_into().expect("within limit");
         match command {
             Command::Login(args) => {
                 let result = self.agent.login(args.identifier, args.password).await;
@@ -59,7 +60,7 @@ impl Runner {
                         .get_timeline(atrium_api::app::bsky::feed::get_timeline::Parameters {
                             algorithm: None,
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -76,7 +77,7 @@ impl Runner {
                             actor: args.actor.or(self.handle.clone()).unwrap(),
                             cursor: None,
                             filter: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -92,7 +93,7 @@ impl Runner {
                         .get_likes(atrium_api::app::bsky::feed::get_likes::Parameters {
                             cid: None,
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                             uri: args.uri.to_string(),
                         })
                         .await,
@@ -109,7 +110,7 @@ impl Runner {
                         .get_reposted_by(atrium_api::app::bsky::feed::get_reposted_by::Parameters {
                             cid: None,
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                             uri: args.uri.to_string(),
                         })
                         .await,
@@ -126,7 +127,7 @@ impl Runner {
                         .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
                             actor: args.actor.or(self.handle.clone()).unwrap(),
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -142,7 +143,7 @@ impl Runner {
                         .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
                             actor: args.actor.or(self.handle.clone()).unwrap(),
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -172,7 +173,7 @@ impl Runner {
                         .list_notifications(
                             atrium_api::app::bsky::notification::list_notifications::Parameters {
                                 cursor: None,
-                                limit: Some(10),
+                                limit: Some(limit),
                                 seen_at: None,
                             },
                         )

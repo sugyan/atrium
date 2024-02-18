@@ -12,6 +12,12 @@ pub struct LexBoolean {
     pub r#const: Option<bool>,
 }
 
+/// The Lexicon type `integer`.
+///
+/// Lexicon integers are [specified] as signed and 64-bit, which means that values will
+/// always fit in an `i64`.
+///
+/// [specified]: https://atproto.com/specs/data-model#data-types
 #[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
 pub struct LexInteger {
