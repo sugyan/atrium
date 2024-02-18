@@ -1,6 +1,7 @@
 use crate::commands::Command;
 use crate::store::SimpleJsonFileSessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::types::string::{AtIdentifier, Handle};
 use atrium_api::xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use chrono::Local;
@@ -12,7 +13,7 @@ pub struct Runner {
     agent: AtpAgent<SimpleJsonFileSessionStore, ReqwestClient>,
     debug: bool,
     session_path: PathBuf,
-    handle: Option<String>,
+    handle: Option<Handle>,
 }
 
 impl Runner {
@@ -74,7 +75,10 @@ impl Runner {
                         .bsky
                         .feed
                         .get_author_feed(atrium_api::app::bsky::feed::get_author_feed::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                             cursor: None,
                             filter: None,
                             limit: Some(limit),
@@ -125,7 +129,10 @@ impl Runner {
                         .bsky
                         .graph
                         .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                             cursor: None,
                             limit: Some(limit),
                         })
@@ -141,7 +148,10 @@ impl Runner {
                         .bsky
                         .graph
                         .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                             cursor: None,
                             limit: Some(limit),
                         })
@@ -157,7 +167,10 @@ impl Runner {
                         .bsky
                         .actor
                         .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                         })
                         .await,
                 );
@@ -203,7 +216,7 @@ impl Runner {
                                     text: args.text,
                                 },
                             )),
-                            repo: self.handle.clone().unwrap(),
+                            repo: self.handle.clone().unwrap().into(),
                             rkey: None,
                             swap_commit: None,
                             validate: None,
@@ -221,7 +234,7 @@ impl Runner {
                         .repo
                         .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
                             collection: "app.bsky.feed.post".into(),
-                            repo: self.handle.clone().unwrap(),
+                            repo: self.handle.clone().unwrap().into(),
                             rkey: args.uri.rkey,
                             swap_commit: None,
                             swap_record: None,

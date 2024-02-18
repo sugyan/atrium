@@ -18,7 +18,7 @@ pub struct Input {
     pub subject: Option<String>,
     ///DID of the user who is updating the template.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated_by: Option<String>,
+    pub updated_by: Option<crate::types::string::Did>,
 }
 pub type Output = crate::com::atproto::admin::defs::CommunicationTemplateView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -11,7 +11,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///The handle or DID of the repo.
-    pub repo: String,
+    pub repo: crate::types::string::AtIdentifier,
     ///Flag to reverse the order of the returned records.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reverse: Option<bool>,

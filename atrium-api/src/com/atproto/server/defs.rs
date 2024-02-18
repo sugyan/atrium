@@ -15,5 +15,5 @@ pub struct InviteCode {
 #[serde(rename_all = "camelCase")]
 pub struct InviteCodeUse {
     pub used_at: String,
-    pub used_by: String,
+    pub used_by: crate::types::string::Did,
 }

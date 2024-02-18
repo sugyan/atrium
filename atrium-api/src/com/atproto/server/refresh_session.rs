@@ -4,10 +4,10 @@
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub access_jwt: String,
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub did_doc: Option<crate::did_doc::DidDocument>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

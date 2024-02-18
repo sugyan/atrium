@@ -9,7 +9,7 @@ pub struct Parameters {
     ///The NSID of the record collection.
     pub collection: String,
     ///The handle or DID of the repo.
-    pub repo: String,
+    pub repo: crate::types::string::AtIdentifier,
     ///The key of the record.
     pub rkey: String,
 }

@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockedAuthor {
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
 }
@@ -34,7 +34,7 @@ pub struct GeneratorView {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    pub did: String,
+    pub did: crate::types::string::Did,
     pub display_name: String,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]

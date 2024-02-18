@@ -13,7 +13,7 @@ pub struct Label {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub neg: Option<bool>,
     ///DID of the actor who created this label.
-    pub src: String,
+    pub src: crate::types::string::Did,
     ///AT URI of the record, repository (account), or other resource that this label applies to.
     pub uri: String,
     ///The short string name of the value or type of this label.

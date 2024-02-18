@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    pub actor: String,
+    pub actor: crate::types::string::AtIdentifier,
 }
 pub type Output = crate::app::bsky::actor::defs::ProfileViewDetailed;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -6,7 +6,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     ///The DID of the repo.
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU16<1000u16>>,
     ///Optional revision of the repo to list blobs since.

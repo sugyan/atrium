@@ -4,5 +4,5 @@
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub created_at: String,
-    pub subject: String,
+    pub subject: crate::types::string::Did,
 }

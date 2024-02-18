@@ -5,7 +5,7 @@
 pub struct Parameters {
     pub cids: Vec<String>,
     ///The DID of the repo.
-    pub did: String,
+    pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

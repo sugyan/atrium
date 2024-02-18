@@ -404,6 +404,7 @@ dependencies = [
  "futures",
  "http",
  "libipld-core",
+ "regex",
  "serde",
  "serde_bytes",
  "serde_ipld_dagcbor 0.4.2",

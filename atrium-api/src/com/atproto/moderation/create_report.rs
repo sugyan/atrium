@@ -16,7 +16,7 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
-    pub reported_by: String,
+    pub reported_by: crate::types::string::Did,
     pub subject: OutputSubjectEnum,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

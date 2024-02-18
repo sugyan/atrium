@@ -3,12 +3,12 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountView {
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email_confirmed_at: Option<String>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_note: Option<String>,
@@ -42,7 +42,7 @@ pub struct CommunicationTemplateView {
     pub disabled: bool,
     pub id: String,
     ///DID of the user who last updated the template.
-    pub last_updated_by: String,
+    pub last_updated_by: crate::types::string::Did,
     ///Name of the template.
     pub name: String,
     ///Content of the template, can contain markdown and variable placeholders.
@@ -151,7 +151,7 @@ pub struct ModEventUnmute {
 #[serde(rename_all = "camelCase")]
 pub struct ModEventView {
     pub created_at: String,
-    pub created_by: String,
+    pub created_by: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub creator_handle: Option<String>,
     pub event: ModEventViewEventEnum,
@@ -165,7 +165,7 @@ pub struct ModEventView {
 #[serde(rename_all = "camelCase")]
 pub struct ModEventViewDetail {
     pub created_at: String,
-    pub created_by: String,
+    pub created_by: crate::types::string::Did,
     pub event: ModEventViewDetailEventEnum,
     pub id: i64,
     pub subject: ModEventViewDetailSubjectEnum,
@@ -216,22 +216,22 @@ pub struct RecordViewNotFound {
 #[serde(rename_all = "camelCase")]
 pub struct RepoBlobRef {
     pub cid: String,
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub record_uri: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoRef {
-    pub did: String,
+    pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoView {
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_note: Option<String>,
@@ -245,12 +245,12 @@ pub struct RepoView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewDetail {
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email_confirmed_at: Option<String>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     pub indexed_at: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_note: Option<String>,
@@ -268,7 +268,7 @@ pub struct RepoViewDetail {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewNotFound {
-    pub did: String,
+    pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -278,7 +278,7 @@ pub struct ReportView {
     pub created_at: String,
     pub id: i64,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
-    pub reported_by: String,
+    pub reported_by: crate::types::string::Did,
     pub resolved_by_action_ids: Vec<i64>,
     pub subject: ReportViewSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -292,7 +292,7 @@ pub struct ReportViewDetail {
     pub created_at: String,
     pub id: i64,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
-    pub reported_by: String,
+    pub reported_by: crate::types::string::Did,
     pub resolved_by_actions: Vec<crate::com::atproto::admin::defs::ModEventView>,
     pub subject: ReportViewDetailSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -332,7 +332,7 @@ pub struct SubjectStatusView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_reviewed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reviewed_by: Option<String>,
+    pub last_reviewed_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mute_until: Option<String>,
     pub review_state: SubjectReviewState,

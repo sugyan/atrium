@@ -6,7 +6,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blob: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub did: Option<String>,
+    pub did: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }

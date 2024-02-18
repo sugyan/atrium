@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     ///The handle or DID of the repo.
-    pub repo: String,
+    pub repo: crate::types::string::AtIdentifier,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
     ///Flag for validating the records.

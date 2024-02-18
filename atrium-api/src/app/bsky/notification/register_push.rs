@@ -5,7 +5,7 @@
 pub struct Input {
     pub app_id: String,
     pub platform: String,
-    pub service_did: String,
+    pub service_did: crate::types::string::Did,
     pub token: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

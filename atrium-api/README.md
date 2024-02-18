@@ -56,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .bsky
         .actor
         .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-            actor: "bsky.app".into(),
+            actor: "bsky.app".parse()?,
         })
         .await?;
     println!("{:?}", result);

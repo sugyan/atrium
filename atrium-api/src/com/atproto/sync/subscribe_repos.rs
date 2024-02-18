@@ -26,7 +26,7 @@ pub struct Commit {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev: Option<crate::types::CidLink>,
     pub rebase: bool,
-    pub repo: String,
+    pub repo: crate::types::string::Did,
     ///The rev of the emitted commit.
     pub rev: String,
     pub seq: i64,
@@ -39,8 +39,8 @@ pub struct Commit {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Handle {
-    pub did: String,
-    pub handle: String,
+    pub did: crate::types::string::Did,
+    pub handle: crate::types::string::Handle,
     pub seq: i64,
     pub time: String,
 }
@@ -54,7 +54,7 @@ pub struct Info {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Migrate {
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub migrate_to: Option<String>,
     pub seq: i64,
@@ -72,7 +72,7 @@ pub struct RepoOp {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tombstone {
-    pub did: String,
+    pub did: crate::types::string::Did,
     pub seq: i64,
     pub time: String,
 }

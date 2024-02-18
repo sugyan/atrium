@@ -23,7 +23,7 @@ pub struct Link {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Mention {
-    pub did: String,
+    pub did: crate::types::string::Did,
 }
 ///A hashtag.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

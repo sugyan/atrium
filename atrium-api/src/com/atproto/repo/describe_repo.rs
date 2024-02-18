@@ -4,15 +4,15 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The handle or DID of the repo.
-    pub repo: String,
+    pub repo: crate::types::string::AtIdentifier,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub collections: Vec<String>,
-    pub did: String,
+    pub did: crate::types::string::Did,
     pub did_doc: crate::did_doc::DidDocument,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     pub handle_is_correct: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
