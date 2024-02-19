@@ -5,5 +5,5 @@
 pub struct Record {
     pub created_at: String,
     pub list: String,
-    pub subject: String,
+    pub subject: crate::types::string::Did,
 }

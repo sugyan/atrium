@@ -16,7 +16,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_before: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_by: Option<String>,
+    pub created_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     ///If true, only events with comments are returned

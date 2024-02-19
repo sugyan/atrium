@@ -18,7 +18,7 @@ pub struct Parameters {
     pub include_muted: Option<bool>,
     ///Get all subject statuses that were reviewed by a specific moderator
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reviewed_by: Option<String>,
+    pub last_reviewed_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search subjects reported after a given timestamp

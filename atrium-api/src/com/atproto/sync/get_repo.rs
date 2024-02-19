@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The DID of the repo.
-    pub did: String,
+    pub did: crate::types::string::Did,
     ///The revision of the repo to catch up from.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,

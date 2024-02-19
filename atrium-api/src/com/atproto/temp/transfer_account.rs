@@ -3,16 +3,16 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
-    pub did: String,
-    pub handle: String,
+    pub did: crate::types::string::Did,
+    pub handle: crate::types::string::Handle,
     pub plc_op: crate::records::Record,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub access_jwt: String,
-    pub did: String,
-    pub handle: String,
+    pub did: crate::types::string::Did,
+    pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

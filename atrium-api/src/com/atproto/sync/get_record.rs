@@ -8,7 +8,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commit: Option<String>,
     ///The DID of the repo.
-    pub did: String,
+    pub did: crate::types::string::Did,
     pub rkey: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

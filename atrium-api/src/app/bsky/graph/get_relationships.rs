@@ -3,15 +3,15 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    pub actor: String,
+    pub actor: crate::types::string::AtIdentifier,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub others: Option<Vec<String>>,
+    pub others: Option<Vec<crate::types::string::AtIdentifier>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub actor: Option<String>,
+    pub actor: Option<crate::types::string::Did>,
     pub relationships: Vec<OutputRelationshipsItem>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

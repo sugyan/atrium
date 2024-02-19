@@ -1,3 +1,4 @@
+use atrium_api::types::string::AtIdentifier;
 use clap::Parser;
 use std::str::FromStr;
 
@@ -40,8 +41,8 @@ pub struct LoginArgs {
 #[derive(Parser, Debug)]
 pub struct ActorArgs {
     /// Actor's handle or did
-    #[arg(short, long)]
-    pub(crate) actor: Option<String>,
+    #[arg(short, long, value_parser)]
+    pub(crate) actor: Option<AtIdentifier>,
 }
 
 #[derive(Parser, Debug)]

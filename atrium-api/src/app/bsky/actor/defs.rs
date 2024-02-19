@@ -54,10 +54,10 @@ pub struct ProfileView {
     pub avatar: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -70,10 +70,10 @@ pub struct ProfileView {
 pub struct ProfileViewBasic {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,14 +88,14 @@ pub struct ProfileViewDetailed {
     pub banner: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub followers_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub follows_count: Option<i64>,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

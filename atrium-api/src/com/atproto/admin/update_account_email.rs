@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     ///The handle or DID of the repo.
-    pub account: String,
+    pub account: crate::types::string::AtIdentifier,
     pub email: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -152,9 +152,9 @@ mod tests {
                             body.extend(serde_json::to_vec(
                                 &crate::com::atproto::server::refresh_session::Output {
                                     access_jwt: String::from("access"),
-                                    did: String::from("did"),
+                                    did: "did:web:example.com".parse().expect("valid"),
                                     did_doc: None,
-                                    handle: String::from("handle"),
+                                    handle: "example.com".parse().expect("valid"),
                                     refresh_jwt: String::from("refresh"),
                                 },
                             )?);
@@ -187,11 +187,11 @@ mod tests {
     fn session() -> Session {
         Session {
             access_jwt: String::from("access"),
-            did: String::from("did"),
+            did: "did:web:example.com".parse().expect("valid"),
             did_doc: None,
             email: None,
             email_confirmed: None,
-            handle: String::from("handle"),
+            handle: "example.com".parse().expect("valid"),
             refresh_jwt: String::from("refresh"),
         }
     }
@@ -266,7 +266,7 @@ mod tests {
             .get_session()
             .await
             .expect("get session should be succeeded");
-        assert_eq!(output.did, "did");
+        assert_eq!(output.did.as_str(), "did:web:example.com");
     }
 
     #[tokio::test]
@@ -296,7 +296,7 @@ mod tests {
             .get_session()
             .await
             .expect("get session should be succeeded");
-        assert_eq!(output.did, "did");
+        assert_eq!(output.did.as_str(), "did:web:example.com");
         assert_eq!(
             agent
                 .store
@@ -338,7 +338,7 @@ mod tests {
                 .expect("task should be successfully executed")
                 .as_ref()
                 .expect("get session should be succeeded");
-            assert_eq!(output.did, "did");
+            assert_eq!(output.did.as_str(), "did:web:example.com");
         }
         assert_eq!(
             agent
