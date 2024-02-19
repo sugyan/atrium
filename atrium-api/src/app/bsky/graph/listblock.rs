@@ -4,5 +4,6 @@
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub created_at: String,
+    ///Reference (AT-URI) to the mod list record.
     pub subject: String,
 }

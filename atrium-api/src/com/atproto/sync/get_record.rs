@@ -9,6 +9,7 @@ pub struct Parameters {
     pub commit: Option<String>,
     ///The DID of the repo.
     pub did: crate::types::string::Did,
+    ///Record Key
     pub rkey: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -7,17 +7,17 @@ pub struct Input {
     pub collection: String,
     ///The record to write.
     pub record: crate::records::Record,
-    ///The handle or DID of the repo.
+    ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
-    ///The key of the record.
+    ///The Record Key.
     pub rkey: String,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
-    ///Compare and swap with the previous record by CID.
+    ///Compare and swap with the previous record by CID. WARNING: nullable and optional field; may cause problems with golang implementation
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_record: Option<String>,
-    ///Flag for validating the record.
+    ///Can be set to 'false' to skip Lexicon schema validation of record data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }

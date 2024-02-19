@@ -123,6 +123,7 @@ pub struct ThreadgateView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }
+///Metadata about the requesting account's relationship with the subject content. Only has meaningful content for authed requests.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewerState {

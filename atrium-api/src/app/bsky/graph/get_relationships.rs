@@ -3,7 +3,9 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    ///Primary account requesting relationships for.
     pub actor: crate::types::string::AtIdentifier,
+    ///List of 'other' accounts to be related back to the primary.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub others: Option<Vec<crate::types::string::AtIdentifier>>,
 }

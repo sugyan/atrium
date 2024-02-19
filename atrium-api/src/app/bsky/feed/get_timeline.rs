@@ -3,6 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    ///Variant 'algorithm' for timeline. Implementation-specific. NOTE: most feed flexibility has been moved to feed generator mechanism.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub algorithm: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

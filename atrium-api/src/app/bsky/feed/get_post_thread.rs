@@ -3,10 +3,13 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    ///How many levels of reply depth should be included in response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub depth: Option<crate::types::LimitedU16<1000u16>>,
+    ///How many levels of parent (and grandparent, etc) post to include.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_height: Option<crate::types::LimitedU16<1000u16>>,
+    ///Reference (AT-URI) to post record.
     pub uri: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

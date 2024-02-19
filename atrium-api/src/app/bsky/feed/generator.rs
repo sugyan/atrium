@@ -12,6 +12,7 @@ pub struct Record {
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub did: crate::types::string::Did,
     pub display_name: String,
+    ///Self-label values
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<RecordLabelsEnum>,
 }

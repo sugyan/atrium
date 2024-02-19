@@ -22,6 +22,7 @@ pub enum Error {}
 #[serde(rename_all = "camelCase")]
 pub struct Repo {
     pub did: crate::types::string::Did,
+    ///Current repo commit CID
     pub head: String,
     pub rev: String,
 }

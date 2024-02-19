@@ -5,17 +5,17 @@
 pub struct Input {
     ///The NSID of the record collection.
     pub collection: String,
-    ///The record to create.
+    ///The record itself. Must contain a $type field.
     pub record: crate::records::Record,
-    ///The handle or DID of the repo.
+    ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
-    ///The key of the record.
+    ///The Record Key.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
-    ///Flag for validating the record.
+    ///Can be set to 'false' to skip Lexicon schema validation of record data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }
@@ -28,5 +28,6 @@ pub struct Output {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
+    ///Indicates that 'swapCommit' didn't match current repo commit.
     InvalidSwap(Option<String>),
 }
