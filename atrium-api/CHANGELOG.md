@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.16.0...atrium-api-v0.16.1) - 2024-02-19
+
+### Added
+- Update API, based on the latest lexicon schemas ([#104](https://github.com/sugyan/atrium/pull/104))
+
+### Other
+- Merge pull request [#107](https://github.com/sugyan/atrium/pull/107) from str4d/lexicon-integer-conversion
+- Add direct conversions between the Lexicon integer types and primitives
+- Introduce dedicated types for DID and handle Lexicon string formats
+- Introduce types guaranteed to fit the range of each Lexicon integer
+- Move other dependencies into workspace dependencies table
+- Move intra-workspace dependencies into workspace dependencies table
+- Deduplicate package keys with workspace inheritance
+- Set MSRV for main crates to 1.70
+
 ### Added
 - `atrium_api::types`:
   - `RecordKey`
