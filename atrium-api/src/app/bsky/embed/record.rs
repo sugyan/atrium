@@ -31,7 +31,7 @@ pub struct ViewRecord {
     pub cid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embeds: Option<Vec<ViewRecordEmbedsItem>>,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub uri: String,

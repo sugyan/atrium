@@ -37,6 +37,8 @@ libipld-core = "0.16"
 serde_ipld_dagcbor = "0.3"
 
 # Parsing and validation
+chrono = "0.4"
+langtag = "0.3"
 regex = "1"
 serde = "1.0.160"
 serde_bytes = "0.11.9"
@@ -58,7 +60,6 @@ anyhow = "1.0.71"
 thiserror = "1"
 
 # CLI
-chrono = "0.4.24"
 clap = { version = "4.2.4", features = ["derive"] }
 dirs = "5.0.1"
 

@@ -36,7 +36,7 @@ pub struct GeneratorView {
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub did: crate::types::string::Did,
     pub display_name: String,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like_count: Option<usize>,
     pub uri: String,
@@ -62,7 +62,7 @@ pub struct PostView {
     pub cid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<PostViewEmbedEnum>,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -82,7 +82,7 @@ pub struct PostView {
 #[serde(rename_all = "camelCase")]
 pub struct ReasonRepost {
     pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     ///Client-declared timestamp when this post was originally created.
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<RecordEmbedEnum>,
     ///DEPRECATED: replaced by app.bsky.richtext.facet.
@@ -18,7 +18,7 @@ pub struct Record {
     pub labels: Option<RecordLabelsEnum>,
     ///Indicates human language of post primary text content.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub langs: Option<Vec<String>>,
+    pub langs: Option<Vec<crate::types::string::Language>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
     ///Additional hashtags, in addition to any included in post text and facets.

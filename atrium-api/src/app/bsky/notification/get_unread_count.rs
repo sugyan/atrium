@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub seen_at: Option<String>,
+    pub seen_at: Option<crate::types::string::Datetime>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

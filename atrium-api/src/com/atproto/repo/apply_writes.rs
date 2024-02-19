@@ -23,7 +23,7 @@ pub enum Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Create {
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
     pub value: crate::records::Record,
@@ -32,14 +32,14 @@ pub struct Create {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Delete {
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     pub rkey: String,
 }
 ///Operation which updates an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Update {
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     pub rkey: String,
     pub value: crate::records::Record,
 }

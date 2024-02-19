@@ -8,7 +8,7 @@ pub struct Label {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     ///Timestamp when this label was created.
-    pub cts: String,
+    pub cts: crate::types::string::Datetime,
     ///If true, this is a negation label, overwriting a previous label.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub neg: Option<bool>,

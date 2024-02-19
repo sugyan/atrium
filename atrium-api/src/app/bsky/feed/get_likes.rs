@@ -30,6 +30,6 @@ pub enum Error {}
 #[serde(rename_all = "camelCase")]
 pub struct Like {
     pub actor: crate::app::bsky::actor::defs::ProfileView,
-    pub created_at: String,
-    pub indexed_at: String,
+    pub created_at: crate::types::string::Datetime,
+    pub indexed_at: crate::types::string::Datetime,
 }

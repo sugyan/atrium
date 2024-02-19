@@ -15,7 +15,7 @@ pub enum Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AppPassword {
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub name: String,
     pub password: String,
 }

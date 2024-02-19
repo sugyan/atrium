@@ -491,8 +491,11 @@ fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
     // TODO: enum?
     let typ = match string.format {
         Some(LexStringFormat::AtIdentifier) => quote!(crate::types::string::AtIdentifier),
+        Some(LexStringFormat::Datetime) => quote!(crate::types::string::Datetime),
         Some(LexStringFormat::Did) => quote!(crate::types::string::Did),
         Some(LexStringFormat::Handle) => quote!(crate::types::string::Handle),
+        Some(LexStringFormat::Nsid) => quote!(crate::types::string::Nsid),
+        Some(LexStringFormat::Language) => quote!(crate::types::string::Language),
         // TODO: other formats
         _ => quote!(String),
     };

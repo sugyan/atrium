@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     ///DID of the account to be blocked.
     pub subject: crate::types::string::Did,
 }

@@ -10,7 +10,7 @@ pub struct Parameters {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     ///List of all the collections (NSIDs) for which this repo contains at least one record.
-    pub collections: Vec<String>,
+    pub collections: Vec<crate::types::string::Nsid>,
     pub did: crate::types::string::Did,
     ///The complete DID document for this account.
     pub did_doc: crate::did_doc::DidDocument,

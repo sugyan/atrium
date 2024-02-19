@@ -400,9 +400,11 @@ dependencies = [
  "async-trait",
  "atrium-xrpc 0.8.0",
  "atrium-xrpc-client",
+ "chrono",
  "cid 0.10.1",
  "futures",
  "http",
+ "langtag",
  "libipld-core",
  "regex",
  "serde",
@@ -659,6 +661,7 @@ dependencies = [
  "iana-time-zone",
  "js-sys",
  "num-traits",
+ "serde",
  "wasm-bindgen",
  "windows-targets 0.52.0",
 ]
@@ -1630,6 +1633,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
 dependencies = [
  "log",
+]
+
+[[package]]
+name = "langtag"
+version = "0.3.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ed60c85f254d6ae8450cec15eedd921efbc4d1bdf6fcf6202b9a58b403f6f805"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

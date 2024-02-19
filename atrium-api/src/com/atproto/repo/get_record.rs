@@ -7,7 +7,7 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     ///The NSID of the record collection.
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     ///The handle or DID of the repo.
     pub repo: crate::types::string::AtIdentifier,
     ///The Record Key.

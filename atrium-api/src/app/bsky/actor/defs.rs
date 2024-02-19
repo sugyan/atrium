@@ -43,7 +43,7 @@ pub struct InterestsPref {
 pub struct PersonalDetailsPref {
     ///The birth date of account owner.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub birth_date: Option<String>,
+    pub birth_date: Option<crate::types::string::Datetime>,
 }
 pub type Preferences = Vec<PreferencesItem>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -58,7 +58,7 @@ pub struct ProfileView {
     pub display_name: Option<String>,
     pub handle: crate::types::string::Handle,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub indexed_at: Option<String>,
+    pub indexed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -96,7 +96,7 @@ pub struct ProfileViewDetailed {
     pub follows_count: Option<i64>,
     pub handle: crate::types::string::Handle,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub indexed_at: Option<String>,
+    pub indexed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]

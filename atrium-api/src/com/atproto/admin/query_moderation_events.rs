@@ -11,10 +11,10 @@ pub struct Parameters {
     pub comment: Option<String>,
     ///Retrieve events created after a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_after: Option<String>,
+    pub created_after: Option<crate::types::string::Datetime>,
     ///Retrieve events created before a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_before: Option<String>,
+    pub created_before: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
