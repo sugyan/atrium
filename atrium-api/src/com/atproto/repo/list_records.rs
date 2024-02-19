@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The NSID of the record type.
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     ///The number of records to return.

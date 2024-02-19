@@ -2,10 +2,12 @@
 //!
 //! [string formats]: https://atproto.com/specs/lexicon#string-formats
 
-use std::{cell::OnceCell, ops::Deref, str::FromStr};
+use std::{cell::OnceCell, cmp, ops::Deref, str::FromStr};
 
+use chrono::DurationRound;
+use langtag::{LanguageTag, LanguageTagBuf};
 use regex::Regex;
-use serde::{de::Error, Deserialize, Deserializer, Serialize};
+use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 
 /// Common trait implementations for Lexicon string formats that are newtype wrappers
 /// around `String`.
@@ -101,6 +103,104 @@ impl AsRef<str> for AtIdentifier {
     }
 }
 
+/// A Lexicon timestamp.
+#[derive(Clone, Debug, Eq)]
+pub struct Datetime {
+    /// Serialized form. Preserved during parsing to ensure round-trip re-serialization.
+    serialized: String,
+    /// Parsed form.
+    dt: chrono::DateTime<chrono::FixedOffset>,
+}
+
+impl PartialEq for Datetime {
+    fn eq(&self, other: &Self) -> bool {
+        self.dt == other.dt
+    }
+}
+
+impl Ord for Datetime {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
+        self.dt.cmp(&other.dt)
+    }
+}
+
+impl PartialOrd for Datetime {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Datetime {
+    /// Returns a `Datetime` which corresponds to the current date and time in UTC.
+    ///
+    /// The timestamp uses microsecond precision.
+    pub fn now() -> Self {
+        Self::new(chrono::Utc::now().fixed_offset())
+    }
+
+    /// Constructs a new Lexicon timestamp.
+    ///
+    /// The timestamp is rounded to microsecond precision.
+    pub fn new(dt: chrono::DateTime<chrono::FixedOffset>) -> Self {
+        let dt = dt
+            .duration_round(chrono::Duration::microseconds(1))
+            .expect("delta does not exceed limits");
+        // This serialization format is compatible with ISO 8601.
+        let serialized = dt.to_rfc3339_opts(chrono::SecondsFormat::Micros, true);
+        Self { serialized, dt }
+    }
+}
+
+impl FromStr for Datetime {
+    type Err = chrono::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        // The `chrono` crate only supports RFC 3339 parsing, but Lexicon restricts
+        // datetimes to the subset that is also valid under ISO 8601. Apply a regex that
+        // validates enough of the relevant ISO 8601 format that the RFC 3339 parser can
+        // do the rest.
+        const RE_ISO_8601: OnceCell<Regex> = OnceCell::new();
+        if RE_ISO_8601
+            .get_or_init(|| Regex::new(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|(\+[0-9]{2}|\-[0-9][1-9]):[0-9]{2})$").unwrap())
+            .is_match(&s)
+        {
+            let dt = chrono::DateTime::parse_from_rfc3339(s)?;
+            Ok(Self {
+                serialized: s.into(),
+                dt,
+            })
+        } else {
+            // Simulate an invalid `ParseError`.
+            Err(chrono::DateTime::parse_from_rfc3339("invalid").expect_err("invalid"))
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for Datetime {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = Deserialize::deserialize(deserializer)?;
+        Self::from_str(value).map_err(D::Error::custom)
+    }
+}
+
+impl Serialize for Datetime {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.serialized)
+    }
+}
+
+impl AsRef<chrono::DateTime<chrono::FixedOffset>> for Datetime {
+    fn as_ref(&self) -> &chrono::DateTime<chrono::FixedOffset> {
+        &self.dt
+    }
+}
+
 /// A generic [DID Identifier].
 ///
 /// [DID Identifier]: https://atproto.com/specs/did
@@ -170,11 +270,158 @@ impl Handle {
     }
 }
 
+/// A [Namespaced Identifier].
+///
+/// [Namespaced Identifier]: https://atproto.com/specs/nsid
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
+pub struct Nsid(String);
+string_newtype!(Nsid);
+
+impl Nsid {
+    /// Parses an NSID from the given string.
+    pub fn new(nsid: String) -> Result<Self, &'static str> {
+        const RE_NSID: OnceCell<Regex> = OnceCell::new();
+
+        // https://atproto.com/specs/handle#handle-identifier-syntax
+        if nsid.len() > 317 {
+            Err("NSID too long")
+        } else if !RE_NSID
+            .get_or_init(|| Regex::new(r"^[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(\.[a-zA-Z]([a-zA-Z]{0,61}[a-zA-Z])?)$").unwrap())
+            .is_match(&nsid)
+        {
+            Err("Invalid NSID")
+        } else {
+            Ok(Self(nsid))
+        }
+    }
+
+    /// Returns the domain authority part of the NSID.
+    pub fn domain_authority(&self) -> &str {
+        let split = self.0.rfind('.').expect("enforced by constructor");
+        &self.0[..split]
+    }
+
+    /// Returns the name segment of the NSID.
+    pub fn name(&self) -> &str {
+        let split = self.0.rfind('.').expect("enforced by constructor");
+        &self.0[split + 1..]
+    }
+
+    /// Returns the NSID as a string slice.
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+/// An [IETF Language Tag] string.
+///
+/// [IETF Language Tag]: https://en.wikipedia.org/wiki/IETF_language_tag
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[serde(transparent)]
+pub struct Language(LanguageTagBuf);
+
+impl Language {
+    /// Creates a new language tag by parsing the given string.
+    pub fn new(s: String) -> Result<Self, langtag::Error> {
+        LanguageTagBuf::new(s.into()).map(Self).map_err(|(e, _)| e)
+    }
+
+    /// Returns a [`LanguageTag`] referencing this tag.
+    #[inline]
+    pub fn as_ref(&self) -> LanguageTag {
+        self.0.as_ref()
+    }
+}
+
+impl FromStr for Language {
+    type Err = langtag::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::new(s.into())
+    }
+}
+
+impl Serialize for Language {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.0.as_str())
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use serde_json::from_str;
+    use serde_json::{from_str, to_string};
 
     use super::*;
+
+    #[test]
+    fn valid_datetime() {
+        // From https://atproto.com/specs/lexicon#datetime
+        for valid in &[
+            // preferred
+            "1985-04-12T23:20:50.123Z",
+            "1985-04-12T23:20:50.123456Z",
+            "1985-04-12T23:20:50.120Z",
+            "1985-04-12T23:20:50.120000Z",
+            // supported
+            "1985-04-12T23:20:50.12345678912345Z",
+            "1985-04-12T23:20:50Z",
+            "1985-04-12T23:20:50.0Z",
+            "1985-04-12T23:20:50.123+00:00",
+            "1985-04-12T23:20:50.123-07:00",
+        ] {
+            let json_valid = format!("\"{}\"", valid);
+            let res = from_str::<Datetime>(&json_valid);
+            assert!(res.is_ok(), "valid Datetime `{}` parsed as invalid", valid);
+            let dt = res.unwrap();
+            assert_eq!(to_string(&dt).unwrap(), json_valid);
+        }
+    }
+
+    #[test]
+    fn invalid_datetime() {
+        // From https://atproto.com/specs/lexicon#datetime
+        for invalid in &[
+            "1985-04-12",
+            "1985-04-12T23:20Z",
+            "1985-04-12T23:20:5Z",
+            "1985-04-12T23:20:50.123",
+            "+001985-04-12T23:20:50.123Z",
+            "23:20:50.123Z",
+            "-1985-04-12T23:20:50.123Z",
+            "1985-4-12T23:20:50.123Z",
+            "01985-04-12T23:20:50.123Z",
+            "1985-04-12T23:20:50.123+00",
+            "1985-04-12T23:20:50.123+0000",
+            // ISO-8601 strict capitalization
+            "1985-04-12t23:20:50.123Z",
+            "1985-04-12T23:20:50.123z",
+            // RFC-3339, but not ISO-8601
+            "1985-04-12T23:20:50.123-00:00",
+            "1985-04-12 23:20:50.123Z",
+            // timezone is required
+            "1985-04-12T23:20:50.123",
+            // syntax looks ok, but datetime is not valid
+            "1985-04-12T23:99:50.123Z",
+            "1985-00-12T23:20:50.123Z",
+        ] {
+            assert!(
+                from_str::<Datetime>(&format!("\"{}\"", invalid)).is_err(),
+                "invalid Datetime `{}` parsed as valid",
+                invalid,
+            );
+        }
+    }
+
+    #[test]
+    fn datetime_round_trip() {
+        let dt = Datetime::now();
+        let encoded = to_string(&dt).unwrap();
+        assert_eq!(from_str::<Datetime>(&encoded).unwrap(), dt);
+    }
 
     #[test]
     fn valid_did() {
@@ -278,6 +525,128 @@ mod tests {
             assert!(
                 from_str::<Handle>(&format!("\"{}\"", invalid)).is_err(),
                 "invalid handle `{}` parsed as valid",
+                invalid,
+            );
+        }
+    }
+
+    #[test]
+    fn valid_nsid() {
+        // From https://atproto.com/specs/nsid#examples
+        for valid in &[
+            "com.example.fooBar",
+            "net.users.bob.ping",
+            "a-0.b-1.c",
+            "a.b.c",
+            "cn.8.lex.stuff",
+        ] {
+            assert!(
+                from_str::<Nsid>(&format!("\"{}\"", valid)).is_ok(),
+                "valid NSID `{}` parsed as invalid",
+                valid,
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_nsid() {
+        // From https://atproto.com/specs/nsid#examples
+        for invalid in &["com.exa💩ple.thing", "com.example"] {
+            assert!(
+                from_str::<Nsid>(&format!("\"{}\"", invalid)).is_err(),
+                "invalid NSID `{}` parsed as valid",
+                invalid,
+            );
+        }
+    }
+
+    #[test]
+    fn nsid_parts() {
+        // From https://atproto.com/specs/nsid#examples
+        for (nsid, domain_authority, name) in &[
+            ("com.example.fooBar", "com.example", "fooBar"),
+            ("net.users.bob.ping", "net.users.bob", "ping"),
+            ("a-0.b-1.c", "a-0.b-1", "c"),
+            ("a.b.c", "a.b", "c"),
+            ("cn.8.lex.stuff", "cn.8.lex", "stuff"),
+        ] {
+            let nsid = Nsid::new(nsid.to_string()).unwrap();
+            assert_eq!(nsid.domain_authority(), *domain_authority);
+            assert_eq!(nsid.name(), *name);
+        }
+    }
+
+    #[test]
+    fn valid_language() {
+        // From https://www.rfc-editor.org/rfc/rfc5646.html#appendix-A
+        for valid in &[
+            // Simple language subtag:
+            "de",         // German
+            "fr",         // French
+            "ja",         // Japanese
+            "i-enochian", // example of a grandfathered tag
+            // Language subtag plus Script subtag:
+            "zh-Hant", // Chinese written using the Traditional Chinese script
+            "zh-Hans", // Chinese written using the Simplified Chinese script
+            "sr-Cyrl", // Serbian written using the Cyrillic script
+            "sr-Latn", // Serbian written using the Latin script
+            // Extended language subtags and their primary language subtag counterparts:
+            "zh-cmn-Hans-CN", // Chinese, Mandarin, Simplified script, as used in China
+            "cmn-Hans-CN",    // Mandarin Chinese, Simplified script, as used in China
+            "zh-yue-HK",      // Chinese, Cantonese, as used in Hong Kong SAR
+            "yue-HK",         // Cantonese Chinese, as used in Hong Kong SAR
+            // Language-Script-Region:
+            "zh-Hans-CN", // Chinese written using the Simplified script as used in mainland China
+            "sr-Latn-RS", // Serbian written using the Latin script as used in Serbia
+            // Language-Variant:
+            "sl-rozaj",       // Resian dialect of Slovenian
+            "sl-rozaj-biske", // San Giorgio dialect of Resian dialect of Slovenian
+            "sl-nedis",       // Nadiza dialect of Slovenian
+            // Language-Region-Variant:
+            "de-CH-1901", // German as used in Switzerland using the 1901 variant orthography
+            "sl-IT-nedis", // Slovenian as used in Italy, Nadiza dialect
+            // Language-Script-Region-Variant:
+            "hy-Latn-IT-arevela", // Eastern Armenian written in Latin script, as used in Italy
+            // Language-Region:
+            "de-DE",  // German for Germany
+            "en-US",  // English as used in the United States
+            "es-419", // Spanish appropriate for the Latin America and Caribbean region using the UN region code
+            // Private use subtags:
+            "de-CH-x-phonebk",
+            "az-Arab-x-AZE-derbend",
+            // Private use registry values:
+            "x-whatever",             // private use using the singleton 'x'
+            "qaa-Qaaa-QM-x-southern", // all private tags
+            "de-Qaaa",                // German, with a private script
+            "sr-Latn-QM",             // Serbian, Latin script, private region
+            "sr-Qaaa-RS",             // Serbian, private script, for Serbia
+            // Tags that use extensions (examples ONLY -- extensions MUST be defined by RFC):
+            "en-US-u-islamcal",
+            "zh-CN-a-myext-x-private",
+            "en-a-myext-b-another",
+            // Invalid tags that are well-formed:
+            "ar-a-aaa-b-bbb-a-ccc", // two extensions with same single-letter prefix
+        ] {
+            let json_valid = format!("\"{}\"", valid);
+            let res = from_str::<Language>(&json_valid);
+            assert!(res.is_ok(), "valid language `{}` parsed as invalid", valid);
+            let dt = res.unwrap();
+            assert_eq!(to_string(&dt).unwrap(), json_valid);
+        }
+    }
+
+    #[test]
+    fn invalid_language() {
+        // From https://www.rfc-editor.org/rfc/rfc5646.html#appendix-A
+        for invalid in &[
+            "de-419-DE", // two region tags
+            // use of a single-character subtag in primary position; note that there are a
+            // few grandfathered tags that start with "i-" that are valid
+            "a-DE",
+        ] {
+            assert!(
+                from_str::<Language>(&format!("\"{}\"", invalid)).is_err(),
+                "invalid language `{}` parsed as valid",
                 invalid,
             );
         }

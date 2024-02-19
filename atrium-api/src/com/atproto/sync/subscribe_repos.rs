@@ -41,7 +41,7 @@ pub struct Commit {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
     ///Timestamp of when this message was originally broadcast.
-    pub time: String,
+    pub time: crate::types::string::Datetime,
     ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
     pub too_big: bool,
 }
@@ -52,7 +52,7 @@ pub struct Handle {
     pub did: crate::types::string::Did,
     pub handle: crate::types::string::Handle,
     pub seq: i64,
-    pub time: String,
+    pub time: crate::types::string::Datetime,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -69,7 +69,7 @@ pub struct Migrate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub migrate_to: Option<String>,
     pub seq: i64,
-    pub time: String,
+    pub time: crate::types::string::Datetime,
 }
 ///A repo operation, ie a mutation of a single record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -87,7 +87,7 @@ pub struct RepoOp {
 pub struct Tombstone {
     pub did: crate::types::string::Did,
     pub seq: i64,
-    pub time: String,
+    pub time: crate::types::string::Datetime,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

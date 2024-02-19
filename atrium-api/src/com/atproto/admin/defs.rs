@@ -7,9 +7,9 @@ pub struct AccountView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_confirmed_at: Option<String>,
+    pub email_confirmed_at: Option<crate::types::string::Datetime>,
     pub handle: crate::types::string::Handle,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_note: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -25,7 +25,7 @@ pub struct AccountView {
 #[serde(rename_all = "camelCase")]
 pub struct BlobView {
     pub cid: String,
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<BlobViewDetailsEnum>,
     pub mime_type: String,
@@ -38,7 +38,7 @@ pub struct BlobView {
 pub struct CommunicationTemplateView {
     ///Subject of the message, used in emails.
     pub content_markdown: String,
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub disabled: bool,
     pub id: String,
     ///DID of the user who last updated the template.
@@ -48,7 +48,7 @@ pub struct CommunicationTemplateView {
     ///Content of the template, can contain markdown and variable placeholders.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
-    pub updated_at: String,
+    pub updated_at: crate::types::string::Datetime,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -150,7 +150,7 @@ pub struct ModEventUnmute {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventView {
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub created_by: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub creator_handle: Option<String>,
@@ -164,7 +164,7 @@ pub struct ModEventView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventViewDetail {
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub created_by: crate::types::string::Did,
     pub event: ModEventViewDetailEventEnum,
     pub id: i64,
@@ -188,7 +188,7 @@ pub struct ModerationDetail {
 pub struct RecordView {
     pub blob_cids: Vec<String>,
     pub cid: String,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     pub moderation: Moderation,
     pub repo: RepoView,
     pub uri: String,
@@ -199,7 +199,7 @@ pub struct RecordView {
 pub struct RecordViewDetail {
     pub blobs: Vec<BlobView>,
     pub cid: String,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
@@ -232,7 +232,7 @@ pub struct RepoView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     pub handle: crate::types::string::Handle,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_note: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -249,9 +249,9 @@ pub struct RepoViewDetail {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_confirmed_at: Option<String>,
+    pub email_confirmed_at: Option<crate::types::string::Datetime>,
     pub handle: crate::types::string::Handle,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_note: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -275,7 +275,7 @@ pub struct RepoViewNotFound {
 pub struct ReportView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub id: i64,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: crate::types::string::Did,
@@ -289,7 +289,7 @@ pub struct ReportView {
 pub struct ReportViewDetail {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub id: i64,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: crate::types::string::Did,
@@ -322,19 +322,19 @@ pub struct SubjectStatusView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Timestamp referencing the first moderation status impacting event was emitted on the subject
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub id: i64,
     ///Timestamp referencing when the author of the subject appealed a moderation action
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_appealed_at: Option<String>,
+    pub last_appealed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reported_at: Option<String>,
+    pub last_reported_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reviewed_at: Option<String>,
+    pub last_reviewed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_reviewed_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub mute_until: Option<String>,
+    pub mute_until: Option<crate::types::string::Datetime>,
     pub review_state: SubjectReviewState,
     pub subject: SubjectStatusViewSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -342,11 +342,11 @@ pub struct SubjectStatusView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_repo_handle: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub suspend_until: Option<String>,
+    pub suspend_until: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takendown: Option<bool>,
     ///Timestamp referencing when the last update was made to the moderation status of the subject
-    pub updated_at: String,
+    pub updated_at: crate::types::string::Datetime,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

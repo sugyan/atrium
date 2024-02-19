@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     ///The NSID of the record collection.
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     ///The record to write.
     pub record: crate::records::Record,
     ///The handle or DID of the repo (aka, current account).

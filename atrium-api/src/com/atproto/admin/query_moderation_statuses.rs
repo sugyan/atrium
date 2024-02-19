@@ -23,19 +23,19 @@ pub struct Parameters {
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search subjects reported after a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reported_after: Option<String>,
+    pub reported_after: Option<crate::types::string::Datetime>,
     ///Search subjects reported before a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reported_before: Option<String>,
+    pub reported_before: Option<crate::types::string::Datetime>,
     ///Specify when fetching subjects in a certain state
     #[serde(skip_serializing_if = "Option::is_none")]
     pub review_state: Option<String>,
     ///Search subjects reviewed after a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reviewed_after: Option<String>,
+    pub reviewed_after: Option<crate::types::string::Datetime>,
     ///Search subjects reviewed before a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reviewed_before: Option<String>,
+    pub reviewed_before: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort_direction: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

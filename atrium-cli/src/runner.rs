@@ -1,10 +1,9 @@
 use crate::commands::Command;
 use crate::store::SimpleJsonFileSessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
-use atrium_api::types::string::{AtIdentifier, Handle};
+use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
 use atrium_api::xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc_client::reqwest::ReqwestClient;
-use chrono::Local;
 use serde::Serialize;
 use std::path::PathBuf;
 use tokio::fs;
@@ -202,10 +201,10 @@ impl Runner {
                         .atproto
                         .repo
                         .create_record(atrium_api::com::atproto::repo::create_record::Input {
-                            collection: "app.bsky.feed.post".into(),
+                            collection: "app.bsky.feed.post".parse().expect("valid"),
                             record: atrium_api::records::Record::AppBskyFeedPost(Box::new(
                                 atrium_api::app::bsky::feed::post::Record {
-                                    created_at: Local::now().to_rfc3339(),
+                                    created_at: Datetime::now(),
                                     embed: None,
                                     entities: None,
                                     facets: None,
@@ -233,7 +232,7 @@ impl Runner {
                         .atproto
                         .repo
                         .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
-                            collection: "app.bsky.feed.post".into(),
+                            collection: "app.bsky.feed.post".parse().expect("valid"),
                             repo: self.handle.clone().unwrap().into(),
                             rkey: args.uri.rkey,
                             swap_commit: None,

@@ -20,7 +20,7 @@ pub struct ListView {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
@@ -34,7 +34,7 @@ pub struct ListViewBasic {
     pub avatar: Option<String>,
     pub cid: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub indexed_at: Option<String>,
+    pub indexed_at: Option<crate::types::string::Datetime>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,

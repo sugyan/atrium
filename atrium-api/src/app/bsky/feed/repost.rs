@@ -3,6 +3,6 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub subject: crate::com::atproto::repo::strong_ref::Main,
 }

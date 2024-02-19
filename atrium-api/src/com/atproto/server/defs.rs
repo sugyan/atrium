@@ -5,7 +5,7 @@
 pub struct InviteCode {
     pub available: i64,
     pub code: String,
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub created_by: String,
     pub disabled: bool,
     pub for_account: String,
@@ -14,6 +14,6 @@ pub struct InviteCode {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InviteCodeUse {
-    pub used_at: String,
+    pub used_at: crate::types::string::Datetime,
     pub used_by: crate::types::string::Did,
 }

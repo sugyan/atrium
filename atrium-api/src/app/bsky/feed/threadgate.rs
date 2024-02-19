@@ -5,7 +5,7 @@
 pub struct Record {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allow: Option<Vec<RecordAllowItem>>,
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     ///Reference (AT-URI) to the post record.
     pub post: String,
 }
