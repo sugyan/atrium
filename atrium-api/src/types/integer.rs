@@ -40,6 +40,12 @@ macro_rules! uint {
             }
         }
 
+        impl<const MAX: $primitive> From<$lim<MAX>> for $primitive {
+            fn from(value: $lim<MAX>) -> Self {
+                value.0
+            }
+        }
+
         /// An unsigned integer with a minimum value of 1 and a maximum value of `MAX`.
         #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
         #[repr(transparent)]
@@ -73,6 +79,18 @@ macro_rules! uint {
             {
                 let value = Deserialize::deserialize(deserializer)?;
                 Self::new(value).map_err(D::Error::custom)
+            }
+        }
+
+        impl<const MAX: $primitive> From<$lim_nz<MAX>> for $nz {
+            fn from(value: $lim_nz<MAX>) -> Self {
+                value.0
+            }
+        }
+
+        impl<const MAX: $primitive> From<$lim_nz<MAX>> for $primitive {
+            fn from(value: $lim_nz<MAX>) -> Self {
+                value.0.into()
             }
         }
 
@@ -117,6 +135,18 @@ macro_rules! uint {
             {
                 let value = Deserialize::deserialize(deserializer)?;
                 Self::new(value).map_err(D::Error::custom)
+            }
+        }
+
+        impl<const MIN: $primitive, const MAX: $primitive> From<$bounded<MIN, MAX>> for $nz {
+            fn from(value: $bounded<MIN, MAX>) -> Self {
+                value.0
+            }
+        }
+
+        impl<const MIN: $primitive, const MAX: $primitive> From<$bounded<MIN, MAX>> for $primitive {
+            fn from(value: $bounded<MIN, MAX>) -> Self {
+                value.0.into()
             }
         }
     };
