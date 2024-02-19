@@ -1,6 +1,10 @@
 //! Definitions for AT Protocol's data models.
 //! <https://atproto.com/specs/data-model>
 
+use std::{cell::OnceCell, ops::Deref, str::FromStr};
+
+use regex::Regex;
+
 #[cfg(feature = "dag-cbor")]
 mod cid_link_ipld;
 #[cfg(not(feature = "dag-cbor"))]
@@ -15,6 +19,68 @@ mod integer;
 pub use integer::*;
 
 pub mod string;
+
+/// A record key (`rkey`) used to name and reference an individual record within the same
+/// collection of an atproto repository.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct RecordKey(String);
+
+impl RecordKey {
+    /// Returns the record key as a string slice.
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+impl FromStr for RecordKey {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        const RE_RKEY: OnceCell<Regex> = OnceCell::new();
+
+        if [".", ".."].contains(&s) {
+            Err("Disallowed rkey")
+        } else if !RE_RKEY
+            .get_or_init(|| Regex::new(r"^[a-zA-Z0-9._~-]{1,512}$").unwrap())
+            .is_match(&s)
+        {
+            Err("Invalid rkey")
+        } else {
+            Ok(Self(s.into()))
+        }
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for RecordKey {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        use serde::de::Error;
+        let value = serde::Deserialize::deserialize(deserializer)?;
+        Self::from_str(value).map_err(D::Error::custom)
+    }
+}
+
+impl Into<String> for RecordKey {
+    fn into(self) -> String {
+        self.0
+    }
+}
+
+impl AsRef<str> for RecordKey {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl Deref for RecordKey {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_str()
+    }
+}
 
 /// Definitions for Blob types.
 /// Usually a map with `$type` is used, but deprecated legacy formats are also supported for parsing.
@@ -57,6 +123,44 @@ mod tests {
 
     const CID_LINK_JSON: &str =
         r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#;
+
+    #[test]
+    fn valid_rkey() {
+        // From https://atproto.com/specs/record-key#examples
+        for valid in &["3jui7kd54zh2y", "self", "example.com", "~1.2-3_", "dHJ1ZQ"] {
+            assert!(
+                from_str::<RecordKey>(&format!("\"{}\"", valid)).is_ok(),
+                "valid rkey `{}` parsed as invalid",
+                valid,
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_rkey() {
+        // From https://atproto.com/specs/record-key#examples
+        for invalid in &[
+            "literal:self",
+            "alpha/beta",
+            ".",
+            "..",
+            "#extra",
+            "@handle",
+            "any space",
+            "any+space",
+            "number[3]",
+            "number(3)",
+            "\"quote\"",
+            "pre:fix",
+            "dHJ1ZQ==",
+        ] {
+            assert!(
+                from_str::<RecordKey>(&format!("\"{}\"", invalid)).is_err(),
+                "invalid rkey `{}` parsed as valid",
+                invalid,
+            );
+        }
+    }
 
     #[test]
     fn test_cid_link_serde_json() {

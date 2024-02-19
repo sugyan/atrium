@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `atrium_api::types`:
+  - `RecordKey`
   - `LimitedU8`, `LimitedNonZeroU8`, `BoundedU8`
   - `LimitedU16`, `LimitedNonZeroU16`, `BoundedU16`
   - `LimitedU32`, `LimitedNonZeroU32`, `BoundedU32`
