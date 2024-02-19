@@ -4,7 +4,7 @@ pub const NSID: &str = "com.atproto.label.subscribeLabels";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    ///The last known event to backfill from.
+    ///The last known event seq number to backfill from.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<i64>,
 }

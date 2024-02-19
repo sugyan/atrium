@@ -3,14 +3,14 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
-    ///The did to reserve a new did:key for
+    ///The DID to reserve a key for.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub did: Option<String>,
+    pub did: Option<crate::types::string::Did>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    ///Public signing key in the form of a did:key.
+    ///The public key for the reserved signing key, in did:key serialization.
     pub signing_key: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

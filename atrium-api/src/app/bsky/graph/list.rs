@@ -12,7 +12,9 @@ pub struct Record {
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<RecordLabelsEnum>,
+    ///Display name for list; can not be empty.
     pub name: String,
+    ///Defines the purpose of the list (aka, moderation-oriented or curration-oriented)
     pub purpose: crate::app::bsky::graph::defs::ListPurpose,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
-    ///Hostname of the service that is requesting to be crawled.
+    ///Hostname of the current service (eg, PDS) that is requesting to be crawled.
     pub hostname: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

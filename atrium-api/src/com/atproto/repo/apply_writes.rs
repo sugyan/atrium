@@ -3,11 +3,12 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
-    ///The handle or DID of the repo.
+    ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
+    ///If provided, the entire operation will fail if the current repo commit CID does not match this value. Used to prevent conflicting repo mutations.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_commit: Option<String>,
-    ///Flag for validating the records.
+    ///Can be set to 'false' to skip Lexicon schema validation of record data, for all operations.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
     pub writes: Vec<InputWritesItem>,
@@ -15,9 +16,10 @@ pub struct Input {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
+    ///Indicates that the 'swapCommit' parameter did not match current commit.
     InvalidSwap(Option<String>),
 }
-///Create a new record.
+///Operation which creates a new record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Create {
@@ -26,14 +28,14 @@ pub struct Create {
     pub rkey: Option<String>,
     pub value: crate::records::Record,
 }
-///Delete an existing record.
+///Operation which deletes an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Delete {
     pub collection: String,
     pub rkey: String,
 }
-///Update an existing record.
+///Operation which updates an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Update {

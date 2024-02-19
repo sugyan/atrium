@@ -3,12 +3,14 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    ///If supplied, filters to reposts of specific version (by CID) of the post record.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    ///Reference (AT-URI) of post record
     pub uri: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

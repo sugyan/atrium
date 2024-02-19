@@ -4,5 +4,6 @@
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub created_at: String,
+    ///DID of the account to be blocked.
     pub subject: crate::types::string::Did,
 }

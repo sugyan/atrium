@@ -3,6 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    ///A short name for the App Password, to help distinguish them.
     pub name: String,
 }
 pub type Output = AppPassword;

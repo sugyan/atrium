@@ -10,7 +10,7 @@ pub struct Parameters {
     pub collection: String,
     ///The handle or DID of the repo.
     pub repo: crate::types::string::AtIdentifier,
-    ///The key of the record.
+    ///The Record Key.
     pub rkey: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -3,8 +3,10 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    ///Additional context about the content and violation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+    ///Indicates the broad category of violation the report is for.
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub subject: InputSubjectEnum,
 }

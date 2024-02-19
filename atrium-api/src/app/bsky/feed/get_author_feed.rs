@@ -6,6 +6,7 @@ pub struct Parameters {
     pub actor: crate::types::string::AtIdentifier,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    ///Combinations of post/repost types to include in response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

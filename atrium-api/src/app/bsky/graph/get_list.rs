@@ -7,6 +7,7 @@ pub struct Parameters {
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    ///Reference (AT-URI) of the list record to hydrate.
     pub list: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -4,7 +4,7 @@ pub const NSID: &str = "com.atproto.sync.subscribeRepos";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    ///The last known event to backfill from.
+    ///The last known event seq number to backfill from.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<i64>,
 }
@@ -12,30 +12,40 @@ pub struct Parameters {
 #[serde(tag = "error", content = "message")]
 pub enum Error {
     FutureCursor(Option<String>),
+    ///If the consumer of the stream can not keep up with events, and a backlog gets too large, the server will drop the connection.
     ConsumerTooSlow(Option<String>),
 }
+///Represents an update of repository state. Note that empty commits are allowed, which include no repo data changes, but an update to rev and signature.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Commit {
     pub blobs: Vec<crate::types::CidLink>,
-    ///CAR file containing relevant blocks.
+    ///CAR file containing relevant blocks, as a diff since the previous repo state.
     #[serde(with = "serde_bytes")]
     pub blocks: Vec<u8>,
+    ///Repo commit object CID.
     pub commit: crate::types::CidLink,
     pub ops: Vec<RepoOp>,
+    ///DEPRECATED -- unused. WARNING -- nullable and optional; stick with optional to ensure golang interoperability.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prev: Option<crate::types::CidLink>,
+    ///DEPRECATED -- unused
     pub rebase: bool,
+    ///The repo this event comes from.
     pub repo: crate::types::string::Did,
-    ///The rev of the emitted commit.
+    ///The rev of the emitted commit. Note that this information is also in the commit object included in blocks, unless this is a tooBig event.
     pub rev: String,
+    ///The stream sequence number of this message.
     pub seq: i64,
-    ///The rev of the last emitted commit from this repo.
+    ///The rev of the last emitted commit from this repo (if any).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
+    ///Timestamp of when this message was originally broadcast.
     pub time: String,
+    ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
     pub too_big: bool,
 }
+///Represents an update of the account's handle, or transition to/from invalid state.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Handle {
@@ -51,6 +61,7 @@ pub struct Info {
     pub message: Option<String>,
     pub name: String,
 }
+///Represents an account moving from one PDS instance to another. NOTE: not implemented; full account migration may introduce a new message instead.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Migrate {
@@ -60,15 +71,17 @@ pub struct Migrate {
     pub seq: i64,
     pub time: String,
 }
-///A repo operation, ie a write of a single record. For creates and updates, CID is the record's CID as of this operation. For deletes, it's null.
+///A repo operation, ie a mutation of a single record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoOp {
     pub action: String,
+    ///For creates and updates, the new record CID. For deletions, null.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::CidLink>,
     pub path: String,
 }
+///Indicates that an account has been deleted.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tombstone {

@@ -5,9 +5,9 @@
 pub struct Input {
     ///The NSID of the record collection.
     pub collection: String,
-    ///The handle or DID of the repo.
+    ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
-    ///The key of the record.
+    ///The Record Key.
     pub rkey: String,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]

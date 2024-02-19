@@ -3,12 +3,14 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
+    ///CID of the subject record (aka, specific version of record), to filter likes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    ///AT-URI of the subject (eg, a post record).
     pub uri: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
