@@ -6,10 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.2.0...atrium-xrpc-client-v0.2.1) - 2024-02-19
-
-### Added
-- Update API, based on the latest lexicon schemas ([#104](https://github.com/sugyan/atrium/pull/104))
+## [0.3.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.2.0...atrium-xrpc-client-v0.3.0) - 2024-02-19
 
 ### Other
 - Move other dependencies into workspace dependencies table
