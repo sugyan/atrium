@@ -1,5 +1,7 @@
 # ATrium CLI
 
+CLI application for AT Protocol using ATrium API
+
 ```
 Usage: atrium-cli [OPTIONS] <COMMAND>
 
