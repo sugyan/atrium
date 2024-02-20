@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub blob: Option<String>,
+    pub blob: Option<crate::types::string::Cid>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub did: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]

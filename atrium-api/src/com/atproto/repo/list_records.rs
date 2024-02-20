@@ -35,7 +35,7 @@ pub enum Error {}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub uri: String,
     pub value: crate::records::Record,
 }

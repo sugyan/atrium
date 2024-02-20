@@ -7,7 +7,7 @@ pub struct Input {
     pub repo: crate::types::string::AtIdentifier,
     ///If provided, the entire operation will fail if the current repo commit CID does not match this value. Used to prevent conflicting repo mutations.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<String>,
+    pub swap_commit: Option<crate::types::string::Cid>,
     ///Can be set to 'false' to skip Lexicon schema validation of record data, for all operations.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,

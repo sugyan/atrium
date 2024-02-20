@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All Lexicon string fields with one of the following formats now have the corresponding
   dedicated type, instead of `String`:
   - `at-identifier` (`atrium_api::types::string::AtIdentifier`)
+  - `cid` (`atrium_api::types::string::Cid`)
   - `datetime` (`atrium_api::types::string::Datetime`)
   - `did` (`atrium_api::types::string::Did`)
   - `handle` (`atrium_api::types::string::Handle`)

@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The CID of the blob to fetch
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     ///The DID of the account.
     pub did: crate::types::string::Did,
 }

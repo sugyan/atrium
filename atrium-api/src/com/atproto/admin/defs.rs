@@ -24,7 +24,7 @@ pub struct AccountView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlobView {
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub details: Option<BlobViewDetailsEnum>,
@@ -186,8 +186,8 @@ pub struct ModerationDetail {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordView {
-    pub blob_cids: Vec<String>,
-    pub cid: String,
+    pub blob_cids: Vec<crate::types::string::Cid>,
+    pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
     pub moderation: Moderation,
     pub repo: RepoView,
@@ -198,7 +198,7 @@ pub struct RecordView {
 #[serde(rename_all = "camelCase")]
 pub struct RecordViewDetail {
     pub blobs: Vec<BlobView>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
@@ -215,7 +215,7 @@ pub struct RecordViewNotFound {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoBlobRef {
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub record_uri: Option<String>,
@@ -338,7 +338,7 @@ pub struct SubjectStatusView {
     pub review_state: SubjectReviewState,
     pub subject: SubjectStatusViewSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_blob_cids: Option<Vec<String>>,
+    pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_repo_handle: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

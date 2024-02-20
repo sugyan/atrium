@@ -28,7 +28,7 @@ pub struct ViewNotFound {
 #[serde(rename_all = "camelCase")]
 pub struct ViewRecord {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embeds: Option<Vec<ViewRecordEmbedsItem>>,
     pub indexed_at: crate::types::string::Datetime,
