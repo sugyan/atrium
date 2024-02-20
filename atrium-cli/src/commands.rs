@@ -1,5 +1,6 @@
 use atrium_api::types::string::AtIdentifier;
 use clap::Parser;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Parser, Debug)]
@@ -65,8 +66,11 @@ pub struct UriArgs {
 #[derive(Parser, Debug)]
 pub struct CreatePostArgs {
     /// Post text
-    #[arg(short, long, value_parser)]
+    #[arg(short, long)]
     pub(crate) text: String,
+    /// Images to embed
+    #[arg(short, long)]
+    pub(crate) images: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone)]
