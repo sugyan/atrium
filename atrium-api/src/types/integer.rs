@@ -13,6 +13,12 @@ macro_rules! uint {
         pub struct $lim<const MAX: $primitive>($primitive);
 
         impl<const MAX: $primitive> $lim<MAX> {
+            /// The smallest value that can be represented by this limited integer type.
+            pub const MIN: Self = Self(<$primitive>::MIN);
+
+            /// The largest value that can be represented by this limited integer type.
+            pub const MAX: Self = Self(MAX);
+
             fn new(value: $primitive) -> Result<Self, String> {
                 if value > MAX {
                     Err(format!("value is greater than {}", MAX))
@@ -53,6 +59,14 @@ macro_rules! uint {
         pub struct $lim_nz<const MAX: $primitive>($nz);
 
         impl<const MAX: $primitive> $lim_nz<MAX> {
+            /// The smallest value that can be represented by this limited non-zero
+            /// integer type.
+            pub const MIN: Self = Self($nz::MIN);
+
+            /// The largest value that can be represented by this limited non-zero integer
+            /// type.
+            pub const MAX: Self = Self(unsafe { $nz::new_unchecked(MAX) });
+
             fn new(value: $primitive) -> Result<Self, String> {
                 if value > MAX {
                     Err(format!("value is greater than {}", MAX))
@@ -103,6 +117,12 @@ macro_rules! uint {
         pub struct $bounded<const MIN: $primitive, const MAX: $primitive>($nz);
 
         impl<const MIN: $primitive, const MAX: $primitive> $bounded<MIN, MAX> {
+            /// The smallest value that can be represented by this bounded integer type.
+            pub const MIN: Self = Self(unsafe { $nz::new_unchecked(MIN) });
+
+            /// The largest value that can be represented by this bounded integer type.
+            pub const MAX: Self = Self(unsafe { $nz::new_unchecked(MAX) });
+
             fn new(value: $primitive) -> Result<Self, String> {
                 if value < MIN {
                     Err(format!("value is less than {}", MIN))
@@ -156,3 +176,18 @@ uint!(u8, NonZeroU8, LimitedU8, LimitedNonZeroU8, BoundedU8);
 uint!(u16, NonZeroU16, LimitedU16, LimitedNonZeroU16, BoundedU16);
 uint!(u32, NonZeroU32, LimitedU32, LimitedNonZeroU32, BoundedU32);
 uint!(u64, NonZeroU64, LimitedU64, LimitedNonZeroU64, BoundedU64);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn u8_min_max() {
+        assert_eq!(Ok(LimitedU8::<10>::MIN), 0.try_into());
+        assert_eq!(Ok(LimitedU8::<10>::MAX), 10.try_into());
+        assert_eq!(Ok(LimitedNonZeroU8::<10>::MIN), 1.try_into());
+        assert_eq!(Ok(LimitedNonZeroU8::<10>::MAX), 10.try_into());
+        assert_eq!(Ok(BoundedU8::<7, 10>::MIN), 7.try_into());
+        assert_eq!(Ok(BoundedU8::<7, 10>::MAX), 10.try_into());
+    }
+}
