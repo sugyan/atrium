@@ -385,7 +385,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68eac39fc21a9de3321623973365f8865f50fd952ca2c72ab7f9bea1fa07cc12"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "atrium-xrpc 0.8.0",
  "cid 0.10.1",
  "http",
  "serde",
@@ -395,10 +395,10 @@ dependencies = [
 
 [[package]]
 name = "atrium-api"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.8.0",
+ "atrium-xrpc 0.9.0",
  "atrium-xrpc-client",
  "chrono",
  "cid 0.10.1",
@@ -419,26 +419,13 @@ name = "atrium-cli"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "atrium-api 0.16.0",
+ "atrium-api 0.17.0",
  "atrium-xrpc-client",
  "chrono",
  "clap",
  "dirs",
  "serde",
  "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "atrium-xrpc"
-version = "0.8.0"
-dependencies = [
- "async-trait",
- "http",
- "serde",
- "serde_json",
- "serde_qs 0.12.0",
- "thiserror",
  "tokio",
 ]
 
@@ -457,11 +444,24 @@ dependencies = [
 ]
 
 [[package]]
-name = "atrium-xrpc-client"
-version = "0.2.0"
+name = "atrium-xrpc"
+version = "0.9.0"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.8.0",
+ "http",
+ "serde",
+ "serde_json",
+ "serde_qs 0.12.0",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
+name = "atrium-xrpc-client"
+version = "0.3.0"
+dependencies = [
+ "async-trait",
+ "atrium-xrpc 0.9.0",
  "futures",
  "http",
  "http-client",
