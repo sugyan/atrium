@@ -119,6 +119,57 @@ impl Runner {
                         .await,
                 );
             }
+            Command::GetActorFeeds(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .feed
+                        .get_actor_feeds(atrium_api::app::bsky::feed::get_actor_feeds::Parameters {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
+                            cursor: None,
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetFeed(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .feed
+                        .get_feed(atrium_api::app::bsky::feed::get_feed::Parameters {
+                            cursor: None,
+                            feed: args.uri.to_string(),
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetListFeed(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .feed
+                        .get_list_feed(atrium_api::app::bsky::feed::get_list_feed::Parameters {
+                            cursor: None,
+                            limit: Some(limit),
+                            list: args.uri.to_string(),
+                        })
+                        .await,
+                );
+            }
             Command::GetFollows(args) => {
                 self.print(
                     &self
@@ -153,6 +204,41 @@ impl Runner {
                                 .unwrap(),
                             cursor: None,
                             limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetLists(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .graph
+                        .get_lists(atrium_api::app::bsky::graph::get_lists::Parameters {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
+                            cursor: None,
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetList(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .graph
+                        .get_list(atrium_api::app::bsky::graph::get_list::Parameters {
+                            cursor: None,
+                            limit: Some(limit),
+                            list: args.uri.to_string(),
                         })
                         .await,
                 );
