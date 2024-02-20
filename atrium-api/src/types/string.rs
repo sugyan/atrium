@@ -103,6 +103,52 @@ impl AsRef<str> for AtIdentifier {
     }
 }
 
+/// A [CID in string format].
+///
+/// [CID in string format]: https://atproto.com/specs/data-model#link-and-cid-formats
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Cid(cid::Cid);
+
+impl Cid {
+    /// Prepares a CID for use as a Lexicon string.
+    pub fn new(cid: cid::Cid) -> Self {
+        Self(cid)
+    }
+}
+
+impl FromStr for Cid {
+    type Err = cid::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.parse().map(Self)
+    }
+}
+
+impl<'de> Deserialize<'de> for Cid {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let value = Deserialize::deserialize(deserializer)?;
+        Self::from_str(value).map_err(D::Error::custom)
+    }
+}
+
+impl Serialize for Cid {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(&self.0.to_string())
+    }
+}
+
+impl AsRef<cid::Cid> for Cid {
+    fn as_ref(&self) -> &cid::Cid {
+        &self.0
+    }
+}
+
 /// A Lexicon timestamp.
 #[derive(Clone, Debug, Eq)]
 pub struct Datetime {

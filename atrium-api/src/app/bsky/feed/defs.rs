@@ -28,7 +28,7 @@ pub struct FeedViewPost {
 pub struct GeneratorView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -59,7 +59,7 @@ pub struct NotFoundPost {
 #[serde(rename_all = "camelCase")]
 pub struct PostView {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<PostViewEmbedEnum>,
     pub indexed_at: crate::types::string::Datetime,
@@ -115,7 +115,7 @@ pub struct ThreadViewPost {
 #[serde(rename_all = "camelCase")]
 pub struct ThreadgateView {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<String>,
+    pub cid: Option<crate::types::string::Cid>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lists: Option<Vec<crate::app::bsky::graph::defs::ListViewBasic>>,
     #[serde(skip_serializing_if = "Option::is_none")]

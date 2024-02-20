@@ -14,7 +14,7 @@ pub type ListPurpose = String;
 pub struct ListView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -32,7 +32,7 @@ pub struct ListView {
 pub struct ListViewBasic {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<crate::types::string::Datetime>,
     pub name: String,

@@ -5,7 +5,7 @@
 pub struct Parameters {
     ///The CID of the version of the record. If not specified, then return the most recent version.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<String>,
+    pub cid: Option<crate::types::string::Cid>,
     ///The NSID of the record collection.
     pub collection: crate::types::string::Nsid,
     ///The handle or DID of the repo.
@@ -17,7 +17,7 @@ pub struct Parameters {
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<String>,
+    pub cid: Option<crate::types::string::Cid>,
     pub uri: String,
     pub value: crate::records::Record,
 }

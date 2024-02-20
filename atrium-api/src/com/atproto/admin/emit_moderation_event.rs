@@ -7,7 +7,7 @@ pub struct Input {
     pub event: InputEventEnum,
     pub subject: InputSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_blob_cids: Option<Vec<String>>,
+    pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
 }
 pub type Output = crate::com::atproto::admin::defs::ModEventView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

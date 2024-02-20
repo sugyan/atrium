@@ -11,10 +11,10 @@ pub struct Input {
     pub rkey: String,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<String>,
+    pub swap_commit: Option<crate::types::string::Cid>,
     ///Compare and swap with the previous record by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_record: Option<String>,
+    pub swap_record: Option<crate::types::string::Cid>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

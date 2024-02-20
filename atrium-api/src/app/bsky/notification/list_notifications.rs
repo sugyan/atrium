@@ -26,7 +26,7 @@ pub enum Error {}
 #[serde(rename_all = "camelCase")]
 pub struct Notification {
     pub author: crate::app::bsky::actor::defs::ProfileView,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
     pub is_read: bool,
     #[serde(skip_serializing_if = "Option::is_none")]

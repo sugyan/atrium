@@ -23,6 +23,6 @@ pub enum Error {}
 pub struct Repo {
     pub did: crate::types::string::Did,
     ///Current repo commit CID
-    pub head: String,
+    pub head: crate::types::string::Cid,
     pub rev: String,
 }

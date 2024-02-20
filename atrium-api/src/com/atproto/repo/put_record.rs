@@ -13,10 +13,10 @@ pub struct Input {
     pub rkey: String,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<String>,
+    pub swap_commit: Option<crate::types::string::Cid>,
     ///Compare and swap with the previous record by CID. WARNING: nullable and optional field; may cause problems with golang implementation
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_record: Option<String>,
+    pub swap_record: Option<crate::types::string::Cid>,
     ///Can be set to 'false' to skip Lexicon schema validation of record data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
@@ -24,7 +24,7 @@ pub struct Input {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub uri: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
