@@ -4,6 +4,11 @@ version = "0.1.0"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
+description = "CLI application for AT Protocol using ATrium API"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
 
 [dependencies]
 async-trait.workspace = true
