@@ -20,3 +20,7 @@ dirs.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+[[bin]]
+name = "atrium-cli"
+path = "src/bin/main.rs"
