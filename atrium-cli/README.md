@@ -1,5 +1,7 @@
 # ATrium CLI
 
+[![](https://img.shields.io/crates/v/atrium-cli)](https://crates.io/crates/atrium-cli)
+
 CLI application for AT Protocol using ATrium API
 
 ```
