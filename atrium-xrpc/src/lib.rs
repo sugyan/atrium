@@ -29,7 +29,8 @@ where
 }
 
 /// An abstract HTTP client.
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait HttpClient {
     async fn send_http(
         &self,
@@ -55,7 +56,8 @@ pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
 ///
 /// [`send_xrpc()`](XrpcClient::send_xrpc) method has a default implementation,
 /// which wraps the [`HttpClient::send_http()`]` method to handle input and output as an XRPC Request.
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait XrpcClient: HttpClient {
     fn base_uri(&self) -> String;
     #[allow(unused_variables)]
@@ -127,6 +129,8 @@ pub trait XrpcClient: HttpClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::*;
 
     struct DummyClient {
         status: http::StatusCode,
@@ -134,7 +138,8 @@ mod tests {
         body: Vec<u8>,
     }
 
-    #[async_trait]
+    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl HttpClient for DummyClient {
         async fn send_http(
             &self,
@@ -148,7 +153,6 @@ mod tests {
         }
     }
 
-    #[async_trait]
     impl XrpcClient for DummyClient {
         fn base_uri(&self) -> String {
             "https://example.com".into()
@@ -195,6 +199,7 @@ mod tests {
         }
 
         #[test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
         fn deserialize_xrpc_error() {
             {
                 let body = r#"{"error":"InvalidToken","message":"Invalid token"}"#;
@@ -223,6 +228,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
         async fn response_ok() {
             let client = DummyClient {
                 status: http::StatusCode::OK,
@@ -236,6 +242,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
         async fn response_custom_error() {
             let client = DummyClient {
                 status: http::StatusCode::BAD_REQUEST,
@@ -261,6 +268,7 @@ mod tests {
         }
 
         #[tokio::test]
+        #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
         async fn response_undefined_error() {
             let client = DummyClient {
                 status: http::StatusCode::INTERNAL_SERVER_ERROR,
@@ -330,6 +338,7 @@ mod tests {
             enum Error {}
 
             #[tokio::test]
+            #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_ok() {
                 let body = r"data".as_bytes().to_vec();
                 let client = DummyClient {
@@ -349,6 +358,7 @@ mod tests {
             }
 
             #[tokio::test]
+            #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_unexpected() {
                 let client = DummyClient {
                     status: http::StatusCode::OK,
@@ -407,6 +417,7 @@ mod tests {
             enum Error {}
 
             #[tokio::test]
+            #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_ok() {
                 let client = DummyClient {
                     status: http::StatusCode::OK,
@@ -419,6 +430,7 @@ mod tests {
             }
 
             #[tokio::test]
+            #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_unexpected() {
                 let client = DummyClient {
                     status: http::StatusCode::OK,
@@ -467,6 +479,7 @@ mod tests {
             enum Error {}
 
             #[tokio::test]
+            #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_ok() {
                 let client = DummyClient {
                     status: http::StatusCode::OK,
@@ -479,6 +492,7 @@ mod tests {
             }
 
             #[tokio::test]
+            #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_unexpected() {
                 let client = DummyClient {
                     status: http::StatusCode::OK,

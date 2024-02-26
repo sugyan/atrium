@@ -52,7 +52,7 @@ tokio = { version = "1.33", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"
-reqwest = { version = "0.11.22", default-features = false }
+reqwest = { version = "0.11.24", default-features = false }
 surf = { version = "2.3.2", default-features = false }
 
 # Errors
@@ -66,3 +66,6 @@ dirs = "5.0.1"
 # Testing
 http-client = { version = "6.5.3", default-features = false }
 mockito = "1.2"
+
+# WebAssembly
+wasm-bindgen-test = "0.3.41"
