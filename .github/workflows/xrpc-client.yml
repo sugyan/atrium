@@ -19,8 +19,7 @@ jobs:
       - name: Run tests
         run: |
           cargo test -p atrium-xrpc-client --lib
-          cargo test -p atrium-xrpc-client --lib --no-default-features --features=reqwest-native
-          cargo test -p atrium-xrpc-client --lib --no-default-features --features=reqwest-rustls
+          cargo test -p atrium-xrpc-client --lib --no-default-features --features=reqwest
           cargo test -p atrium-xrpc-client --lib --no-default-features --features=isahc
           cargo test -p atrium-xrpc-client --lib --no-default-features --features=surf
           cargo test -p atrium-xrpc-client --lib --all-features

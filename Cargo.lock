@@ -399,7 +399,6 @@ version = "0.17.1"
 dependencies = [
  "async-trait",
  "atrium-xrpc 0.9.0",
- "atrium-xrpc-client",
  "chrono",
  "cid 0.10.1",
  "futures",

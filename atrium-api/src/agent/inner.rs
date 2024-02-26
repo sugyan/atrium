@@ -15,7 +15,8 @@ struct SessionStoreClient<S, T> {
     inner: T,
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> HttpClient for SessionStoreClient<S, T>
 where
     S: Send + Sync,
@@ -29,7 +30,8 @@ where
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> XrpcClient for SessionStoreClient<S, T>
 where
     S: SessionStore + Send + Sync,
@@ -144,7 +146,8 @@ where
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> HttpClient for Client<S, T>
 where
     S: Send + Sync,
@@ -158,7 +161,8 @@ where
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> XrpcClient for Client<S, T>
 where
     S: SessionStore + Send + Sync,
@@ -235,7 +239,8 @@ impl<S> Store<S> {
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S> SessionStore for Store<S>
 where
     S: SessionStore + Send + Sync,

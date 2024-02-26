@@ -8,7 +8,8 @@ pub struct MemorySessionStore {
     session: Arc<RwLock<Option<Session>>>,
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl SessionStore for MemorySessionStore {
     async fn get_session(&self) -> Option<Session> {
         self.session.read().await.clone()
