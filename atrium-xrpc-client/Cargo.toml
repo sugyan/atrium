@@ -26,6 +26,9 @@ reqwest = ["dep:reqwest"]
 reqwest-default-tls = ["reqwest/default-tls"]
 surf = ["dep:surf"]
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest.workspace = true
+
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 reqwest = { workspace = true, features = ["native-tls", "rustls-tls"] }
 surf = { workspace = true, features = ["h1-client-rustls"] }
