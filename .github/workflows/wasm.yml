@@ -45,7 +45,6 @@ jobs:
         run: >
           cargo add
           --path ../crates/atrium-xrpc-client
-          --no-default-features
       - name: Copy pinned dependencies into synthetic crate
         run: cp crates/Cargo.lock ci-build/
       - name: Add target
