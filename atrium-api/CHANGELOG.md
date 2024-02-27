@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- For traits defined using `async_trait`, the `Send` bound is now optional with `wasm32-*` targets.
+
 ### Fixed
 - `atrium_api::types::string::{Cid, Datetime}` can now be deserialized with `serde`.
 
