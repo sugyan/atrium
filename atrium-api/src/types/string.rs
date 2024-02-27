@@ -129,8 +129,8 @@ impl<'de> Deserialize<'de> for Cid {
     where
         D: Deserializer<'de>,
     {
-        let value = Deserialize::deserialize(deserializer)?;
-        Self::from_str(value).map_err(D::Error::custom)
+        let value: String = Deserialize::deserialize(deserializer)?;
+        Self::from_str(&value).map_err(D::Error::custom)
     }
 }
 
@@ -227,8 +227,8 @@ impl<'de> Deserialize<'de> for Datetime {
     where
         D: Deserializer<'de>,
     {
-        let value = Deserialize::deserialize(deserializer)?;
-        Self::from_str(value).map_err(D::Error::custom)
+        let value: String = Deserialize::deserialize(deserializer)?;
+        Self::from_str(&value).map_err(D::Error::custom)
     }
 }
 
