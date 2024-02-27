@@ -1,0 +1,56 @@
+name: WASM
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    name: Build target ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - wasm32-unknown-unknown
+          - wasm32-wasi
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: crates
+      # We use a synthetic crate to ensure no dev-dependencies are enabled, which can
+      # be incompatible with some of these targets.
+      - name: Create synthetic crate for testing
+        run: cargo init --lib ci-build
+      - name: Copy Rust version into synthetic crate
+        run: cp crates/rust-toolchain.toml ci-build/
+      - name: Copy patch directives into synthetic crate
+        run: |
+          echo "[patch.crates-io]" >> ./ci-build/Cargo.toml
+          cat ./crates/Cargo.toml | sed "0,/.\+\(patch.crates.\+\)/d" >> ./ci-build/Cargo.toml
+      - name: Add atrium-api as a dependency of the synthetic crate
+        working-directory: ./ci-build
+        run: >
+          cargo add
+          --path ../crates/atrium-api
+      - name: Add atrium-xrpc as a dependency of the synthetic crate
+        working-directory: ./ci-build
+        run: >
+          cargo add
+          --path ../crates/atrium-xrpc
+      - name: Add atrium-xrpc-client as a dependency of the synthetic crate
+        working-directory: ./ci-build
+        run: >
+          cargo add
+          --path ../crates/atrium-xrpc-client
+          --no-default-features
+      - name: Copy pinned dependencies into synthetic crate
+        run: cp crates/Cargo.lock ci-build/
+      - name: Add target
+        working-directory: ./ci-build
+        run: rustup target add ${{ matrix.target }}
+      - name: Build for target
+        working-directory: ./ci-build
+        run: cargo build --verbose --target ${{ matrix.target }}

@@ -33,6 +33,8 @@ A library provides clients that implement the `XrpcClient` defined in [atrium-xr
 
 ### [`atrium-cli`](./atrium-cli/)
 
+[![](https://img.shields.io/crates/v/atrium-cli)](https://crates.io/crates/atrium-cli)
+
 A command-line app using this API library.
 
 ## Code generation

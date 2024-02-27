@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- `atrium_api::types::string::{Cid, Datetime}` can now be deserialized with `serde`.
+
+## [0.17.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.1...atrium-api-v0.17.2) - 2024-02-21
+
+### Other
+- update Cargo.toml dependencies
+
 ## [0.17.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.0...atrium-api-v0.17.1) - 2024-02-20
 
 ### Other

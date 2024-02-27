@@ -1,6 +1,6 @@
 [package]
 name = "atrium-cli"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -20,3 +20,7 @@ dirs.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }
+
+[[bin]]
+name = "atrium-cli"
+path = "src/bin/main.rs"
