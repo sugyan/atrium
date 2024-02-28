@@ -45,7 +45,6 @@ jobs:
         run: >
           cargo add
           --path ../crates/atrium-xrpc-client
-          --no-default-features
       - name: Copy pinned dependencies into synthetic crate
         run: cp crates/Cargo.lock ci-build/
       - name: Add target
@@ -54,3 +53,16 @@ jobs:
       - name: Build for target
         working-directory: ./ci-build
         run: cargo build --verbose --target ${{ matrix.target }}
+
+  tests:
+    name: Testing with wasm-bindgen-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add target
+        run: rustup target add wasm32-unknown-unknown
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - run: wasm-pack test --node atrium-api
+      - run: wasm-pack test --node atrium-xrpc
+      - run: wasm-pack test --node atrium-xrpc-client

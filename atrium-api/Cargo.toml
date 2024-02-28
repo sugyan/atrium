@@ -30,11 +30,16 @@ agent = ["tokio/sync"]
 dag-cbor = ["cid/serde-codec", "libipld-core/serde-codec"]
 
 [dev-dependencies]
-atrium-xrpc-client.workspace = true
 futures.workspace = true
 serde_json.workspace = true
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 serde_ipld_dagcbor = { git = "https://github.com/sugyan/serde_ipld_dagcbor.git", rev = "345b240" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+wasm-bindgen-test.workspace = true
 
 [package.metadata.docs.rs]
 all-features = true

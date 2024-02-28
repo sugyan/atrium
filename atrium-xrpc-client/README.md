@@ -9,30 +9,21 @@ This library provides clients that implement the [`XrpcClient`](https://docs.rs/
 
 ## Features
 
-- `reqwest-native` (default)
-- `reqwest-rustls`
+- `reqwest-default-tls` (default)
+- `reqwest`
 - `isahc`
 - `surf`
 
 Usage examples are provided below.
 
-### `reqwest-native` and `reqwest-rustls`
+### `reqwest`
 
-If you are using [`tokio`](https://crates.io/crates/tokio) as your asynchronous runtime, you may find it convenient to utilize the [`reqwest`](https://crates.io/crates/reqwest) backend with this feature, which is a high-level asynchronous HTTP Client. Within this crate, you have the choice of configuring `reqwest` with either `reqwest/native-tls` or `reqwest/rustls-tls`.
+If you are using [`tokio`](https://crates.io/crates/tokio) as your asynchronous runtime, you may find it convenient to utilize the [`reqwest`](https://crates.io/crates/reqwest) backend with this feature, which is a high-level asynchronous HTTP Client. By default, transport layer security (TLS) with `reqwest`'s `default-tls` feature is used.
 
 ```toml
 [dependencies]
 atrium-xrpc-client = "*"
 ```
-
-To use the `reqwest::Client` with the `rustls` TLS backend, specify the feature as follows:
-
-```toml
-[dependencies]
-atrium-xrpc-client = { version = "*", default-features = false, features = ["reqwest-rustls"]}
-```
-
-In either case, you can use the `ReqwestClient`:
 
 ```rust
 use atrium_xrpc_client::reqwest::ReqwestClient;
@@ -43,12 +34,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
-You can also directly specify a `reqwest::Client` with your own configuration:
+
+If you want to use the `rustls` TLS backend, or use `reqwest::Client` with your own configuration, you can directly specify with the `ReqwestClientBuilder`:
 
 ```toml
 [dependencies]
-atrium-xrpc-client = { version = "*", default-features = false }
-reqwest = { version = "0.11.22", default-features = false, features = ["rustls-tls"] }
+atrium-xrpc-client = { version = "*", default-features = false, features = ["reqwest"] }
+reqwest = { version = "0.11.24", default-features = false, features = ["rustls-tls"] }
 ```
 
 ```rust
@@ -160,3 +152,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 For more details, refer to the [`surf` documentation](https://docs.rs/surf).
+
+## WASM support
+
+When the target_arch is wasm32, only `reqwest::*` will be enabled, and its
+client implementation automatically switches to the WASM one .

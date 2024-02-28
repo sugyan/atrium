@@ -54,7 +54,8 @@ impl ReqwestClientBuilder {
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl HttpClient for ReqwestClient {
     async fn send_http(
         &self,
@@ -80,9 +81,13 @@ impl XrpcClient for ReqwestClient {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(not(target_arch = "wasm32"))]
     use std::time::Duration;
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::*;
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn new() -> Result<(), Box<dyn std::error::Error>> {
         let client = ReqwestClient::new("http://localhost:8080");
         assert_eq!(client.base_uri(), "http://localhost:8080");
@@ -90,12 +95,16 @@ mod tests {
     }
 
     #[test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     fn builder_without_client() -> Result<(), Box<dyn std::error::Error>> {
         let client = ReqwestClientBuilder::new("http://localhost:8080").build();
         assert_eq!(client.base_uri(), "http://localhost:8080");
         Ok(())
     }
 
+    // TODO: Reqwest::Client doesn't have a `timeout` in wasm module
+    // https://github.com/seanmonstar/reqwest/pull/1760
+    #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn builder_with_client() -> Result<(), Box<dyn std::error::Error>> {
         let client = ReqwestClientBuilder::new("http://localhost:8080")

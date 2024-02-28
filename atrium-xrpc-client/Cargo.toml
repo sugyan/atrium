@@ -20,19 +20,26 @@ reqwest = { workspace = true, optional = true }
 surf = { workspace = true, optional = true }
 
 [features]
-default = ["reqwest-native"]
+default = ["reqwest-default-tls"]
 isahc = ["dep:isahc"]
-reqwest-native = ["reqwest/native-tls"]
-reqwest-rustls = ["reqwest/rustls-tls"]
+reqwest = ["dep:reqwest"]
+reqwest-default-tls = ["reqwest/default-tls"]
 surf = ["dep:surf"]
 
-[dev-dependencies]
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+reqwest.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+reqwest = { workspace = true, features = ["native-tls", "rustls-tls"] }
 surf = { workspace = true, features = ["h1-client-rustls"] }
 http-client = { workspace = true, features = ["h1_client", "rustls"] }
 mockito.workspace = true
 tokio = { workspace = true, features = ["macros"] }
 serde = { workspace = true, features = ["derive"] }
 futures.workspace = true
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test.workspace = true
 
 [package.metadata.docs.rs]
 all-features = true

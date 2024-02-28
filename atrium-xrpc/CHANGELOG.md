@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- For traits defined using `async_trait`, the `Send` bound is now optional with `wasm32-*` targets.
+
 ## [0.9.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.8.0...atrium-xrpc-v0.9.0) - 2024-02-20
 
 ### Other
