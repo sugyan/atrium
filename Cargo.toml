@@ -22,9 +22,9 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.17.3", path = "atrium-api" }
-atrium-xrpc = { version = "0.9.1", path = "atrium-xrpc" }
-atrium-xrpc-client = { version = "0.3.1", path = "atrium-xrpc-client" }
+atrium-api = { version = "0.18.0", path = "atrium-api" }
+atrium-xrpc = { version = "0.10.0", path = "atrium-xrpc" }
+atrium-xrpc-client = { version = "0.4.0", path = "atrium-xrpc-client" }
 atrium-xrpc-server = { version = "0.1.0", path = "atrium-xrpc-server" }
 
 # async in traits

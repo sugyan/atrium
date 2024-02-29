@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.9.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.9.0...atrium-xrpc-v0.9.1) - 2024-02-29
+## [0.10.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.9.0...atrium-xrpc-v0.10.0) - 2024-02-29
 
 ### Added
 - Support wasm32 ([#119](https://github.com/sugyan/atrium/pull/119))
