@@ -56,6 +56,8 @@ pub enum InputEventEnum {
     ComAtprotoAdminDefsModEventEmail(
         Box<crate::com::atproto::admin::defs::ModEventEmail>,
     ),
+    #[serde(rename = "com.atproto.admin.defs#modEventTag")]
+    ComAtprotoAdminDefsModEventTag(Box<crate::com::atproto::admin::defs::ModEventTag>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

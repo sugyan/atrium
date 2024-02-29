@@ -5,6 +5,7 @@
 pub struct Output {
     ///List of domain suffixes that can be used in account handles.
     pub available_user_domains: Vec<String>,
+    pub did: crate::types::string::Did,
     ///If true, an invite code must be supplied to create an account on this instance.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invite_code_required: Option<bool>,

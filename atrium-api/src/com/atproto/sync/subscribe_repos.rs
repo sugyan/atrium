@@ -45,12 +45,20 @@ pub struct Commit {
     ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
     pub too_big: bool,
 }
-///Represents an update of the account's handle, or transition to/from invalid state.
+///Represents an update of the account's handle, or transition to/from invalid state. NOTE: Will be deprecated in favor of #identity.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Handle {
     pub did: crate::types::string::Did,
     pub handle: crate::types::string::Handle,
+    pub seq: i64,
+    pub time: crate::types::string::Datetime,
+}
+///Represents a change to an account's identity. Could be an updated handle, signing key, or pds hosting endpoint. Serves as a prod to all downstream services to refresh their identity cache.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Identity {
+    pub did: crate::types::string::Did,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
 }
@@ -61,7 +69,7 @@ pub struct Info {
     pub message: Option<String>,
     pub name: String,
 }
-///Represents an account moving from one PDS instance to another. NOTE: not implemented; full account migration may introduce a new message instead.
+///Represents an account moving from one PDS instance to another. NOTE: not implemented; account migration uses #identity instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Migrate {
@@ -81,7 +89,7 @@ pub struct RepoOp {
     pub cid: Option<crate::types::CidLink>,
     pub path: String,
 }
-///Indicates that an account has been deleted.
+///Indicates that an account has been deleted. NOTE: may be deprecated in favor of #identity or a future #account event
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tombstone {
@@ -94,6 +102,8 @@ pub struct Tombstone {
 pub enum Message {
     #[serde(rename = "com.atproto.sync.subscribeRepos#commit")]
     Commit(Box<Commit>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#identity")]
+    Identity(Box<Identity>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#handle")]
     Handle(Box<Handle>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#migrate")]
