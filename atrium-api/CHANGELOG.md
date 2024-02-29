@@ -6,11 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.2...atrium-api-v0.18.0) - 2024-02-29
+
+### Added
+- Update API, based on the latest lexicon schemas ([#123](https://github.com/sugyan/atrium/pull/123))
+- Support wasm32 ([#119](https://github.com/sugyan/atrium/pull/119))
+
 ### Changed
 - For traits defined using `async_trait`, the `Send` bound is now optional with `wasm32-*` targets.
 
 ### Fixed
-- `atrium_api::types::string::{Cid, Datetime}` can now be deserialized with `serde`.
+- `atrium_api::types::string::{Cid, Datetime}` can now be deserialized with `serde`. ([#121](https://github.com/sugyan/atrium/pull/121))
 
 ## [0.17.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.1...atrium-api-v0.17.2) - 2024-02-21
 

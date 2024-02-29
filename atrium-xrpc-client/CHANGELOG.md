@@ -6,8 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.3.0...atrium-xrpc-client-v0.4.0) - 2024-02-29
+
 ### Added
-- WASM support with `reqwest::ReqwestClient`
+- Support wasm32 ([#119](https://github.com/sugyan/atrium/pull/119))
+  - WASM support with `reqwest::ReqwestClient`
 
 ### Changed
 - `reqwest-native` feature was renamed to `reqwest-default-tls`
