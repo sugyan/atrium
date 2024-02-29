@@ -34,9 +34,31 @@ pub struct FeedViewPref {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct HiddenPostsPref {
+    ///A list of URIs of posts the account owner has hidden.
+    pub items: Vec<String>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct InterestsPref {
     ///A list of tags which describe the account owner's interests gathered during onboarding.
     pub tags: Vec<String>,
+}
+///A word that the account owner has muted.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct MutedWord {
+    ///The intended targets of the muted word.
+    pub targets: Vec<crate::app::bsky::actor::defs::MutedWordTarget>,
+    ///The muted word itself.
+    pub value: String,
+}
+pub type MutedWordTarget = String;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct MutedWordsPref {
+    ///A list of words the account owner has muted.
+    pub items: Vec<crate::app::bsky::actor::defs::MutedWord>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -158,4 +180,8 @@ pub enum PreferencesItem {
     ThreadViewPref(Box<ThreadViewPref>),
     #[serde(rename = "app.bsky.actor.defs#interestsPref")]
     InterestsPref(Box<InterestsPref>),
+    #[serde(rename = "app.bsky.actor.defs#mutedWordsPref")]
+    MutedWordsPref(Box<MutedWordsPref>),
+    #[serde(rename = "app.bsky.actor.defs#hiddenPostsPref")]
+    HiddenPostsPref(Box<HiddenPostsPref>),
 }

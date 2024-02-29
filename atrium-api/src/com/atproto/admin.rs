@@ -22,5 +22,6 @@ pub mod search_repos;
 pub mod send_email;
 pub mod update_account_email;
 pub mod update_account_handle;
+pub mod update_account_password;
 pub mod update_communication_template;
 pub mod update_subject_status;

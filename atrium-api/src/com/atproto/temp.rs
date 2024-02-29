@@ -2,7 +2,4 @@
 //!Definitions for the `com.atproto.temp` namespace.
 pub mod check_signup_queue;
 pub mod fetch_labels;
-pub mod import_repo;
-pub mod push_blob;
 pub mod request_phone_verification;
-pub mod transfer_account;

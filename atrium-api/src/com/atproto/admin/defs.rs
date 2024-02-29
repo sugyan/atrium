@@ -129,6 +129,18 @@ pub struct ModEventReverseTakedown {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+///Add/Remove a tag on a subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventTag {
+    ///Tags to be added to the subject. If already exists, won't be duplicated.
+    pub add: Vec<String>,
+    ///Additional comment about added/removed tags.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///Tags to be removed to the subject. Ignores a tag If it doesn't exist, won't be duplicated.
+    pub remove: Vec<String>,
+}
 ///Take down a subject permanently or temporarily
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -343,6 +355,8 @@ pub struct SubjectStatusView {
     pub subject_repo_handle: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub suspend_until: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takendown: Option<bool>,
     ///Timestamp referencing when the last update was made to the moderation status of the subject

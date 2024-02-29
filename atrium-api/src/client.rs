@@ -2302,6 +2302,38 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    ///Update the password for a user account as an administrator.
+    pub async fn update_account_password(
+        &self,
+        input: crate::com::atproto::admin::update_account_password::Input,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<
+            crate::com::atproto::admin::update_account_password::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.admin.updateAccountPassword".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Administrative action to update an existing communication template. Allows passing partial fields to patch specific fields only.
     pub async fn update_communication_template(
         &self,
@@ -2374,6 +2406,68 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
+    ///Describe the credentials that should be included in the DID doc of an account that is migrating to this service.
+    pub async fn get_recommended_did_credentials(
+        &self,
+    ) -> Result<
+        crate::com::atproto::identity::get_recommended_did_credentials::Output,
+        atrium_xrpc::error::Error<
+            crate::com::atproto::identity::get_recommended_did_credentials::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.identity.getRecommendedDidCredentials".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Request an email with a code to in order to request a signed PLC operation. Requires Auth.
+    pub async fn request_plc_operation_signature(
+        &self,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<
+            crate::com::atproto::identity::request_plc_operation_signature::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.identity.requestPlcOperationSignature".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Resolves a handle (domain name) to a DID.
     pub async fn resolve_handle(
         &self,
@@ -2401,6 +2495,70 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Signs a PLC operation to update some value(s) in the requesting DID's document.
+    pub async fn sign_plc_operation(
+        &self,
+        input: crate::com::atproto::identity::sign_plc_operation::Input,
+    ) -> Result<
+        crate::com::atproto::identity::sign_plc_operation::Output,
+        atrium_xrpc::error::Error<
+            crate::com::atproto::identity::sign_plc_operation::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.identity.signPlcOperation".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Validates a PLC operation to ensure that it doesn't violate a service's constraints or get the identity into a bad state, then submits it to the PLC registry
+    pub async fn submit_plc_operation(
+        &self,
+        input: crate::com::atproto::identity::submit_plc_operation::Input,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<
+            crate::com::atproto::identity::submit_plc_operation::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.identity.submitPlcOperation".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -2668,6 +2826,66 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    ///Import a repo in the form of a CAR file. Requires Content-Length HTTP header to be set.
+    pub async fn import_repo(
+        &self,
+        input: Vec<u8>,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<crate::com::atproto::repo::import_repo::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                Vec<u8>,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.repo.importRepo".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
+                    encoding: Some(String::from("application/vnd.ipld.car")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Returns a list of missing blobs for the requesting account. Intended to be used in the account migration flow.
+    pub async fn list_missing_blobs(
+        &self,
+        params: crate::com::atproto::repo::list_missing_blobs::Parameters,
+    ) -> Result<
+        crate::com::atproto::repo::list_missing_blobs::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::repo::list_missing_blobs::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.repo.listMissingBlobs".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///List a range of records in a repository, matching a specific collection. Does not require auth.
     pub async fn list_records(
         &self,
@@ -2765,6 +2983,66 @@ where
 {
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
+    }
+    ///Activates a currently deactivated account. Used to finalize account migration after the account's repo is imported and identity is setup.
+    pub async fn activate_account(
+        &self,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<crate::com::atproto::server::activate_account::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.server.activateAccount".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Returns the status of an account, especially as pertaining to import or recovery. Can be called many times over the course of an account migration. Requires auth and can only be called pertaining to oneself.
+    pub async fn check_account_status(
+        &self,
+    ) -> Result<
+        crate::com::atproto::server::check_account_status::Output,
+        atrium_xrpc::error::Error<
+            crate::com::atproto::server::check_account_status::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.server.checkAccountStatus".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
     }
     ///Confirm an email using a token from com.atproto.server.requestEmailConfirmation.
     pub async fn confirm_email(
@@ -2950,6 +3228,36 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    ///Deactivates a currently active account. Stops serving of repo, and future writes to repo until reactivated. Used to finalize account migration with the old host after the account has been activated on the new host.
+    pub async fn deactivate_account(
+        &self,
+        input: crate::com::atproto::server::deactivate_account::Input,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<crate::com::atproto::server::deactivate_account::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "com.atproto.server.deactivateAccount".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
     ///Delete an actor's account with a token and password. Can only be called after requesting a deletion token. Requires auth.
     pub async fn delete_account(
         &self,
@@ -3059,6 +3367,36 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
                     path: "com.atproto.server.getAccountInviteCodes".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get a signed token on behalf of the requesting DID for the requested service.
+    pub async fn get_service_auth(
+        &self,
+        params: crate::com::atproto::server::get_service_auth::Parameters,
+    ) -> Result<
+        crate::com::atproto::server::get_service_auth::Output,
+        atrium_xrpc::error::Error<crate::com::atproto::server::get_service_auth::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "com.atproto.server.getServiceAuth".into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3781,7 +4119,7 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    ///Fetch all labels from a labeler created after a certain date. DEPRECATED: use queryLabels or subscribeLabels instead
+    ///DEPRECATED: use queryLabels or subscribeLabels instead -- Fetch all labels from a labeler created after a certain date.
     pub async fn fetch_labels(
         &self,
         params: crate::com::atproto::temp::fetch_labels::Parameters,
@@ -3808,66 +4146,6 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Gets the did's repo, optionally catching up from a specific revision.
-    pub async fn import_repo(
-        &self,
-        input: Vec<u8>,
-    ) -> Result<
-        Vec<u8>,
-        atrium_xrpc::error::Error<crate::com::atproto::temp::import_repo::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                Vec<u8>,
-                (),
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.temp.importRepo".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
-                    encoding: Some(String::from("application/vnd.ipld.car")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Gets the did's repo, optionally catching up from a specific revision.
-    pub async fn push_blob(
-        &self,
-        input: Vec<u8>,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::temp::push_blob::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                Vec<u8>,
-                (),
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.temp.pushBlob".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
-                    encoding: Some(String::from("*/*")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -3900,36 +4178,6 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Transfer an account. NOTE: temporary method, necessarily how account migration will be implemented.
-    pub async fn transfer_account(
-        &self,
-        input: crate::com::atproto::temp::transfer_account::Input,
-    ) -> Result<
-        crate::com::atproto::temp::transfer_account::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::temp::transfer_account::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                _,
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.temp.transferAccount".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                    encoding: Some(String::from("application/json")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }

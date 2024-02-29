@@ -12,6 +12,8 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub exclude_tags: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ignore_subjects: Option<Vec<String>>,
     ///By default, we don't include muted subjects in the results. Set this to true to include them.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -42,6 +44,8 @@ pub struct Parameters {
     pub sort_field: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
     ///Get subjects that were taken down
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takendown: Option<bool>,
