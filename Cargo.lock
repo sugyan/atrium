@@ -395,10 +395,10 @@ dependencies = [
 
 [[package]]
 name = "atrium-api"
-version = "0.17.2"
+version = "0.17.3"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.9.0",
+ "atrium-xrpc 0.9.1",
  "chrono",
  "cid 0.10.1",
  "futures",
@@ -416,10 +416,10 @@ dependencies = [
 
 [[package]]
 name = "atrium-cli"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "async-trait",
- "atrium-api 0.17.2",
+ "atrium-api 0.17.3",
  "atrium-xrpc-client",
  "chrono",
  "clap",
@@ -445,7 +445,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.9.0"
+version = "0.9.1"
 dependencies = [
  "async-trait",
  "http",
@@ -459,10 +459,10 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.9.0",
+ "atrium-xrpc 0.9.1",
  "futures",
  "http",
  "http-client",
