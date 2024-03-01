@@ -22,3 +22,33 @@ pub mod post;
 pub mod repost;
 pub mod search_posts;
 pub mod threadgate;
+#[derive(Debug)]
+pub struct Generator;
+impl crate::types::Collection for Generator {
+    const NSID: &'static str = "app.bsky.feed.generator";
+    type Record = generator::Record;
+}
+#[derive(Debug)]
+pub struct Like;
+impl crate::types::Collection for Like {
+    const NSID: &'static str = "app.bsky.feed.like";
+    type Record = like::Record;
+}
+#[derive(Debug)]
+pub struct Post;
+impl crate::types::Collection for Post {
+    const NSID: &'static str = "app.bsky.feed.post";
+    type Record = post::Record;
+}
+#[derive(Debug)]
+pub struct Repost;
+impl crate::types::Collection for Repost {
+    const NSID: &'static str = "app.bsky.feed.repost";
+    type Record = repost::Record;
+}
+#[derive(Debug)]
+pub struct Threadgate;
+impl crate::types::Collection for Threadgate {
+    const NSID: &'static str = "app.bsky.feed.threadgate";
+    type Record = threadgate::Record;
+}
