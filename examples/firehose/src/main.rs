@@ -1,7 +1,7 @@
 use atrium_api::app::bsky::feed::post::Record;
 use atrium_api::com::atproto::sync::subscribe_repos::{Message, NSID};
 use atrium_api::types::CidLink;
-use atrium_xrpc_server::stream::frames::Frame;
+use firehose::stream::frames::Frame;
 use futures::StreamExt;
 use tokio_tungstenite::{connect_async, tungstenite};
 
@@ -31,7 +31,7 @@ async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error
                     {
                         let record =
                             serde_ipld_dagcbor::from_reader::<Record, _>(&mut item.as_slice())?;
-                        println!("{}: {}", record.created_at, record.text);
+                        println!("{}: {}", record.created_at.as_ref(), record.text);
                     } else {
                         panic!(
                             "FAILED: could not find item with operation cid {:?} out of {} items",

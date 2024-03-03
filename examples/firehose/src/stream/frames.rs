@@ -1,5 +1,7 @@
-use atrium_api::com::atproto::sync::subscribe_repos::{Commit, Message, Tombstone, Handle, Info, Migrate};
-use libipld_core::ipld::Ipld;
+use atrium_api::com::atproto::sync::subscribe_repos::{
+    Commit, Handle, Info, Message, Migrate, Tombstone,
+};
+use ipld_core::ipld::Ipld;
 use std::io::Cursor;
 
 // original definition:
@@ -88,30 +90,28 @@ impl TryFrom<&[u8]> for Frame {
                         right,
                     )?)),
                 }))),
-                Some("#handle") => Ok(Frame::Message(Box::new(MessageFrame { 
+                Some("#handle") => Ok(Frame::Message(Box::new(MessageFrame {
                     body: Message::Handle(Box::new(serde_ipld_dagcbor::from_slice::<Handle>(
-                        right
-                    )?))
+                        right,
+                    )?)),
                 }))),
-                Some("#info") => Ok(Frame::Message(Box::new(MessageFrame { 
-                    body: Message::Info(Box::new(serde_ipld_dagcbor::from_slice::<Info>(
-                        right
-                    )?))
+                Some("#info") => Ok(Frame::Message(Box::new(MessageFrame {
+                    body: Message::Info(Box::new(serde_ipld_dagcbor::from_slice::<Info>(right)?)),
                 }))),
-                Some("#migrate") => Ok(Frame::Message(Box::new(MessageFrame { 
+                Some("#migrate") => Ok(Frame::Message(Box::new(MessageFrame {
                     body: Message::Migrate(Box::new(serde_ipld_dagcbor::from_slice::<Migrate>(
-                        right
-                    )?))
+                        right,
+                    )?)),
                 }))),
-                Some("#tombstone") => Ok(Frame::Message(Box::new(MessageFrame { 
-                    body: Message::Tombstone(Box::new(serde_ipld_dagcbor::from_slice::<Tombstone>(
-                        right
-                    )?))
+                Some("#tombstone") => Ok(Frame::Message(Box::new(MessageFrame {
+                    body: Message::Tombstone(Box::new(
+                        serde_ipld_dagcbor::from_slice::<Tombstone>(right)?,
+                    )),
                 }))),
                 _ => {
                     let tag = t.as_deref();
                     Err(anyhow::anyhow!("frame not implemented: tag={tag:?}"))
-                },
+                }
             },
             FrameHeader::Error => Ok(Frame::Error(ErrorFrame {})),
         }

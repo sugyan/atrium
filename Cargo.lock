@@ -380,27 +380,12 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atrium-api"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "68eac39fc21a9de3321623973365f8865f50fd952ca2c72ab7f9bea1fa07cc12"
-dependencies = [
- "async-trait",
- "atrium-xrpc 0.8.0",
- "cid 0.10.1",
- "http",
- "serde",
- "serde_bytes",
- "tokio",
-]
-
-[[package]]
-name = "atrium-api"
 version = "0.18.1"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.10.0",
+ "atrium-xrpc",
  "chrono",
- "cid 0.10.1",
+ "cid",
  "futures",
  "http",
  "langtag",
@@ -408,7 +393,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_bytes",
- "serde_ipld_dagcbor 0.4.2",
+ "serde_ipld_dagcbor",
  "serde_json",
  "tokio",
  "wasm-bindgen-test",
@@ -419,7 +404,7 @@ name = "atrium-cli"
 version = "0.1.3"
 dependencies = [
  "async-trait",
- "atrium-api 0.18.1",
+ "atrium-api",
  "atrium-xrpc-client",
  "chrono",
  "clap",
@@ -427,20 +412,6 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
-]
-
-[[package]]
-name = "atrium-xrpc"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34bdc4a755c1e14ef8b2991423d2f7f258c561996f4ad6234df7223662a20dcb"
-dependencies = [
- "async-trait",
- "http",
- "serde",
- "serde_json",
- "serde_qs 0.12.0",
- "thiserror",
 ]
 
 [[package]]
@@ -462,7 +433,7 @@ name = "atrium-xrpc-client"
 version = "0.4.0"
 dependencies = [
  "async-trait",
- "atrium-xrpc 0.10.0",
+ "atrium-xrpc",
  "futures",
  "http",
  "http-client",
@@ -473,16 +444,6 @@ dependencies = [
  "surf",
  "tokio",
  "wasm-bindgen-test",
-]
-
-[[package]]
-name = "atrium-xrpc-server"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "atrium-api 0.15.0",
- "libipld-core",
- "serde_ipld_dagcbor 0.3.0",
 ]
 
 [[package]]
@@ -667,27 +628,13 @@ dependencies = [
 
 [[package]]
 name = "cid"
-version = "0.8.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6ed9c8b2d17acb8110c46f1da5bf4a696d745e1474a16db0cd2b49cd0249bf2"
-dependencies = [
- "core2",
- "multibase",
- "multihash 0.16.3",
- "serde",
- "serde_bytes",
- "unsigned-varint",
-]
-
-[[package]]
-name = "cid"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd94671561e36e4e7de75f753f577edafb0e7c05d6e4547229fdf7938fbcd2c3"
 dependencies = [
  "core2",
  "multibase",
- "multihash 0.18.1",
+ "multihash",
  "serde",
  "serde_bytes",
  "unsigned-varint",
@@ -1697,10 +1644,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5acd707e8d8b092e967b2af978ed84709eaded82b75effe6cb6f6cc797ef8158"
 dependencies = [
  "anyhow",
- "cid 0.10.1",
+ "cid",
  "core2",
  "multibase",
- "multihash 0.18.1",
+ "multihash",
  "serde",
  "thiserror",
 ]
@@ -1839,19 +1786,6 @@ dependencies = [
  "base-x",
  "data-encoding",
  "data-encoding-macro",
-]
-
-[[package]]
-name = "multihash"
-version = "0.16.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c346cf9999c631f002d8f977c4eaeaa0e6386f16007202308d0b3757522c2cc"
-dependencies = [
- "core2",
- "multihash-derive",
- "serde",
- "serde-big-array",
- "unsigned-varint",
 ]
 
 [[package]]
@@ -2600,23 +2534,11 @@ dependencies = [
 
 [[package]]
 name = "serde_ipld_dagcbor"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2433e94ffb5977e67afbd75733abd6ada1c4f497125894a8c89b3fdc5fd6a058"
-dependencies = [
- "cbor4ii",
- "cid 0.8.6",
- "scopeguard",
- "serde",
-]
-
-[[package]]
-name = "serde_ipld_dagcbor"
 version = "0.4.2"
 source = "git+https://github.com/sugyan/serde_ipld_dagcbor.git?rev=345b240#345b240b032e8d934dd726478e34902e1272fc3c"
 dependencies = [
  "cbor4ii",
- "cid 0.10.1",
+ "cid",
  "scopeguard",
  "serde",
 ]
