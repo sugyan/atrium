@@ -39,6 +39,19 @@ pub fn ref_unions(schema_id: &str, ref_unions: &[(String, LexRefUnion)]) -> Resu
     Ok(quote!(#(#enums)*))
 }
 
+pub fn collection(name: &str, nsid: &str) -> TokenStream {
+    let module_name = format_ident!("{name}");
+    let collection_name = format_ident!("{}", name.to_pascal_case());
+    quote! {
+        #[derive(Debug)]
+        pub struct #collection_name;
+        impl crate::types::Collection for #collection_name {
+            const NSID: &'static str = #nsid;
+            type Record = #module_name::Record;
+        }
+    }
+}
+
 fn lex_record(record: &LexRecord) -> Result<TokenStream> {
     let LexRecordRecord::Object(object) = &record.record;
     lex_object(object, "Record")

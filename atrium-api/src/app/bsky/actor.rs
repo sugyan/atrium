@@ -9,3 +9,9 @@ pub mod profile;
 pub mod put_preferences;
 pub mod search_actors;
 pub mod search_actors_typeahead;
+#[derive(Debug)]
+pub struct Profile;
+impl crate::types::Collection for Profile {
+    const NSID: &'static str = "app.bsky.actor.profile";
+    type Record = profile::Record;
+}

@@ -1,7 +1,7 @@
 //! Definitions for AT Protocol's data models.
 //! <https://atproto.com/specs/data-model>
 
-use std::{cell::OnceCell, ops::Deref, str::FromStr};
+use std::{cell::OnceCell, fmt, ops::Deref, str::FromStr};
 
 use regex::Regex;
 
@@ -19,6 +19,46 @@ mod integer;
 pub use integer::*;
 
 pub mod string;
+
+/// Trait for a collection of records that can be stored in a repository.
+///
+/// The records all have the same Lexicon schema.
+pub trait Collection: fmt::Debug {
+    /// The NSID for the Lexicon that defines the schema of records in this collection.
+    const NSID: &'static str;
+
+    /// This collection's record type.
+    type Record: fmt::Debug + serde::de::DeserializeOwned + serde::Serialize;
+
+    /// Returns the [`Nsid`] for the Lexicon that defines the schema of records in this
+    /// collection.
+    ///
+    /// This is a convenience method that parses [`Self::NSID`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if [`Self::NSID`] is not a valid NSID.
+    ///
+    /// [`Nsid`]: string::Nsid
+    fn nsid() -> string::Nsid {
+        Self::NSID
+            .parse()
+            .expect("Self::NSID should be a valid NSID")
+    }
+
+    /// Returns the repo path for a record in this collection with the given record key.
+    ///
+    /// Per the [Repo Data Structure v3] specification:
+    /// > Repo paths currently have a fixed structure of `<collection>/<record-key>`. This
+    /// > means a valid, normalized [`Nsid`], followed by a `/`, followed by a valid
+    /// > [`RecordKey`].
+    ///
+    /// [Repo Data Structure v3]: https://atproto.com/specs/repository#repo-data-structure-v3
+    /// [`Nsid`]: string::Nsid
+    fn repo_path(rkey: &RecordKey) -> String {
+        format!("{}/{}", Self::NSID, rkey.as_str())
+    }
+}
 
 /// A record key (`rkey`) used to name and reference an individual record within the same
 /// collection of an atproto repository.

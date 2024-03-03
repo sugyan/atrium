@@ -1,6 +1,6 @@
 use crate::fs::find_dirs;
 use crate::schema::find_ref_unions;
-use crate::token_stream::{client, modules, ref_unions, refs_enum, user_type};
+use crate::token_stream::{client, collection, modules, ref_unions, refs_enum, user_type};
 use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
@@ -133,7 +133,10 @@ pub(crate) fn generate_client(
     Ok(path)
 }
 
-pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Error>> {
+pub(crate) fn generate_modules(
+    outdir: &Path,
+    schemas: &[LexiconDoc],
+) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut paths = find_dirs(outdir)?;
     paths.reverse();
     paths.retain(|p| {
@@ -163,23 +166,45 @@ pub(crate) fn generate_modules(outdir: &Path) -> Result<Vec<PathBuf>, Box<dyn Er
             .sorted()
             .collect_vec();
         let modules = modules(&names)?;
-        let documentation = if path.as_ref() == outdir {
-            quote! {
-                #![doc = include_str!("../README.md")]
-                pub use atrium_xrpc as xrpc;
-            }
+        let (documentation, collections) = if path.as_ref() == outdir {
+            (
+                quote! {
+                    #![doc = include_str!("../README.md")]
+                    pub use atrium_xrpc as xrpc;
+                },
+                vec![],
+            )
         } else if let Ok(relative) = path.as_ref().strip_prefix(outdir) {
-            let doc = format!(
-                "Definitions for the `{}` namespace.",
-                relative.to_string_lossy().replace('/', ".")
-            );
-            quote!(#![doc = #doc])
+            let ns = relative.to_string_lossy().replace('/', ".");
+            let doc = format!("Definitions for the `{}` namespace.", ns);
+
+            let collections = names
+                .iter()
+                .filter_map(|name| {
+                    let nsid = format!("{}.{}", ns, name);
+                    schemas
+                        .iter()
+                        .find(|schema| {
+                            schema
+                                .defs
+                                .get("main")
+                                .map(|def| {
+                                    schema.id == nsid && matches!(def, LexUserType::Record(_))
+                                })
+                                .unwrap_or(false)
+                        })
+                        .map(|_| collection(name, &nsid))
+                })
+                .collect_vec();
+
+            (quote!(#![doc = #doc]), collections)
         } else {
-            quote!()
+            (quote!(), vec![])
         };
         let content = quote! {
             #documentation
             #modules
+            #(#collections)*
         };
         write_to_file(File::create(filepath)?, content)?;
     }

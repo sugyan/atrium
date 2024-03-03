@@ -6,6 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `atrium_api::types::Collection` trait, which binds together a record type and its NSID.
+- Collection structs for the current record types:
+  - `atrium_api::app::bsky::actor::Profile`
+  - `atrium_api::app::bsky::feed`:
+    - `Generator`
+    - `Like`
+    - `Post`
+    - `Repost`
+    - `Threadgate`
+  - `atrium_api::app::bsky::graph`:
+    - `Block`
+    - `Follow`
+    - `List`
+    - `Listblock`
+    - `Listitem`
+
 ## [0.18.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.2...atrium-api-v0.18.0) - 2024-02-29
 
 ### Added
