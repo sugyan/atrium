@@ -1,25 +1,27 @@
 use crate::commands::Command;
 use crate::store::SimpleJsonFileSessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
 use atrium_api::xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc_client::reqwest::ReqwestClient;
-use chrono::Local;
 use serde::Serialize;
+use std::ffi::OsStr;
 use std::path::PathBuf;
-use tokio::fs;
+use tokio::fs::{create_dir_all, File};
+use tokio::io::AsyncReadExt;
 
 pub struct Runner {
     agent: AtpAgent<SimpleJsonFileSessionStore, ReqwestClient>,
     debug: bool,
     session_path: PathBuf,
-    handle: Option<String>,
+    handle: Option<Handle>,
 }
 
 impl Runner {
     pub async fn new(pds_host: String, debug: bool) -> Result<Self, Box<dyn std::error::Error>> {
         let config_dir = dirs::config_dir().unwrap();
         let dir = config_dir.join("atrium-cli");
-        fs::create_dir_all(&dir).await?;
+        create_dir_all(&dir).await?;
         let session_path = dir.join("session.json");
         let store = SimpleJsonFileSessionStore::new(session_path.clone());
         let session = store.get_session().await;
@@ -36,6 +38,7 @@ impl Runner {
         })
     }
     pub async fn run(&self, command: Command) {
+        let limit = 10.try_into().expect("within limit");
         match command {
             Command::Login(args) => {
                 let result = self.agent.login(args.identifier, args.password).await;
@@ -59,7 +62,7 @@ impl Runner {
                         .get_timeline(atrium_api::app::bsky::feed::get_timeline::Parameters {
                             algorithm: None,
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -73,10 +76,13 @@ impl Runner {
                         .bsky
                         .feed
                         .get_author_feed(atrium_api::app::bsky::feed::get_author_feed::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                             cursor: None,
                             filter: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -92,7 +98,7 @@ impl Runner {
                         .get_likes(atrium_api::app::bsky::feed::get_likes::Parameters {
                             cid: None,
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                             uri: args.uri.to_string(),
                         })
                         .await,
@@ -109,8 +115,59 @@ impl Runner {
                         .get_reposted_by(atrium_api::app::bsky::feed::get_reposted_by::Parameters {
                             cid: None,
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                             uri: args.uri.to_string(),
+                        })
+                        .await,
+                );
+            }
+            Command::GetActorFeeds(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .feed
+                        .get_actor_feeds(atrium_api::app::bsky::feed::get_actor_feeds::Parameters {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
+                            cursor: None,
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetFeed(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .feed
+                        .get_feed(atrium_api::app::bsky::feed::get_feed::Parameters {
+                            cursor: None,
+                            feed: args.uri.to_string(),
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetListFeed(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .feed
+                        .get_list_feed(atrium_api::app::bsky::feed::get_list_feed::Parameters {
+                            cursor: None,
+                            limit: Some(limit),
+                            list: args.uri.to_string(),
                         })
                         .await,
                 );
@@ -124,9 +181,12 @@ impl Runner {
                         .bsky
                         .graph
                         .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
                         })
                         .await,
                 );
@@ -140,9 +200,47 @@ impl Runner {
                         .bsky
                         .graph
                         .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                             cursor: None,
-                            limit: Some(10),
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetLists(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .graph
+                        .get_lists(atrium_api::app::bsky::graph::get_lists::Parameters {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
+                            cursor: None,
+                            limit: Some(limit),
+                        })
+                        .await,
+                );
+            }
+            Command::GetList(args) => {
+                self.print(
+                    &self
+                        .agent
+                        .api
+                        .app
+                        .bsky
+                        .graph
+                        .get_list(atrium_api::app::bsky::graph::get_list::Parameters {
+                            cursor: None,
+                            limit: Some(limit),
+                            list: args.uri.to_string(),
                         })
                         .await,
                 );
@@ -156,7 +254,10 @@ impl Runner {
                         .bsky
                         .actor
                         .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-                            actor: args.actor.or(self.handle.clone()).unwrap(),
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .unwrap(),
                         })
                         .await,
                 );
@@ -172,7 +273,7 @@ impl Runner {
                         .list_notifications(
                             atrium_api::app::bsky::notification::list_notifications::Parameters {
                                 cursor: None,
-                                limit: Some(10),
+                                limit: Some(limit),
                                 seen_at: None,
                             },
                         )
@@ -180,6 +281,36 @@ impl Runner {
                 );
             }
             Command::CreatePost(args) => {
+                let mut images = Vec::new();
+                for image in &args.images {
+                    if let Ok(mut file) = File::open(image).await {
+                        let mut buf = Vec::new();
+                        file.read_to_end(&mut buf).await.expect("read image file");
+                        let output = self
+                            .agent
+                            .api
+                            .com
+                            .atproto
+                            .repo
+                            .upload_blob(buf)
+                            .await
+                            .expect("upload blob");
+                        images.push(atrium_api::app::bsky::embed::images::Image {
+                            alt: image
+                                .file_name()
+                                .map(OsStr::to_string_lossy)
+                                .unwrap_or_default()
+                                .into(),
+                            aspect_ratio: None,
+                            image: output.blob,
+                        })
+                    }
+                }
+                let embed = Some(
+                    atrium_api::app::bsky::feed::post::RecordEmbedEnum::AppBskyEmbedImagesMain(
+                        Box::new(atrium_api::app::bsky::embed::images::Main { images }),
+                    ),
+                );
                 self.print(
                     &self
                         .agent
@@ -188,11 +319,11 @@ impl Runner {
                         .atproto
                         .repo
                         .create_record(atrium_api::com::atproto::repo::create_record::Input {
-                            collection: "app.bsky.feed.post".into(),
+                            collection: "app.bsky.feed.post".parse().expect("valid"),
                             record: atrium_api::records::Record::AppBskyFeedPost(Box::new(
                                 atrium_api::app::bsky::feed::post::Record {
-                                    created_at: Local::now().to_rfc3339(),
-                                    embed: None,
+                                    created_at: Datetime::now(),
+                                    embed,
                                     entities: None,
                                     facets: None,
                                     labels: None,
@@ -202,7 +333,7 @@ impl Runner {
                                     text: args.text,
                                 },
                             )),
-                            repo: self.handle.clone().unwrap(),
+                            repo: self.handle.clone().unwrap().into(),
                             rkey: None,
                             swap_commit: None,
                             validate: None,
@@ -219,8 +350,8 @@ impl Runner {
                         .atproto
                         .repo
                         .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
-                            collection: "app.bsky.feed.post".into(),
-                            repo: self.handle.clone().unwrap(),
+                            collection: "app.bsky.feed.post".parse().expect("valid"),
+                            repo: self.handle.clone().unwrap().into(),
                             rkey: args.uri.rkey,
                             swap_commit: None,
                             swap_record: None,

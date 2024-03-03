@@ -3,12 +3,13 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     ///An optional past commit CID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<String>,
+    pub commit: Option<crate::types::string::Cid>,
     ///The DID of the repo.
-    pub did: String,
+    pub did: crate::types::string::Did,
+    ///Record Key
     pub rkey: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

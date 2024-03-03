@@ -6,9 +6,9 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub seen_at: Option<String>,
+    pub seen_at: Option<crate::types::string::Datetime>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -17,7 +17,7 @@ pub struct Output {
     pub cursor: Option<String>,
     pub notifications: Vec<Notification>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub seen_at: Option<String>,
+    pub seen_at: Option<crate::types::string::Datetime>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -26,8 +26,8 @@ pub enum Error {}
 #[serde(rename_all = "camelCase")]
 pub struct Notification {
     pub author: crate::app::bsky::actor::defs::ProfileView,
-    pub cid: String,
-    pub indexed_at: String,
+    pub cid: crate::types::string::Cid,
+    pub indexed_at: crate::types::string::Datetime,
     pub is_read: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,

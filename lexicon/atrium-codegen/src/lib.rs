@@ -33,7 +33,7 @@ pub fn genapi(
     }
     results.push(generate_records(&outdir, &schemas)?);
     results.push(generate_client(&outdir, &schemas)?);
-    results.extend(generate_modules(&outdir)?);
+    results.extend(generate_modules(&outdir, &schemas)?);
     Ok(results)
 }
 

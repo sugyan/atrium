@@ -3,20 +3,22 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    ///Additional context about the content and violation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
+    ///Indicates the broad category of violation the report is for.
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub subject: InputSubjectEnum,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub created_at: String,
-    pub id: i32,
+    pub created_at: crate::types::string::Datetime,
+    pub id: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
-    pub reported_by: String,
+    pub reported_by: crate::types::string::Did,
     pub subject: OutputSubjectEnum,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

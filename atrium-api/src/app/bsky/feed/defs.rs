@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockedAuthor {
-    pub did: String,
+    pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
 }
@@ -28,17 +28,17 @@ pub struct FeedViewPost {
 pub struct GeneratorView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    pub did: String,
+    pub did: crate::types::string::Did,
     pub display_name: String,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<i32>,
+    pub like_count: Option<usize>,
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<GeneratorViewerState>,
@@ -59,19 +59,19 @@ pub struct NotFoundPost {
 #[serde(rename_all = "camelCase")]
 pub struct PostView {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<PostViewEmbedEnum>,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<i32>,
+    pub like_count: Option<i64>,
     pub record: crate::records::Record,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply_count: Option<i32>,
+    pub reply_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub repost_count: Option<i32>,
+    pub repost_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub threadgate: Option<ThreadgateView>,
     pub uri: String,
@@ -82,7 +82,7 @@ pub struct PostView {
 #[serde(rename_all = "camelCase")]
 pub struct ReasonRepost {
     pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -115,7 +115,7 @@ pub struct ThreadViewPost {
 #[serde(rename_all = "camelCase")]
 pub struct ThreadgateView {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<String>,
+    pub cid: Option<crate::types::string::Cid>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lists: Option<Vec<crate::app::bsky::graph::defs::ListViewBasic>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -123,6 +123,7 @@ pub struct ThreadgateView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }
+///Metadata about the requesting account's relationship with the subject content. Only has meaningful content for authed requests.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewerState {

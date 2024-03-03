@@ -4,15 +4,18 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The handle or DID of the repo.
-    pub repo: String,
+    pub repo: crate::types::string::AtIdentifier,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub collections: Vec<String>,
-    pub did: String,
+    ///List of all the collections (NSIDs) for which this repo contains at least one record.
+    pub collections: Vec<crate::types::string::Nsid>,
+    pub did: crate::types::string::Did,
+    ///The complete DID document for this account.
     pub did_doc: crate::did_doc::DidDocument,
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
+    ///Indicates if handle is currently valid (resolves bi-directionally)
     pub handle_is_correct: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

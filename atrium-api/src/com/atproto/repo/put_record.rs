@@ -4,27 +4,27 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     ///The NSID of the record collection.
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     ///The record to write.
     pub record: crate::records::Record,
-    ///The handle or DID of the repo.
-    pub repo: String,
-    ///The key of the record.
+    ///The handle or DID of the repo (aka, current account).
+    pub repo: crate::types::string::AtIdentifier,
+    ///The Record Key.
     pub rkey: String,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<String>,
-    ///Compare and swap with the previous record by CID.
+    pub swap_commit: Option<crate::types::string::Cid>,
+    ///Compare and swap with the previous record by CID. WARNING: nullable and optional field; may cause problems with golang implementation
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_record: Option<String>,
-    ///Flag for validating the record.
+    pub swap_record: Option<crate::types::string::Cid>,
+    ///Can be set to 'false' to skip Lexicon schema validation of record data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub uri: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

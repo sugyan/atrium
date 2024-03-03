@@ -1,22 +1,34 @@
+use atrium_api::types::string::AtIdentifier;
 use clap::Parser;
+use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Parser, Debug)]
 pub enum Command {
     /// Login (Create an authentication session).
     Login(LoginArgs),
-    /// Get a view of the actor's home timeline.
+    /// Get a view of an actor's home timeline.
     GetTimeline,
     /// Get a view of an actor's feed.
     GetAuthorFeed(ActorArgs),
-    /// Get the list of likes.
+    /// Get a list of likes for a given post.
     GetLikes(UriArgs),
-    /// Get a list of reposts.
+    /// Get a list of reposts for a given post.
     GetRepostedBy(UriArgs),
-    /// Get a list of who the actor follows.
+    /// Get a list of feeds created by an actor.
+    GetActorFeeds(ActorArgs),
+    /// Get a view of a hydrated feed.
+    GetFeed(UriArgs),
+    /// Get a view of a specified list,
+    GetListFeed(UriArgs),
+    /// Get a list of who an actor follows.
     GetFollows(ActorArgs),
     /// Get a list of an actor's followers.
     GetFollowers(ActorArgs),
+    /// Get a list of the list created by an actor.
+    GetLists(ActorArgs),
+    /// Get detailed info of a specified list.
+    GetList(UriArgs),
     /// Get detailed profile view of an actor.
     GetProfile(ActorArgs),
     /// Get a list of notifications.
@@ -40,8 +52,8 @@ pub struct LoginArgs {
 #[derive(Parser, Debug)]
 pub struct ActorArgs {
     /// Actor's handle or did
-    #[arg(short, long)]
-    pub(crate) actor: Option<String>,
+    #[arg(short, long, value_parser)]
+    pub(crate) actor: Option<AtIdentifier>,
 }
 
 #[derive(Parser, Debug)]
@@ -54,8 +66,11 @@ pub struct UriArgs {
 #[derive(Parser, Debug)]
 pub struct CreatePostArgs {
     /// Post text
-    #[arg(short, long, value_parser)]
+    #[arg(short, long)]
     pub(crate) text: String,
+    /// Images to embed
+    #[arg(short, long)]
+    pub(crate) images: Vec<PathBuf>,
 }
 
 #[derive(Debug, Clone)]

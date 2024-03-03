@@ -4,9 +4,9 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The CID of the blob to fetch
-    pub cid: String,
-    ///The DID of the repo.
-    pub did: String,
+    pub cid: crate::types::string::Cid,
+    ///The DID of the account.
+    pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

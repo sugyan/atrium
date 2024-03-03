@@ -92,10 +92,11 @@ mod tests {
     use crate::did_doc::{DidDocument, Service, VerificationMethod};
     use async_trait::async_trait;
     use atrium_xrpc::HttpClient;
-    use futures::future::join_all;
     use http::{Request, Response};
     use std::collections::HashMap;
     use tokio::sync::RwLock;
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::wasm_bindgen_test;
 
     #[derive(Default)]
     struct DummyResponses {
@@ -109,13 +110,16 @@ mod tests {
         counts: Arc<RwLock<HashMap<String, usize>>>,
     }
 
-    #[async_trait]
+    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl HttpClient for DummyClient {
         async fn send_http(
             &self,
             request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            #[cfg(not(target_arch = "wasm32"))]
             tokio::time::sleep(std::time::Duration::from_micros(10)).await;
+
             let builder =
                 Response::builder().header(http::header::CONTENT_TYPE, "application/json");
             let token = request
@@ -152,9 +156,9 @@ mod tests {
                             body.extend(serde_json::to_vec(
                                 &crate::com::atproto::server::refresh_session::Output {
                                     access_jwt: String::from("access"),
-                                    did: String::from("did"),
+                                    did: "did:web:example.com".parse().expect("valid"),
                                     did_doc: None,
-                                    handle: String::from("handle"),
+                                    handle: "example.com".parse().expect("valid"),
                                     refresh_jwt: String::from("refresh"),
                                 },
                             )?);
@@ -187,22 +191,24 @@ mod tests {
     fn session() -> Session {
         Session {
             access_jwt: String::from("access"),
-            did: String::from("did"),
+            did: "did:web:example.com".parse().expect("valid"),
             did_doc: None,
             email: None,
             email_confirmed: None,
-            handle: String::from("handle"),
+            handle: "example.com".parse().expect("valid"),
             refresh_jwt: String::from("refresh"),
         }
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_new() {
         let agent = AtpAgent::new(DummyClient::default(), MemorySessionStore::default());
         assert_eq!(agent.store.get_session().await, None);
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_login() {
         let session = session();
         // success
@@ -241,6 +247,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_xrpc_get_session() {
         let session = session();
         let client = DummyClient {
@@ -266,10 +273,11 @@ mod tests {
             .get_session()
             .await
             .expect("get session should be succeeded");
-        assert_eq!(output.did, "did");
+        assert_eq!(output.did.as_str(), "did:web:example.com");
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_xrpc_get_session_with_refresh() {
         let mut session = session();
         session.access_jwt = String::from("expired");
@@ -296,7 +304,7 @@ mod tests {
             .get_session()
             .await
             .expect("get session should be succeeded");
-        assert_eq!(output.did, "did");
+        assert_eq!(output.did.as_str(), "did:web:example.com");
         assert_eq!(
             agent
                 .store
@@ -307,6 +315,7 @@ mod tests {
         );
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
     #[tokio::test]
     async fn test_xrpc_get_session_with_duplicated_refresh() {
         let mut session = session();
@@ -331,14 +340,14 @@ mod tests {
             let agent = Arc::clone(&agent);
             tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
         });
-        let results = join_all(handles).await;
+        let results = futures::future::join_all(handles).await;
         for result in &results {
             let output = result
                 .as_ref()
                 .expect("task should be successfully executed")
                 .as_ref()
                 .expect("get session should be succeeded");
-            assert_eq!(output.did, "did");
+            assert_eq!(output.did.as_str(), "did:web:example.com");
         }
         assert_eq!(
             agent
@@ -358,6 +367,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_resume_session() {
         let session = session();
         // success
@@ -405,6 +415,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_resume_session_with_refresh() {
         let session = session();
         let client = DummyClient {
@@ -432,6 +443,7 @@ mod tests {
     }
 
     #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_login_with_diddoc() {
         let session = session();
         let did_doc = DidDocument {

@@ -4,14 +4,14 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The NSID of the record type.
-    pub collection: String,
+    pub collection: crate::types::string::Nsid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     ///The number of records to return.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///The handle or DID of the repo.
-    pub repo: String,
+    pub repo: crate::types::string::AtIdentifier,
     ///Flag to reverse the order of the returned records.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reverse: Option<bool>,
@@ -35,7 +35,7 @@ pub enum Error {}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub uri: String,
     pub value: crate::records::Record,
 }

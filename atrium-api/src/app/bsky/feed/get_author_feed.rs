@@ -3,13 +3,14 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
-    pub actor: String,
+    pub actor: crate::types::string::AtIdentifier,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    ///Combinations of post/repost types to include in response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filter: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

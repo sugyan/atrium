@@ -4,7 +4,7 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<String>,
+    pub cid: Option<crate::types::string::Cid>,
     pub uri: String,
 }
 pub type Output = crate::com::atproto::admin::defs::RecordViewDetail;

@@ -3,14 +3,18 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
+    ///Small image to be displayed next to posts from account. AKA, 'profile picture'
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<crate::types::BlobRef>,
+    ///Larger horizontal image to display behind profile view.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<crate::types::BlobRef>,
+    ///Free-form profile description text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
+    ///Self-label values, specific to the Bluesky application, on the overall account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<RecordLabelsEnum>,
 }

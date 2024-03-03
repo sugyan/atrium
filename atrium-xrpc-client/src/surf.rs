@@ -20,7 +20,7 @@ impl SurfClient {
     /// Create a new [`SurfClient`] using the passed [`surf::Client`].
     pub fn new(base_uri: impl AsRef<str>, client: Client) -> Self {
         Self {
-            base_uri: base_uri.as_ref().to_string(),
+            base_uri: base_uri.as_ref().into(),
             client: Arc::new(client),
         }
     }

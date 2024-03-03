@@ -107,7 +107,7 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
                 path.to_string(),
             )),
-            #[cfg(feature = "reqwest-native")]
+            #[cfg(feature = "reqwest")]
             tokio::spawn(run_query(
                 crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
@@ -119,7 +119,7 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
                 path.to_string(),
             )),
-            #[cfg(feature = "reqwest-rustls")]
+            #[cfg(feature = "reqwest")]
             tokio::spawn(run_query(
                 crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
@@ -232,7 +232,7 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
                 path.to_string(),
             )),
-            #[cfg(feature = "reqwest-native")]
+            #[cfg(feature = "reqwest")]
             tokio::spawn(run_procedure(
                 crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(
@@ -244,7 +244,7 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
                 path.to_string(),
             )),
-            #[cfg(feature = "reqwest-rustls")]
+            #[cfg(feature = "reqwest")]
             tokio::spawn(run_procedure(
                 crate::reqwest::ReqwestClientBuilder::new(base_uri)
                     .client(

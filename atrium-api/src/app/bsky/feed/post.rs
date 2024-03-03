@@ -3,23 +3,28 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
-    pub created_at: String,
+    ///Client-declared timestamp when this post was originally created.
+    pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<RecordEmbedEnum>,
-    ///Deprecated: replaced by app.bsky.richtext.facet.
+    ///DEPRECATED: replaced by app.bsky.richtext.facet.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entities: Option<Vec<Entity>>,
+    ///Annotations of text (mentions, URLs, hashtags, etc)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    ///Self-label values for this post. Effectively content warnings.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<RecordLabelsEnum>,
+    ///Indicates human language of post primary text content.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub langs: Option<Vec<String>>,
+    pub langs: Option<Vec<crate::types::string::Language>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
-    ///Additional non-inline tags describing this post.
+    ///Additional hashtags, in addition to any included in post text and facets.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<String>>,
+    ///The primary post content. May be an empty string, if there are embeds.
     pub text: String,
 }
 ///Deprecated: use facets instead.
@@ -41,8 +46,8 @@ pub struct ReplyRef {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct TextSlice {
-    pub end: i32,
-    pub start: i32,
+    pub end: usize,
+    pub start: usize,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

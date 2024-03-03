@@ -4,8 +4,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub for_account: Option<String>,
-    pub use_count: i32,
+    pub for_account: Option<crate::types::string::Did>,
+    pub use_count: i64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

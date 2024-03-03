@@ -39,6 +39,19 @@ pub fn ref_unions(schema_id: &str, ref_unions: &[(String, LexRefUnion)]) -> Resu
     Ok(quote!(#(#enums)*))
 }
 
+pub fn collection(name: &str, nsid: &str) -> TokenStream {
+    let module_name = format_ident!("{name}");
+    let collection_name = format_ident!("{}", name.to_pascal_case());
+    quote! {
+        #[derive(Debug)]
+        pub struct #collection_name;
+        impl crate::types::Collection for #collection_name {
+            const NSID: &'static str = #nsid;
+            type Record = #module_name::Record;
+        }
+    }
+}
+
 fn lex_record(record: &LexRecord) -> Result<TokenStream> {
     let LexRecordRecord::Object(object) = &record.record;
     lex_object(object, "Record")
@@ -372,14 +385,135 @@ fn boolean_type(boolean: &LexBoolean) -> Result<(TokenStream, TokenStream)> {
 
 fn integer_type(integer: &LexInteger) -> Result<(TokenStream, TokenStream)> {
     let description = description(&integer.description);
-    // TODO: usize?
-    Ok((description, quote!(i32)))
+    let typ = match integer.minimum {
+        // If the minimum acceptable value is 0, use the unsigned integer primitives, with
+        // newtype wrappers enforcing the maximum acceptable value if relevant.
+        Some(0) => match integer.maximum {
+            // If a maximum acceptable value is specified, use the smallest fixed-width
+            // unsigned type that can fit all acceptable values.
+            Some(max) => match max {
+                0x0000_0000..=0x0000_00fe => {
+                    let max = max as u8;
+                    quote!(crate::types::LimitedU8<#max>)
+                }
+                0x0000_00ff => quote!(u8),
+                0x0000_0100..=0x0000_fffe => {
+                    let max = max as u16;
+                    quote!(crate::types::LimitedU16<#max>)
+                }
+                0x0000_ffff => quote!(u16),
+                0x0001_0000..=0xffff_fffe => {
+                    let max = max as u32;
+                    quote!(crate::types::LimitedU32<#max>)
+                }
+                0xffff_ffff => quote!(u32),
+                _ => {
+                    let max = max as u64;
+                    quote!(crate::types::LimitedU64<#max>)
+                }
+            },
+            // If no maximum acceptable value is specified, assume that the integer might
+            // be an index into (or the length of) something stored in memory (e.g. byte
+            // slices).
+            None => quote!(usize),
+        },
+        // If the minimum acceptable value is 1, use the `NonZeroU*` types, with newtype
+        // wrappers enforcing the maximum acceptable value if relevant.
+        Some(1) => match integer.maximum {
+            // If a maximum acceptable value is specified, use the smallest fixed-width
+            // unsigned type that can fit all acceptable values.
+            Some(max) => match max {
+                0x0000_0000..=0x0000_00fe => {
+                    let max = max as u8;
+                    quote!(crate::types::LimitedNonZeroU8<#max>)
+                }
+                0x0000_00ff => quote!(core::num::NonZeroU8),
+                0x0000_0100..=0x0000_fffe => {
+                    let max = max as u16;
+                    quote!(crate::types::LimitedNonZeroU16<#max>)
+                }
+                0x0000_ffff => quote!(core::num::NonZeroU16),
+                0x0001_0000..=0xffff_fffe => {
+                    let max = max as u32;
+                    quote!(crate::types::LimitedNonZeroU32<#max>)
+                }
+                0xffff_ffff => quote!(core::num::NonZeroU32),
+                _ => {
+                    let max = max as u64;
+                    quote!(crate::types::LimitedNonZeroU64<#max>)
+                }
+            },
+            None => quote!(core::num::NonZeroU64),
+        },
+        // For all other positive minimum acceptable values, use the `NonZeroU*` types
+        // with newtype wrappers enforcing the minimum and maximum acceptable values.
+        Some(min) if !min.is_negative() => match integer.maximum {
+            // If a maximum acceptable value is specified, use the smallest fixed-width
+            // unsigned type that can fit all acceptable values.
+            Some(max) => match max {
+                0x0000_0000..=0x0000_00ff => {
+                    let min = min as u8;
+                    let max = max as u8;
+                    quote!(crate::types::BoundedU8<#min, #max>)
+                }
+                0x0000_0100..=0x0000_ffff => {
+                    let min = min as u16;
+                    let max = max as u16;
+                    quote!(crate::types::BoundedU16<#min, #max>)
+                }
+                0x0001_0000..=0xffff_ffff => {
+                    let min = min as u32;
+                    let max = max as u32;
+                    quote!(crate::types::BoundedU32<#min, #max>)
+                }
+                _ => {
+                    let min = min as u64;
+                    let max = max as u64;
+                    quote!(crate::types::BoundedU64<#min, #max>)
+                }
+            },
+            None => {
+                let min = min as u64;
+                quote!(crate::types::BoundedU64<#min, u64::MAX>)
+            }
+        },
+        // Use a signed integer type to represent a potentially negative Lexicon integer.
+        Some(min) => match integer.maximum {
+            // If a maximum acceptable value is specified, use the smallest fixed-width
+            // signed type that can fit all acceptable values.
+            Some(max) => match (min, max) {
+                (-0x0000_0080, 0x0000_007f) => quote!(i8),
+                (-0x0000_8000, 0x0000_7fff) => quote!(i16),
+                (-0x8000_0000, 0x7fff_ffff) => quote!(i32),
+                (i64::MIN, i64::MAX) => quote!(i64),
+                // TODO: Implement newtype wrappers for bounded signed integers.
+                _ => unimplemented!("i64(min: {}, max: {})", min, max),
+            },
+            None => quote!(i64),
+        },
+        None => match integer.maximum {
+            Some(max) => unimplemented!("i64(max: {})", max),
+            None => quote!(i64),
+        },
+    };
+    Ok((description, typ))
 }
 
 fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
     let description = description(&string.description);
-    // TODO: format, enum?
-    Ok((description, quote!(String)))
+    // TODO: enum?
+    let typ = match string.format {
+        Some(LexStringFormat::AtIdentifier) => quote!(crate::types::string::AtIdentifier),
+        Some(LexStringFormat::Cid) => quote!(crate::types::string::Cid),
+        Some(LexStringFormat::Datetime) => quote!(crate::types::string::Datetime),
+        Some(LexStringFormat::Did) => quote!(crate::types::string::Did),
+        Some(LexStringFormat::Handle) => quote!(crate::types::string::Handle),
+        Some(LexStringFormat::Nsid) => quote!(crate::types::string::Nsid),
+        Some(LexStringFormat::Language) => quote!(crate::types::string::Language),
+        // TODO: other formats
+        _ => quote!(String),
+    };
+    Ok((description, typ))
 }
 
 fn unknown_type(unknown: &LexUnknown, name: Option<&str>) -> Result<(TokenStream, TokenStream)> {

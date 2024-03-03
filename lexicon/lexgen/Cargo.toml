@@ -1,0 +1,9 @@
+[package]
+name = "lexgen"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+
+[dependencies]
+atrium-codegen.workspace = true
+clap.workspace = true

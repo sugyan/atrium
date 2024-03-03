@@ -3,7 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub did: String,
+    pub did: crate::types::string::Did,
     pub feeds: Vec<Feed>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<Links>,

@@ -4,12 +4,12 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The handle to resolve.
-    pub handle: String,
+    pub handle: crate::types::string::Handle,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub did: String,
+    pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -11,6 +11,7 @@ pub mod get_list_blocks;
 pub mod get_list_mutes;
 pub mod get_lists;
 pub mod get_mutes;
+pub mod get_relationships;
 pub mod get_suggested_follows_by_actor;
 pub mod list;
 pub mod listblock;
@@ -19,3 +20,33 @@ pub mod mute_actor;
 pub mod mute_actor_list;
 pub mod unmute_actor;
 pub mod unmute_actor_list;
+#[derive(Debug)]
+pub struct Block;
+impl crate::types::Collection for Block {
+    const NSID: &'static str = "app.bsky.graph.block";
+    type Record = block::Record;
+}
+#[derive(Debug)]
+pub struct Follow;
+impl crate::types::Collection for Follow {
+    const NSID: &'static str = "app.bsky.graph.follow";
+    type Record = follow::Record;
+}
+#[derive(Debug)]
+pub struct List;
+impl crate::types::Collection for List {
+    const NSID: &'static str = "app.bsky.graph.list";
+    type Record = list::Record;
+}
+#[derive(Debug)]
+pub struct Listblock;
+impl crate::types::Collection for Listblock {
+    const NSID: &'static str = "app.bsky.graph.listblock";
+    type Record = listblock::Record;
+}
+#[derive(Debug)]
+pub struct Listitem;
+impl crate::types::Collection for Listitem {
+    const NSID: &'static str = "app.bsky.graph.listitem";
+    type Record = listitem::Record;
+}

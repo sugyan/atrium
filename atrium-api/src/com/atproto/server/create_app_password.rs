@@ -3,6 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
+    ///A short name for the App Password, to help distinguish them.
     pub name: String,
 }
 pub type Output = AppPassword;
@@ -14,7 +15,7 @@ pub enum Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AppPassword {
-    pub created_at: String,
+    pub created_at: crate::types::string::Datetime,
     pub name: String,
     pub password: String,
 }

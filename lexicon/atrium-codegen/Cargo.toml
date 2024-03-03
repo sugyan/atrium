@@ -1,0 +1,15 @@
+[package]
+name = "atrium-codegen"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+
+[dependencies]
+atrium-lex.workspace = true
+heck.workspace = true
+itertools.workspace = true
+prettyplease.workspace = true
+proc-macro2.workspace = true
+quote.workspace = true
+serde_json.workspace = true
+syn.workspace = true

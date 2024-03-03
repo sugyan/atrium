@@ -3,11 +3,11 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Input {
-    pub created_by: String,
+    pub created_by: crate::types::string::Did,
     pub event: InputEventEnum,
     pub subject: InputSubjectEnum,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_blob_cids: Option<Vec<String>>,
+    pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
 }
 pub type Output = crate::com::atproto::admin::defs::ModEventView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -56,6 +56,8 @@ pub enum InputEventEnum {
     ComAtprotoAdminDefsModEventEmail(
         Box<crate::com::atproto::admin::defs::ModEventEmail>,
     ),
+    #[serde(rename = "com.atproto.admin.defs#modEventTag")]
+    ComAtprotoAdminDefsModEventTag(Box<crate::com::atproto::admin::defs::ModEventTag>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

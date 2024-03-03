@@ -6,6 +6,95 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.18.0...atrium-api-v0.18.1) - 2024-03-03
+
+### Other
+- Generate structs corresponding to collections
+
+### Added
+- `atrium_api::types::Collection` trait, which binds together a record type and its NSID.
+- Collection structs for the current record types:
+  - `atrium_api::app::bsky::actor::Profile`
+  - `atrium_api::app::bsky::feed`:
+    - `Generator`
+    - `Like`
+    - `Post`
+    - `Repost`
+    - `Threadgate`
+  - `atrium_api::app::bsky::graph`:
+    - `Block`
+    - `Follow`
+    - `List`
+    - `Listblock`
+    - `Listitem`
+
+## [0.18.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.2...atrium-api-v0.18.0) - 2024-02-29
+
+### Added
+- Update API, based on the latest lexicon schemas ([#123](https://github.com/sugyan/atrium/pull/123))
+- Support wasm32 ([#119](https://github.com/sugyan/atrium/pull/119))
+
+### Changed
+- For traits defined using `async_trait`, the `Send` bound is now optional with `wasm32-*` targets.
+
+### Fixed
+- `atrium_api::types::string::{Cid, Datetime}` can now be deserialized with `serde`. ([#121](https://github.com/sugyan/atrium/pull/121))
+
+## [0.17.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.1...atrium-api-v0.17.2) - 2024-02-21
+
+### Other
+- update Cargo.toml dependencies
+
+## [0.17.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.17.0...atrium-api-v0.17.1) - 2024-02-20
+
+### Other
+- update Cargo.toml dependencies
+
+## [0.17.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.16.0...atrium-api-v0.17.0) - 2024-02-20
+
+### Added
+- Update API, based on the latest lexicon schemas ([#104](https://github.com/sugyan/atrium/pull/104))
+
+### Other
+- Merge pull request [#110](https://github.com/sugyan/atrium/pull/110) from str4d/lexicon-integer-min-max
+- Add `MIN, MAX` associated constants to Lexicon integer types
+- Merge pull request [#107](https://github.com/sugyan/atrium/pull/107) from str4d/lexicon-integer-conversion
+- Add direct conversions between the Lexicon integer types and primitives
+- Introduce dedicated types for DID and handle Lexicon string formats
+- Introduce types guaranteed to fit the range of each Lexicon integer
+- Move other dependencies into workspace dependencies table
+- Move intra-workspace dependencies into workspace dependencies table
+- Deduplicate package keys with workspace inheritance
+- Set MSRV for main crates to 1.70
+
+### Added
+- `atrium_api::types`:
+  - `RecordKey`
+  - `LimitedU8`, `LimitedNonZeroU8`, `BoundedU8`
+  - `LimitedU16`, `LimitedNonZeroU16`, `BoundedU16`
+  - `LimitedU32`, `LimitedNonZeroU32`, `BoundedU32`
+  - `LimitedU64`, `LimitedNonZeroU64`, `BoundedU64`
+  - `string` module, containing dedicated types for formatted Lexicon strings.
+
+### Changed
+- All Lexicon integer fields now have a type that matches their minimum and maximum
+  accepted values, instead of `i32`.
+- All Lexicon string fields with one of the following formats now have the corresponding
+  dedicated type, instead of `String`:
+  - `at-identifier` (`atrium_api::types::string::AtIdentifier`)
+  - `cid` (`atrium_api::types::string::Cid`)
+  - `datetime` (`atrium_api::types::string::Datetime`)
+  - `did` (`atrium_api::types::string::Did`)
+  - `handle` (`atrium_api::types::string::Handle`)
+  - `nsid` (`atrium_api::types::string::Nsid`)
+  - `language` (`atrium_api::types::string::Language`)
+
+## [0.16.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.15.0...atrium-api-v0.16.0) - 2024-02-09
+
+### Added
+- Update API, based on the latest lexicon schemas ([#99](https://github.com/sugyan/atrium/pull/99))
+- *(api)* Implement CidLink, BlobRef types ([#96](https://github.com/sugyan/atrium/pull/96))
+
 ## [0.15.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.14.0...atrium-api-v0.15.0) - 2023-12-23
 
 ### Added

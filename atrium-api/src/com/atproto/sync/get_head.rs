@@ -4,12 +4,12 @@
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     ///The DID of the repo.
-    pub did: String,
+    pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub root: String,
+    pub root: crate::types::string::Cid,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

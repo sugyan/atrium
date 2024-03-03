@@ -6,14 +6,14 @@
 pub struct Label {
     ///Optionally, CID specifying the specific version of 'uri' resource this label applies to.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<String>,
+    pub cid: Option<crate::types::string::Cid>,
     ///Timestamp when this label was created.
-    pub cts: String,
+    pub cts: crate::types::string::Datetime,
     ///If true, this is a negation label, overwriting a previous label.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub neg: Option<bool>,
     ///DID of the actor who created this label.
-    pub src: String,
+    pub src: crate::types::string::Did,
     ///AT URI of the record, repository (account), or other resource that this label applies to.
     pub uri: String,
     ///The short string name of the value or type of this label.

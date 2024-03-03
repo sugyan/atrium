@@ -6,10 +6,10 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<i32>,
+    pub limit: Option<crate::types::LimitedNonZeroU8<250u8>>,
     ///Optional list of label sources (DIDs) to filter on.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sources: Option<Vec<String>>,
+    pub sources: Option<Vec<crate::types::string::Did>>,
     ///List of AT URI patterns to match (boolean 'OR'). Each may be a prefix (ending with '*'; will match inclusive of the string leading to '*'), or a full URI.
     pub uri_patterns: Vec<String>,
 }

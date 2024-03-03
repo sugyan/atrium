@@ -14,13 +14,13 @@ pub type ListPurpose = String;
 pub struct ListView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    pub indexed_at: String,
+    pub indexed_at: crate::types::string::Datetime,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
@@ -32,9 +32,9 @@ pub struct ListView {
 pub struct ListViewBasic {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
-    pub cid: String,
+    pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub indexed_at: Option<String>,
+    pub indexed_at: Option<crate::types::string::Datetime>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
@@ -51,3 +51,22 @@ pub struct ListViewerState {
 }
 ///A list of actors to apply an aggregate moderation action (mute/block) on.
 pub struct Modlist;
+///indicates that a handle or DID could not be resolved
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NotFoundActor {
+    pub actor: crate::types::string::AtIdentifier,
+    pub not_found: bool,
+}
+///lists the bi-directional graph relationships between one actor (not indicated in the object), and the target actors (the DID included in the object)
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Relationship {
+    pub did: crate::types::string::Did,
+    ///if the actor is followed by this DID, contains the AT-URI of the follow record
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub followed_by: Option<String>,
+    ///if the actor follows this DID, this is the AT-URI of the follow record
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub following: Option<String>,
+}
