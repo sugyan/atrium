@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.4.0...atrium-xrpc-client-v0.4.1) - 2024-03-05
+
+### Removed
+- *(xrpc-client)* Remove surf client ([#130](https://github.com/sugyan/atrium/pull/130))
+
 ## [0.4.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.3.0...atrium-xrpc-client-v0.4.0) - 2024-02-29
 
 ### Added
