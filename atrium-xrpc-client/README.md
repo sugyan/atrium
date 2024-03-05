@@ -12,7 +12,6 @@ This library provides clients that implement the [`XrpcClient`](https://docs.rs/
 - `reqwest-default-tls` (default)
 - `reqwest`
 - `isahc`
-- `surf`
 
 Usage examples are provided below.
 
@@ -104,54 +103,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```
 
 For more details, refer to the [`isahc` documentation](https://docs.rs/isahc).
-
-
-### `surf`
-
-For cases such as using `rustls` with asynchronous runtimes other than `tokio`, we also provide a feature that uses [`surf`](https://crates.io/crates/surf) built with [`async-std`](https://crates.io/crates/async-std) as a backend.
-
-Using `DefaultClient` with `surf` is complicated by the various feature flags. Therefore, unlike the first two options, you must always specify surf::Client when creating a client with this module.
-
-```toml
-[dependencies]
-atrium-xrpc-client = { version = "*", default-features = false, features = ["surf"]}
-surf = { version = "2.3.2", default-features = false, features = ["h1-client-rustls"] }
-```
-
-```rust
-use atrium_xrpc_client::surf::SurfClient;
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = SurfClient::new("https://bsky.social", surf::Client::new());
-    Ok(())
-}
-```
-
-Using [`http_client`](https://crates.io/crates/http-client) and its bundled implementation may clarify which backend you are using:
-
-```toml
-[dependencies]
-atrium-xrpc-client = { version = "*", default-features = false, features = ["surf"]}
-surf = { version = "2.3.2", default-features = false }
-http-client = { version = "6.5.3", default-features = false, features = ["h1_client", "rustls"] }
-```
-
-```rust
-use atrium_xrpc_client::surf::SurfClient;
-
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = SurfClient::new(
-        "https://bsky.social",
-        surf::Client::with_http_client(http_client::h1::H1Client::try_from(
-            http_client::Config::default()
-                .set_timeout(Some(std::time::Duration::from_millis(1000))),
-        )?),
-    );
-    Ok(())
-}
-```
-
-For more details, refer to the [`surf` documentation](https://docs.rs/surf).
 
 ## WASM support
 
