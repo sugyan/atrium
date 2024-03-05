@@ -1,4 +1,5 @@
 use crate::stream::frames::Frame;
+use anyhow::Result;
 use atrium_api::com::atproto::sync::subscribe_repos::Commit;
 use std::future::Future;
 
@@ -8,8 +9,5 @@ pub trait Subscription {
 }
 
 pub trait CommitHandler {
-    fn handle_commit(
-        &self,
-        commit: &Commit,
-    ) -> impl Future<Output = Result<(), Box<dyn std::error::Error>>>;
+    fn handle_commit(&self, commit: &Commit) -> impl Future<Output = Result<()>>;
 }

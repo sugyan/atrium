@@ -28,6 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let handles = actors
         .iter()
         .map(|&actor| {
+            println!("fetching profile of {actor}...");
             let agent = Arc::clone(&agent);
             tokio::spawn(async move {
                 agent
@@ -36,13 +37,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .bsky
                     .actor
                     .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-                        actor: actor.into(),
+                        actor: actor.parse().expect("invalid actor"),
                     })
                     .await
             })
         })
         .collect::<Vec<_>>();
     let results = join_all(handles).await;
+    println!("{} profiles fetched!", results.len());
     for (actor, result) in actors.iter().zip(results) {
         println!("{actor}: {:#?}", result?);
     }
