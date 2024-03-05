@@ -1,55 +1,82 @@
 use atrium_api::app::bsky::feed::post::Record;
-use atrium_api::com::atproto::sync::subscribe_repos::Message;
-use atrium_xrpc_server::stream::frames::Frame;
+use atrium_api::com::atproto::sync::subscribe_repos::{Commit, NSID};
+use atrium_api::types::{CidLink, Collection};
+use chrono::Local;
+use firehose::stream::frames::Frame;
+use firehose::subscription::{CommitHandler, Subscription};
 use futures::StreamExt;
-use tokio_tungstenite::{connect_async, tungstenite};
+use tokio::net::TcpStream;
+use tokio_tungstenite::tungstenite::Message;
+use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
+
+struct RepoSubscription {
+    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+}
+
+impl RepoSubscription {
+    async fn new(bgs: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let (stream, _) = connect_async(format!("wss://{bgs}/xrpc/{NSID}")).await?;
+        Ok(RepoSubscription { stream })
+    }
+    async fn run(&mut self, handler: impl CommitHandler) -> Result<(), Box<dyn std::error::Error>> {
+        while let Some(result) = self.next().await {
+            if let Ok(Frame::Message(Some(t), message)) = result {
+                if t.as_str() == "#commit" {
+                    let commit = serde_ipld_dagcbor::from_reader(message.body.as_slice())?;
+                    handler.handle_commit(&commit).await?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Subscription for RepoSubscription {
+    async fn next(&mut self) -> Option<Result<Frame, <Frame as TryFrom<&[u8]>>::Error>> {
+        if let Some(Ok(Message::Binary(data))) = self.stream.next().await {
+            Some(Frame::try_from(data.as_slice()))
+        } else {
+            None
+        }
+    }
+}
+
+struct Firehose;
+
+impl CommitHandler for Firehose {
+    async fn handle_commit(&self, commit: &Commit) -> Result<(), Box<dyn std::error::Error>> {
+        for op in &commit.ops {
+            let collection = op.path.split('/').next().expect("op.path is empty");
+            if op.action != "create" || collection != atrium_api::app::bsky::feed::Post::NSID {
+                continue;
+            }
+            let (items, _) = rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
+            if let Some((_, item)) = items.iter().find(|(cid, _)| Some(CidLink(*cid)) == op.cid) {
+                let record = serde_ipld_dagcbor::from_reader::<Record, _>(&mut item.as_slice())?;
+                println!(
+                    "{} - {}",
+                    record.created_at.as_ref().with_timezone(&Local),
+                    commit.repo.as_str()
+                );
+                for line in record.text.split('\n') {
+                    println!("  {line}");
+                }
+            } else {
+                panic!(
+                    "FAILED: could not find item with operation cid {:?} out of {} items",
+                    op.cid,
+                    items.len()
+                );
+            }
+        }
+        Ok(())
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (mut stream, _) =
-        connect_async("wss://bsky.network/xrpc/com.atproto.sync.subscribeRepos").await?;
-
-    while let Some(Ok(tungstenite::Message::Binary(message))) = stream.next().await {
-        process_message(&message).await.unwrap();
-    }
-    Ok(())
-}
-
-async fn process_message(message: &[u8]) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    match Frame::try_from(message)? {
-        Frame::Message(message) => {
-            match message.body {
-                Message::Commit(commit) => {
-                    for op in commit.ops {
-                        let collection = op.path.split('/').next().expect("op.path is empty");
-                        if op.action != "create" || collection != "app.bsky.feed.post" {
-                            continue;
-                        }
-                        let (items, _) =
-                            rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
-                        if let Some((_, item)) = items.iter().find(|(cid, _)| Some(*cid) == op.cid)
-                        {
-                            if let Ok(value) =
-                                ciborium::de::from_reader::<Record, _>(&mut item.as_slice())
-                            {
-                                println!("{}: {}", value.created_at, value.text);
-                            } else {
-                                println!("FAILED: could not deserialize post from item of length: {}", item.len());
-
-                            }
-                        } else {
-                            println!(
-                                "FAILED: could not find item with operation cid {:?} out of {} items",
-                                op.cid,
-                                items.len()
-                            );
-                        }
-                    }
-                }
-                _ => unimplemented!("{:?}", message.body),
-            }
-        }
-        Frame::Error(err) => panic!("{err:?}"),
-    }
-    Ok(())
+    RepoSubscription::new("bsky.network")
+        .await?
+        .run(Firehose)
+        .await
 }

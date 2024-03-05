@@ -1,5 +1,4 @@
-use atrium_api::com::atproto::sync::subscribe_repos::{Commit, Message, Tombstone, Handle, Info, Migrate};
-use libipld_core::ipld::Ipld;
+use ipld_core::ipld::Ipld;
 use std::io::Cursor;
 
 // original definition:
@@ -50,13 +49,13 @@ impl TryFrom<Ipld> for FrameHeader {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Frame {
-    Message(Box<MessageFrame>),
+    Message(Option<String>, MessageFrame),
     Error(ErrorFrame),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MessageFrame {
-    pub body: Message,
+    pub body: Vec<u8>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -79,41 +78,16 @@ impl TryFrom<&[u8]> for Frame {
                 return Err(anyhow::anyhow!("invalid frame type"));
             }
         };
-        let ipld = serde_ipld_dagcbor::from_slice::<Ipld>(left)?;
-        let header = FrameHeader::try_from(ipld)?;
-        match header {
-            FrameHeader::Message(t) => match t.as_deref() {
-                Some("#commit") => Ok(Frame::Message(Box::new(MessageFrame {
-                    body: Message::Commit(Box::new(serde_ipld_dagcbor::from_slice::<Commit>(
-                        right,
-                    )?)),
-                }))),
-                Some("#handle") => Ok(Frame::Message(Box::new(MessageFrame { 
-                    body: Message::Handle(Box::new(serde_ipld_dagcbor::from_slice::<Handle>(
-                        right
-                    )?))
-                }))),
-                Some("#info") => Ok(Frame::Message(Box::new(MessageFrame { 
-                    body: Message::Info(Box::new(serde_ipld_dagcbor::from_slice::<Info>(
-                        right
-                    )?))
-                }))),
-                Some("#migrate") => Ok(Frame::Message(Box::new(MessageFrame { 
-                    body: Message::Migrate(Box::new(serde_ipld_dagcbor::from_slice::<Migrate>(
-                        right
-                    )?))
-                }))),
-                Some("#tombstone") => Ok(Frame::Message(Box::new(MessageFrame { 
-                    body: Message::Tombstone(Box::new(serde_ipld_dagcbor::from_slice::<Tombstone>(
-                        right
-                    )?))
-                }))),
-                _ => {
-                    let tag = t.as_deref();
-                    Err(anyhow::anyhow!("frame not implemented: tag={tag:?}"))
+        let header = FrameHeader::try_from(serde_ipld_dagcbor::from_slice::<Ipld>(left)?)?;
+        if let FrameHeader::Message(t) = &header {
+            Ok(Frame::Message(
+                t.clone(),
+                MessageFrame {
+                    body: right.to_vec(),
                 },
-            },
-            FrameHeader::Error => Ok(Frame::Error(ErrorFrame {})),
+            ))
+        } else {
+            Ok(Frame::Error(ErrorFrame {}))
         }
     }
 }

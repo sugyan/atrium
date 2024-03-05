@@ -4,7 +4,6 @@ members = [
     "atrium-cli",
     "atrium-xrpc",
     "atrium-xrpc-client",
-    "atrium-xrpc-server",
 ]
 # Examples show how to use the latest published crates, not the workspace state.
 exclude = [
@@ -25,7 +24,6 @@ keywords = ["atproto", "bluesky"]
 atrium-api = { version = "0.18.1", path = "atrium-api" }
 atrium-xrpc = { version = "0.10.0", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.4.0", path = "atrium-xrpc-client" }
-atrium-xrpc-server = { version = "0.1.0", path = "atrium-xrpc-server" }
 
 # async in traits
 # Can be removed once MSRV is at least 1.75.0.
