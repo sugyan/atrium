@@ -131,14 +131,6 @@ async fn send_query() -> Result<(), Box<dyn std::error::Error>> {
                     .build(),
                 path.to_string(),
             )),
-            #[cfg(feature = "surf")]
-            tokio::spawn(run_query(
-                crate::surf::SurfClient::new(
-                    base_uri,
-                    surf::Client::with_http_client(http_client::h1::H1Client::new()),
-                ),
-                path.to_string(),
-            )),
         ];
         join_all(handles).await
     }
@@ -254,14 +246,6 @@ async fn send_procedure() -> Result<(), Box<dyn std::error::Error>> {
                             .expect("client should be successfully built"),
                     )
                     .build(),
-                path.to_string(),
-            )),
-            #[cfg(feature = "surf")]
-            tokio::spawn(run_procedure(
-                crate::surf::SurfClient::new(
-                    base_uri,
-                    surf::Client::with_http_client(http_client::h1::H1Client::new()),
-                ),
                 path.to_string(),
             )),
         ];

@@ -31,3 +31,14 @@ publish = true
 git_release_enable = true
 git_tag_enable = true
 changelog_update = true
+
+[changelog]
+commit_parsers = [
+    { message = "^feat", group = "added" },
+    { message = "^changed", group = "changed" },
+    { message = "^deprecated", group = "deprecated" },
+    { message = "^fix", group = "fixed" },
+    { message = "^security", group = "security" },
+    { message = "^remove", group = "removed" },
+    { message = "^.*", group = "other" },
+]

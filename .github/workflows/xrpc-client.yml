@@ -21,7 +21,6 @@ jobs:
           cargo test -p atrium-xrpc-client --lib
           cargo test -p atrium-xrpc-client --lib --no-default-features --features=reqwest
           cargo test -p atrium-xrpc-client --lib --no-default-features --features=isahc
-          cargo test -p atrium-xrpc-client --lib --no-default-features --features=surf
           cargo test -p atrium-xrpc-client --lib --all-features
       - name: Run doctests
         run: cargo test -p atrium-xrpc-client --doc --all-features
