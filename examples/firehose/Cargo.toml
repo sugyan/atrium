@@ -9,7 +9,7 @@ edition = "2021"
 anyhow = "1.0.80"
 atrium-api = { version = "0.18.1", features = ["dag-cbor"] }
 chrono = "0.4.34"
-futures = "0.3.28"
+futures = "0.3.30"
 ipld-core = { version = "0.2.0", features = ["serde"] }
 rs-car = "0.4.1"
 serde_ipld_dagcbor = { git = "https://github.com/ipld/serde_ipld_dagcbor.git", rev = "297a6c26c8c89807e6602cab9803ef2c4ae8b459" }

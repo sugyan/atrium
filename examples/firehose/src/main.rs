@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Result};
 use atrium_api::app::bsky::feed::post::Record;
 use atrium_api::com::atproto::sync::subscribe_repos::{Commit, NSID};
 use atrium_api::types::{CidLink, Collection};
@@ -23,7 +24,9 @@ impl RepoSubscription {
             if let Ok(Frame::Message(Some(t), message)) = result {
                 if t.as_str() == "#commit" {
                     let commit = serde_ipld_dagcbor::from_reader(message.body.as_slice())?;
-                    handler.handle_commit(&commit).await?;
+                    if let Err(err) = handler.handle_commit(&commit).await {
+                        eprintln!("FAILED: {err:?}");
+                    }
                 }
             }
         }
@@ -44,7 +47,7 @@ impl Subscription for RepoSubscription {
 struct Firehose;
 
 impl CommitHandler for Firehose {
-    async fn handle_commit(&self, commit: &Commit) -> Result<(), Box<dyn std::error::Error>> {
+    async fn handle_commit(&self, commit: &Commit) -> Result<()> {
         for op in &commit.ops {
             let collection = op.path.split('/').next().expect("op.path is empty");
             if op.action != "create" || collection != atrium_api::app::bsky::feed::Post::NSID {
@@ -62,11 +65,11 @@ impl CommitHandler for Firehose {
                     println!("  {line}");
                 }
             } else {
-                panic!(
+                return Err(anyhow!(
                     "FAILED: could not find item with operation cid {:?} out of {} items",
                     op.cid,
                     items.len()
-                );
+                ));
             }
         }
         Ok(())
