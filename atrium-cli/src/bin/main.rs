@@ -18,9 +18,8 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    Runner::new(args.pds_host, args.debug)
+    Ok(Runner::new(args.pds_host, args.debug)
         .await?
         .run(args.command)
-        .await;
-    Ok(())
+        .await?)
 }
