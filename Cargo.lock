@@ -164,6 +164,7 @@ dependencies = [
 name = "atrium-cli"
 version = "0.1.4"
 dependencies = [
+ "anyhow",
  "async-trait",
  "atrium-api",
  "atrium-xrpc-client",

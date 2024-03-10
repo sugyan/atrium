@@ -53,8 +53,8 @@ isahc = "1.7.2"
 reqwest = { version = "0.11.24", default-features = false }
 
 # Errors
-anyhow = "1.0.71"
-thiserror = "1"
+anyhow = "1.0.80"
+thiserror = "1.0"
 
 # CLI
 clap = { version = "4.4.18", features = ["derive"] }

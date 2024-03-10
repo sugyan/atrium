@@ -1,8 +1,8 @@
 use crate::commands::Command;
 use crate::store::SimpleJsonFileSessionStore;
+use anyhow::{Context, Result};
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
-use atrium_api::xrpc::error::{Error, XrpcErrorKind};
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use serde::Serialize;
 use std::ffi::OsStr;
@@ -18,8 +18,9 @@ pub struct Runner {
 }
 
 impl Runner {
-    pub async fn new(pds_host: String, debug: bool) -> Result<Self, Box<dyn std::error::Error>> {
-        let config_dir = dirs::config_dir().unwrap();
+    pub async fn new(pds_host: String, debug: bool) -> Result<Self> {
+        let config_dir = dirs::config_dir()
+            .with_context(|| format!("No config dir: {:?}", dirs::config_dir()))?;
         let dir = config_dir.join("atrium-cli");
         create_dir_all(&dir).await?;
         let session_path = dir.join("session.json");
@@ -37,249 +38,217 @@ impl Runner {
             handle,
         })
     }
-    pub async fn run(&self, command: Command) {
+    pub async fn run(&self, command: Command) -> Result<()> {
         let limit = 10.try_into().expect("within limit");
         match command {
             Command::Login(args) => {
-                let result = self.agent.login(args.identifier, args.password).await;
-                match result {
-                    Ok(_) => {
-                        println!("Login successful! Saved session to {:?}", self.session_path);
-                    }
-                    Err(err) => {
-                        eprintln!("{err:#?}");
-                    }
-                }
+                self.agent.login(args.identifier, args.password).await?;
+                println!("Login successful! Saved session to {:?}", self.session_path);
+                Ok(())
             }
-            Command::GetTimeline => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_timeline(atrium_api::app::bsky::feed::get_timeline::Parameters {
-                            algorithm: None,
+            Command::GetTimeline => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_timeline(atrium_api::app::bsky::feed::get_timeline::Parameters {
+                        algorithm: None,
+                        cursor: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetAuthorFeed(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_author_feed(atrium_api::app::bsky::feed::get_author_feed::Parameters {
+                        actor: args
+                            .actor
+                            .or(self.handle.clone().map(AtIdentifier::Handle))
+                            .with_context(|| "Not logged in")?,
+                        cursor: None,
+                        filter: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetLikes(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_likes(atrium_api::app::bsky::feed::get_likes::Parameters {
+                        cid: None,
+                        cursor: None,
+                        limit: Some(limit),
+                        uri: args.uri.to_string(),
+                    })
+                    .await?,
+            ),
+            Command::GetRepostedBy(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_reposted_by(atrium_api::app::bsky::feed::get_reposted_by::Parameters {
+                        cid: None,
+                        cursor: None,
+                        limit: Some(limit),
+                        uri: args.uri.to_string(),
+                    })
+                    .await?,
+            ),
+            Command::GetActorFeeds(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_actor_feeds(atrium_api::app::bsky::feed::get_actor_feeds::Parameters {
+                        actor: args
+                            .actor
+                            .or(self.handle.clone().map(AtIdentifier::Handle))
+                            .with_context(|| "Not logged in")?,
+                        cursor: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetFeed(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_feed(atrium_api::app::bsky::feed::get_feed::Parameters {
+                        cursor: None,
+                        feed: args.uri.to_string(),
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetListFeed(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .feed
+                    .get_list_feed(atrium_api::app::bsky::feed::get_list_feed::Parameters {
+                        cursor: None,
+                        limit: Some(limit),
+                        list: args.uri.to_string(),
+                    })
+                    .await?,
+            ),
+            Command::GetFollows(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .graph
+                    .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
+                        actor: args
+                            .actor
+                            .or(self.handle.clone().map(AtIdentifier::Handle))
+                            .with_context(|| "Not logged in")?,
+                        cursor: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetFollowers(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .graph
+                    .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
+                        actor: args
+                            .actor
+                            .or(self.handle.clone().map(AtIdentifier::Handle))
+                            .with_context(|| "Not logged in")?,
+                        cursor: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetLists(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .graph
+                    .get_lists(atrium_api::app::bsky::graph::get_lists::Parameters {
+                        actor: args
+                            .actor
+                            .or(self.handle.clone().map(AtIdentifier::Handle))
+                            .with_context(|| "Not logged in")?,
+                        cursor: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::GetList(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .graph
+                    .get_list(atrium_api::app::bsky::graph::get_list::Parameters {
+                        cursor: None,
+                        limit: Some(limit),
+                        list: args.uri.to_string(),
+                    })
+                    .await?,
+            ),
+            Command::GetProfile(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .actor
+                    .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
+                        actor: args
+                            .actor
+                            .or(self.handle.clone().map(AtIdentifier::Handle))
+                            .with_context(|| "Not logged in")?,
+                    })
+                    .await?,
+            ),
+            Command::ListNotifications => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .notification
+                    .list_notifications(
+                        atrium_api::app::bsky::notification::list_notifications::Parameters {
                             cursor: None,
                             limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetAuthorFeed(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_author_feed(atrium_api::app::bsky::feed::get_author_feed::Parameters {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .unwrap(),
-                            cursor: None,
-                            filter: None,
-                            limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetLikes(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_likes(atrium_api::app::bsky::feed::get_likes::Parameters {
-                            cid: None,
-                            cursor: None,
-                            limit: Some(limit),
-                            uri: args.uri.to_string(),
-                        })
-                        .await,
-                );
-            }
-            Command::GetRepostedBy(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_reposted_by(atrium_api::app::bsky::feed::get_reposted_by::Parameters {
-                            cid: None,
-                            cursor: None,
-                            limit: Some(limit),
-                            uri: args.uri.to_string(),
-                        })
-                        .await,
-                );
-            }
-            Command::GetActorFeeds(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_actor_feeds(atrium_api::app::bsky::feed::get_actor_feeds::Parameters {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .unwrap(),
-                            cursor: None,
-                            limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetFeed(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_feed(atrium_api::app::bsky::feed::get_feed::Parameters {
-                            cursor: None,
-                            feed: args.uri.to_string(),
-                            limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetListFeed(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .feed
-                        .get_list_feed(atrium_api::app::bsky::feed::get_list_feed::Parameters {
-                            cursor: None,
-                            limit: Some(limit),
-                            list: args.uri.to_string(),
-                        })
-                        .await,
-                );
-            }
-            Command::GetFollows(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .graph
-                        .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .unwrap(),
-                            cursor: None,
-                            limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetFollowers(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .graph
-                        .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .unwrap(),
-                            cursor: None,
-                            limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetLists(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .graph
-                        .get_lists(atrium_api::app::bsky::graph::get_lists::Parameters {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .unwrap(),
-                            cursor: None,
-                            limit: Some(limit),
-                        })
-                        .await,
-                );
-            }
-            Command::GetList(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .graph
-                        .get_list(atrium_api::app::bsky::graph::get_list::Parameters {
-                            cursor: None,
-                            limit: Some(limit),
-                            list: args.uri.to_string(),
-                        })
-                        .await,
-                );
-            }
-            Command::GetProfile(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .actor
-                        .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .unwrap(),
-                        })
-                        .await,
-                );
-            }
-            Command::ListNotifications => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .app
-                        .bsky
-                        .notification
-                        .list_notifications(
-                            atrium_api::app::bsky::notification::list_notifications::Parameters {
-                                cursor: None,
-                                limit: Some(limit),
-                                seen_at: None,
-                            },
-                        )
-                        .await,
-                );
-            }
+                            seen_at: None,
+                        },
+                    )
+                    .await?,
+            ),
             Command::CreatePost(args) => {
                 let mut images = Vec::new();
                 for image in &args.images {
@@ -333,57 +302,38 @@ impl Runner {
                                     text: args.text,
                                 },
                             )),
-                            repo: self.handle.clone().unwrap().into(),
+                            repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
                             rkey: None,
                             swap_commit: None,
                             validate: None,
                         })
-                        .await,
-                );
+                        .await?,
+                )
             }
-            Command::DeletePost(args) => {
-                self.print(
-                    &self
-                        .agent
-                        .api
-                        .com
-                        .atproto
-                        .repo
-                        .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
-                            collection: "app.bsky.feed.post".parse().expect("valid"),
-                            repo: self.handle.clone().unwrap().into(),
-                            rkey: args.uri.rkey,
-                            swap_commit: None,
-                            swap_record: None,
-                        })
-                        .await,
-                );
-            }
+            Command::DeletePost(args) => self.print(
+                &self
+                    .agent
+                    .api
+                    .com
+                    .atproto
+                    .repo
+                    .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
+                        collection: "app.bsky.feed.post".parse().expect("valid"),
+                        repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
+                        rkey: args.uri.rkey,
+                        swap_commit: None,
+                        swap_record: None,
+                    })
+                    .await?,
+            ),
         }
     }
-    fn print(
-        &self,
-        result: &Result<impl std::fmt::Debug + Serialize, Error<impl std::fmt::Debug>>,
-    ) {
-        match result {
-            Ok(result) => {
-                if self.debug {
-                    println!("{:#?}", result);
-                } else {
-                    println!("{}", serde_json::to_string_pretty(result).unwrap());
-                }
-            }
-            Err(err) => {
-                if let Error::XrpcResponse(e) = err {
-                    if let Some(XrpcErrorKind::Undefined(body)) = &e.error {
-                        if e.status == 401 && body.error == Some("AuthMissing".into()) {
-                            eprintln!("Login required. Use `atrium-cli login` to login.");
-                            return;
-                        }
-                    }
-                }
-                eprintln!("{err:#?}");
-            }
+    fn print<T: std::fmt::Debug + Serialize>(&self, result: &T) -> Result<()> {
+        if self.debug {
+            println!("{:#?}", result);
+        } else {
+            println!("{}", serde_json::to_string_pretty(result)?);
         }
+        Ok(())
     }
 }
