@@ -21,6 +21,8 @@ pub struct ListView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub indexed_at: crate::types::string::Datetime,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
@@ -35,6 +37,8 @@ pub struct ListViewBasic {
     pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,

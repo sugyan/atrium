@@ -23,6 +23,7 @@ where
 {
     pub app: app::Service<T>,
     pub com: com::Service<T>,
+    pub tools: tools::Service<T>,
 }
 pub mod app {
     pub struct Service<T>
@@ -39,6 +40,7 @@ pub mod app {
             pub actor: actor::Service<T>,
             pub feed: feed::Service<T>,
             pub graph: graph::Service<T>,
+            pub labeler: labeler::Service<T>,
             pub notification: notification::Service<T>,
             pub unspecced: unspecced::Service<T>,
         }
@@ -59,6 +61,14 @@ pub mod app {
             }
         }
         pub mod graph {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+            }
+        }
+        pub mod labeler {
             pub struct Service<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -171,6 +181,39 @@ pub mod com {
         }
     }
 }
+pub mod tools {
+    pub struct Service<T>
+    where
+        T: atrium_xrpc::XrpcClient + Send + Sync,
+    {
+        pub ozone: ozone::Service<T>,
+    }
+    pub mod ozone {
+        pub struct Service<T>
+        where
+            T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            pub communication: communication::Service<T>,
+            pub moderation: moderation::Service<T>,
+        }
+        pub mod communication {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+            }
+        }
+        pub mod moderation {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+            }
+        }
+    }
+}
 impl<T> self::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -179,6 +222,7 @@ where
         Self {
             app: app::Service::new(std::sync::Arc::clone(&xrpc)),
             com: com::Service::new(std::sync::Arc::clone(&xrpc)),
+            tools: tools::Service::new(std::sync::Arc::clone(&xrpc)),
         }
     }
 }
@@ -201,6 +245,7 @@ where
             actor: app::bsky::actor::Service::new(std::sync::Arc::clone(&xrpc)),
             feed: app::bsky::feed::Service::new(std::sync::Arc::clone(&xrpc)),
             graph: app::bsky::graph::Service::new(std::sync::Arc::clone(&xrpc)),
+            labeler: app::bsky::labeler::Service::new(std::sync::Arc::clone(&xrpc)),
             notification: app::bsky::notification::Service::new(
                 std::sync::Arc::clone(&xrpc),
             ),
@@ -1345,6 +1390,44 @@ where
         }
     }
 }
+impl<T> app::bsky::labeler::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self { xrpc }
+    }
+    ///Get information about a list of labeler services.
+    pub async fn get_services(
+        &self,
+        params: crate::app::bsky::labeler::get_services::Parameters,
+    ) -> Result<
+        crate::app::bsky::labeler::get_services::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::labeler::get_services::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "app.bsky.labeler.getServices".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+}
 impl<T> app::bsky::notification::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -1649,38 +1732,6 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self { xrpc }
     }
-    ///Administrative action to create a new, re-usable communication (email for now) template.
-    pub async fn create_communication_template(
-        &self,
-        input: crate::com::atproto::admin::create_communication_template::Input,
-    ) -> Result<
-        crate::com::atproto::admin::create_communication_template::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::create_communication_template::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                _,
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.admin.createCommunicationTemplate".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                    encoding: Some(String::from("application/json")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
     ///Delete a user account as an administrator.
     pub async fn delete_account(
         &self,
@@ -1700,38 +1751,6 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
                     path: "com.atproto.admin.deleteAccount".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                    encoding: Some(String::from("application/json")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Delete a communication template.
-    pub async fn delete_communication_template(
-        &self,
-        input: crate::com::atproto::admin::delete_communication_template::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::delete_communication_template::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                _,
-                (),
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.admin.deleteCommunicationTemplate".into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1804,38 +1823,6 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Take a moderation action on an actor.
-    pub async fn emit_moderation_event(
-        &self,
-        input: crate::com::atproto::admin::emit_moderation_event::Input,
-    ) -> Result<
-        crate::com::atproto::admin::emit_moderation_event::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::emit_moderation_event::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                _,
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.admin.emitModerationEvent".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                    encoding: Some(String::from("application/json")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -1961,98 +1948,6 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
-    ///Get details about a moderation event.
-    pub async fn get_moderation_event(
-        &self,
-        params: crate::com::atproto::admin::get_moderation_event::Parameters,
-    ) -> Result<
-        crate::com::atproto::admin::get_moderation_event::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::get_moderation_event::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.getModerationEvent".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Get details about a record.
-    pub async fn get_record(
-        &self,
-        params: crate::com::atproto::admin::get_record::Parameters,
-    ) -> Result<
-        crate::com::atproto::admin::get_record::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::get_record::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.getRecord".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Get details about a repository.
-    pub async fn get_repo(
-        &self,
-        params: crate::com::atproto::admin::get_repo::Parameters,
-    ) -> Result<
-        crate::com::atproto::admin::get_repo::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::get_repo::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.getRepo".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
     ///Get the service-specific admin status of a subject (account, record, or blob).
     pub async fn get_subject_status(
         &self,
@@ -2072,131 +1967,6 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
                     path: "com.atproto.admin.getSubjectStatus".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Get list of all communication templates.
-    pub async fn list_communication_templates(
-        &self,
-    ) -> Result<
-        crate::com::atproto::admin::list_communication_templates::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::list_communication_templates::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.listCommunicationTemplates".into(),
-                    parameters: None,
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///List moderation events related to a subject.
-    pub async fn query_moderation_events(
-        &self,
-        params: crate::com::atproto::admin::query_moderation_events::Parameters,
-    ) -> Result<
-        crate::com::atproto::admin::query_moderation_events::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::query_moderation_events::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.queryModerationEvents".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///View moderation statuses of subjects (record or repo).
-    pub async fn query_moderation_statuses(
-        &self,
-        params: crate::com::atproto::admin::query_moderation_statuses::Parameters,
-    ) -> Result<
-        crate::com::atproto::admin::query_moderation_statuses::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::query_moderation_statuses::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.queryModerationStatuses".into(),
-                    parameters: Some(params),
-                    input: None,
-                    encoding: None,
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Find repositories based on a search term.
-    pub async fn search_repos(
-        &self,
-        params: crate::com::atproto::admin::search_repos::Parameters,
-    ) -> Result<
-        crate::com::atproto::admin::search_repos::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::search_repos::Error>,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                _,
-                (),
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::GET,
-                    path: "com.atproto.admin.searchRepos".into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2331,38 +2101,6 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
-        }
-    }
-    ///Administrative action to update an existing communication template. Allows passing partial fields to patch specific fields only.
-    pub async fn update_communication_template(
-        &self,
-        input: crate::com::atproto::admin::update_communication_template::Input,
-    ) -> Result<
-        crate::com::atproto::admin::update_communication_template::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::update_communication_template::Error,
-        >,
-    > {
-        let response = self
-            .xrpc
-            .send_xrpc::<
-                (),
-                _,
-                _,
-                _,
-            >(
-                &atrium_xrpc::XrpcRequest {
-                    method: http::Method::POST,
-                    path: "com.atproto.admin.updateCommunicationTemplate".into(),
-                    parameters: None,
-                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                    encoding: Some(String::from("application/json")),
-                },
-            )
-            .await?;
-        match response {
-            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
@@ -4178,6 +3916,384 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+}
+impl<T> tools::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            ozone: tools::ozone::Service::new(std::sync::Arc::clone(&xrpc)),
+        }
+    }
+}
+impl<T> tools::ozone::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            communication: tools::ozone::communication::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
+            moderation: tools::ozone::moderation::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
+        }
+    }
+}
+impl<T> tools::ozone::communication::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self { xrpc }
+    }
+    ///Administrative action to create a new, re-usable communication (email for now) template.
+    pub async fn create_template(
+        &self,
+        input: crate::tools::ozone::communication::create_template::Input,
+    ) -> Result<
+        crate::tools::ozone::communication::create_template::Output,
+        atrium_xrpc::error::Error<
+            crate::tools::ozone::communication::create_template::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "tools.ozone.communication.createTemplate".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Delete a communication template.
+    pub async fn delete_template(
+        &self,
+        input: crate::tools::ozone::communication::delete_template::Input,
+    ) -> Result<
+        (),
+        atrium_xrpc::error::Error<
+            crate::tools::ozone::communication::delete_template::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "tools.ozone.communication.deleteTemplate".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get list of all communication templates.
+    pub async fn list_templates(
+        &self,
+    ) -> Result<
+        crate::tools::ozone::communication::list_templates::Output,
+        atrium_xrpc::error::Error<
+            crate::tools::ozone::communication::list_templates::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.communication.listTemplates".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Administrative action to update an existing communication template. Allows passing partial fields to patch specific fields only.
+    pub async fn update_template(
+        &self,
+        input: crate::tools::ozone::communication::update_template::Input,
+    ) -> Result<
+        crate::tools::ozone::communication::update_template::Output,
+        atrium_xrpc::error::Error<
+            crate::tools::ozone::communication::update_template::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "tools.ozone.communication.updateTemplate".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+}
+impl<T> tools::ozone::moderation::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self { xrpc }
+    }
+    ///Take a moderation action on an actor.
+    pub async fn emit_event(
+        &self,
+        input: crate::tools::ozone::moderation::emit_event::Input,
+    ) -> Result<
+        crate::tools::ozone::moderation::emit_event::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::emit_event::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "tools.ozone.moderation.emitEvent".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get details about a moderation event.
+    pub async fn get_event(
+        &self,
+        params: crate::tools::ozone::moderation::get_event::Parameters,
+    ) -> Result<
+        crate::tools::ozone::moderation::get_event::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::get_event::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.moderation.getEvent".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get details about a record.
+    pub async fn get_record(
+        &self,
+        params: crate::tools::ozone::moderation::get_record::Parameters,
+    ) -> Result<
+        crate::tools::ozone::moderation::get_record::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::get_record::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.moderation.getRecord".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get details about a repository.
+    pub async fn get_repo(
+        &self,
+        params: crate::tools::ozone::moderation::get_repo::Parameters,
+    ) -> Result<
+        crate::tools::ozone::moderation::get_repo::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::get_repo::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.moderation.getRepo".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///List moderation events related to a subject.
+    pub async fn query_events(
+        &self,
+        params: crate::tools::ozone::moderation::query_events::Parameters,
+    ) -> Result<
+        crate::tools::ozone::moderation::query_events::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::query_events::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.moderation.queryEvents".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///View moderation statuses of subjects (record or repo).
+    pub async fn query_statuses(
+        &self,
+        params: crate::tools::ozone::moderation::query_statuses::Parameters,
+    ) -> Result<
+        crate::tools::ozone::moderation::query_statuses::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::query_statuses::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.moderation.queryStatuses".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Find repositories based on a search term.
+    pub async fn search_repos(
+        &self,
+        params: crate::tools::ozone::moderation::search_repos::Parameters,
+    ) -> Result<
+        crate::tools::ozone::moderation::search_repos::Output,
+        atrium_xrpc::error::Error<crate::tools::ozone::moderation::search_repos::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "tools.ozone.moderation.searchRepos".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }

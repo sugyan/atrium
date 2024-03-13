@@ -38,6 +38,8 @@ pub struct GeneratorView {
     pub display_name: String,
     pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub like_count: Option<usize>,
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -14,7 +14,11 @@ struct Args {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
 
-    let results = genapi(&args.lexdir, &args.outdir, &["app.bsky", "com.atproto"])?;
+    let results = genapi(
+        &args.lexdir,
+        &args.outdir,
+        &["app.bsky", "com.atproto", "tools.ozone"],
+    )?;
     for path in &results {
         println!(
             "{} ({} bytes)",

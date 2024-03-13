@@ -9,6 +9,9 @@ pub struct AdultContentPref {
 #[serde(rename_all = "camelCase")]
 pub struct ContentLabelPref {
     pub label: String,
+    ///Which labeler does this preference apply to? If undefined, applies globally.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labeler_did: Option<crate::types::string::Did>,
     pub visibility: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -44,6 +47,16 @@ pub struct InterestsPref {
     ///A list of tags which describe the account owner's interests gathered during onboarding.
     pub tags: Vec<String>,
 }
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModPrefItem {
+    pub did: crate::types::string::Did,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModsPref {
+    pub mods: Vec<ModPrefItem>,
+}
 ///A word that the account owner has muted.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -68,6 +81,16 @@ pub struct PersonalDetailsPref {
     pub birth_date: Option<crate::types::string::Datetime>,
 }
 pub type Preferences = Vec<PreferencesItem>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileAssociated {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feedgens: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labeler: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lists: Option<i64>,
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileView {
@@ -103,6 +126,8 @@ pub struct ProfileViewBasic {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileViewDetailed {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -25,4 +25,6 @@ pub enum Record {
     AppBskyGraphListblock(Box<crate::app::bsky::graph::listblock::Record>),
     #[serde(rename = "app.bsky.graph.listitem")]
     AppBskyGraphListitem(Box<crate::app::bsky::graph::listitem::Record>),
+    #[serde(rename = "app.bsky.labeler.service")]
+    AppBskyLabelerService(Box<crate::app::bsky::labeler::service::Record>),
 }
