@@ -5,6 +5,9 @@
 pub struct Output {
     ///List of domain suffixes that can be used in account handles.
     pub available_user_domains: Vec<String>,
+    ///Contact information
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contact: Option<Contact>,
     pub did: crate::types::string::Did,
     ///If true, an invite code must be supplied to create an account on this instance.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -19,6 +22,12 @@ pub struct Output {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Contact {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Links {

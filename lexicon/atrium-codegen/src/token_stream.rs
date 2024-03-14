@@ -294,9 +294,17 @@ fn lex_object_property(
         }
     );
     let mut attributes = match property {
-        LexObjectProperty::Bytes(_) => quote! {
-            #[serde(with = "serde_bytes")]
-        },
+        LexObjectProperty::Bytes(_) => {
+            let default = if is_required {
+                quote!()
+            } else {
+                quote!(#[serde(default)])
+            };
+            quote! {
+                #default
+                #[serde(with = "serde_bytes")]
+            }
+        }
         _ => quote!(),
     };
     if !is_required {
