@@ -49,13 +49,13 @@ pub struct InterestsPref {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModPrefItem {
+pub struct LabelerPrefItem {
     pub did: crate::types::string::Did,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModsPref {
-    pub mods: Vec<ModPrefItem>,
+pub struct LabelersPref {
+    pub labelers: Vec<LabelerPrefItem>,
 }
 ///A word that the account owner has muted.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
