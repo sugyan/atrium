@@ -15,6 +15,25 @@ pub enum Error {
     ///If the consumer of the stream can not keep up with events, and a backlog gets too large, the server will drop the connection.
     ConsumerTooSlow(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::FutureCursor(msg) => {
+                write!(_f, "FutureCursor")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::ConsumerTooSlow(msg) => {
+                write!(_f, "ConsumerTooSlow")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
 ///Represents an update of repository state. Note that empty commits are allowed, which include no repo data changes, but an update to rev and signature.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

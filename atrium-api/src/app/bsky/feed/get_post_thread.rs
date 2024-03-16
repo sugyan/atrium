@@ -22,6 +22,19 @@ pub struct Output {
 pub enum Error {
     NotFound(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::NotFound(msg) => {
+                write!(_f, "NotFound")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum OutputThreadEnum {

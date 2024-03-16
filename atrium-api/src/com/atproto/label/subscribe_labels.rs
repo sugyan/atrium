@@ -13,6 +13,19 @@ pub struct Parameters {
 pub enum Error {
     FutureCursor(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::FutureCursor(msg) => {
+                write!(_f, "FutureCursor")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Info {

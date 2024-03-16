@@ -19,6 +19,19 @@ pub enum Error {
     ///Indicates that the 'swapCommit' parameter did not match current commit.
     InvalidSwap(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::InvalidSwap(msg) => {
+                write!(_f, "InvalidSwap")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
 ///Operation which creates a new record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

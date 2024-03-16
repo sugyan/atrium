@@ -26,3 +26,16 @@ pub struct Output {
 pub enum Error {
     AccountTakedown(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::AccountTakedown(msg) => {
+                write!(_f, "AccountTakedown")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

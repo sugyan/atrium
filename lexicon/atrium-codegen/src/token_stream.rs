@@ -129,23 +129,53 @@ fn xrpc_body(body: &LexXrpcBody, name: &str) -> Result<TokenStream> {
 
 fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
     let derives = derives()?;
-    let variants = errors.as_ref().map_or(Vec::new(), |e| {
+    let errors = errors.as_ref().map_or(Vec::new(), |e| {
         e.iter()
-            .map(|error| {
-                let description = description(&error.description);
-                let name = format_ident!("{}", error.name.to_pascal_case());
-                quote! {
-                    #description
-                    #name(Option<String>)
-                }
-            })
+            .map(|error| (error.name.clone(), error.description.clone()))
             .collect()
     });
+    let enum_variants: Vec<TokenStream> = errors
+        .iter()
+        .map(|(name, desc)| {
+            let desc = description(&desc);
+            let name = format_ident!("{}", name.to_pascal_case());
+            quote! {
+                #desc
+                #name(Option<String>)
+            }
+        })
+        .collect();
+    let mut display_arms: Vec<TokenStream> = errors
+        .iter()
+        .map(|(name, _desc)| {
+            let title = name.clone();
+            let name = format_ident!("{}", name.to_pascal_case());
+            quote! {
+                Error::#name(msg) => {
+                    write!(_f, #title)?;
+                    if let Some(msg) = msg {
+                        write!(_f, ": {msg}")?;
+                    }
+                }
+            }
+        })
+        .collect();
+    if display_arms.is_empty() {
+        display_arms.push(quote! { _ => {} });
+    }
     Ok(quote! {
         #derives
         #[serde(tag = "error", content = "message")]
         pub enum Error {
-            #(#variants),*
+            #(#enum_variants),*
+        }
+        impl std::fmt::Display for Error {
+            fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                match self {
+                    #(#display_arms)*
+                }
+                Ok(())
+            }
         }
     })
 }

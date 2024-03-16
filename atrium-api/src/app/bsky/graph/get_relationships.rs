@@ -22,6 +22,19 @@ pub enum Error {
     ///the primary actor at-identifier could not be resolved
     ActorNotFound(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::ActorNotFound(msg) => {
+                write!(_f, "ActorNotFound")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum OutputRelationshipsItem {

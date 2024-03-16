@@ -26,3 +26,16 @@ pub struct Output {
 pub enum Error {
     BadQueryString(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::BadQueryString(msg) => {
+                write!(_f, "BadQueryString")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

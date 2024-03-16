@@ -17,3 +17,16 @@ pub struct Output {
 pub enum Error {
     RepoNotFound(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::RepoNotFound(msg) => {
+                write!(_f, "RepoNotFound")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}
