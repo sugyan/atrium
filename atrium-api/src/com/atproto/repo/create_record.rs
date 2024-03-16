@@ -31,3 +31,16 @@ pub enum Error {
     ///Indicates that 'swapCommit' didn't match current repo commit.
     InvalidSwap(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::InvalidSwap(msg) => {
+                write!(_f, "InvalidSwap")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

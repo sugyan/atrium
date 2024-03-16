@@ -25,3 +25,22 @@ pub enum Error {
     BlockedActor(Option<String>),
     BlockedByActor(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::BlockedActor(msg) => {
+                write!(_f, "BlockedActor")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::BlockedByActor(msg) => {
+                write!(_f, "BlockedByActor")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

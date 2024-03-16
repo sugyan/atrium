@@ -50,3 +50,52 @@ pub enum Error {
     UnresolvableDid(Option<String>),
     IncompatibleDidDoc(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::InvalidHandle(msg) => {
+                write!(_f, "InvalidHandle")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::InvalidPassword(msg) => {
+                write!(_f, "InvalidPassword")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::InvalidInviteCode(msg) => {
+                write!(_f, "InvalidInviteCode")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::HandleNotAvailable(msg) => {
+                write!(_f, "HandleNotAvailable")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::UnsupportedDomain(msg) => {
+                write!(_f, "UnsupportedDomain")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::UnresolvableDid(msg) => {
+                write!(_f, "UnresolvableDid")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::IncompatibleDidDoc(msg) => {
+                write!(_f, "IncompatibleDidDoc")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

@@ -15,3 +15,28 @@ pub enum Error {
     InvalidToken(Option<String>),
     TokenRequired(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::ExpiredToken(msg) => {
+                write!(_f, "ExpiredToken")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::InvalidToken(msg) => {
+                write!(_f, "InvalidToken")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+            Error::TokenRequired(msg) => {
+                write!(_f, "TokenRequired")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

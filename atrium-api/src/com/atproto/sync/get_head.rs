@@ -16,3 +16,16 @@ pub struct Output {
 pub enum Error {
     HeadNotFound(Option<String>),
 }
+impl std::fmt::Display for Error {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::HeadNotFound(msg) => {
+                write!(_f, "HeadNotFound")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
+        Ok(())
+    }
+}

@@ -1,6 +1,6 @@
 #![doc = "Error types."]
 use http::StatusCode;
-use std::fmt::Debug;
+use std::fmt::{self, Debug, Display};
 
 /// [A standard error response schema](https://atproto.com/specs/xrpc#error-responses)
 ///
@@ -17,6 +17,16 @@ pub struct ErrorResponseBody {
     pub message: Option<String>,
 }
 
+impl Display for ErrorResponseBody {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match (&self.error, &self.message) {
+            (Some(err), Some(msg)) => write!(f, "{err}: {msg}"),
+            (Some(err), None) | (None, Some(err)) => write!(f, "{err}"),
+            _ => Ok(()),
+        }
+    }
+}
+
 /// An enum of possible XRPC error kinds.
 ///
 /// Error defined in Lexicon schema or other standard error.
@@ -27,6 +37,15 @@ pub enum XrpcErrorKind<E> {
     Undefined(ErrorResponseBody),
 }
 
+impl<E: Display> Display for XrpcErrorKind<E> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::Custom(e) => Display::fmt(&e, f),
+            Self::Undefined(e) => Display::fmt(&e, f),
+        }
+    }
+}
+
 /// XRPC response error.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct XrpcError<E> {
@@ -34,10 +53,24 @@ pub struct XrpcError<E> {
     pub error: Option<XrpcErrorKind<E>>,
 }
 
+impl<E: Display> Display for XrpcError<E> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.status.as_str())?;
+        let Some(error) = &self.error else {
+            return Ok(());
+        };
+        let error = error.to_string();
+        if !error.is_empty() {
+            write!(f, " {error}")?;
+        }
+        Ok(())
+    }
+}
+
 /// An enum of possible error kinds.
 #[derive(thiserror::Error, Debug)]
 pub enum Error<E> {
-    #[error("xrpc response error: {0:?}")]
+    #[error("xrpc response error: {0}")]
     XrpcResponse(XrpcError<E>),
     #[error("http request error: {0}")]
     HttpRequest(#[from] http::Error),
