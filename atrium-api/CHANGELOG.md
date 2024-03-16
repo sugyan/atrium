@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.6](https://github.com/sugyan/atrium/compare/atrium-api-v0.18.5...atrium-api-v0.18.6) - 2024-03-16
+
+### Added
+- implement `std::fmt::Display` for all Error types ([#140](https://github.com/sugyan/atrium/pull/140))
+
 ## [0.18.5](https://github.com/sugyan/atrium/compare/atrium-api-v0.18.4...atrium-api-v0.18.5) - 2024-03-14
 
 ### Fixed
