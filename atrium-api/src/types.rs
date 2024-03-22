@@ -75,6 +75,10 @@ impl RecordKey {
 impl FromStr for RecordKey {
     type Err = &'static str;
 
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         const RE_RKEY: OnceCell<Regex> = OnceCell::new();
 
