@@ -43,7 +43,7 @@ where
     async fn auth(&self, is_refresh: bool) -> Option<String> {
         self.store.get_session().await.map(|session| {
             if is_refresh {
-                session.refresh_jwt
+                session.refresh_jwt.clone()
             } else {
                 session.access_jwt
             }
