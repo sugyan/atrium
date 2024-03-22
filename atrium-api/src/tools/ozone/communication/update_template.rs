@@ -26,9 +26,6 @@ pub type Output = crate::tools::ozone::communication::defs::TemplateView;
 pub enum Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            _ => {}
-        }
         Ok(())
     }
 }

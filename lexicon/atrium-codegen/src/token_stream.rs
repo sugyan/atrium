@@ -145,7 +145,7 @@ fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
             }
         })
         .collect();
-    let mut display_arms: Vec<TokenStream> = errors
+    let display_arms: Vec<TokenStream> = errors
         .iter()
         .map(|(name, _desc)| {
             let title = name.clone();
@@ -160,9 +160,15 @@ fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
             }
         })
         .collect();
-    if display_arms.is_empty() {
-        display_arms.push(quote! { _ => {} });
-    }
+    let body = if display_arms.is_empty() {
+        quote!()
+    } else {
+        quote! {
+            match self {
+                #(#display_arms)*
+            }
+        }
+    };
     Ok(quote! {
         #derives
         #[serde(tag = "error", content = "message")]
@@ -171,9 +177,7 @@ fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
         }
         impl std::fmt::Display for Error {
             fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                match self {
-                    #(#display_arms)*
-                }
+                #body
                 Ok(())
             }
         }
