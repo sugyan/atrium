@@ -75,6 +75,10 @@ impl RecordKey {
 impl FromStr for RecordKey {
     type Err = &'static str;
 
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         const RE_RKEY: OnceCell<Regex> = OnceCell::new();
 
@@ -82,7 +86,7 @@ impl FromStr for RecordKey {
             Err("Disallowed rkey")
         } else if !RE_RKEY
             .get_or_init(|| Regex::new(r"^[a-zA-Z0-9._~-]{1,512}$").unwrap())
-            .is_match(&s)
+            .is_match(s)
         {
             Err("Invalid rkey")
         } else {
@@ -102,9 +106,9 @@ impl<'de> serde::Deserialize<'de> for RecordKey {
     }
 }
 
-impl Into<String> for RecordKey {
-    fn into(self) -> String {
-        self.0
+impl From<RecordKey> for String {
+    fn from(value: RecordKey) -> Self {
+        value.0
     }
 }
 

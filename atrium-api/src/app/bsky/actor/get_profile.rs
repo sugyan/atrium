@@ -12,9 +12,6 @@ pub type Output = crate::app::bsky::actor::defs::ProfileViewDetailed;
 pub enum Error {}
 impl std::fmt::Display for Error {
     fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match self {
-            _ => {}
-        }
         Ok(())
     }
 }

@@ -31,9 +31,9 @@ macro_rules! string_newtype {
             }
         }
 
-        impl Into<String> for $name {
-            fn into(self) -> String {
-                self.0
+        impl From<$name> for String {
+            fn from(value: $name) -> Self {
+                value.0
             }
         }
 
@@ -85,9 +85,9 @@ impl FromStr for AtIdentifier {
     }
 }
 
-impl Into<String> for AtIdentifier {
-    fn into(self) -> String {
-        match self {
+impl From<AtIdentifier> for String {
+    fn from(value: AtIdentifier) -> Self {
+        match value {
             AtIdentifier::Did(did) => did.into(),
             AtIdentifier::Handle(handle) => handle.into(),
         }
@@ -200,6 +200,10 @@ impl Datetime {
 impl FromStr for Datetime {
     type Err = chrono::ParseError;
 
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // The `chrono` crate only supports RFC 3339 parsing, but Lexicon restricts
         // datetimes to the subset that is also valid under ISO 8601. Apply a regex that
@@ -208,7 +212,7 @@ impl FromStr for Datetime {
         const RE_ISO_8601: OnceCell<Regex> = OnceCell::new();
         if RE_ISO_8601
             .get_or_init(|| Regex::new(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|(\+[0-9]{2}|\-[0-9][1-9]):[0-9]{2})$").unwrap())
-            .is_match(&s)
+            .is_match(s)
         {
             let dt = chrono::DateTime::parse_from_rfc3339(s)?;
             Ok(Self {
@@ -256,6 +260,10 @@ pub struct Did(String);
 string_newtype!(Did);
 
 impl Did {
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
     /// Parses a `Did` from the given string.
     pub fn new(did: String) -> Result<Self, &'static str> {
         const RE_DID: OnceCell<Regex> = OnceCell::new();
@@ -293,6 +301,10 @@ pub struct Handle(String);
 string_newtype!(Handle);
 
 impl Handle {
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
     /// Parses a `Handle` from the given string.
     pub fn new(handle: String) -> Result<Self, &'static str> {
         const RE_HANDLE: OnceCell<Regex> = OnceCell::new();
@@ -325,6 +337,10 @@ pub struct Nsid(String);
 string_newtype!(Nsid);
 
 impl Nsid {
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
     /// Parses an NSID from the given string.
     pub fn new(nsid: String) -> Result<Self, &'static str> {
         const RE_NSID: OnceCell<Regex> = OnceCell::new();
