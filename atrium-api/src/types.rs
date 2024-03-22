@@ -82,7 +82,7 @@ impl FromStr for RecordKey {
             Err("Disallowed rkey")
         } else if !RE_RKEY
             .get_or_init(|| Regex::new(r"^[a-zA-Z0-9._~-]{1,512}$").unwrap())
-            .is_match(&s)
+            .is_match(s)
         {
             Err("Invalid rkey")
         } else {
@@ -102,9 +102,9 @@ impl<'de> serde::Deserialize<'de> for RecordKey {
     }
 }
 
-impl Into<String> for RecordKey {
-    fn into(self) -> String {
-        self.0
+impl From<RecordKey> for String {
+    fn from(value: RecordKey) -> Self {
+        value.0
     }
 }
 

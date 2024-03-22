@@ -31,9 +31,9 @@ macro_rules! string_newtype {
             }
         }
 
-        impl Into<String> for $name {
-            fn into(self) -> String {
-                self.0
+        impl From<$name> for String {
+            fn from(value: $name) -> Self {
+                value.0
             }
         }
 
@@ -85,9 +85,9 @@ impl FromStr for AtIdentifier {
     }
 }
 
-impl Into<String> for AtIdentifier {
-    fn into(self) -> String {
-        match self {
+impl From<AtIdentifier> for String {
+    fn from(value: AtIdentifier) -> Self {
+        match value {
             AtIdentifier::Did(did) => did.into(),
             AtIdentifier::Handle(handle) => handle.into(),
         }
