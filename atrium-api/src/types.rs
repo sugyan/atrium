@@ -5,15 +5,8 @@ use std::{cell::OnceCell, fmt, ops::Deref, str::FromStr};
 
 use regex::Regex;
 
-#[cfg(feature = "dag-cbor")]
-mod cid_link_ipld;
-#[cfg(not(feature = "dag-cbor"))]
-mod cid_link_json;
-
-#[cfg(feature = "dag-cbor")]
-pub use cid_link_ipld::CidLink;
-#[cfg(not(feature = "dag-cbor"))]
-pub use cid_link_json::CidLink;
+mod cid_link;
+pub use cid_link::CidLink;
 
 mod integer;
 pub use integer::*;
@@ -265,7 +258,6 @@ mod tests {
         );
     }
 
-    #[cfg(feature = "dag-cbor")]
     #[test]
     fn test_blob_ref_deserialize_dag_cbor() {
         // {"$type": "blob", "mimeType": "text/plain", "ref": bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy, "size": 0}
