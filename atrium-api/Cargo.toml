@@ -15,19 +15,17 @@ keywords.workspace = true
 atrium-xrpc.workspace = true
 async-trait.workspace = true
 chrono = { workspace = true, features = ["serde"] }
-cid.workspace = true
 http.workspace = true
 langtag = { workspace = true, features = ["serde"] }
+libipld-core = { workspace = true, features = ["serde-codec"] }
 regex.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_bytes.workspace = true
 tokio = { workspace = true, optional = true }
-libipld-core = { workspace = true, optional = true }
 
 [features]
 default = ["agent"]
 agent = ["tokio/sync"]
-dag-cbor = ["cid/serde-codec", "libipld-core/serde-codec"]
 
 [dev-dependencies]
 futures.workspace = true

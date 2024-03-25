@@ -2,12 +2,12 @@
 //!
 //! [string formats]: https://atproto.com/specs/lexicon#string-formats
 
-use std::{cell::OnceCell, cmp, ops::Deref, str::FromStr};
-
 use chrono::DurationRound;
 use langtag::{LanguageTag, LanguageTagBuf};
+use libipld_core::cid;
 use regex::Regex;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
+use std::{cell::OnceCell, cmp, ops::Deref, str::FromStr};
 
 /// Common trait implementations for Lexicon string formats that are newtype wrappers
 /// around `String`.

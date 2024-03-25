@@ -1,26 +1,22 @@
-use cid::{Cid, Error};
+use libipld_core::cid::{Cid, Error};
 use libipld_core::ipld::Ipld;
 use serde::{Deserialize, Serialize};
 
-#[cfg_attr(docsrs, doc(cfg(feature = "dag-cbor")))]
 /// Representation of an IPLD Link.
-/// This type is used when the `dag-cbor` feature is enabled.
-/// Otherwise, it will be an object for JSON encoding with
-/// the single key `$link` and the string-encoded CID as a value.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CidLink(pub Cid);
 
 #[derive(Serialize, Deserialize)]
 struct Link {
     #[serde(rename = "$link")]
-    link: String,
+    link: crate::types::string::Cid,
 }
 
 impl Serialize for CidLink {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         if serializer.is_human_readable() {
             Link {
-                link: self.0.to_string(),
+                link: crate::types::string::Cid::new(self.0),
             }
             .serialize(serializer)
         } else {
@@ -40,7 +36,7 @@ impl<'de> Deserialize<'de> for CidLink {
                 if map.len() == 1 {
                     if let Some(Ipld::String(link)) = map.get("$link") {
                         return Ok(Self(
-                            cid::Cid::try_from(link.as_str()).map_err(serde::de::Error::custom)?,
+                            Cid::try_from(link.as_str()).map_err(serde::de::Error::custom)?,
                         ));
                     }
                 }
@@ -152,7 +148,7 @@ mod tests {
     #[test]
     fn test_cid_link_serde_dagcbor() {
         let deserialized =
-            from_slice::<CidLink>(&CID_LINK_DAGCBOR).expect("failed to deserialize cid-link");
+            from_slice::<Cid>(&CID_LINK_DAGCBOR).expect("failed to deserialize cid-link");
         let serialized = to_vec(&deserialized).expect("failed to serialize cid-link");
         assert_eq!(serialized, CID_LINK_DAGCBOR);
 

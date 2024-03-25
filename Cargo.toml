@@ -30,9 +30,7 @@ atrium-xrpc-client = { version = "0.5.0", path = "atrium-xrpc-client" }
 async-trait = "0.1.68"
 
 # DAG-CBOR codec and CAR format
-cid = "0.10.1"
 libipld-core = "0.16"
-serde_ipld_dagcbor = "0.3"
 
 # Parsing and validation
 chrono = "0.4"
@@ -50,7 +48,7 @@ tokio = { version = "1.36", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"
-reqwest = { version = "0.11.24", default-features = false }
+reqwest = { version = "0.11", default-features = false }
 
 # Errors
 anyhow = "1.0.80"
