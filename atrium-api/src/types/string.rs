@@ -3,8 +3,8 @@
 //! [string formats]: https://atproto.com/specs/lexicon#string-formats
 
 use chrono::DurationRound;
+use ipld_core::cid;
 use langtag::{LanguageTag, LanguageTagBuf};
-use libipld_core::cid;
 use regex::Regex;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::{cell::OnceCell, cmp, ops::Deref, str::FromStr};

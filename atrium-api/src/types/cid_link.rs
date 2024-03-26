@@ -1,5 +1,5 @@
-use libipld_core::cid::{Cid, Error};
-use libipld_core::ipld::Ipld;
+use ipld_core::cid::{Cid, Error};
+use ipld_core::ipld::Ipld;
 use serde::{Deserialize, Serialize};
 
 /// Representation of an IPLD Link.
