@@ -10,7 +10,7 @@ pub struct Parameters {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub views: Vec<OutputViewsItem>,
+    pub views: Vec<crate::types::Union<OutputViewsItem>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

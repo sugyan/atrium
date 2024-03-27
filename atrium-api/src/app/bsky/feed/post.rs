@@ -6,7 +6,7 @@ pub struct Record {
     ///Client-declared timestamp when this post was originally created.
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<RecordEmbedEnum>,
+    pub embed: Option<crate::types::Union<RecordEmbedRefs>>,
     ///DEPRECATED: replaced by app.bsky.richtext.facet.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub entities: Option<Vec<Entity>>,
@@ -15,7 +15,7 @@ pub struct Record {
     pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     ///Self-label values for this post. Effectively content warnings.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<RecordLabelsEnum>,
+    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
     ///Indicates human language of post primary text content.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub langs: Option<Vec<crate::types::string::Language>>,
@@ -51,7 +51,7 @@ pub struct TextSlice {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum RecordEmbedEnum {
+pub enum RecordEmbedRefs {
     #[serde(rename = "app.bsky.embed.images")]
     AppBskyEmbedImagesMain(Box<crate::app::bsky::embed::images::Main>),
     #[serde(rename = "app.bsky.embed.external")]
@@ -65,7 +65,7 @@ pub enum RecordEmbedEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum RecordLabelsEnum {
+pub enum RecordLabelsRefs {
     #[serde(rename = "com.atproto.label.defs#selfLabels")]
     ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

@@ -9,7 +9,7 @@ pub struct Main {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
-    pub record: ViewRecordEnum,
+    pub record: crate::types::Union<ViewRecordRefs>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -30,7 +30,7 @@ pub struct ViewRecord {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embeds: Option<Vec<ViewRecordEmbedsItem>>,
+    pub embeds: Option<Vec<crate::types::Union<ViewRecordEmbedsItem>>>,
     pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
@@ -54,7 +54,7 @@ pub enum ViewRecordEmbedsItem {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ViewRecordEnum {
+pub enum ViewRecordRefs {
     #[serde(rename = "app.bsky.embed.record#viewRecord")]
     ViewRecord(Box<ViewRecord>),
     #[serde(rename = "app.bsky.embed.record#viewNotFound")]

@@ -6,7 +6,7 @@ pub struct BlobView {
     pub cid: crate::types::string::Cid,
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub details: Option<BlobViewDetailsEnum>,
+    pub details: Option<crate::types::Union<BlobViewDetailsRefs>>,
     pub mime_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
@@ -138,9 +138,9 @@ pub struct ModEventView {
     pub created_by: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub creator_handle: Option<String>,
-    pub event: ModEventViewEventEnum,
+    pub event: crate::types::Union<ModEventViewEventRefs>,
     pub id: i64,
-    pub subject: ModEventViewSubjectEnum,
+    pub subject: crate::types::Union<ModEventViewSubjectRefs>,
     pub subject_blob_cids: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_handle: Option<String>,
@@ -150,9 +150,9 @@ pub struct ModEventView {
 pub struct ModEventViewDetail {
     pub created_at: crate::types::string::Datetime,
     pub created_by: crate::types::string::Did,
-    pub event: ModEventViewDetailEventEnum,
+    pub event: crate::types::Union<ModEventViewDetailEventRefs>,
     pub id: i64,
-    pub subject: ModEventViewDetailSubjectEnum,
+    pub subject: crate::types::Union<ModEventViewDetailSubjectRefs>,
     pub subject_blobs: Vec<BlobView>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -274,7 +274,7 @@ pub struct SubjectStatusView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub mute_until: Option<crate::types::string::Datetime>,
     pub review_state: SubjectReviewState,
-    pub subject: SubjectStatusViewSubjectEnum,
+    pub subject: crate::types::Union<SubjectStatusViewSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -297,7 +297,7 @@ pub struct VideoDetails {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum BlobViewDetailsEnum {
+pub enum BlobViewDetailsRefs {
     #[serde(rename = "tools.ozone.moderation.defs#imageDetails")]
     ImageDetails(Box<ImageDetails>),
     #[serde(rename = "tools.ozone.moderation.defs#videoDetails")]
@@ -305,7 +305,7 @@ pub enum BlobViewDetailsEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ModEventViewDetailEventEnum {
+pub enum ModEventViewDetailEventRefs {
     #[serde(rename = "tools.ozone.moderation.defs#modEventTakedown")]
     ModEventTakedown(Box<ModEventTakedown>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventReverseTakedown")]
@@ -331,7 +331,7 @@ pub enum ModEventViewDetailEventEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ModEventViewDetailSubjectEnum {
+pub enum ModEventViewDetailSubjectRefs {
     #[serde(rename = "tools.ozone.moderation.defs#repoView")]
     RepoView(Box<RepoView>),
     #[serde(rename = "tools.ozone.moderation.defs#repoViewNotFound")]
@@ -343,7 +343,7 @@ pub enum ModEventViewDetailSubjectEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ModEventViewEventEnum {
+pub enum ModEventViewEventRefs {
     #[serde(rename = "tools.ozone.moderation.defs#modEventTakedown")]
     ModEventTakedown(Box<ModEventTakedown>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventReverseTakedown")]
@@ -369,7 +369,7 @@ pub enum ModEventViewEventEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ModEventViewSubjectEnum {
+pub enum ModEventViewSubjectRefs {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
@@ -377,7 +377,7 @@ pub enum ModEventViewSubjectEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum SubjectStatusViewSubjectEnum {
+pub enum SubjectStatusViewSubjectRefs {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]

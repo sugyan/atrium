@@ -1,9 +1,9 @@
 //! Definitions for AT Protocol's data models.
 //! <https://atproto.com/specs/data-model>
 
-use std::{cell::OnceCell, fmt, ops::Deref, str::FromStr};
-
+use ipld_core::ipld::Ipld;
 use regex::Regex;
+use std::{cell::OnceCell, fmt, ops::Deref, str::FromStr};
 
 mod cid_link;
 pub use cid_link::CidLink;
@@ -152,6 +152,25 @@ pub struct Blob {
     pub mime_type: String,
     pub size: usize, // TODO
 }
+
+/// An "open" union type.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum Union<T> {
+    Refs(T),
+    Unknown(UnknownData),
+}
+
+/// The data of variants represented by a map and include a `$type` field indicating the variant type.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq)]
+pub struct UnknownData {
+    #[serde(rename = "$type")]
+    r#type: String,
+    #[serde(flatten)]
+    data: Ipld,
+}
+
+impl Eq for UnknownData {}
 
 #[cfg(test)]
 mod tests {

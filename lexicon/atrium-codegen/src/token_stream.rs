@@ -137,7 +137,7 @@ fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
     let enum_variants: Vec<TokenStream> = errors
         .iter()
         .map(|(name, desc)| {
-            let desc = description(&desc);
+            let desc = description(desc);
             let name = format_ident!("{}", name.to_pascal_case());
             quote! {
                 #desc
@@ -299,7 +299,7 @@ fn lex_object_property(
         LexObjectProperty::Union(union) => union_type(
             union,
             format!(
-                "{}{}Enum",
+                "{}{}Refs",
                 object_name.to_pascal_case(),
                 name.to_pascal_case()
             )
@@ -372,7 +372,11 @@ fn ref_type(r#ref: &LexRef) -> Result<(TokenStream, TokenStream)> {
 fn union_type(union: &LexRefUnion, enum_name: &str) -> Result<(TokenStream, TokenStream)> {
     let description = description(&union.description);
     let enum_type_name = format_ident!("{}", enum_name);
-    Ok((description, quote!(#enum_type_name)))
+    if union.closed.unwrap_or_default() {
+        Ok((description, quote!(#enum_type_name)))
+    } else {
+        Ok((description, quote!(crate::types::Union<#enum_type_name>)))
+    }
 }
 
 fn bytes_type(bytes: &LexBytes) -> Result<(TokenStream, TokenStream)> {

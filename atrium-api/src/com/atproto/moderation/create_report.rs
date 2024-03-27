@@ -8,7 +8,7 @@ pub struct Input {
     pub reason: Option<String>,
     ///Indicates the broad category of violation the report is for.
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
-    pub subject: InputSubjectEnum,
+    pub subject: crate::types::Union<InputSubjectRefs>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -19,7 +19,7 @@ pub struct Output {
     pub reason: Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: crate::types::string::Did,
-    pub subject: OutputSubjectEnum,
+    pub subject: crate::types::Union<OutputSubjectRefs>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -31,7 +31,7 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum InputSubjectEnum {
+pub enum InputSubjectRefs {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
@@ -39,7 +39,7 @@ pub enum InputSubjectEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum OutputSubjectEnum {
+pub enum OutputSubjectRefs {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
