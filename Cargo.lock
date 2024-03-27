@@ -864,8 +864,9 @@ dependencies = [
 
 [[package]]
 name = "ipld-core"
-version = "0.3.2"
-source = "git+https://github.com/ipld/rust-ipld-core?branch=codec-feature-flag#86b62baef68b03eed30f17ceb0aff6f08e8bc25e"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8cd30b9d3019be78818b8d20691ecfa98630ae2d7fb23ffd4d668ee27ad25108"
 dependencies = [
  "cid",
  "serde",
@@ -1574,8 +1575,9 @@ dependencies = [
 
 [[package]]
 name = "serde_ipld_dagcbor"
-version = "0.5.0"
-source = "git+https://github.com/ipld/serde_ipld_dagcbor?branch=codec-feature-flag#2536b54d612971cc8666d9ca7319cc800e482bff"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bb1eedfc9e48051a90d79e189dea2303b7c0df82f03e154ae85bf2ceea957972"
 dependencies = [
  "cbor4ii",
  "ipld-core",

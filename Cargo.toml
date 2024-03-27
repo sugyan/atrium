@@ -30,8 +30,8 @@ atrium-xrpc-client = { version = "0.5.0", path = "atrium-xrpc-client" }
 async-trait = "0.1.68"
 
 # DAG-CBOR codec
-ipld-core = { version = "0.3.2", default-features = false, features = ["std"] }
-serde_ipld_dagcbor = { versin = "0.5.0", default-features = false, features = ["std"] }
+ipld-core = { version = "0.4.0", default-features = false, features = ["std"] }
+serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }
 
 # Parsing and validation
 chrono = "0.4"
@@ -64,7 +64,3 @@ mockito = "1.2"
 
 # WebAssembly
 wasm-bindgen-test = "0.3.41"
-
-[patch.crates-io]
-ipld-core = { git = "https://github.com/ipld/rust-ipld-core", branch = "codec-feature-flag" }
-serde_ipld_dagcbor = { git = "https://github.com/ipld/serde_ipld_dagcbor", branch = "codec-feature-flag" }
