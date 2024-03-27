@@ -181,10 +181,7 @@ pub(crate) fn generate_modules(
                 vec![],
             )
         } else if let Ok(relative) = path.as_ref().strip_prefix(outdir) {
-            let ns = relative
-                .to_string_lossy()
-                .replace('/', ".")
-                .replace('\\', ".");
+            let ns = relative.to_string_lossy().replace(['/', '\\'], ".");
             let doc = format!("Definitions for the `{}` namespace.", ns);
 
             let collections = names

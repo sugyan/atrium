@@ -31,6 +31,8 @@ pub enum Command {
     GetList(UriArgs),
     /// Get detailed profile view of an actor.
     GetProfile(ActorArgs),
+    /// Get preferences of an actor.
+    GetPreferences,
     /// Get a list of notifications.
     ListNotifications,
     /// Create a new post.
