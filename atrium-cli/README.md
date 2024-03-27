@@ -21,6 +21,7 @@ Commands:
   get-lists           Get a list of the list created by an actor
   get-list            Get detailed info of a specified list
   get-profile         Get detailed profile view of an actor
+  get-preferences     Get preferences of an actor
   list-notifications  Get a list of notifications
   create-post         Create a new post
   delete-post         Delete a post

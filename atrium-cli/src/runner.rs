@@ -234,6 +234,16 @@ impl Runner {
                     })
                     .await?,
             ),
+            Command::GetPreferences => self.print(
+                &self
+                    .agent
+                    .api
+                    .app
+                    .bsky
+                    .actor
+                    .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {})
+                    .await?,
+            ),
             Command::ListNotifications => self.print(
                 &self
                     .agent
