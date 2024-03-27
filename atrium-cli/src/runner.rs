@@ -2,6 +2,7 @@ use crate::commands::Command;
 use crate::store::SimpleJsonFileSessionStore;
 use anyhow::{Context, Result};
 use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use serde::Serialize;
@@ -275,11 +276,11 @@ impl Runner {
                         })
                     }
                 }
-                let embed = Some(
-                    atrium_api::app::bsky::feed::post::RecordEmbedEnum::AppBskyEmbedImagesMain(
+                let embed = Some(atrium_api::types::Union::Refs(
+                    atrium_api::app::bsky::feed::post::RecordEmbedRefs::AppBskyEmbedImagesMain(
                         Box::new(atrium_api::app::bsky::embed::images::Main { images }),
                     ),
-                );
+                ));
                 self.print(
                     &self
                         .agent
@@ -289,7 +290,7 @@ impl Runner {
                         .repo
                         .create_record(atrium_api::com::atproto::repo::create_record::Input {
                             collection: "app.bsky.feed.post".parse().expect("valid"),
-                            record: atrium_api::records::Record::AppBskyFeedPost(Box::new(
+                            record: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(
                                 atrium_api::app::bsky::feed::post::Record {
                                     created_at: Datetime::now(),
                                     embed,
@@ -301,7 +302,7 @@ impl Runner {
                                     tags: None,
                                     text: args.text,
                                 },
-                            )),
+                            ))),
                             repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
                             rkey: None,
                             swap_commit: None,
