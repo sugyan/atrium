@@ -5,12 +5,12 @@
 pub struct Record {
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<RecordLabelsEnum>,
+    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
     pub policies: crate::app::bsky::labeler::defs::LabelerPolicies,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum RecordLabelsEnum {
+pub enum RecordLabelsRefs {
     #[serde(rename = "com.atproto.label.defs#selfLabels")]
     ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

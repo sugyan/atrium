@@ -95,7 +95,7 @@ fn find_ref_unions_in_object(
     for (k, property) in &object.properties {
         match property {
             LexObjectProperty::Union(union) => {
-                unions.push((format!("{name}{}Enum", k.to_pascal_case()), union.clone()));
+                unions.push((format!("{name}{}Refs", k.to_pascal_case()), union.clone()));
             }
             LexObjectProperty::Array(array) => {
                 find_ref_unions_in_array(array, &(name.to_string() + &k.to_pascal_case()), unions);

@@ -4,8 +4,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub created_by: crate::types::string::Did,
-    pub event: InputEventEnum,
-    pub subject: InputSubjectEnum,
+    pub event: crate::types::Union<InputEventRefs>,
+    pub subject: crate::types::Union<InputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
 }
@@ -30,7 +30,7 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum InputEventEnum {
+pub enum InputEventRefs {
     #[serde(rename = "tools.ozone.moderation.defs#modEventTakedown")]
     ToolsOzoneModerationDefsModEventTakedown(
         Box<crate::tools::ozone::moderation::defs::ModEventTakedown>,
@@ -78,7 +78,7 @@ pub enum InputEventEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum InputSubjectEnum {
+pub enum InputSubjectRefs {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]

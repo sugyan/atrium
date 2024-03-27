@@ -28,6 +28,7 @@ default = ["agent"]
 agent = ["tokio/sync"]
 
 [dev-dependencies]
+atrium-xrpc-client.workspace = true
 futures.workspace = true
 serde_json.workspace = true
 serde_ipld_dagcbor.workspace = true

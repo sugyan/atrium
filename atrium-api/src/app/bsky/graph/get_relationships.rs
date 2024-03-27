@@ -14,7 +14,7 @@ pub struct Parameters {
 pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub actor: Option<crate::types::string::Did>,
-    pub relationships: Vec<OutputRelationshipsItem>,
+    pub relationships: Vec<crate::types::Union<OutputRelationshipsItem>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

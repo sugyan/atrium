@@ -11,7 +11,7 @@ pub struct Record {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<RecordLabelsEnum>,
+    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
     ///Display name for list; can not be empty.
     pub name: String,
     ///Defines the purpose of the list (aka, moderation-oriented or curration-oriented)
@@ -19,7 +19,7 @@ pub struct Record {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum RecordLabelsEnum {
+pub enum RecordLabelsRefs {
     #[serde(rename = "com.atproto.label.defs#selfLabels")]
     ComAtprotoLabelDefsSelfLabels(Box<crate::com::atproto::label::defs::SelfLabels>),
 }

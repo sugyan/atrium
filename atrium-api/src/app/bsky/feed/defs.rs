@@ -19,7 +19,7 @@ pub struct BlockedPost {
 pub struct FeedViewPost {
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<FeedViewPostReasonEnum>,
+    pub reason: Option<crate::types::Union<FeedViewPostReasonRefs>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
 }
@@ -63,7 +63,7 @@ pub struct PostView {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<PostViewEmbedEnum>,
+    pub embed: Option<crate::types::Union<PostViewEmbedRefs>>,
     pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
@@ -89,15 +89,15 @@ pub struct ReasonRepost {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplyRef {
-    pub parent: ReplyRefParentEnum,
-    pub root: ReplyRefRootEnum,
+    pub parent: crate::types::Union<ReplyRefParentRefs>,
+    pub root: crate::types::Union<ReplyRefRootRefs>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SkeletonFeedPost {
     pub post: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<SkeletonFeedPostReasonEnum>,
+    pub reason: Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -108,10 +108,10 @@ pub struct SkeletonReasonRepost {
 #[serde(rename_all = "camelCase")]
 pub struct ThreadViewPost {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent: Option<ThreadViewPostParentEnum>,
+    pub parent: Option<crate::types::Union<ThreadViewPostParentRefs>>,
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub replies: Option<Vec<ThreadViewPostRepliesItem>>,
+    pub replies: Option<Vec<crate::types::Union<ThreadViewPostRepliesItem>>>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -138,13 +138,13 @@ pub struct ViewerState {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum FeedViewPostReasonEnum {
+pub enum FeedViewPostReasonRefs {
     #[serde(rename = "app.bsky.feed.defs#reasonRepost")]
     ReasonRepost(Box<ReasonRepost>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum PostViewEmbedEnum {
+pub enum PostViewEmbedRefs {
     #[serde(rename = "app.bsky.embed.images#view")]
     AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
@@ -158,7 +158,7 @@ pub enum PostViewEmbedEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ReplyRefParentEnum {
+pub enum ReplyRefParentRefs {
     #[serde(rename = "app.bsky.feed.defs#postView")]
     PostView(Box<PostView>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
@@ -168,7 +168,7 @@ pub enum ReplyRefParentEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ReplyRefRootEnum {
+pub enum ReplyRefRootRefs {
     #[serde(rename = "app.bsky.feed.defs#postView")]
     PostView(Box<PostView>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
@@ -178,13 +178,13 @@ pub enum ReplyRefRootEnum {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum SkeletonFeedPostReasonEnum {
+pub enum SkeletonFeedPostReasonRefs {
     #[serde(rename = "app.bsky.feed.defs#skeletonReasonRepost")]
     SkeletonReasonRepost(Box<SkeletonReasonRepost>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum ThreadViewPostParentEnum {
+pub enum ThreadViewPostParentRefs {
     #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
     ThreadViewPost(Box<ThreadViewPost>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]

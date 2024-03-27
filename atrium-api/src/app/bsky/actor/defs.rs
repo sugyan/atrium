@@ -80,7 +80,7 @@ pub struct PersonalDetailsPref {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub birth_date: Option<crate::types::string::Datetime>,
 }
-pub type Preferences = Vec<PreferencesItem>;
+pub type Preferences = Vec<crate::types::Union<PreferencesItem>>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileAssociated {

@@ -15,7 +15,7 @@ pub struct Parameters {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub thread: OutputThreadEnum,
+    pub thread: crate::types::Union<OutputThreadRefs>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -37,7 +37,7 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum OutputThreadEnum {
+pub enum OutputThreadRefs {
     #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
     AppBskyFeedDefsThreadViewPost(Box<crate::app::bsky::feed::defs::ThreadViewPost>),
     #[serde(rename = "app.bsky.feed.defs#notFoundPost")]

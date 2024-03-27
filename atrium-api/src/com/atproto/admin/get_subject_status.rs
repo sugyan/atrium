@@ -13,7 +13,7 @@ pub struct Parameters {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
-    pub subject: OutputSubjectEnum,
+    pub subject: crate::types::Union<OutputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takedown: Option<crate::com::atproto::admin::defs::StatusAttr>,
 }
@@ -27,7 +27,7 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum OutputSubjectEnum {
+pub enum OutputSubjectRefs {
     #[serde(rename = "com.atproto.admin.defs#repoRef")]
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]

@@ -88,9 +88,15 @@ pub(crate) fn generate_records(
         })
         .sorted()
         .collect_vec();
-    let tokens = refs_enum(&records, "Record", None)?;
+    let tokens = refs_enum(&records, "KnownRecord", None)?;
     let content = quote! {
         #![doc = "A collection of ATP repository record types."]
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[serde(untagged)]
+        pub enum Record {
+            Known(KnownRecord),
+            Unknown(crate::types::UnknownData),
+        }
         #tokens
     };
     let path = outdir.join("records.rs");
