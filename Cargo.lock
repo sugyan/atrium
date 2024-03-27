@@ -129,7 +129,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-api"
-version = "0.19.0"
+version = "0.19.1"
 dependencies = [
  "async-trait",
  "atrium-xrpc",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-cli"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "async-trait",

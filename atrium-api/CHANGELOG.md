@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.19.0...atrium-api-v0.19.1) - 2024-03-27
+
+### Added
+- Introduce "open" union types ([#149](https://github.com/sugyan/atrium/pull/149))
+
 ## [0.19.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.18.6...atrium-api-v0.19.0) - 2024-03-27
 
 ### Added

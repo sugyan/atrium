@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.8...atrium-cli-v0.1.9) - 2024-03-27
+
+### Added
+- Add get-preference command to cli ([#151](https://github.com/sugyan/atrium/pull/151))
+- Introduce "open" union types ([#149](https://github.com/sugyan/atrium/pull/149))
+
 ## [0.1.8](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.7...atrium-cli-v0.1.8) - 2024-03-27
 
 ### Other
