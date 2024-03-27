@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.7](https://github.com/sugyan/atrium/compare/atrium-api-v0.18.6...atrium-api-v0.18.7) - 2024-03-27
+
+### Added
+- Update dependencies ([#148](https://github.com/sugyan/atrium/pull/148))
+- Add clippy check ([#146](https://github.com/sugyan/atrium/pull/146))
+
+### Removed
+- dag-cbor feature from API ([#147](https://github.com/sugyan/atrium/pull/147))
+
 ## [0.18.6](https://github.com/sugyan/atrium/compare/atrium-api-v0.18.5...atrium-api-v0.18.6) - 2024-03-16
 
 ### Added
