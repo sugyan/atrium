@@ -63,12 +63,19 @@ impl HttpClient for IsahcClient {
         &self,
         request: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        let mut response = self.client.send_async(request).await?;
-        let mut builder = Response::builder().status(response.status());
-        for (k, v) in response.headers() {
-            builder = builder.header(k, v);
+        let (head, body) = request.into_parts();
+        let mut request_builder = isahc::http::Request::builder()
+            .method(head.method.as_str())
+            .uri(head.uri.to_string());
+        for (k, v) in &head.headers {
+            request_builder = request_builder.header(k.as_str(), v.as_ref());
         }
-        builder
+        let mut response = self.client.send_async(request_builder.body(body)?).await?;
+        let mut response_builder = Response::builder().status(response.status().as_u16());
+        for (k, v) in response.headers() {
+            response_builder = response_builder.header(k.as_str(), v.as_ref());
+        }
+        response_builder
             .body(response.bytes().await?.to_vec())
             .map_err(Into::into)
     }
@@ -84,6 +91,7 @@ impl XrpcClient for IsahcClient {
 mod tests {
     use super::*;
     use isahc::config::Configurable;
+    use isahc::http;
     use std::time::Duration;
 
     #[test]
