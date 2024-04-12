@@ -473,7 +473,7 @@ impl RecordKey {
         {
             Err("Invalid rkey")
         } else {
-            Ok(Self(s.into()))
+            Ok(Self(s))
         }
     }
 
@@ -779,6 +779,51 @@ mod tests {
             assert!(
                 from_str::<Language>(&format!("\"{}\"", invalid)).is_err(),
                 "invalid language `{}` parsed as valid",
+                invalid,
+            );
+        }
+    }
+
+    #[test]
+    fn valid_rkey() {
+        // From https://atproto.com/specs/record-key#examples
+        for valid in &[
+            "3jui7kd54zh2y",
+            "self",
+            "literal:self",
+            "example.com",
+            "~1.2-3_",
+            "dHJ1ZQ",
+            "pre:fix",
+            "_",
+        ] {
+            assert!(
+                from_str::<RecordKey>(&format!("\"{}\"", valid)).is_ok(),
+                "valid rkey `{}` parsed as invalid",
+                valid,
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_rkey() {
+        // From https://atproto.com/specs/record-key#examples
+        for invalid in &[
+            "alpha/beta",
+            ".",
+            "..",
+            "#extra",
+            "@handle",
+            "any space",
+            "any+space",
+            "number[3]",
+            "number(3)",
+            "\"quote\"",
+            "dHJ1ZQ==",
+        ] {
+            assert!(
+                from_str::<RecordKey>(&format!("\"{}\"", invalid)).is_err(),
+                "invalid rkey `{}` parsed as valid",
                 invalid,
             );
         }

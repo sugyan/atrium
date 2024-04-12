@@ -115,51 +115,6 @@ mod tests {
         r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#;
 
     #[test]
-    fn valid_rkey() {
-        // From https://atproto.com/specs/record-key#examples
-        for valid in &[
-            "3jui7kd54zh2y",
-            "self",
-            "literal:self",
-            "example.com",
-            "~1.2-3_",
-            "dHJ1ZQ",
-            "pre:fix",
-            "_",
-        ] {
-            assert!(
-                from_str::<RecordKey>(&format!("\"{}\"", valid)).is_ok(),
-                "valid rkey `{}` parsed as invalid",
-                valid,
-            );
-        }
-    }
-
-    #[test]
-    fn invalid_rkey() {
-        // From https://atproto.com/specs/record-key#examples
-        for invalid in &[
-            "alpha/beta",
-            ".",
-            "..",
-            "#extra",
-            "@handle",
-            "any space",
-            "any+space",
-            "number[3]",
-            "number(3)",
-            "\"quote\"",
-            "dHJ1ZQ==",
-        ] {
-            assert!(
-                from_str::<RecordKey>(&format!("\"{}\"", invalid)).is_err(),
-                "invalid rkey `{}` parsed as valid",
-                invalid,
-            );
-        }
-    }
-
-    #[test]
     fn test_cid_link_serde_json() {
         let deserialized =
             from_str::<CidLink>(CID_LINK_JSON).expect("failed to deserialize cid-link");
