@@ -547,7 +547,6 @@ fn integer_type(integer: &LexInteger) -> Result<(TokenStream, TokenStream)> {
 
 fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
     let description = description(&string.description);
-    // TODO: enum?
     let typ = match string.format {
         Some(LexStringFormat::AtIdentifier) => quote!(crate::types::string::AtIdentifier),
         Some(LexStringFormat::Cid) => quote!(crate::types::string::Cid),
@@ -556,7 +555,8 @@ fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
         Some(LexStringFormat::Handle) => quote!(crate::types::string::Handle),
         Some(LexStringFormat::Nsid) => quote!(crate::types::string::Nsid),
         Some(LexStringFormat::Language) => quote!(crate::types::string::Language),
-        // TODO: other formats
+        Some(LexStringFormat::Tid) => quote!(crate::types::string::Tid),
+        Some(LexStringFormat::RecordKey) => quote!(crate::types::string::RecordKey),
         _ => quote!(String),
     };
     Ok((description, typ))

@@ -413,6 +413,76 @@ impl Serialize for Language {
     }
 }
 
+/// A [Timestamp Identifier].
+///
+/// [Timestamp Identifier]: https://atproto.com/specs/record-key#record-key-type-tid
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
+pub struct Tid(String);
+string_newtype!(Tid);
+
+impl Tid {
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
+    /// Parses a `TID` from the given string.
+    pub fn new(tid: String) -> Result<Self, &'static str> {
+        const RE_TID: OnceCell<Regex> = OnceCell::new();
+
+        if tid.len() != 13 {
+            Err("TID must be 13 characters")
+        } else if !RE_TID
+            .get_or_init(|| {
+                Regex::new(r"^[234567abcdefghij][234567abcdefghijklmnopqrstuvwxyz]{12}$").unwrap()
+            })
+            .is_match(&tid)
+        {
+            Err("Invalid TID")
+        } else {
+            Ok(Self(tid))
+        }
+    }
+
+    /// Returns the TID as a string slice.
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
+/// A record key (`rkey`) used to name and reference an individual record within the same
+/// collection of an atproto repository.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+pub struct RecordKey(String);
+string_newtype!(RecordKey);
+
+impl RecordKey {
+    #[allow(
+        clippy::borrow_interior_mutable_const,
+        clippy::declare_interior_mutable_const
+    )]
+    /// Parses a `Record Key` from the given string.
+    pub fn new(s: String) -> Result<Self, &'static str> {
+        const RE_RKEY: OnceCell<Regex> = OnceCell::new();
+
+        if [".", ".."].contains(&s.as_str()) {
+            Err("Disallowed rkey")
+        } else if !RE_RKEY
+            .get_or_init(|| Regex::new(r"^[a-zA-Z0-9.\-_:~]{1,512}$").unwrap())
+            .is_match(&s)
+        {
+            Err("Invalid rkey")
+        } else {
+            Ok(Self(s.into()))
+        }
+    }
+
+    /// Returns the record key as a string slice.
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use serde_json::{from_str, to_string};

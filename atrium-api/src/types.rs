@@ -2,8 +2,7 @@
 //! <https://atproto.com/specs/data-model>
 
 use ipld_core::ipld::Ipld;
-use regex::Regex;
-use std::{cell::OnceCell, fmt, ops::Deref, str::FromStr};
+use std::fmt;
 
 mod cid_link;
 pub use cid_link::CidLink;
@@ -12,6 +11,7 @@ mod integer;
 pub use integer::*;
 
 pub mod string;
+use string::RecordKey;
 
 /// Trait for a collection of records that can be stored in a repository.
 ///
@@ -50,72 +50,6 @@ pub trait Collection: fmt::Debug {
     /// [`Nsid`]: string::Nsid
     fn repo_path(rkey: &RecordKey) -> String {
         format!("{}/{}", Self::NSID, rkey.as_str())
-    }
-}
-
-/// A record key (`rkey`) used to name and reference an individual record within the same
-/// collection of an atproto repository.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
-pub struct RecordKey(String);
-
-impl RecordKey {
-    /// Returns the record key as a string slice.
-    pub fn as_str(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
-impl FromStr for RecordKey {
-    type Err = &'static str;
-
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        const RE_RKEY: OnceCell<Regex> = OnceCell::new();
-
-        if [".", ".."].contains(&s) {
-            Err("Disallowed rkey")
-        } else if !RE_RKEY
-            .get_or_init(|| Regex::new(r"^[a-zA-Z0-9._~-]{1,512}$").unwrap())
-            .is_match(s)
-        {
-            Err("Invalid rkey")
-        } else {
-            Ok(Self(s.into()))
-        }
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for RecordKey {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::Error;
-        let value = serde::Deserialize::deserialize(deserializer)?;
-        Self::from_str(value).map_err(D::Error::custom)
-    }
-}
-
-impl From<RecordKey> for String {
-    fn from(value: RecordKey) -> Self {
-        value.0
-    }
-}
-
-impl AsRef<str> for RecordKey {
-    fn as_ref(&self) -> &str {
-        self.as_str()
-    }
-}
-
-impl Deref for RecordKey {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_str()
     }
 }
 
@@ -183,7 +117,16 @@ mod tests {
     #[test]
     fn valid_rkey() {
         // From https://atproto.com/specs/record-key#examples
-        for valid in &["3jui7kd54zh2y", "self", "example.com", "~1.2-3_", "dHJ1ZQ"] {
+        for valid in &[
+            "3jui7kd54zh2y",
+            "self",
+            "literal:self",
+            "example.com",
+            "~1.2-3_",
+            "dHJ1ZQ",
+            "pre:fix",
+            "_",
+        ] {
             assert!(
                 from_str::<RecordKey>(&format!("\"{}\"", valid)).is_ok(),
                 "valid rkey `{}` parsed as invalid",
@@ -196,7 +139,6 @@ mod tests {
     fn invalid_rkey() {
         // From https://atproto.com/specs/record-key#examples
         for invalid in &[
-            "literal:self",
             "alpha/beta",
             ".",
             "..",
@@ -207,7 +149,6 @@ mod tests {
             "number[3]",
             "number(3)",
             "\"quote\"",
-            "pre:fix",
             "dHJ1ZQ==",
         ] {
             assert!(

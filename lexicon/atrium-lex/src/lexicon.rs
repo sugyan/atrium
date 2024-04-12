@@ -41,6 +41,8 @@ pub enum LexStringFormat {
     Nsid,
     Cid,
     Language,
+    Tid,
+    RecordKey,
 }
 #[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
