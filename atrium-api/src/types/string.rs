@@ -492,7 +492,7 @@ mod tests {
     #[test]
     fn valid_datetime() {
         // From https://atproto.com/specs/lexicon#datetime
-        for valid in &[
+        for valid in [
             // preferred
             "1985-04-12T23:20:50.123Z",
             "1985-04-12T23:20:50.123456Z",
@@ -516,7 +516,7 @@ mod tests {
     #[test]
     fn invalid_datetime() {
         // From https://atproto.com/specs/lexicon#datetime
-        for invalid in &[
+        for invalid in [
             "1985-04-12",
             "1985-04-12T23:20Z",
             "1985-04-12T23:20:5Z",
@@ -558,7 +558,7 @@ mod tests {
     #[test]
     fn valid_did() {
         // From https://atproto.com/specs/did#examples
-        for valid in &[
+        for valid in [
             "did:plc:z72i7hdynmk6r22z27h6tvur",
             "did:web:blueskyweb.xyz",
             "did:method:val:two",
@@ -578,7 +578,7 @@ mod tests {
     #[test]
     fn invalid_did() {
         // From https://atproto.com/specs/did#examples
-        for invalid in &[
+        for invalid in [
             "did:METHOD:val",
             "did:m123:val",
             "DID:method:val",
@@ -598,7 +598,7 @@ mod tests {
     #[test]
     fn did_method() {
         // From https://atproto.com/specs/did#examples
-        for (method, did) in &[
+        for (method, did) in [
             ("did:plc", "did:plc:z72i7hdynmk6r22z27h6tvur"),
             ("did:web", "did:web:blueskyweb.xyz"),
             ("did:method", "did:method:val:two"),
@@ -610,14 +610,14 @@ mod tests {
                 "did:key:zQ3shZc2QzApp2oymGvQbzP8eKheVshBHbU4ZYjeXqwSKEn6N",
             ),
         ] {
-            assert_eq!(Did::new(did.to_string()).unwrap().method(), *method);
+            assert_eq!(Did::new(did.to_string()).unwrap().method(), method);
         }
     }
 
     #[test]
     fn valid_handle() {
         // From https://atproto.com/specs/handle#identifier-examples
-        for valid in &[
+        for valid in [
             "jay.bsky.social",
             "8.cn",
             "name.t--t", // not a real TLD, but syntax ok
@@ -643,7 +643,7 @@ mod tests {
     #[test]
     fn invalid_handle() {
         // From https://atproto.com/specs/handle#identifier-examples
-        for invalid in &[
+        for invalid in [
             "jo@hn.test",
             "💩.test",
             "john..test",
@@ -665,7 +665,7 @@ mod tests {
     #[test]
     fn valid_nsid() {
         // From https://atproto.com/specs/nsid#examples
-        for valid in &[
+        for valid in [
             "com.example.fooBar",
             "net.users.bob.ping",
             "a-0.b-1.c",
@@ -683,7 +683,7 @@ mod tests {
     #[test]
     fn invalid_nsid() {
         // From https://atproto.com/specs/nsid#examples
-        for invalid in &["com.exa💩ple.thing", "com.example"] {
+        for invalid in ["com.exa💩ple.thing", "com.example"] {
             assert!(
                 from_str::<Nsid>(&format!("\"{}\"", invalid)).is_err(),
                 "invalid NSID `{}` parsed as valid",
@@ -695,7 +695,7 @@ mod tests {
     #[test]
     fn nsid_parts() {
         // From https://atproto.com/specs/nsid#examples
-        for (nsid, domain_authority, name) in &[
+        for (nsid, domain_authority, name) in [
             ("com.example.fooBar", "com.example", "fooBar"),
             ("net.users.bob.ping", "net.users.bob", "ping"),
             ("a-0.b-1.c", "a-0.b-1", "c"),
@@ -703,15 +703,15 @@ mod tests {
             ("cn.8.lex.stuff", "cn.8.lex", "stuff"),
         ] {
             let nsid = Nsid::new(nsid.to_string()).unwrap();
-            assert_eq!(nsid.domain_authority(), *domain_authority);
-            assert_eq!(nsid.name(), *name);
+            assert_eq!(nsid.domain_authority(), domain_authority);
+            assert_eq!(nsid.name(), name);
         }
     }
 
     #[test]
     fn valid_language() {
         // From https://www.rfc-editor.org/rfc/rfc5646.html#appendix-A
-        for valid in &[
+        for valid in [
             // Simple language subtag:
             "de",         // German
             "fr",         // French
@@ -770,7 +770,7 @@ mod tests {
     #[test]
     fn invalid_language() {
         // From https://www.rfc-editor.org/rfc/rfc5646.html#appendix-A
-        for invalid in &[
+        for invalid in [
             "de-419-DE", // two region tags
             // use of a single-character subtag in primary position; note that there are a
             // few grandfathered tags that start with "i-" that are valid
@@ -785,9 +785,43 @@ mod tests {
     }
 
     #[test]
+    fn valid_tid() {
+        for valid in ["3jzfcijpj2z2a", "7777777777777", "3zzzzzzzzzzzz"] {
+            assert!(
+                from_str::<Tid>(&format!("\"{}\"", valid)).is_ok(),
+                "valid TID `{}` parsed as invalid",
+                valid,
+            );
+        }
+    }
+
+    #[test]
+    fn invalid_tid() {
+        for invalid in [
+            // not base32
+            "3jzfcijpj2z21",
+            "0000000000000",
+            // too long/short
+            "3jzfcijpj2z2aa",
+            "3jzfcijpj2z2",
+            // old dashes syntax not actually supported (TTTT-TTT-TTTT-CC)
+            "3jzf-cij-pj2z-2a",
+            // high bit can't be high
+            "zzzzzzzzzzzzz",
+            "kjzfcijpj2z2a",
+        ] {
+            assert!(
+                from_str::<Tid>(&format!("\"{}\"", invalid)).is_err(),
+                "invalid TID `{}` parsed as valid",
+                invalid,
+            );
+        }
+    }
+
+    #[test]
     fn valid_rkey() {
         // From https://atproto.com/specs/record-key#examples
-        for valid in &[
+        for valid in [
             "3jui7kd54zh2y",
             "self",
             "literal:self",
@@ -808,7 +842,7 @@ mod tests {
     #[test]
     fn invalid_rkey() {
         // From https://atproto.com/specs/record-key#examples
-        for invalid in &[
+        for invalid in [
             "alpha/beta",
             ".",
             "..",
