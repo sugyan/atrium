@@ -95,6 +95,8 @@ pub struct ProfileAssociated {
 #[serde(rename_all = "camelCase")]
 pub struct ProfileView {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub associated: Option<ProfileAssociated>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -112,6 +114,8 @@ pub struct ProfileView {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileViewBasic {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub did: crate::types::string::Did,

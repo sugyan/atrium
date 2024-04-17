@@ -2,6 +2,7 @@
 //!Definitions for the `app.bsky.unspecced` namespace.
 pub mod defs;
 pub mod get_popular_feed_generators;
+pub mod get_suggestions_skeleton;
 pub mod get_tagged_suggestions;
 pub mod search_actors_skeleton;
 pub mod search_posts_skeleton;

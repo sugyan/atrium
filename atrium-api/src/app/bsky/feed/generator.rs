@@ -3,6 +3,9 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Record {
+    ///Declaration that a feed accepts feedback interactions from a client through app.bsky.feed.sendInteractions
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub accepts_interactions: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<crate::types::BlobRef>,
     pub created_at: crate::types::string::Datetime,

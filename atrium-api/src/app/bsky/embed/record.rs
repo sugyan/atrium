@@ -34,6 +34,12 @@ pub struct ViewRecord {
     pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub like_count: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reply_count: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub repost_count: Option<i64>,
     pub uri: String,
     ///The record data itself.
     pub value: crate::records::Record,

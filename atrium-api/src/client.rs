@@ -959,6 +959,36 @@ where
             _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
         }
     }
+    ///Send information about interactions with feed items back to the feed generator that served them.
+    pub async fn send_interactions(
+        &self,
+        input: crate::app::bsky::feed::send_interactions::Input,
+    ) -> Result<
+        crate::app::bsky::feed::send_interactions::Output,
+        atrium_xrpc::error::Error<crate::app::bsky::feed::send_interactions::Error>,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "app.bsky.feed.sendInteractions".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
 }
 impl<T> app::bsky::graph::Service<T>
 where
@@ -1588,6 +1618,38 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
                     path: "app.bsky.unspecced.getPopularFeedGenerators".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get a skeleton of suggested actors. Intended to be called and then hydrated through app.bsky.actor.getSuggestions
+    pub async fn get_suggestions_skeleton(
+        &self,
+        params: crate::app::bsky::unspecced::get_suggestions_skeleton::Parameters,
+    ) -> Result<
+        crate::app::bsky::unspecced::get_suggestions_skeleton::Output,
+        atrium_xrpc::error::Error<
+            crate::app::bsky::unspecced::get_suggestions_skeleton::Error,
+        >,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "app.bsky.unspecced.getSuggestionsSkeleton".into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
