@@ -21,9 +21,9 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.20.0", path = "atrium-api" }
-atrium-xrpc = { version = "0.10.3", path = "atrium-xrpc" }
-atrium-xrpc-client = { version = "0.5.1", path = "atrium-xrpc-client" }
+atrium-api = { version = "0.20.1", path = "atrium-api" }
+atrium-xrpc = { version = "0.10.4", path = "atrium-xrpc" }
+atrium-xrpc-client = { version = "0.5.2", path = "atrium-xrpc-client" }
 
 # async in traits
 # Can be removed once MSRV is at least 1.75.0.
