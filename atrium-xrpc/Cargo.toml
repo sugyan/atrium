@@ -1,6 +1,6 @@
 [package]
 name = "atrium-xrpc"
-version = "0.10.3"
+version = "0.10.4"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
