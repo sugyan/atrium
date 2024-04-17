@@ -12,6 +12,13 @@ git_tag_enable = true
 changelog_update = true
 
 [[package]]
+name = "atrium-xrpc-client"
+publish = true
+git_release_enable = true
+git_tag_enable = true
+changelog_update = true
+
+[[package]]
 name = "atrium-api"
 publish = true
 git_release_enable = true
@@ -20,13 +27,6 @@ changelog_update = true
 
 [[package]]
 name = "atrium-cli"
-publish = true
-git_release_enable = true
-git_tag_enable = true
-changelog_update = true
-
-[[package]]
-name = "atrium-xrpc-client"
 publish = true
 git_release_enable = true
 git_tag_enable = true
