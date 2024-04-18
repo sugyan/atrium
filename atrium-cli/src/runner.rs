@@ -4,6 +4,7 @@ use anyhow::{Context, Result};
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
+use atrium_api::types::LimitedNonZeroU8;
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use serde::Serialize;
 use std::ffi::OsStr;
@@ -13,13 +14,14 @@ use tokio::io::AsyncReadExt;
 
 pub struct Runner {
     agent: AtpAgent<SimpleJsonFileSessionStore, ReqwestClient>,
+    limit: LimitedNonZeroU8<100>,
     debug: bool,
     session_path: PathBuf,
     handle: Option<Handle>,
 }
 
 impl Runner {
-    pub async fn new(pds_host: String, debug: bool) -> Result<Self> {
+    pub async fn new(pds_host: String, limit: LimitedNonZeroU8<100>, debug: bool) -> Result<Self> {
         let config_dir = dirs::config_dir()
             .with_context(|| format!("No config dir: {:?}", dirs::config_dir()))?;
         let dir = config_dir.join("atrium-cli");
@@ -34,13 +36,14 @@ impl Runner {
         }
         Ok(Self {
             agent,
+            limit,
             debug,
             session_path,
             handle,
         })
     }
     pub async fn run(&self, command: Command) -> Result<()> {
-        let limit = 10.try_into().expect("within limit");
+        let limit = self.limit;
         match command {
             Command::Login(args) => {
                 self.agent.login(args.identifier, args.password).await?;
