@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.11](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.10...atrium-cli-v0.1.11) - 2024-04-18
+
+### Added
+- Add limit option ([#159](https://github.com/sugyan/atrium/pull/159))
+
 ## [0.1.10](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.9...atrium-cli-v0.1.10) - 2024-04-17
 
 ### Other

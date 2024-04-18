@@ -6,10 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.21.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.20.1...atrium-api-v0.21.0) - 2024-04-18
+
 ### Added
-- `atrium_api::types::string::Tid`
-- `atrium_api::types::string::RecordKey`
-  - moved from `atrium_api::types::RecordKey`
+- Add tid/record-key string format ([#155](https://github.com/sugyan/atrium/pull/155))
+  - `atrium_api::types::string::Tid`
+  - `atrium_api::types::string::RecordKey`
+    - moved from `atrium_api::types::RecordKey`
 
 ### Removed
 - `atrium_api::types::RecordKey`
