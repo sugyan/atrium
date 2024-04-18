@@ -21,6 +21,7 @@ pub mod like;
 pub mod post;
 pub mod repost;
 pub mod search_posts;
+pub mod send_interactions;
 pub mod threadgate;
 #[derive(Debug)]
 pub struct Generator;

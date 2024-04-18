@@ -1,6 +1,6 @@
 [package]
 name = "atrium-cli"
-version = "0.1.9"
+version = "0.1.10"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true

@@ -14,9 +14,20 @@ pub struct BlockedPost {
     pub blocked: bool,
     pub uri: String,
 }
+///User clicked through to the author of the feed item
+pub struct ClickthroughAuthor;
+///User clicked through to the embedded content of the feed item
+pub struct ClickthroughEmbed;
+///User clicked through to the feed item
+pub struct ClickthroughItem;
+///User clicked through to the reposter of the feed item
+pub struct ClickthroughReposter;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FeedViewPost {
+    ///Context provided by feed generator that may be passed back alongside interactions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feed_context: Option<String>,
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<crate::types::Union<FeedViewPostReasonRefs>>,
@@ -26,6 +37,8 @@ pub struct FeedViewPost {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneratorView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub accepts_interactions: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub cid: crate::types::string::Cid,
@@ -51,6 +64,29 @@ pub struct GeneratorViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
 }
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Interaction {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub event: Option<String>,
+    ///Context on a feed item that was orginally supplied by the feed generator on getFeedSkeleton.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feed_context: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub item: Option<String>,
+}
+///User liked the feed item
+pub struct InteractionLike;
+///User quoted the feed item
+pub struct InteractionQuote;
+///User replied to the feed item
+pub struct InteractionReply;
+///User reposted the feed item
+pub struct InteractionRepost;
+///Feed item was seen by user
+pub struct InteractionSeen;
+///User shared the feed item
+pub struct InteractionShare;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NotFoundPost {
@@ -92,9 +128,16 @@ pub struct ReplyRef {
     pub parent: crate::types::Union<ReplyRefParentRefs>,
     pub root: crate::types::Union<ReplyRefRootRefs>,
 }
+///Request that less content like the given feed item be shown in the feed
+pub struct RequestLess;
+///Request that more content like the given feed item be shown in the feed
+pub struct RequestMore;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SkeletonFeedPost {
+    ///Context that will be passed through to client and may be passed to feed generator back alongside interactions.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feed_context: Option<String>,
     pub post: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
