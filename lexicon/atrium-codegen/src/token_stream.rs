@@ -557,6 +557,7 @@ fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
         Some(LexStringFormat::Language) => quote!(crate::types::string::Language),
         Some(LexStringFormat::Tid) => quote!(crate::types::string::Tid),
         Some(LexStringFormat::RecordKey) => quote!(crate::types::string::RecordKey),
+        // TODO: other formats (uri, at-uri)
         _ => quote!(String),
     };
     Ok((description, typ))
