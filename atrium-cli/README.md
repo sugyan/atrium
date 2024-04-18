@@ -29,6 +29,7 @@ Commands:
 
 Options:
   -p, --pds-host <PDS_HOST>  [default: https://bsky.social]
+  -l, --limit <LIMIT>        Limit the number of items returned [default: 10]
   -d, --debug                Debug print
   -h, --help                 Print help
   -V, --version              Print version
