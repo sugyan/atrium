@@ -166,7 +166,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.10.4"
+version = "0.10.5"
 dependencies = [
  "async-trait",
  "http 1.1.0",
