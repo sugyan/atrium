@@ -15,8 +15,8 @@ keywords.workspace = true
 async-trait.workspace = true
 http.workspace = true
 serde = { workspace = true, features = ["derive"] }
+serde_html_form.workspace = true
 serde_json.workspace = true
-serde_qs.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
