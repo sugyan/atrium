@@ -73,7 +73,7 @@ pub trait XrpcClient: HttpClient {
     {
         let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.path);
         if let Some(p) = &request.parameters {
-            serde_qs::to_string(p).map(|qs| {
+            serde_html_form::to_string(p).map(|qs| {
                 uri += "?";
                 uri += &qs;
             })?;

@@ -78,8 +78,8 @@ pub enum Error<E> {
     HttpClient(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("serde_json error: {0}")]
     SerdeJson(#[from] serde_json::Error),
-    #[error("serde_qs error: {0}")]
-    SerdeQs(#[from] serde_qs::Error),
+    #[error("serde_html_form error: {0}")]
+    SerdeHtmlForm(#[from] serde_html_form::ser::Error),
     #[error("unexpected response type")]
     UnexpectedResponseType,
 }
