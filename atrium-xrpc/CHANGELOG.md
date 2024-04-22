@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.5](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.4...atrium-xrpc-v0.10.5) - 2024-04-22
+
+### Added
+- Replace serde_qs to serde_html_form ([#161](https://github.com/sugyan/atrium/pull/161))
+
 ## [0.10.4](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.3...atrium-xrpc-v0.10.4) - 2024-04-17
 
 ### Other
