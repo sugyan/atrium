@@ -59,13 +59,21 @@ pub enum InputEventRefs {
     ToolsOzoneModerationDefsModEventMute(
         Box<crate::tools::ozone::moderation::defs::ModEventMute>,
     ),
-    #[serde(rename = "tools.ozone.moderation.defs#modEventReverseTakedown")]
-    ToolsOzoneModerationDefsModEventReverseTakedown(
-        Box<crate::tools::ozone::moderation::defs::ModEventReverseTakedown>,
-    ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventUnmute")]
     ToolsOzoneModerationDefsModEventUnmute(
         Box<crate::tools::ozone::moderation::defs::ModEventUnmute>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventMuteReporter")]
+    ToolsOzoneModerationDefsModEventMuteReporter(
+        Box<crate::tools::ozone::moderation::defs::ModEventMuteReporter>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventUnmuteReporter")]
+    ToolsOzoneModerationDefsModEventUnmuteReporter(
+        Box<crate::tools::ozone::moderation::defs::ModEventUnmuteReporter>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventReverseTakedown")]
+    ToolsOzoneModerationDefsModEventReverseTakedown(
+        Box<crate::tools::ozone::moderation::defs::ModEventReverseTakedown>,
     ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventEmail")]
     ToolsOzoneModerationDefsModEventEmail(

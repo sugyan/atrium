@@ -23,6 +23,9 @@ pub struct Parameters {
     pub last_reviewed_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    ///When set to true, only muted subjects and reporters will be returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub only_muted: Option<bool>,
     ///Search subjects reported after a given timestamp
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reported_after: Option<crate::types::string::Datetime>,

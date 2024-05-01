@@ -77,12 +77,24 @@ pub struct ModEventMute {
     ///Indicates how long the subject should remain muted.
     pub duration_in_hours: i64,
 }
+///Mute incoming reports from an account
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventMuteReporter {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    ///Indicates how long the account should remain muted.
+    pub duration_in_hours: i64,
+}
 ///Report a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventReport {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    ///Set to true if the reporter was muted from reporting at the time of the event. These reports won't impact the reviewState of the subject.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_reporter_muted: Option<bool>,
     pub report_type: crate::com::atproto::moderation::defs::ReasonType,
 }
 ///Resolve appeal on a subject
@@ -127,6 +139,14 @@ pub struct ModEventTakedown {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventUnmute {
+    ///Describe reasoning behind the reversal.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+}
+///Unmute incoming reports from an account
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModEventUnmuteReporter {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
@@ -272,6 +292,8 @@ pub struct SubjectStatusView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_reviewed_by: Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub mute_reporting_until: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub mute_until: Option<crate::types::string::Datetime>,
     pub review_state: SubjectReviewState,
     pub subject: crate::types::Union<SubjectStatusViewSubjectRefs>,
@@ -322,6 +344,12 @@ pub enum ModEventViewDetailEventRefs {
     ModEventEscalate(Box<ModEventEscalate>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventMute")]
     ModEventMute(Box<ModEventMute>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventUnmute")]
+    ModEventUnmute(Box<ModEventUnmute>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventMuteReporter")]
+    ModEventMuteReporter(Box<ModEventMuteReporter>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventUnmuteReporter")]
+    ModEventUnmuteReporter(Box<ModEventUnmuteReporter>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventEmail")]
     ModEventEmail(Box<ModEventEmail>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventResolveAppeal")]
@@ -360,6 +388,12 @@ pub enum ModEventViewEventRefs {
     ModEventEscalate(Box<ModEventEscalate>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventMute")]
     ModEventMute(Box<ModEventMute>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventUnmute")]
+    ModEventUnmute(Box<ModEventUnmute>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventMuteReporter")]
+    ModEventMuteReporter(Box<ModEventMuteReporter>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventUnmuteReporter")]
+    ModEventUnmuteReporter(Box<ModEventUnmuteReporter>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventEmail")]
     ModEventEmail(Box<ModEventEmail>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventResolveAppeal")]

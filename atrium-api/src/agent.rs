@@ -45,6 +45,7 @@ where
             .atproto
             .server
             .create_session(crate::com::atproto::server::create_session::Input {
+                auth_factor_token: None,
                 identifier: identifier.as_ref().into(),
                 password: password.as_ref().into(),
             })
@@ -194,6 +195,7 @@ mod tests {
             did: "did:web:example.com".parse().expect("valid"),
             did_doc: None,
             email: None,
+            email_auth_factor: None,
             email_confirmed: None,
             handle: "example.com".parse().expect("valid"),
             refresh_jwt: String::from("refresh"),
@@ -256,6 +258,7 @@ mod tests {
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
+                    email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                 }),
@@ -287,6 +290,7 @@ mod tests {
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
+                    email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                 }),
@@ -326,6 +330,7 @@ mod tests {
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
+                    email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                 }),
@@ -378,6 +383,7 @@ mod tests {
                         did: session.did.clone(),
                         did_doc: session.did_doc.clone(),
                         email: session.email.clone(),
+                        email_auth_factor: session.email_auth_factor,
                         email_confirmed: session.email_confirmed,
                         handle: session.handle.clone(),
                     }),
@@ -424,6 +430,7 @@ mod tests {
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
+                    email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                 }),
