@@ -4,6 +4,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub email: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email_auth_factor: Option<bool>,
     ///Requires a token from com.atproto.sever.requestEmailUpdate if the account's email has been confirmed.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,

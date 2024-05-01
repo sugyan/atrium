@@ -157,11 +157,24 @@ pub struct ProfileViewDetailed {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct SavedFeed {
+    pub id: String,
+    pub pinned: bool,
+    pub r#type: String,
+    pub value: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct SavedFeedsPref {
     pub pinned: Vec<String>,
     pub saved: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline_index: Option<i64>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SavedFeedsPrefV2 {
+    pub items: Vec<crate::app::bsky::actor::defs::SavedFeed>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -201,6 +214,8 @@ pub enum PreferencesItem {
     ContentLabelPref(Box<ContentLabelPref>),
     #[serde(rename = "app.bsky.actor.defs#savedFeedsPref")]
     SavedFeedsPref(Box<SavedFeedsPref>),
+    #[serde(rename = "app.bsky.actor.defs#savedFeedsPrefV2")]
+    SavedFeedsPrefV2(Box<SavedFeedsPrefV2>),
     #[serde(rename = "app.bsky.actor.defs#personalDetailsPref")]
     PersonalDetailsPref(Box<PersonalDetailsPref>),
     #[serde(rename = "app.bsky.actor.defs#feedViewPref")]

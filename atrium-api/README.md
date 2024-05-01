@@ -26,6 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .atproto
         .server
         .create_session(Input {
+            auth_factor_token: None,
             identifier: "alice@mail.com".into(),
             password: "hunter2".into(),
         })

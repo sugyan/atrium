@@ -9,6 +9,8 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub email_auth_factor: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub email_confirmed: Option<bool>,
     pub handle: crate::types::string::Handle,
 }
