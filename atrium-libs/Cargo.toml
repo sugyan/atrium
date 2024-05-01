@@ -1,0 +1,23 @@
+[package]
+name = "atrium-libs"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "A collection of libraries for AT Protocol"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[features]
+default = ["common-web"]
+common-web = ["serde/derive"]
