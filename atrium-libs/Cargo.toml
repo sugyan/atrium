@@ -13,11 +13,20 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+thiserror = { workspace = true, optional = true }
+url = { workspace = true, optional = true }
+urlencoding = { workspace = true, optional = true }
 
 [dev-dependencies]
+mockito = { workspace = true }
+reqwest = { workspace = true }
 serde_json = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
 
 [features]
-default = ["common-web"]
+default = []
 common-web = ["serde/derive"]
+identity = ["common-web", "async-trait", "serde_json", "thiserror", "url", "urlencoding"]
