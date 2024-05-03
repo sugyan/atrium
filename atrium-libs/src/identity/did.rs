@@ -8,7 +8,7 @@ use self::error::{Error, Result};
 use async_trait::async_trait;
 
 #[async_trait]
-pub trait Fetcher {
+pub trait Fetch {
     async fn fetch(
         url: &str,
         timeout: Option<u64>,
@@ -16,7 +16,7 @@ pub trait Fetcher {
 }
 
 #[async_trait]
-pub trait Resolver {
+pub trait Resolve {
     async fn resolve_no_check(&self, did: &str) -> Result<Option<Vec<u8>>>;
     async fn resolve_no_cache(&self, did: &str) -> Result<Option<DidDocument>> {
         if let Some(got) = self.resolve_no_check(did).await? {

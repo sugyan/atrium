@@ -1,5 +1,5 @@
 use super::error::{Error, Result};
-use super::{Fetcher, Resolver};
+use super::{Fetch, Resolve};
 use async_trait::async_trait;
 use std::marker::PhantomData;
 use url::{Host, Url};
@@ -20,9 +20,9 @@ impl<T> DidWebResolver<T> {
 }
 
 #[async_trait]
-impl<T> Resolver for DidWebResolver<T>
+impl<T> Resolve for DidWebResolver<T>
 where
-    T: Fetcher + Send + Sync,
+    T: Fetch + Send + Sync,
 {
     async fn resolve_no_check(&self, did: &str) -> Result<Option<Vec<u8>>> {
         let parts = did.splitn(3, ':').collect::<Vec<_>>();

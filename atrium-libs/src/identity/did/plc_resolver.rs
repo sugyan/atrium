@@ -1,6 +1,7 @@
 use super::error::{Error, Result};
-use super::{Fetcher, Resolver};
+use super::{Fetch, Resolve};
 use async_trait::async_trait;
+use url::Url;
 
 #[derive(Debug, Default)]
 pub struct DidPlcResolver<T> {
@@ -20,11 +21,14 @@ impl<T> DidPlcResolver<T> {
 }
 
 #[async_trait]
-impl<T> Resolver for DidPlcResolver<T>
+impl<T> Resolve for DidPlcResolver<T>
 where
-    T: Fetcher + Send + Sync,
+    T: Fetch + Send + Sync,
 {
     async fn resolve_no_check(&self, did: &str) -> Result<Option<Vec<u8>>> {
-        unimplemented!()
+        let url = Url::parse(&format!("{}/{}", self.plc_url, urlencoding::encode(did)))?;
+        T::fetch(url.as_ref(), self.timeout)
+            .await
+            .map_err(Error::Fetch)
     }
 }
