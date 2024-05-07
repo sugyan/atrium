@@ -165,6 +165,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "atrium-repo"
+version = "0.0.0"
+
+[[package]]
 name = "atrium-xrpc"
 version = "0.10.5"
 dependencies = [

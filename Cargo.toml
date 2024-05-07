@@ -2,6 +2,7 @@
 members = [
     "atrium-api",
     "atrium-cli",
+    "atrium-repo",
     "atrium-xrpc",
     "atrium-xrpc-client",
 ]
