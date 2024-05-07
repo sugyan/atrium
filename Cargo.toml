@@ -3,6 +3,7 @@ members = [
     "atrium-api",
     "atrium-common",
     "atrium-crypto",
+    "atrium-repo",
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-identity",

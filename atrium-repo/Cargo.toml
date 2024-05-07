@@ -1,0 +1,14 @@
+[package]
+name = "atrium-repo"
+version = "0.0.0"
+authors = ["Jack Grigg <thestr4d@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "Library for handling AT Protocol (Bluesky) repositories and MSTs"
+documentation = "https://docs.rs/atrium-repo"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
