@@ -169,7 +169,9 @@ name = "atrium-libs"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "http 1.1.0",
  "mockito",
+ "multibase",
  "reqwest",
  "serde",
  "serde_json",

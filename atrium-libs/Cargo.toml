@@ -14,6 +14,8 @@ keywords.workspace = true
 
 [dependencies]
 async-trait = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+multibase = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
@@ -27,6 +29,7 @@ serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [features]
-default = []
-common-web = ["serde/derive"]
+default = ["common-web", "crypto", "identity"]
+common-web = ["http", "serde/derive"]
+crypto = ["multibase"]
 identity = ["common-web", "async-trait", "serde_json", "thiserror", "url", "urlencoding"]

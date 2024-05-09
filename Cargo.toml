@@ -37,6 +37,7 @@ serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = [
 # Parsing and validation
 chrono = "0.4"
 langtag = "0.3"
+multibase = "0.9.1"
 regex = "1"
 serde = "1.0.199"
 serde_bytes = "0.11.9"

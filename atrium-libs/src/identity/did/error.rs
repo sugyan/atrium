@@ -15,6 +15,8 @@ pub enum Error {
     DidNotFound(String),
     #[error("Poorly formatted DID: {0}")]
     PoorlyFormattedDid(String),
+    #[error("Poorly formatted DID Document")]
+    PoorlyFormattedDidDocument,
     #[error("Unsupported DID method: {0}")]
     UnsupportedDidMethod(String),
     #[error("Unsupported did:web paths: {0}")]

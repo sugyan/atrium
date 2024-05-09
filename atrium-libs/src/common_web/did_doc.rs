@@ -37,6 +37,75 @@ pub struct Service {
     pub service_endpoint: String,
 }
 
+impl TryFrom<&str> for DidDocument {
+    type Error = serde_json::Error;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        serde_json::from_str(value)
+    }
+}
+
+impl DidDocument {
+    pub fn get_did(&self) -> String {
+        self.id.clone()
+    }
+    pub fn get_handle(&self) -> Option<String> {
+        if let Some(aka) = &self.also_known_as {
+            aka.iter()
+                .find_map(|name| name.strip_prefix("at://"))
+                .map(String::from)
+        } else {
+            None
+        }
+    }
+    pub fn get_signing_key(&self) -> Option<(String, String)> {
+        self.get_verification_material("#atproto")
+    }
+    pub fn get_pds_endpoint(&self) -> Option<String> {
+        self.get_service_endpoint("#atproto_pds", "AtprotoPersonalDataServer")
+    }
+    fn get_verification_material(&self, id: &str) -> Option<(String, String)> {
+        let did = self.get_did();
+        if let Some(keys) = &self.verification_method {
+            keys.iter().find_map(|key| {
+                if key.id == id || key.id == format!("{did}{id}") {
+                    key.public_key_multibase
+                        .as_ref()
+                        .map(|multibase| (key.r#type.clone(), multibase.clone()))
+                } else {
+                    None
+                }
+            })
+        } else {
+            None
+        }
+    }
+    fn get_service_endpoint(&self, id: &str, r#type: &str) -> Option<String> {
+        let did = self.get_did();
+        if let Some(services) = &self.service {
+            services
+                .iter()
+                .find(|service| {
+                    (service.id == id || service.id == format!("{did}{id}"))
+                        && service.r#type == r#type
+                })
+                .and_then(|service| Self::validate_url(&service.service_endpoint))
+        } else {
+            None
+        }
+    }
+    fn validate_url(s: &str) -> Option<String> {
+        s.parse::<http::Uri>()
+            .ok()
+            .and_then(|uri| match (uri.scheme(), uri.host()) {
+                (Some(scheme), Some(_)) if (scheme == "https" || scheme == "http") => {
+                    Some(s.to_string())
+                }
+                _ => None,
+            })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
