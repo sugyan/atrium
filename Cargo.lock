@@ -288,6 +288,12 @@ dependencies = [
 [[package]]
 name = "atrium-repo"
 version = "0.0.0"
+dependencies = [
+ "ipld-core",
+ "serde",
+ "serde_ipld_dagcbor",
+ "thiserror",
+]
 
 [[package]]
 name = "atrium-xrpc"
