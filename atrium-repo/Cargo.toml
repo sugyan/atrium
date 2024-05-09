@@ -12,3 +12,7 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
+ipld-core = { workspace = true, features = ["serde"] }
+serde = { workspace = true, features = ["derive"] }
+serde_ipld_dagcbor.workspace = true
+thiserror.workspace = true
