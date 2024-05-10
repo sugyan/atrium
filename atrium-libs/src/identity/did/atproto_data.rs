@@ -1,7 +1,6 @@
 use crate::common_web::did_doc::DidDocument;
-use crate::crypto::did::{format_did_key, parse_multikey};
-use crate::crypto::multibase::multibase_to_bytes;
-use crate::crypto::JwtAlg;
+use crate::crypto::did::{format_did_key, format_did_key_str, parse_multikey};
+use crate::crypto::Algorithm;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -50,17 +49,16 @@ fn get_did_key_from_multibase(
     public_key_multibase: String,
 ) -> Result<Option<String>> {
     Ok(match r#type.as_str() {
-        "EcdsaSecp256r1VerificationKey2019" => Some(format_did_key(
-            JwtAlg::P256,
-            &multibase_to_bytes(&public_key_multibase)?,
-        )),
-        "EcdsaSecp256k1VerificationKey2019" => Some(format_did_key(
-            JwtAlg::Secp256k1,
-            &multibase_to_bytes(&public_key_multibase)?,
-        )),
+        "EcdsaSecp256r1VerificationKey2019" => {
+            Some(format_did_key_str(Algorithm::P256, &public_key_multibase)?)
+        }
+        "EcdsaSecp256k1VerificationKey2019" => Some(format_did_key_str(
+            Algorithm::Secp256k1,
+            &public_key_multibase,
+        )?),
         "Multikey" => {
-            let (jwt_alg, key) = parse_multikey(&public_key_multibase)?;
-            Some(format_did_key(jwt_alg, &key))
+            let (alg, key) = parse_multikey(&public_key_multibase)?;
+            Some(format_did_key(alg, &key)?)
         }
         _ => None,
     })
