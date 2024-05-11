@@ -26,6 +26,9 @@ atrium-api = { version = "0.21.0", path = "atrium-api" }
 atrium-xrpc = { version = "0.10.5", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.2", path = "atrium-xrpc-client" }
 
+# async in streams
+async-stream = "0.3"
+
 # async in traits
 # Can be removed once MSRV is at least 1.75.0.
 async-trait = "0.1.68"

@@ -12,7 +12,10 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
+atrium-api.workspace = true
+
 # Async
+async-stream.workspace = true
 futures = { workspace = true, features = ["std"] }
 tokio.workspace = true
 tokio-util = { workspace = true, features = ["compat"] }
