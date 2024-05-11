@@ -289,10 +289,14 @@ dependencies = [
 name = "atrium-repo"
 version = "0.0.0"
 dependencies = [
+ "futures",
  "ipld-core",
  "serde",
  "serde_ipld_dagcbor",
  "thiserror",
+ "tokio",
+ "tokio-util",
+ "unsigned-varint 0.8.0",
 ]
 
 [[package]]
@@ -3188,6 +3192,7 @@ checksum = "61e7c3654c13bcd040d4a03abee2c75b1d14a37b423cf5a813ceae1cc903ec6a"
 dependencies = [
  "bytes",
  "futures-core",
+ "futures-io",
  "futures-sink",
  "pin-project-lite",
  "tokio",
@@ -3398,6 +3403,10 @@ name = "unsigned-varint"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eb066959b24b5196ae73cb057f45598450d2c5f71460e98c49b738086eff9c06"
+dependencies = [
+ "futures-io",
+ "futures-util",
+]
 
 [[package]]
 name = "untrusted"
