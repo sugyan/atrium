@@ -12,7 +12,16 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
+# Async
+futures = { workspace = true, features = ["std"] }
+tokio.workspace = true
+tokio-util = { workspace = true, features = ["compat"] }
+
+# Encodings
 ipld-core = { workspace = true, features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_ipld_dagcbor.workspace = true
+unsigned-varint = { workspace = true, features = ["futures"] }
+
+# Errors
 thiserror.workspace = true
