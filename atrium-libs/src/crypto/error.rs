@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("Unsupported key type")]
     UnsupportedMultikeyType,
+    #[error("Incorrect prefix for did:key: {0}")]
+    IncorrectDIDKeyPrefix(String),
     #[error(transparent)]
     Multibase(#[from] multibase::Error),
     #[error(transparent)]

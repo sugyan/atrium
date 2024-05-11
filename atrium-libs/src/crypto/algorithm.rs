@@ -2,8 +2,9 @@ use super::error::Result;
 use ecdsa::VerifyingKey;
 use k256::Secp256k1;
 use multibase::Base;
+use p256::NistP256;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Algorithm {
     P256,
     Secp256k1,
@@ -23,7 +24,12 @@ impl Algorithm {
     pub fn format_multikey(&self, key: &[u8]) -> Result<String> {
         let prefixed_bytes = match self {
             Algorithm::P256 => {
-                todo!()
+                let point = VerifyingKey::<NistP256>::from_sec1_bytes(key)?.to_encoded_point(true);
+                [
+                    Self::MULTICODE_PREFIX_P256.to_vec(),
+                    point.as_bytes().to_vec(),
+                ]
+                .concat()
             }
             Algorithm::Secp256k1 => {
                 let point = VerifyingKey::<Secp256k1>::from_sec1_bytes(key)?.to_encoded_point(true);
@@ -35,5 +41,19 @@ impl Algorithm {
             }
         };
         Ok(multibase::encode(Base::Base58Btc, prefixed_bytes))
+    }
+    pub fn decompress_pubkey(&self, key: &[u8]) -> Result<Vec<u8>> {
+        let point = match self {
+            Algorithm::P256 => {
+                let point = VerifyingKey::<NistP256>::from_sec1_bytes(key)?.to_encoded_point(false);
+                point.to_bytes().to_vec()
+            }
+            Algorithm::Secp256k1 => {
+                let point =
+                    VerifyingKey::<Secp256k1>::from_sec1_bytes(key)?.to_encoded_point(false);
+                point.to_bytes().to_vec()
+            }
+        };
+        Ok(point)
     }
 }

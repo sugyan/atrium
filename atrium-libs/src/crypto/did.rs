@@ -4,8 +4,8 @@ use super::{Algorithm, DID_KEY_PREFIX};
 pub fn parse_multikey(multikey: &str) -> Result<(Algorithm, Vec<u8>)> {
     let (_, decoded) = multibase::decode(multikey)?;
     if let Ok(prefix) = decoded[..2].try_into() {
-        if let Some(jwt_arg) = Algorithm::from_prefix(prefix) {
-            return Ok((jwt_arg, decoded[2..].to_vec()));
+        if let Some(alg) = Algorithm::from_prefix(prefix) {
+            return Ok((alg, alg.decompress_pubkey(&decoded[2..])?));
         }
     }
     Err(Error::UnsupportedMultikeyType)
@@ -14,6 +14,14 @@ pub fn parse_multikey(multikey: &str) -> Result<(Algorithm, Vec<u8>)> {
 pub fn format_did_key_str(alg: Algorithm, s: &str) -> Result<String> {
     let (_, key) = multibase::decode(s)?;
     format_did_key(alg, &key)
+}
+
+pub fn parse_did_key(did: &str) -> Result<(Algorithm, Vec<u8>)> {
+    if let Some(multikey) = did.strip_prefix(DID_KEY_PREFIX) {
+        parse_multikey(multikey)
+    } else {
+        Err(Error::IncorrectDIDKeyPrefix(did.to_string()))
+    }
 }
 
 pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
@@ -25,6 +33,8 @@ mod tests {
     use super::*;
     use ecdsa::SigningKey;
     use k256::Secp256k1;
+    use multibase::Base;
+    use p256::NistP256;
 
     // did:key secp256k1 test vectors from W3C
     // https://github.com/w3c-ccg/did-method-key/blob/main/test-vectors/secp256k1.json
@@ -53,16 +63,53 @@ mod tests {
         ]
     }
 
+    // did:key p-256 test vectors from W3C
+    // https://github.com/w3c-ccg/did-method-key/blob/main/test-vectors/nist-curves.json
+    fn p256_vectors() -> Vec<(&'static str, &'static str)> {
+        vec![(
+            "9p4VRzdmhsnq869vQjVCTrRry7u4TtfRxhvBFJTGU2Cp",
+            "did:key:zDnaeTiq1PdzvZXUaMdezchcMJQpBdH2VN4pgrrEhMCCbmwSb",
+        )]
+    }
+
     #[test]
     fn secp256k1() {
         for (seed, id) in secp256k1_vectors() {
             let bytes = hex::decode(seed).expect("hex decoding should succeed");
             let sign = SigningKey::<Secp256k1>::from_slice(&bytes)
                 .expect("initializing signing key should succeed");
-            let result =
+            let did_key =
                 format_did_key(Algorithm::Secp256k1, &sign.verifying_key().to_sec1_bytes())
                     .expect("formatting DID key should succeed");
-            assert_eq!(result, id);
+            assert_eq!(did_key, id);
+
+            let (alg, key) = parse_did_key(&did_key).expect("parsing DID key should succeed");
+            assert_eq!(alg, Algorithm::Secp256k1);
+            assert_eq!(
+                &key,
+                sign.verifying_key().to_encoded_point(false).as_bytes()
+            );
+        }
+    }
+
+    #[test]
+    fn p256() {
+        for (private_key_base58, id) in p256_vectors() {
+            let bytes = Base::Base58Btc
+                .decode(private_key_base58)
+                .expect("multibase decoding should succeed");
+            let sign = SigningKey::<NistP256>::from_slice(&bytes)
+                .expect("initializing signing key should succeed");
+            let did_key = format_did_key(Algorithm::P256, &sign.verifying_key().to_sec1_bytes())
+                .expect("formatting DID key should succeed");
+            assert_eq!(did_key, id);
+
+            let (alg, key) = parse_did_key(&did_key).expect("parsing DID key should succeed");
+            assert_eq!(alg, Algorithm::P256);
+            assert_eq!(
+                &key,
+                sign.verifying_key().to_encoded_point(false).as_bytes()
+            );
         }
     }
 }
