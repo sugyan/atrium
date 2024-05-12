@@ -22,38 +22,28 @@ impl Algorithm {
         }
     }
     pub fn format_multikey(&self, key: &[u8]) -> Result<String> {
-        let prefixed_bytes = match self {
-            Algorithm::P256 => {
-                let point = VerifyingKey::<NistP256>::from_sec1_bytes(key)?.to_encoded_point(true);
-                [
-                    Self::MULTICODE_PREFIX_P256.to_vec(),
-                    point.as_bytes().to_vec(),
-                ]
-                .concat()
-            }
-            Algorithm::Secp256k1 => {
-                let point = VerifyingKey::<Secp256k1>::from_sec1_bytes(key)?.to_encoded_point(true);
-                [
-                    Self::MULTICODE_PREFIX_SECP256K1.to_vec(),
-                    point.as_bytes().to_vec(),
-                ]
-                .concat()
-            }
-        };
-        Ok(multibase::encode(Base::Base58Btc, prefixed_bytes))
+        let mut bytes = match self {
+            Algorithm::P256 => Self::MULTICODE_PREFIX_P256,
+            Algorithm::Secp256k1 => Self::MULTICODE_PREFIX_SECP256K1,
+        }
+        .to_vec();
+        bytes.extend(self.pubkey_bytes(key, true)?);
+        Ok(multibase::encode(Base::Base58Btc, bytes))
     }
     pub fn decompress_pubkey(&self, key: &[u8]) -> Result<Vec<u8>> {
-        let point = match self {
-            Algorithm::P256 => {
-                let point = VerifyingKey::<NistP256>::from_sec1_bytes(key)?.to_encoded_point(false);
-                point.to_bytes().to_vec()
-            }
-            Algorithm::Secp256k1 => {
-                let point =
-                    VerifyingKey::<Secp256k1>::from_sec1_bytes(key)?.to_encoded_point(false);
-                point.to_bytes().to_vec()
-            }
-        };
-        Ok(point)
+        self.pubkey_bytes(key, false)
+    }
+    fn pubkey_bytes(&self, key: &[u8], compress: bool) -> Result<Vec<u8>> {
+        Ok(match self {
+            Algorithm::P256 => VerifyingKey::<NistP256>::from_sec1_bytes(key)?
+                .to_encoded_point(compress)
+                .as_bytes()
+                .to_vec(),
+
+            Algorithm::Secp256k1 => VerifyingKey::<Secp256k1>::from_sec1_bytes(key)?
+                .to_encoded_point(compress)
+                .as_bytes()
+                .to_vec(),
+        })
     }
 }
