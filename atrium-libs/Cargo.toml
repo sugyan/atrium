@@ -13,12 +13,9 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+atrium-crypto = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }
-ecdsa = { workspace = true, optional = true }
-k256 = { workspace = true, optional = true }
-p256 = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
-multibase = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
@@ -26,15 +23,13 @@ url = { workspace = true, optional = true }
 urlencoding = { workspace = true, optional = true }
 
 [dev-dependencies]
-ecdsa = { workspace = true, features = ["signing"] }
-hex = { workspace = true }
 mockito = { workspace = true }
 reqwest = { workspace = true }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros"] }
 
 [features]
-default = ["common-web", "crypto", "identity"]
+default = ["common-web", "identity"]
+atproto-data = ["atrium-crypto"]
 common-web = ["http", "serde/derive"]
-crypto = ["ecdsa/verifying", "k256", "p256", "multibase"]
 identity = ["common-web", "async-trait", "serde_json", "thiserror", "url", "urlencoding"]

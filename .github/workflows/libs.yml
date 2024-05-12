@@ -17,8 +17,8 @@ jobs:
       - name: Build
         run: |
           cargo build -p atrium-libs --verbose
+          cargo build -p atrium-libs --verbose --features atproto-data
           cargo build -p atrium-libs --verbose --features common-web
-          cargo build -p atrium-libs --verbose --features crypto
           cargo build -p atrium-libs --verbose --features identity
           cargo build -p atrium-libs --verbose --all-features
       - name: Run tests

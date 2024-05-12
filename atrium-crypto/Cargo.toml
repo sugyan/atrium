@@ -1,0 +1,24 @@
+[package]
+name = "atrium-crypto"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "Cryptographic library providing basic helpers for AT Protocol"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+ecdsa = { workspace = true, features = ["verifying"] }
+k256.workspace = true
+p256.workspace = true
+multibase.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+ecdsa = { workspace = true, features = ["signing"] }
+hex = { workspace = true }

@@ -1,6 +1,6 @@
 use crate::common_web::did_doc::DidDocument;
-use crate::crypto::did::{format_did_key, format_did_key_str, parse_multikey};
-use crate::crypto::Algorithm;
+use atrium_crypto::did::{format_did_key, format_did_key_str, parse_multikey};
+use atrium_crypto::Algorithm;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -12,7 +12,7 @@ pub enum Error {
     #[error("Could not parse pds from doc: {0:?}")]
     Pds(DidDocument),
     #[error(transparent)]
-    Crypto(#[from] crate::crypto::error::Error),
+    Crypto(#[from] atrium_crypto::error::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

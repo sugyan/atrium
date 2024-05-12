@@ -165,17 +165,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "atrium-crypto"
+version = "0.1.0"
+dependencies = [
+ "ecdsa",
+ "hex",
+ "k256",
+ "multibase",
+ "p256",
+ "thiserror",
+]
+
+[[package]]
 name = "atrium-libs"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "ecdsa",
- "hex",
+ "atrium-crypto",
  "http 1.1.0",
- "k256",
  "mockito",
- "multibase",
- "p256",
  "reqwest",
  "serde",
  "serde_json",

@@ -2,6 +2,7 @@
 members = [
     "atrium-api",
     "atrium-cli",
+    "atrium-crypto",
     "atrium-libs",
     "atrium-xrpc",
     "atrium-xrpc-client",
@@ -23,6 +24,7 @@ keywords = ["atproto", "bluesky"]
 [workspace.dependencies]
 # Intra-workspace dependencies
 atrium-api = { version = "0.21.0", path = "atrium-api" }
+atrium-crypto = { version = "0.1.0", path = "atrium-crypto" }
 atrium-xrpc = { version = "0.10.5", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.2", path = "atrium-xrpc-client" }
 

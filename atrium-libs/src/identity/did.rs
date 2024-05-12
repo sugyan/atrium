@@ -1,6 +1,6 @@
 use crate::common_web::did_doc::DidDocument;
-#[cfg(feature = "crypto")]
-mod atproto_data;
+#[cfg(feature = "atproto-data")]
+pub mod atproto_data;
 pub mod did_resolver;
 mod error;
 mod plc_resolver;
