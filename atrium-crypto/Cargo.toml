@@ -13,12 +13,12 @@ keywords.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ecdsa = { workspace = true, features = ["verifying"] }
-k256.workspace = true
-p256.workspace = true
+ecdsa = { workspace = true, features = ["signing", "verifying"] }
+k256 = { workspace = true, features = ["std", "ecdsa"] }
+p256 = { workspace = true, features = ["std", "ecdsa"] }
 multibase.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
-ecdsa = { workspace = true, features = ["signing"] }
-hex = { workspace = true }
+hex.workspace = true
+rand.workspace = true

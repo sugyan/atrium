@@ -76,18 +76,20 @@ mod tests {
     fn secp256k1() {
         for (seed, id) in secp256k1_vectors() {
             let bytes = hex::decode(seed).expect("hex decoding should succeed");
-            let sign = SigningKey::<Secp256k1>::from_slice(&bytes)
+            let sig_key = SigningKey::<Secp256k1>::from_slice(&bytes)
                 .expect("initializing signing key should succeed");
-            let did_key =
-                format_did_key(Algorithm::Secp256k1, &sign.verifying_key().to_sec1_bytes())
-                    .expect("formatting DID key should succeed");
+            let did_key = format_did_key(
+                Algorithm::Secp256k1,
+                &sig_key.verifying_key().to_sec1_bytes(),
+            )
+            .expect("formatting DID key should succeed");
             assert_eq!(did_key, id);
 
             let (alg, key) = parse_did_key(&did_key).expect("parsing DID key should succeed");
             assert_eq!(alg, Algorithm::Secp256k1);
             assert_eq!(
                 &key,
-                sign.verifying_key().to_encoded_point(false).as_bytes()
+                sig_key.verifying_key().to_encoded_point(false).as_bytes()
             );
         }
     }
@@ -98,9 +100,9 @@ mod tests {
             let bytes = Base::Base58Btc
                 .decode(private_key_base58)
                 .expect("multibase decoding should succeed");
-            let sign = SigningKey::<NistP256>::from_slice(&bytes)
+            let sig_key = SigningKey::<NistP256>::from_slice(&bytes)
                 .expect("initializing signing key should succeed");
-            let did_key = format_did_key(Algorithm::P256, &sign.verifying_key().to_sec1_bytes())
+            let did_key = format_did_key(Algorithm::P256, &sig_key.verifying_key().to_sec1_bytes())
                 .expect("formatting DID key should succeed");
             assert_eq!(did_key, id);
 
@@ -108,7 +110,7 @@ mod tests {
             assert_eq!(alg, Algorithm::P256);
             assert_eq!(
                 &key,
-                sign.verifying_key().to_encoded_point(false).as_bytes()
+                sig_key.verifying_key().to_encoded_point(false).as_bytes()
             );
         }
     }

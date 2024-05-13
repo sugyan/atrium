@@ -2,6 +2,7 @@
 mod algorithm;
 pub mod did;
 pub mod error;
+pub mod keypair;
 
 pub use algorithm::Algorithm;
 
