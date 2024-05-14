@@ -11,17 +11,17 @@ pub fn parse_multikey(multikey: &str) -> Result<(Algorithm, Vec<u8>)> {
     Err(Error::UnsupportedMultikeyType)
 }
 
-pub fn format_did_key_str(alg: Algorithm, s: &str) -> Result<String> {
-    let (_, key) = multibase::decode(s)?;
-    format_did_key(alg, &key)
-}
-
 pub fn parse_did_key(did: &str) -> Result<(Algorithm, Vec<u8>)> {
     if let Some(multikey) = did.strip_prefix(DID_KEY_PREFIX) {
         parse_multikey(multikey)
     } else {
         Err(Error::IncorrectDIDKeyPrefix(did.to_string()))
     }
+}
+
+pub fn format_did_key_str(alg: Algorithm, s: &str) -> Result<String> {
+    let (_, key) = multibase::decode(s)?;
+    format_did_key(alg, &key)
 }
 
 pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
