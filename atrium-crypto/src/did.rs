@@ -25,7 +25,14 @@ pub fn parse_did_key(did: &str) -> Result<(Algorithm, Vec<u8>)> {
 }
 
 pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
-    Ok(DID_KEY_PREFIX.to_string() + &alg.format_multikey(key)?)
+    Ok(prefix_did_key(&alg.format_multikey(key)?))
+}
+
+pub(crate) fn prefix_did_key(multikey: &str) -> String {
+    let mut ret = String::with_capacity(DID_KEY_PREFIX.len() + multikey.len());
+    ret.push_str(DID_KEY_PREFIX);
+    ret.push_str(multikey);
+    ret
 }
 
 #[cfg(test)]
