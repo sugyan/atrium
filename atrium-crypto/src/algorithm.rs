@@ -1,5 +1,4 @@
 use crate::error::Result;
-use crate::keypair::verify_signature;
 use ecdsa::VerifyingKey;
 use k256::Secp256k1;
 use multibase::Base;
@@ -29,7 +28,7 @@ impl Algorithm {
         }
     }
     pub fn format_multikey(&self, key: &[u8]) -> Result<String> {
-        Ok(self.format_mulikey_compressed(&self.pubkey_bytes(key, true)?))
+        Ok(self.format_mulikey_compressed(&self.compress_pubkey(key)?))
     }
     pub(crate) fn format_mulikey_compressed(&self, key: &[u8]) -> String {
         let mut v = Vec::with_capacity(2 + key.len());
@@ -37,14 +36,11 @@ impl Algorithm {
         v.extend_from_slice(key);
         multibase::encode(Base::Base58Btc, v)
     }
+    pub(crate) fn compress_pubkey(&self, key: &[u8]) -> Result<Vec<u8>> {
+        self.pubkey_bytes(key, true)
+    }
     pub(crate) fn decompress_pubkey(&self, key: &[u8]) -> Result<Vec<u8>> {
         self.pubkey_bytes(key, false)
-    }
-    pub fn verify_signature(&self, public_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<()> {
-        match self {
-            Algorithm::P256 => verify_signature::<NistP256>(public_key, msg, signature),
-            Algorithm::Secp256k1 => verify_signature::<Secp256k1>(public_key, msg, signature),
-        }
     }
     fn pubkey_bytes(&self, key: &[u8], compress: bool) -> Result<Vec<u8>> {
         Ok(match self {

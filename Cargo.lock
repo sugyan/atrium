@@ -174,6 +174,8 @@ dependencies = [
  "multibase",
  "p256",
  "rand",
+ "serde",
+ "serde_json",
  "thiserror",
 ]
 
@@ -1182,7 +1184,6 @@ dependencies = [
  "cfg-if",
  "ecdsa",
  "elliptic-curve",
- "once_cell",
  "sha2",
 ]
 

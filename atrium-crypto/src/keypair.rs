@@ -6,12 +6,9 @@ use ecdsa::elliptic_curve::{
     subtle::CtOption,
     AffinePoint, CurveArithmetic, FieldBytesSize, PrimeCurve, Scalar,
 };
-use ecdsa::hazmat::{DigestPrimitive, SignPrimitive, VerifyPrimitive};
-use ecdsa::signature::{
-    rand_core::CryptoRngCore,
-    {Signer, Verifier},
-};
-use ecdsa::{Signature, SignatureSize, SigningKey, VerifyingKey};
+use ecdsa::hazmat::{DigestPrimitive, SignPrimitive};
+use ecdsa::signature::{rand_core::CryptoRngCore, Signer};
+use ecdsa::{Signature, SignatureSize, SigningKey};
 use k256::Secp256k1;
 use p256::NistP256;
 
@@ -66,7 +63,11 @@ where
 {
     pub fn sign(&self, msg: &[u8]) -> Result<Vec<u8>> {
         let signature: Signature<_> = self.signing_key.try_sign(msg)?;
-        Ok(signature.to_bytes().to_vec())
+        Ok(signature
+            .normalize_s()
+            .unwrap_or(signature)
+            .to_bytes()
+            .to_vec())
     }
 }
 
@@ -107,22 +108,11 @@ impl Did<Secp256k1> for Secp256k1Keypair {
     }
 }
 
-pub(crate) fn verify_signature<C>(public_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<()>
-where
-    C: PrimeCurve + CurveArithmetic + DigestPrimitive,
-    AffinePoint<C>: VerifyPrimitive<C> + FromEncodedPoint<C> + ToEncodedPoint<C>,
-    FieldBytesSize<C>: ModulusSize,
-    SignatureSize<C>: ArrayLength<u8>,
-{
-    let verifying_key = VerifyingKey::<C>::from_sec1_bytes(public_key)?;
-    let signature = Signature::from_slice(signature)?;
-    Ok(verifying_key.verify(msg, &signature)?)
-}
-
 #[cfg(test)]
 mod tests {
     use super::{P256Keypair, Secp256k1Keypair};
     use crate::did::{format_did_key, parse_did_key};
+    use crate::verify::Verifier;
     use crate::Algorithm;
     use rand::rngs::ThreadRng;
 
@@ -217,27 +207,30 @@ mod tests {
         let (alg, public_key) = parse_did_key(&did).expect("parsing did key should succeed");
         assert_eq!(alg, Algorithm::P256);
 
+        let verifier = Verifier::default();
         let msg = [1, 2, 3, 4, 5, 6, 7, 8];
         let signature = keypair.sign(&msg).expect("signing should succeed");
         let mut corrupted_signature = signature.clone();
         corrupted_signature[0] = corrupted_signature[0].wrapping_add(1);
         assert!(
-            alg.verify_signature(&public_key, &msg, &signature).is_ok(),
+            verifier.verify(alg, &public_key, &msg, &signature).is_ok(),
             "verifying signature should succeed"
         );
         assert!(
-            alg.verify_signature(&public_key, &msg[..7], &signature)
+            verifier
+                .verify(alg, &public_key, &msg[..7], &signature)
                 .is_err(),
             "verifying signature should fail with incorrect message"
         );
         assert!(
-            alg.verify_signature(&public_key, &msg, &corrupted_signature)
+            verifier
+                .verify(alg, &public_key, &msg, &corrupted_signature)
                 .is_err(),
             "verifying signature should fail with incorrect signature"
         );
         assert!(
-            Algorithm::Secp256k1
-                .verify_signature(&public_key, &msg, &signature)
+            verifier
+                .verify(Algorithm::Secp256k1, &public_key, &msg, &signature)
                 .is_err(),
             "verifying signature should fail with incorrect algorithm"
         );
@@ -253,27 +246,30 @@ mod tests {
         let (alg, public_key) = parse_did_key(&did).expect("parsing did key should succeed");
         assert_eq!(alg, Algorithm::Secp256k1);
 
+        let verifier = Verifier::default();
         let msg = [1, 2, 3, 4, 5, 6, 7, 8];
         let signature = keypair.sign(&msg).expect("signing should succeed");
         let mut corrupted_signature = signature.clone();
         corrupted_signature[0] = corrupted_signature[0].wrapping_add(1);
         assert!(
-            alg.verify_signature(&public_key, &msg, &signature).is_ok(),
+            verifier.verify(alg, &public_key, &msg, &signature).is_ok(),
             "verifying signature should succeed"
         );
         assert!(
-            alg.verify_signature(&public_key, &msg[..7], &signature)
+            verifier
+                .verify(alg, &public_key, &msg[..7], &signature)
                 .is_err(),
             "verifying signature should fail with incorrect message"
         );
         assert!(
-            alg.verify_signature(&public_key, &msg, &corrupted_signature)
+            verifier
+                .verify(alg, &public_key, &msg, &corrupted_signature)
                 .is_err(),
             "verifying signature should fail with incorrect signature"
         );
         assert!(
-            Algorithm::P256
-                .verify_signature(&public_key, &msg, &signature)
+            verifier
+                .verify(Algorithm::P256, &public_key, &msg, &signature)
                 .is_err(),
             "verifying signature should fail with incorrect algorithm"
         );

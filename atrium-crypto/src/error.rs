@@ -6,6 +6,10 @@ pub enum Error {
     UnsupportedMultikeyType,
     #[error("Incorrect prefix for did:key: {0}")]
     IncorrectDIDKeyPrefix(String),
+    #[error("Low-S Signature is not allowed")]
+    LowSSignatureNotAllowed,
+    #[error("Signature is invalid")]
+    InvalidSignature,
     #[error(transparent)]
     Multibase(#[from] multibase::Error),
     #[error(transparent)]
