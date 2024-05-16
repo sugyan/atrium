@@ -1,4 +1,6 @@
-use crate::{did::prefix_did_key, error::Result, Algorithm};
+use crate::did::prefix_did_key;
+use crate::error::Result;
+use crate::Algorithm;
 use ecdsa::elliptic_curve::{
     generic_array::ArrayLength,
     ops::Invert,

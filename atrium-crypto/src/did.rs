@@ -1,11 +1,12 @@
-use super::error::{Error, Result};
-use super::{Algorithm, DID_KEY_PREFIX};
+use crate::encoding::{compress_pubkey, decompress_pubkey};
+use crate::error::{Error, Result};
+use crate::{Algorithm, DID_KEY_PREFIX};
 
 pub fn parse_multikey(multikey: &str) -> Result<(Algorithm, Vec<u8>)> {
     let (_, decoded) = multibase::decode(multikey)?;
     if let Ok(prefix) = decoded[..2].try_into() {
         if let Some(alg) = Algorithm::from_prefix(prefix) {
-            return Ok((alg, alg.decompress_pubkey(&decoded[2..])?));
+            return Ok((alg, decompress_pubkey(alg, &decoded[2..])?));
         }
     }
     Err(Error::UnsupportedMultikeyType)
@@ -19,13 +20,10 @@ pub fn parse_did_key(did: &str) -> Result<(Algorithm, Vec<u8>)> {
     }
 }
 
-pub fn format_did_key_str(alg: Algorithm, s: &str) -> Result<String> {
-    let (_, key) = multibase::decode(s)?;
-    format_did_key(alg, &key)
-}
-
 pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
-    Ok(prefix_did_key(&alg.format_multikey(key)?))
+    Ok(prefix_did_key(
+        &alg.format_mulikey_compressed(&compress_pubkey(alg, key)?),
+    ))
 }
 
 pub(crate) fn prefix_did_key(multikey: &str) -> String {

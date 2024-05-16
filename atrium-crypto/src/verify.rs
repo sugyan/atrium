@@ -1,8 +1,7 @@
-use crate::{
-    did::parse_did_key,
-    error::{Error, Result},
-    Algorithm,
-};
+use crate::did::parse_did_key;
+use crate::error::{Error, Result};
+use crate::Algorithm;
+use ecdsa::der::{MaxOverhead, MaxSize};
 use ecdsa::elliptic_curve::{
     generic_array::ArrayLength,
     sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint},
@@ -12,6 +11,7 @@ use ecdsa::hazmat::{DigestPrimitive, VerifyPrimitive};
 use ecdsa::{SignatureSize, VerifyingKey};
 use k256::Secp256k1;
 use p256::NistP256;
+use std::ops::Add;
 
 pub fn verify_signature(did_key: &str, msg: &[u8], signature: &[u8]) -> Result<()> {
     let (alg, public_key) = parse_did_key(did_key)?;
@@ -23,8 +23,6 @@ pub struct Verifier {
     allow_malleable: bool,
 }
 
-use ecdsa::der::{MaxOverhead, MaxSize};
-use std::ops::Add;
 impl Verifier {
     pub fn new(allow_malleable: bool) -> Self {
         Self { allow_malleable }
@@ -47,7 +45,6 @@ impl Verifier {
         AffinePoint<C>: VerifyPrimitive<C> + FromEncodedPoint<C> + ToEncodedPoint<C>,
         FieldBytesSize<C>: ModulusSize,
         SignatureSize<C>: ArrayLength<u8>,
-
         MaxSize<C>: ArrayLength<u8>,
         <FieldBytesSize<C> as Add>::Output: Add<MaxOverhead> + ArrayLength<u8>,
     {
@@ -160,7 +157,7 @@ mod tests {
     }
 
     #[test]
-    fn verify_high_s_signatures() {
+    fn verify_high_s() {
         let vectors = test_vectors(Some("high-s"));
         assert!(vectors.len() >= 2);
         let verifier = Verifier::new(true);
