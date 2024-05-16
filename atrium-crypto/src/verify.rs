@@ -93,7 +93,9 @@ impl Verifier {
                 msg,
                 &signature,
             )?)
-        } else if self.allow_malleable {
+        }
+        // signature may be DER-encoded. If `allow_malleable` is true, try to parse and use it.
+        else if self.allow_malleable {
             let signature = ecdsa::der::Signature::from_bytes(bytes)?;
             Ok(ecdsa::signature::Verifier::verify(
                 &verifying_key,
