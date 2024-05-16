@@ -1,0 +1,35 @@
+[package]
+name = "atrium-libs"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "A collection of libraries for AT Protocol"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+atrium-crypto = { workspace = true, optional = true }
+async-trait = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
+thiserror = { workspace = true, optional = true }
+url = { workspace = true, optional = true }
+urlencoding = { workspace = true, optional = true }
+
+[dev-dependencies]
+mockito = { workspace = true }
+reqwest = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
+
+[features]
+default = ["common-web", "identity"]
+atproto-data = ["atrium-crypto"]
+common-web = ["http", "serde/derive"]
+identity = ["common-web", "async-trait", "serde_json", "thiserror", "url", "urlencoding"]
