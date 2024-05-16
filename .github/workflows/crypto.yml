@@ -19,4 +19,4 @@ jobs:
           cargo build -p atrium-crypto --verbose
       - name: Run tests
         run: |
-          cargo test -p atrium-crypto --lib
+          cargo test -p atrium-crypto
