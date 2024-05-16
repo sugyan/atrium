@@ -1,3 +1,4 @@
+//! Keypair structs for signing, and utility trait implementations.
 use crate::did::prefix_did_key;
 use crate::error::Result;
 use crate::Algorithm;
@@ -14,6 +15,7 @@ use ecdsa::{Signature, SignatureSize, SigningKey};
 use k256::Secp256k1;
 use p256::NistP256;
 
+/// A keypair for signing messages.
 pub struct Keypair<C>
 where
     C: PrimeCurve + CurveArithmetic,
@@ -29,14 +31,22 @@ where
     Scalar<C>: Invert<Output = CtOption<Scalar<C>>> + SignPrimitive<C>,
     SignatureSize<C>: ArrayLength<u8>,
 {
+    /// Generate a cryptographically random [`SigningKey`].
+    ///
+    /// ```
+    /// use atrium_crypto::keypair::Keypair;
+    ///
+    /// let keypair = Keypair::<k256::Secp256k1>::create(&mut rand::thread_rng());
+    /// ```
     pub fn create(rng: &mut impl CryptoRngCore) -> Self {
         Self {
             signing_key: SigningKey::<C>::random(rng),
         }
     }
-    pub fn import(priv_key: &[u8]) -> Result<Self> {
+    /// Initialize signing key from a raw scalar serialized as a byte slice.
+    pub fn import(bytes: &[u8]) -> Result<Self> {
         Ok(Self {
-            signing_key: SigningKey::from_slice(priv_key)?,
+            signing_key: SigningKey::from_slice(bytes)?,
         })
     }
 }
@@ -63,6 +73,12 @@ where
     Scalar<C>: Invert<Output = CtOption<Scalar<C>>> + SignPrimitive<C>,
     SignatureSize<C>: ArrayLength<u8>,
 {
+    /// Sign a message with the keypair.
+    ///
+    /// Returns the signature as a byte vector of the "low-S" form.
+    ///
+    /// Details:
+    /// [https://atproto.com/specs/cryptography#ecdsa-signature-malleability](https://atproto.com/specs/cryptography#ecdsa-signature-malleability)
     pub fn sign(&self, msg: &[u8]) -> Result<Vec<u8>> {
         let signature: Signature<_> = self.signing_key.try_sign(msg)?;
         Ok(signature
@@ -73,10 +89,12 @@ where
     }
 }
 
+/// Generate a DID key string from a keypair.
 pub trait Did<C> {
     fn did(&self) -> String;
 }
 
+/// Export a keypair as a byte vector.
 pub trait Export<C> {
     fn export(&self) -> Vec<u8>;
 }
@@ -92,6 +110,7 @@ where
     }
 }
 
+/// Type alias for a P-256 keypair.
 pub type P256Keypair = Keypair<NistP256>;
 
 impl Did<NistP256> for P256Keypair {
@@ -100,6 +119,7 @@ impl Did<NistP256> for P256Keypair {
     }
 }
 
+/// Type alias for a secp256k1 keypair.
 pub type Secp256k1Keypair = Keypair<Secp256k1>;
 
 impl Did<Secp256k1> for Secp256k1Keypair {

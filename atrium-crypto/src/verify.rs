@@ -1,3 +1,4 @@
+//! Verifies a signature for a message using a public key.
 use crate::did::parse_did_key;
 use crate::error::{Error, Result};
 use crate::Algorithm;
@@ -13,20 +14,49 @@ use k256::Secp256k1;
 use p256::NistP256;
 use std::ops::Add;
 
+/// Verify a signature for a message using the given DID key formatted public key.
+///
+/// This function verifies a signature using [`Verifier::default()`].
+///
+/// # Examples
+///
+/// ```
+/// use atrium_crypto::verify::verify_signature;
+///
+/// # fn main() -> atrium_crypto::Result<()> {
+/// let did_key = "did:key:zQ3shtNTBUUCARYFEkRPZQ9NCaM5i5hVHPeEsEKXpmVkR2Upq";
+/// let signature = hex::decode(
+///     "fdaa28ab03d6767c11d71fa39627c770ff62f91ca9661401ca0e2c475ae96a8c27064fbde3c355fa8121d2e8bbcf87a2de308e1d72b9bf4270f1e7cd8a1575ab"
+/// ).unwrap();
+/// assert!(verify_signature(did_key, b"Hello, world!", &signature).is_ok());
+/// assert!(verify_signature(did_key, b"Hello, world?", &signature).is_err());
+/// # Ok(())
+/// # }
+/// ```
 pub fn verify_signature(did_key: &str, msg: &[u8], signature: &[u8]) -> Result<()> {
     let (alg, public_key) = parse_did_key(did_key)?;
     Verifier::default().verify(alg, &public_key, msg, signature)
 }
 
+/// Verifier for verifying signatures for a message using a public key.
+///
+/// This verifier can be configured to `allow_malleable` mode, which allows
+/// verifying signatures with "high-S" or DER-encoded ones.
+/// By default, this verifier allows only "low-S" signatures.
+///
+/// See also: [https://github.com/bluesky-social/atproto/pull/1839](https://github.com/bluesky-social/atproto/pull/1839)
 #[derive(Debug, Default)]
 pub struct Verifier {
     allow_malleable: bool,
 }
 
 impl Verifier {
+    /// Create a new verifier with the given malleable mode.
     pub fn new(allow_malleable: bool) -> Self {
         Self { allow_malleable }
     }
+    /// Verify a signature for a message using the given public key.
+    /// The `algorithm` is used to determine the curve for the public key.
     pub fn verify(
         &self,
         algorithm: Algorithm,
@@ -39,7 +69,9 @@ impl Verifier {
             Algorithm::Secp256k1 => self.verify_inner::<Secp256k1>(public_key, msg, signature),
         }
     }
-    fn verify_inner<C>(&self, public_key: &[u8], msg: &[u8], signature: &[u8]) -> Result<()>
+    /// Verify a signature for a message using the given public key.
+    /// Any elliptic curve of the generics implementation of [`ECDSA`](ecdsa) can be used for parameter `C`.
+    pub fn verify_inner<C>(&self, public_key: &[u8], msg: &[u8], bytes: &[u8]) -> Result<()>
     where
         C: PrimeCurve + CurveArithmetic + DigestPrimitive,
         AffinePoint<C>: VerifyPrimitive<C> + FromEncodedPoint<C> + ToEncodedPoint<C>,
@@ -49,7 +81,7 @@ impl Verifier {
         <FieldBytesSize<C> as Add>::Output: Add<MaxOverhead> + ArrayLength<u8>,
     {
         let verifying_key = VerifyingKey::<C>::from_sec1_bytes(public_key)?;
-        if let Ok(mut signature) = ecdsa::Signature::from_slice(signature) {
+        if let Ok(mut signature) = ecdsa::Signature::from_slice(bytes) {
             if let Some(normalized) = signature.normalize_s() {
                 if !self.allow_malleable {
                     return Err(Error::LowSSignatureNotAllowed);
@@ -62,7 +94,7 @@ impl Verifier {
                 &signature,
             )?)
         } else if self.allow_malleable {
-            let signature = ecdsa::der::Signature::from_bytes(signature)?;
+            let signature = ecdsa::der::Signature::from_bytes(bytes)?;
             Ok(ecdsa::signature::Verifier::verify(
                 &verifying_key,
                 msg,

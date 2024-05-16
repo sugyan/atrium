@@ -1,5 +1,6 @@
 use crate::common_web::did_doc::DidDocument;
-use atrium_crypto::did::{format_did_key, format_did_key_str, parse_multikey};
+use atrium_crypto::did::{format_did_key, parse_multikey};
+use atrium_crypto::multibase;
 use atrium_crypto::Algorithm;
 use thiserror::Error;
 
@@ -12,7 +13,9 @@ pub enum Error {
     #[error("Could not parse pds from doc: {0:?}")]
     Pds(DidDocument),
     #[error(transparent)]
-    Crypto(#[from] atrium_crypto::error::Error),
+    Crypto(#[from] atrium_crypto::Error),
+    #[error(transparent)]
+    Multibase(#[from] multibase::Error),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -50,12 +53,13 @@ fn get_did_key_from_multibase(
 ) -> Result<Option<String>> {
     Ok(match r#type.as_str() {
         "EcdsaSecp256r1VerificationKey2019" => {
-            Some(format_did_key_str(Algorithm::P256, &public_key_multibase)?)
+            let (_, key) = multibase::decode(public_key_multibase)?;
+            Some(format_did_key(Algorithm::P256, &key)?)
         }
-        "EcdsaSecp256k1VerificationKey2019" => Some(format_did_key_str(
-            Algorithm::Secp256k1,
-            &public_key_multibase,
-        )?),
+        "EcdsaSecp256k1VerificationKey2019" => {
+            let (_, key) = multibase::decode(public_key_multibase)?;
+            Some(format_did_key(Algorithm::Secp256k1, &key)?)
+        }
         "Multikey" => {
             let (alg, key) = parse_multikey(&public_key_multibase)?;
             Some(format_did_key(alg, &key)?)

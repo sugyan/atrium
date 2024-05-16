@@ -1,17 +1,59 @@
+//! Functions for parsing and formatting DID keys.
 use crate::encoding::{compress_pubkey, decompress_pubkey};
 use crate::error::{Error, Result};
 use crate::{Algorithm, DID_KEY_PREFIX};
 
-pub fn parse_multikey(multikey: &str) -> Result<(Algorithm, Vec<u8>)> {
-    let (_, decoded) = multibase::decode(multikey)?;
-    if let Ok(prefix) = decoded[..2].try_into() {
-        if let Some(alg) = Algorithm::from_prefix(prefix) {
-            return Ok((alg, decompress_pubkey(alg, &decoded[2..])?));
-        }
-    }
-    Err(Error::UnsupportedMultikeyType)
+/// Format a public key as a DID key string.
+///
+/// The public key will be compressed and encoded with multibase and multicode.
+/// The resulting string will start with `did:key:`.
+///
+/// Details:
+/// [https://atproto.com/specs/cryptography#public-key-encoding](https://atproto.com/specs/cryptography#public-key-encoding)
+///
+/// # Examples
+///
+/// ```
+/// use atrium_crypto::Algorithm;
+/// use atrium_crypto::did::format_did_key;
+///
+/// # fn main() -> atrium_crypto::Result<()> {
+/// let signing_key = ecdsa::SigningKey::<k256::Secp256k1>::from_slice(
+///     &hex::decode("9085d2bef69286a6cbb51623c8fa258629945cd55ca705cc4e66700396894e0c").unwrap()
+/// )?;
+/// let public_key = signing_key.verifying_key();
+/// let did_key = format_did_key(Algorithm::Secp256k1, &public_key.to_sec1_bytes())?;
+/// assert_eq!(did_key, "did:key:zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme");
+/// # Ok(())
+/// # }
+/// ```
+pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
+    Ok(prefix_did_key(
+        &alg.format_mulikey_compressed(&compress_pubkey(alg, key)?),
+    ))
 }
 
+/// Parse a DID key string.
+///
+/// Input should be a string starting with `did:key:`.
+/// The rest of the string is the multibase and multicode encoded public key,
+/// which will be parsed with [`parse_multikey`].
+///
+/// Returns the parsed [`Algorithm`] and bytes of the public key.
+///
+/// # Examples
+///
+/// ```
+/// use atrium_crypto::Algorithm;
+/// use atrium_crypto::did::parse_did_key;
+///
+/// # fn main() -> atrium_crypto::Result<()> {
+/// let (alg, key): (Algorithm, Vec<u8>) = parse_did_key("did:key:zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme")?;
+/// assert_eq!(alg, Algorithm::Secp256k1);
+/// assert_eq!(key.len(), 65);
+/// # Ok(())
+/// # }
+/// ```
 pub fn parse_did_key(did: &str) -> Result<(Algorithm, Vec<u8>)> {
     if let Some(multikey) = did.strip_prefix(DID_KEY_PREFIX) {
         parse_multikey(multikey)
@@ -20,10 +62,34 @@ pub fn parse_did_key(did: &str) -> Result<(Algorithm, Vec<u8>)> {
     }
 }
 
-pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
-    Ok(prefix_did_key(
-        &alg.format_mulikey_compressed(&compress_pubkey(alg, key)?),
-    ))
+/// Parse a multibase and multicode encoded public key string.
+///
+/// Details:
+/// [https://atproto.com/specs/cryptography#public-key-encoding](https://atproto.com/specs/cryptography#public-key-encoding)
+///
+/// Returns the parsed [`Algorithm`] and bytes of the public key.
+///
+/// # Examples
+///
+/// ```
+/// use atrium_crypto::Algorithm;
+/// use atrium_crypto::did::parse_multikey;
+///
+/// # fn main() -> atrium_crypto::Result<()> {
+/// let (alg, key): (Algorithm, Vec<u8>) = parse_multikey("zQ3shokFTS3brHcDQrn82RUDfCZESWL1ZdCEJwekUDPQiYBme")?;
+/// assert_eq!(alg, Algorithm::Secp256k1);
+/// assert_eq!(key.len(), 65);
+/// # Ok(())
+/// # }
+/// ```
+pub fn parse_multikey(multikey: &str) -> Result<(Algorithm, Vec<u8>)> {
+    let (_, decoded) = multibase::decode(multikey)?;
+    if let Ok(prefix) = decoded[..2].try_into() {
+        if let Some(alg) = Algorithm::from_prefix(prefix) {
+            return Ok((alg, decompress_pubkey(alg, &decoded[2..])?));
+        }
+    }
+    Err(Error::UnsupportedMultikeyType)
 }
 
 pub(crate) fn prefix_did_key(multikey: &str) -> String {
