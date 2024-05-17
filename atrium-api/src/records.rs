@@ -33,4 +33,6 @@ pub enum KnownRecord {
     AppBskyGraphListitem(Box<crate::app::bsky::graph::listitem::Record>),
     #[serde(rename = "app.bsky.labeler.service")]
     AppBskyLabelerService(Box<crate::app::bsky::labeler::service::Record>),
+    #[serde(rename = "chat.bsky.actor.declaration")]
+    ChatBskyActorDeclaration(Box<crate::chat::bsky::actor::declaration::Record>),
 }

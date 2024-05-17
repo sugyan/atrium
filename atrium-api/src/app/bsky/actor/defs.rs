@@ -85,11 +85,18 @@ pub type Preferences = Vec<crate::types::Union<PreferencesItem>>;
 #[serde(rename_all = "camelCase")]
 pub struct ProfileAssociated {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub chat: Option<ProfileAssociatedChat>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub feedgens: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labeler: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lists: Option<i64>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileAssociatedChat {
+    pub allow_incoming: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
