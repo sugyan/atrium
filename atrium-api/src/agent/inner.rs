@@ -1,8 +1,8 @@
 use super::{Session, SessionStore};
 use crate::did_doc::DidDocument;
 use async_trait::async_trait;
-use atrium_xrpc::error::{Error, XrpcErrorKind};
-use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest, XrpcResult};
+use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
+use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response, Uri};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::{Arc, RwLock};
@@ -25,7 +25,8 @@ where
     async fn send_http(
         &self,
         request: Request<Vec<u8>>,
-    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
+    {
         self.inner.send_http(request).await
     }
 }
@@ -113,7 +114,7 @@ where
         &self,
     ) -> Result<
         crate::com::atproto::server::refresh_session::Output,
-        Error<crate::com::atproto::server::refresh_session::Error>,
+        crate::com::atproto::server::refresh_session::Error,
     > {
         let response = self
             .inner
@@ -130,7 +131,7 @@ where
             _ => Err(Error::UnexpectedResponseType),
         }
     }
-    fn is_expired<O, E>(result: &XrpcResult<O, E>) -> bool
+    fn is_expired<O, E>(result: &Result<OutputDataOrBytes<O>, E>) -> bool
     where
         O: DeserializeOwned + Send + Sync,
         E: DeserializeOwned + Send + Sync,
@@ -156,7 +157,8 @@ where
     async fn send_http(
         &self,
         request: Request<Vec<u8>>,
-    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
+    {
         self.inner.send_http(request).await
     }
 }
@@ -171,7 +173,10 @@ where
     fn base_uri(&self) -> String {
         self.inner.base_uri()
     }
-    async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
+    async fn send_xrpc<P, I, O, E>(
+        &self,
+        request: &XrpcRequest<P, I>,
+    ) -> Result<OutputDataOrBytes<O>, E>
     where
         P: Serialize + Send + Sync,
         I: Serialize + Send + Sync,
