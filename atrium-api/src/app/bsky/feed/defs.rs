@@ -125,6 +125,9 @@ pub struct ReasonRepost {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplyRef {
+    ///When parent is a reply to another post, this is the author of that post.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub grandparent_author: Option<crate::app::bsky::actor::defs::ProfileViewBasic>,
     pub parent: crate::types::Union<ReplyRefParentRefs>,
     pub root: crate::types::Union<ReplyRefRootRefs>,
 }

@@ -22,6 +22,7 @@ where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
     pub app: app::Service<T>,
+    pub chat: chat::Service<T>,
     pub com: com::Service<T>,
     pub tools: tools::Service<T>,
 }
@@ -85,6 +86,48 @@ pub mod app {
             }
         }
         pub mod unspecced {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+            }
+        }
+    }
+}
+pub mod chat {
+    pub struct Service<T>
+    where
+        T: atrium_xrpc::XrpcClient + Send + Sync,
+    {
+        pub bsky: bsky::Service<T>,
+    }
+    pub mod bsky {
+        pub struct Service<T>
+        where
+            T: atrium_xrpc::XrpcClient + Send + Sync,
+        {
+            pub actor: actor::Service<T>,
+            pub convo: convo::Service<T>,
+            pub moderation: moderation::Service<T>,
+        }
+        pub mod actor {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+            }
+        }
+        pub mod convo {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+            }
+        }
+        pub mod moderation {
             pub struct Service<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -221,6 +264,7 @@ where
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             app: app::Service::new(std::sync::Arc::clone(&xrpc)),
+            chat: chat::Service::new(std::sync::Arc::clone(&xrpc)),
             com: com::Service::new(std::sync::Arc::clone(&xrpc)),
             tools: tools::Service::new(std::sync::Arc::clone(&xrpc)),
         }
@@ -264,9 +308,9 @@ where
     pub async fn get_preferences(
         &self,
         params: crate::app::bsky::actor::get_preferences::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::actor::get_preferences::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::actor::get_preferences::Error>,
+        crate::app::bsky::actor::get_preferences::Error,
     > {
         let response = self
             .xrpc
@@ -287,16 +331,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get detailed profile view of an actor. Does not require auth, but contains relevant metadata with auth.
     pub async fn get_profile(
         &self,
         params: crate::app::bsky::actor::get_profile::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::actor::get_profile::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::actor::get_profile::Error>,
+        crate::app::bsky::actor::get_profile::Error,
     > {
         let response = self
             .xrpc
@@ -317,16 +361,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get detailed profile views of multiple actors.
     pub async fn get_profiles(
         &self,
         params: crate::app::bsky::actor::get_profiles::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::actor::get_profiles::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::actor::get_profiles::Error>,
+        crate::app::bsky::actor::get_profiles::Error,
     > {
         let response = self
             .xrpc
@@ -347,16 +391,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a list of suggested actors. Expected use is discovery of accounts to follow during new account onboarding.
     pub async fn get_suggestions(
         &self,
         params: crate::app::bsky::actor::get_suggestions::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::actor::get_suggestions::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::actor::get_suggestions::Error>,
+        crate::app::bsky::actor::get_suggestions::Error,
     > {
         let response = self
             .xrpc
@@ -377,17 +421,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Set the private preferences attached to the account.
     pub async fn put_preferences(
         &self,
         input: crate::app::bsky::actor::put_preferences::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::actor::put_preferences::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::actor::put_preferences::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -407,16 +448,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Find actors (profiles) matching search criteria. Does not require auth.
     pub async fn search_actors(
         &self,
         params: crate::app::bsky::actor::search_actors::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::actor::search_actors::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::actor::search_actors::Error>,
+        crate::app::bsky::actor::search_actors::Error,
     > {
         let response = self
             .xrpc
@@ -437,18 +478,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Find actor suggestions for a prefix search term. Expected use is for auto-completion during text field entry. Does not require auth.
     pub async fn search_actors_typeahead(
         &self,
         params: crate::app::bsky::actor::search_actors_typeahead::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::actor::search_actors_typeahead::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::actor::search_actors_typeahead::Error,
-        >,
+        crate::app::bsky::actor::search_actors_typeahead::Error,
     > {
         let response = self
             .xrpc
@@ -469,7 +508,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -483,9 +522,9 @@ where
     ///Get information about a feed generator, including policies and offered feed URIs. Does not require auth; implemented by Feed Generator services (not App View).
     pub async fn describe_feed_generator(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::describe_feed_generator::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::describe_feed_generator::Error>,
+        crate::app::bsky::feed::describe_feed_generator::Error,
     > {
         let response = self
             .xrpc
@@ -506,16 +545,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a list of feeds (feed generator records) created by the actor (in the actor's repo).
     pub async fn get_actor_feeds(
         &self,
         params: crate::app::bsky::feed::get_actor_feeds::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_actor_feeds::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_actor_feeds::Error>,
+        crate::app::bsky::feed::get_actor_feeds::Error,
     > {
         let response = self
             .xrpc
@@ -536,16 +575,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a list of posts liked by an actor. Does not require auth.
     pub async fn get_actor_likes(
         &self,
         params: crate::app::bsky::feed::get_actor_likes::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_actor_likes::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_actor_likes::Error>,
+        crate::app::bsky::feed::get_actor_likes::Error,
     > {
         let response = self
             .xrpc
@@ -566,16 +605,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a view of an actor's 'author feed' (post and reposts by the author). Does not require auth.
     pub async fn get_author_feed(
         &self,
         params: crate::app::bsky::feed::get_author_feed::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_author_feed::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_author_feed::Error>,
+        crate::app::bsky::feed::get_author_feed::Error,
     > {
         let response = self
             .xrpc
@@ -596,16 +635,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a hydrated feed from an actor's selected feed generator. Implemented by App View.
     pub async fn get_feed(
         &self,
         params: crate::app::bsky::feed::get_feed::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_feed::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_feed::Error>,
+        crate::app::bsky::feed::get_feed::Error,
     > {
         let response = self
             .xrpc
@@ -626,16 +665,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get information about a feed generator. Implemented by AppView.
     pub async fn get_feed_generator(
         &self,
         params: crate::app::bsky::feed::get_feed_generator::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_feed_generator::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_feed_generator::Error>,
+        crate::app::bsky::feed::get_feed_generator::Error,
     > {
         let response = self
             .xrpc
@@ -656,16 +695,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get information about a list of feed generators.
     pub async fn get_feed_generators(
         &self,
         params: crate::app::bsky::feed::get_feed_generators::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_feed_generators::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_feed_generators::Error>,
+        crate::app::bsky::feed::get_feed_generators::Error,
     > {
         let response = self
             .xrpc
@@ -686,16 +725,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a skeleton of a feed provided by a feed generator. Auth is optional, depending on provider requirements, and provides the DID of the requester. Implemented by Feed Generator Service.
     pub async fn get_feed_skeleton(
         &self,
         params: crate::app::bsky::feed::get_feed_skeleton::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_feed_skeleton::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_feed_skeleton::Error>,
+        crate::app::bsky::feed::get_feed_skeleton::Error,
     > {
         let response = self
             .xrpc
@@ -716,16 +755,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get like records which reference a subject (by AT-URI and CID).
     pub async fn get_likes(
         &self,
         params: crate::app::bsky::feed::get_likes::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_likes::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_likes::Error>,
+        crate::app::bsky::feed::get_likes::Error,
     > {
         let response = self
             .xrpc
@@ -746,16 +785,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a feed of recent posts from a list (posts and reposts from any actors on the list). Does not require auth.
     pub async fn get_list_feed(
         &self,
         params: crate::app::bsky::feed::get_list_feed::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_list_feed::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_list_feed::Error>,
+        crate::app::bsky::feed::get_list_feed::Error,
     > {
         let response = self
             .xrpc
@@ -776,16 +815,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get posts in a thread. Does not require auth, but additional metadata and filtering will be applied for authed requests.
     pub async fn get_post_thread(
         &self,
         params: crate::app::bsky::feed::get_post_thread::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_post_thread::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_post_thread::Error>,
+        crate::app::bsky::feed::get_post_thread::Error,
     > {
         let response = self
             .xrpc
@@ -806,16 +845,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Gets post views for a specified list of posts (by AT-URI). This is sometimes referred to as 'hydrating' a 'feed skeleton'.
     pub async fn get_posts(
         &self,
         params: crate::app::bsky::feed::get_posts::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_posts::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_posts::Error>,
+        crate::app::bsky::feed::get_posts::Error,
     > {
         let response = self
             .xrpc
@@ -836,16 +875,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a list of reposts for a given post.
     pub async fn get_reposted_by(
         &self,
         params: crate::app::bsky::feed::get_reposted_by::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_reposted_by::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_reposted_by::Error>,
+        crate::app::bsky::feed::get_reposted_by::Error,
     > {
         let response = self
             .xrpc
@@ -866,16 +905,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a list of suggested feeds (feed generators) for the requesting account.
     pub async fn get_suggested_feeds(
         &self,
         params: crate::app::bsky::feed::get_suggested_feeds::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_suggested_feeds::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_suggested_feeds::Error>,
+        crate::app::bsky::feed::get_suggested_feeds::Error,
     > {
         let response = self
             .xrpc
@@ -896,16 +935,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a view of the requesting account's home timeline. This is expected to be some form of reverse-chronological feed.
     pub async fn get_timeline(
         &self,
         params: crate::app::bsky::feed::get_timeline::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::get_timeline::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::get_timeline::Error>,
+        crate::app::bsky::feed::get_timeline::Error,
     > {
         let response = self
             .xrpc
@@ -926,16 +965,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Find posts matching search criteria, returning views of those posts.
     pub async fn search_posts(
         &self,
         params: crate::app::bsky::feed::search_posts::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::search_posts::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::search_posts::Error>,
+        crate::app::bsky::feed::search_posts::Error,
     > {
         let response = self
             .xrpc
@@ -956,16 +995,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Send information about interactions with feed items back to the feed generator that served them.
     pub async fn send_interactions(
         &self,
         input: crate::app::bsky::feed::send_interactions::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::feed::send_interactions::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::feed::send_interactions::Error>,
+        crate::app::bsky::feed::send_interactions::Error,
     > {
         let response = self
             .xrpc
@@ -986,7 +1025,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -1001,9 +1040,9 @@ where
     pub async fn get_blocks(
         &self,
         params: crate::app::bsky::graph::get_blocks::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_blocks::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_blocks::Error>,
+        crate::app::bsky::graph::get_blocks::Error,
     > {
         let response = self
             .xrpc
@@ -1024,16 +1063,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates accounts which follow a specified account (actor).
     pub async fn get_followers(
         &self,
         params: crate::app::bsky::graph::get_followers::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_followers::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_followers::Error>,
+        crate::app::bsky::graph::get_followers::Error,
     > {
         let response = self
             .xrpc
@@ -1054,16 +1093,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates accounts which a specified account (actor) follows.
     pub async fn get_follows(
         &self,
         params: crate::app::bsky::graph::get_follows::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_follows::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_follows::Error>,
+        crate::app::bsky::graph::get_follows::Error,
     > {
         let response = self
             .xrpc
@@ -1084,16 +1123,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Gets a 'view' (with additional context) of a specified list.
     pub async fn get_list(
         &self,
         params: crate::app::bsky::graph::get_list::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_list::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_list::Error>,
+        crate::app::bsky::graph::get_list::Error,
     > {
         let response = self
             .xrpc
@@ -1114,16 +1153,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get mod lists that the requesting account (actor) is blocking. Requires auth.
     pub async fn get_list_blocks(
         &self,
         params: crate::app::bsky::graph::get_list_blocks::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_list_blocks::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_list_blocks::Error>,
+        crate::app::bsky::graph::get_list_blocks::Error,
     > {
         let response = self
             .xrpc
@@ -1144,16 +1183,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates mod lists that the requesting account (actor) currently has muted. Requires auth.
     pub async fn get_list_mutes(
         &self,
         params: crate::app::bsky::graph::get_list_mutes::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_list_mutes::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_list_mutes::Error>,
+        crate::app::bsky::graph::get_list_mutes::Error,
     > {
         let response = self
             .xrpc
@@ -1174,16 +1213,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates the lists created by a specified account (actor).
     pub async fn get_lists(
         &self,
         params: crate::app::bsky::graph::get_lists::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_lists::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_lists::Error>,
+        crate::app::bsky::graph::get_lists::Error,
     > {
         let response = self
             .xrpc
@@ -1204,16 +1243,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates accounts that the requesting account (actor) currently has muted. Requires auth.
     pub async fn get_mutes(
         &self,
         params: crate::app::bsky::graph::get_mutes::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_mutes::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_mutes::Error>,
+        crate::app::bsky::graph::get_mutes::Error,
     > {
         let response = self
             .xrpc
@@ -1234,16 +1273,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates public relationships between one account, and a list of other accounts. Does not require auth.
     pub async fn get_relationships(
         &self,
         params: crate::app::bsky::graph::get_relationships::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_relationships::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::graph::get_relationships::Error>,
+        crate::app::bsky::graph::get_relationships::Error,
     > {
         let response = self
             .xrpc
@@ -1264,18 +1303,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates follows similar to a given account (actor). Expected use is to recommend additional accounts immediately after following one account.
     pub async fn get_suggested_follows_by_actor(
         &self,
         params: crate::app::bsky::graph::get_suggested_follows_by_actor::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::graph::get_suggested_follows_by_actor::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::graph::get_suggested_follows_by_actor::Error,
-        >,
+        crate::app::bsky::graph::get_suggested_follows_by_actor::Error,
     > {
         let response = self
             .xrpc
@@ -1296,17 +1333,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Creates a mute relationship for the specified account. Mutes are private in Bluesky. Requires auth.
     pub async fn mute_actor(
         &self,
         input: crate::app::bsky::graph::mute_actor::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::graph::mute_actor::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::mute_actor::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1326,17 +1360,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Creates a mute relationship for the specified list of accounts. Mutes are private in Bluesky. Requires auth.
     pub async fn mute_actor_list(
         &self,
         input: crate::app::bsky::graph::mute_actor_list::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::graph::mute_actor_list::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::mute_actor_list::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1356,17 +1387,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Unmutes the specified account. Requires auth.
     pub async fn unmute_actor(
         &self,
         input: crate::app::bsky::graph::unmute_actor::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::graph::unmute_actor::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::unmute_actor::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1386,17 +1414,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Unmutes the specified list of accounts. Requires auth.
     pub async fn unmute_actor_list(
         &self,
         input: crate::app::bsky::graph::unmute_actor_list::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::graph::unmute_actor_list::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::unmute_actor_list::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1416,7 +1441,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -1431,9 +1456,9 @@ where
     pub async fn get_services(
         &self,
         params: crate::app::bsky::labeler::get_services::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::labeler::get_services::Output,
-        atrium_xrpc::error::Error<crate::app::bsky::labeler::get_services::Error>,
+        crate::app::bsky::labeler::get_services::Error,
     > {
         let response = self
             .xrpc
@@ -1454,7 +1479,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -1469,11 +1494,9 @@ where
     pub async fn get_unread_count(
         &self,
         params: crate::app::bsky::notification::get_unread_count::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::notification::get_unread_count::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::notification::get_unread_count::Error,
-        >,
+        crate::app::bsky::notification::get_unread_count::Error,
     > {
         let response = self
             .xrpc
@@ -1494,18 +1517,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerate notifications for the requesting account. Requires auth.
     pub async fn list_notifications(
         &self,
         params: crate::app::bsky::notification::list_notifications::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::notification::list_notifications::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::notification::list_notifications::Error,
-        >,
+        crate::app::bsky::notification::list_notifications::Error,
     > {
         let response = self
             .xrpc
@@ -1526,17 +1547,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Register to receive push notifications, via a specified service, for the requesting account. Requires auth.
     pub async fn register_push(
         &self,
         input: crate::app::bsky::notification::register_push::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::notification::register_push::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::notification::register_push::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1556,17 +1574,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Notify server that the requesting account has seen notifications. Requires auth.
     pub async fn update_seen(
         &self,
         input: crate::app::bsky::notification::update_seen::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::app::bsky::notification::update_seen::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::app::bsky::notification::update_seen::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1586,7 +1601,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -1601,11 +1616,9 @@ where
     pub async fn get_popular_feed_generators(
         &self,
         params: crate::app::bsky::unspecced::get_popular_feed_generators::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::unspecced::get_popular_feed_generators::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::unspecced::get_popular_feed_generators::Error,
-        >,
+        crate::app::bsky::unspecced::get_popular_feed_generators::Error,
     > {
         let response = self
             .xrpc
@@ -1626,18 +1639,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a skeleton of suggested actors. Intended to be called and then hydrated through app.bsky.actor.getSuggestions
     pub async fn get_suggestions_skeleton(
         &self,
         params: crate::app::bsky::unspecced::get_suggestions_skeleton::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::unspecced::get_suggestions_skeleton::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::unspecced::get_suggestions_skeleton::Error,
-        >,
+        crate::app::bsky::unspecced::get_suggestions_skeleton::Error,
     > {
         let response = self
             .xrpc
@@ -1658,18 +1669,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a list of suggestions (feeds and users) tagged with categories
     pub async fn get_tagged_suggestions(
         &self,
         params: crate::app::bsky::unspecced::get_tagged_suggestions::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::unspecced::get_tagged_suggestions::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::unspecced::get_tagged_suggestions::Error,
-        >,
+        crate::app::bsky::unspecced::get_tagged_suggestions::Error,
     > {
         let response = self
             .xrpc
@@ -1690,18 +1699,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Backend Actors (profile) search, returns only skeleton.
     pub async fn search_actors_skeleton(
         &self,
         params: crate::app::bsky::unspecced::search_actors_skeleton::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::unspecced::search_actors_skeleton::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::unspecced::search_actors_skeleton::Error,
-        >,
+        crate::app::bsky::unspecced::search_actors_skeleton::Error,
     > {
         let response = self
             .xrpc
@@ -1722,18 +1729,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Backend Posts search, returns only skeleton
     pub async fn search_posts_skeleton(
         &self,
         params: crate::app::bsky::unspecced::search_posts_skeleton::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::app::bsky::unspecced::search_posts_skeleton::Output,
-        atrium_xrpc::error::Error<
-            crate::app::bsky::unspecced::search_posts_skeleton::Error,
-        >,
+        crate::app::bsky::unspecced::search_posts_skeleton::Error,
     > {
         let response = self
             .xrpc
@@ -1754,7 +1759,546 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+impl<T> chat::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            bsky: chat::bsky::Service::new(std::sync::Arc::clone(&xrpc)),
+        }
+    }
+}
+impl<T> chat::bsky::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            actor: chat::bsky::actor::Service::new(std::sync::Arc::clone(&xrpc)),
+            convo: chat::bsky::convo::Service::new(std::sync::Arc::clone(&xrpc)),
+            moderation: chat::bsky::moderation::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
+        }
+    }
+}
+impl<T> chat::bsky::actor::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self { xrpc }
+    }
+    pub async fn delete_account(
+        &self,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::actor::delete_account::Output,
+        crate::chat::bsky::actor::delete_account::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.actor.deleteAccount".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn export_account_data(
+        &self,
+    ) -> atrium_xrpc::Result<
+        Vec<u8>,
+        crate::chat::bsky::actor::export_account_data::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.actor.exportAccountData".into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+impl<T> chat::bsky::convo::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self { xrpc }
+    }
+    pub async fn delete_message_for_self(
+        &self,
+        input: crate::chat::bsky::convo::delete_message_for_self::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::delete_message_for_self::Output,
+        crate::chat::bsky::convo::delete_message_for_self::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.deleteMessageForSelf".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn get_convo(
+        &self,
+        params: crate::chat::bsky::convo::get_convo::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::get_convo::Output,
+        crate::chat::bsky::convo::get_convo::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.convo.getConvo".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn get_convo_for_members(
+        &self,
+        params: crate::chat::bsky::convo::get_convo_for_members::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::get_convo_for_members::Output,
+        crate::chat::bsky::convo::get_convo_for_members::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.convo.getConvoForMembers".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn get_log(
+        &self,
+        params: crate::chat::bsky::convo::get_log::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::get_log::Output,
+        crate::chat::bsky::convo::get_log::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.convo.getLog".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn get_messages(
+        &self,
+        params: crate::chat::bsky::convo::get_messages::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::get_messages::Output,
+        crate::chat::bsky::convo::get_messages::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.convo.getMessages".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn leave_convo(
+        &self,
+        input: crate::chat::bsky::convo::leave_convo::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::leave_convo::Output,
+        crate::chat::bsky::convo::leave_convo::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.leaveConvo".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn list_convos(
+        &self,
+        params: crate::chat::bsky::convo::list_convos::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::list_convos::Output,
+        crate::chat::bsky::convo::list_convos::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.convo.listConvos".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn mute_convo(
+        &self,
+        input: crate::chat::bsky::convo::mute_convo::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::mute_convo::Output,
+        crate::chat::bsky::convo::mute_convo::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.muteConvo".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn send_message(
+        &self,
+        input: crate::chat::bsky::convo::send_message::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::send_message::Output,
+        crate::chat::bsky::convo::send_message::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.sendMessage".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn send_message_batch(
+        &self,
+        input: crate::chat::bsky::convo::send_message_batch::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::send_message_batch::Output,
+        crate::chat::bsky::convo::send_message_batch::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.sendMessageBatch".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn unmute_convo(
+        &self,
+        input: crate::chat::bsky::convo::unmute_convo::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::unmute_convo::Output,
+        crate::chat::bsky::convo::unmute_convo::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.unmuteConvo".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn update_read(
+        &self,
+        input: crate::chat::bsky::convo::update_read::Input,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::convo::update_read::Output,
+        crate::chat::bsky::convo::update_read::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.convo.updateRead".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+impl<T> chat::bsky::moderation::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self { xrpc }
+    }
+    pub async fn get_actor_metadata(
+        &self,
+        params: crate::chat::bsky::moderation::get_actor_metadata::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::moderation::get_actor_metadata::Output,
+        crate::chat::bsky::moderation::get_actor_metadata::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.moderation.getActorMetadata".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn get_message_context(
+        &self,
+        params: crate::chat::bsky::moderation::get_message_context::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::chat::bsky::moderation::get_message_context::Output,
+        crate::chat::bsky::moderation::get_message_context::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    path: "chat.bsky.moderation.getMessageContext".into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    pub async fn update_actor_access(
+        &self,
+        input: crate::chat::bsky::moderation::update_actor_access::Input,
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::chat::bsky::moderation::update_actor_access::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    path: "chat.bsky.moderation.updateActorAccess".into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -1798,10 +2342,7 @@ where
     pub async fn delete_account(
         &self,
         input: crate::com::atproto::admin::delete_account::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::admin::delete_account::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::delete_account::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -1821,18 +2362,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Disable an account from receiving new invite codes, but does not invalidate existing codes.
     pub async fn disable_account_invites(
         &self,
         input: crate::com::atproto::admin::disable_account_invites::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::disable_account_invites::Error,
-        >,
+        crate::com::atproto::admin::disable_account_invites::Error,
     > {
         let response = self
             .xrpc
@@ -1853,18 +2392,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Disable some set of codes and/or all codes associated with a set of users.
     pub async fn disable_invite_codes(
         &self,
         input: crate::com::atproto::admin::disable_invite_codes::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::disable_invite_codes::Error,
-        >,
+        crate::com::atproto::admin::disable_invite_codes::Error,
     > {
         let response = self
             .xrpc
@@ -1885,18 +2422,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Re-enable an account's ability to receive invite codes.
     pub async fn enable_account_invites(
         &self,
         input: crate::com::atproto::admin::enable_account_invites::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::enable_account_invites::Error,
-        >,
+        crate::com::atproto::admin::enable_account_invites::Error,
     > {
         let response = self
             .xrpc
@@ -1917,16 +2452,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get details about an account.
     pub async fn get_account_info(
         &self,
         params: crate::com::atproto::admin::get_account_info::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::admin::get_account_info::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::get_account_info::Error>,
+        crate::com::atproto::admin::get_account_info::Error,
     > {
         let response = self
             .xrpc
@@ -1947,16 +2482,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get details about some accounts.
     pub async fn get_account_infos(
         &self,
         params: crate::com::atproto::admin::get_account_infos::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::admin::get_account_infos::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::get_account_infos::Error>,
+        crate::com::atproto::admin::get_account_infos::Error,
     > {
         let response = self
             .xrpc
@@ -1977,16 +2512,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get an admin view of invite codes.
     pub async fn get_invite_codes(
         &self,
         params: crate::com::atproto::admin::get_invite_codes::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::admin::get_invite_codes::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::get_invite_codes::Error>,
+        crate::com::atproto::admin::get_invite_codes::Error,
     > {
         let response = self
             .xrpc
@@ -2007,16 +2542,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get the service-specific admin status of a subject (account, record, or blob).
     pub async fn get_subject_status(
         &self,
         params: crate::com::atproto::admin::get_subject_status::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::admin::get_subject_status::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::get_subject_status::Error>,
+        crate::com::atproto::admin::get_subject_status::Error,
     > {
         let response = self
             .xrpc
@@ -2037,16 +2572,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Send email to a user's account email address.
     pub async fn send_email(
         &self,
         input: crate::com::atproto::admin::send_email::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::admin::send_email::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::admin::send_email::Error>,
+        crate::com::atproto::admin::send_email::Error,
     > {
         let response = self
             .xrpc
@@ -2067,18 +2602,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Administrative action to update an account's email.
     pub async fn update_account_email(
         &self,
         input: crate::com::atproto::admin::update_account_email::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::update_account_email::Error,
-        >,
+        crate::com::atproto::admin::update_account_email::Error,
     > {
         let response = self
             .xrpc
@@ -2099,18 +2632,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Administrative action to update an account's handle.
     pub async fn update_account_handle(
         &self,
         input: crate::com::atproto::admin::update_account_handle::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::update_account_handle::Error,
-        >,
+        crate::com::atproto::admin::update_account_handle::Error,
     > {
         let response = self
             .xrpc
@@ -2131,18 +2662,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Update the password for a user account as an administrator.
     pub async fn update_account_password(
         &self,
         input: crate::com::atproto::admin::update_account_password::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::update_account_password::Error,
-        >,
+        crate::com::atproto::admin::update_account_password::Error,
     > {
         let response = self
             .xrpc
@@ -2163,18 +2692,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Update the service-specific admin status of a subject (account, record, or blob).
     pub async fn update_subject_status(
         &self,
         input: crate::com::atproto::admin::update_subject_status::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::admin::update_subject_status::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::admin::update_subject_status::Error,
-        >,
+        crate::com::atproto::admin::update_subject_status::Error,
     > {
         let response = self
             .xrpc
@@ -2195,7 +2722,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -2209,11 +2736,9 @@ where
     ///Describe the credentials that should be included in the DID doc of an account that is migrating to this service.
     pub async fn get_recommended_did_credentials(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::identity::get_recommended_did_credentials::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::identity::get_recommended_did_credentials::Error,
-        >,
+        crate::com::atproto::identity::get_recommended_did_credentials::Error,
     > {
         let response = self
             .xrpc
@@ -2234,17 +2759,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Request an email with a code to in order to request a signed PLC operation. Requires Auth.
     pub async fn request_plc_operation_signature(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::identity::request_plc_operation_signature::Error,
-        >,
+        crate::com::atproto::identity::request_plc_operation_signature::Error,
     > {
         let response = self
             .xrpc
@@ -2265,16 +2788,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Resolves a handle (domain name) to a DID.
     pub async fn resolve_handle(
         &self,
         params: crate::com::atproto::identity::resolve_handle::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::identity::resolve_handle::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::identity::resolve_handle::Error>,
+        crate::com::atproto::identity::resolve_handle::Error,
     > {
         let response = self
             .xrpc
@@ -2295,18 +2818,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Signs a PLC operation to update some value(s) in the requesting DID's document.
     pub async fn sign_plc_operation(
         &self,
         input: crate::com::atproto::identity::sign_plc_operation::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::identity::sign_plc_operation::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::identity::sign_plc_operation::Error,
-        >,
+        crate::com::atproto::identity::sign_plc_operation::Error,
     > {
         let response = self
             .xrpc
@@ -2327,18 +2848,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Validates a PLC operation to ensure that it doesn't violate a service's constraints or get the identity into a bad state, then submits it to the PLC registry
     pub async fn submit_plc_operation(
         &self,
         input: crate::com::atproto::identity::submit_plc_operation::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::identity::submit_plc_operation::Error,
-        >,
+        crate::com::atproto::identity::submit_plc_operation::Error,
     > {
         let response = self
             .xrpc
@@ -2359,17 +2878,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Updates the current account's handle. Verifies handle validity, and updates did:plc document if necessary. Implemented by PDS, and requires auth.
     pub async fn update_handle(
         &self,
         input: crate::com::atproto::identity::update_handle::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::identity::update_handle::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::identity::update_handle::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -2389,7 +2905,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -2404,9 +2920,9 @@ where
     pub async fn query_labels(
         &self,
         params: crate::com::atproto::label::query_labels::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::label::query_labels::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::label::query_labels::Error>,
+        crate::com::atproto::label::query_labels::Error,
     > {
         let response = self
             .xrpc
@@ -2427,7 +2943,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -2442,9 +2958,9 @@ where
     pub async fn create_report(
         &self,
         input: crate::com::atproto::moderation::create_report::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::moderation::create_report::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::moderation::create_report::Error>,
+        crate::com::atproto::moderation::create_report::Error,
     > {
         let response = self
             .xrpc
@@ -2465,7 +2981,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -2480,10 +2996,7 @@ where
     pub async fn apply_writes(
         &self,
         input: crate::com::atproto::repo::apply_writes::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::repo::apply_writes::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::repo::apply_writes::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -2503,16 +3016,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Create a single new repository record. Requires auth, implemented by PDS.
     pub async fn create_record(
         &self,
         input: crate::com::atproto::repo::create_record::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::create_record::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::create_record::Error>,
+        crate::com::atproto::repo::create_record::Error,
     > {
         let response = self
             .xrpc
@@ -2533,17 +3046,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Delete a repository record, or ensure it doesn't exist. Requires auth, implemented by PDS.
     pub async fn delete_record(
         &self,
         input: crate::com::atproto::repo::delete_record::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::repo::delete_record::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::repo::delete_record::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -2563,16 +3073,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get information about an account and repository, including the list of collections. Does not require auth.
     pub async fn describe_repo(
         &self,
         params: crate::com::atproto::repo::describe_repo::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::describe_repo::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::describe_repo::Error>,
+        crate::com::atproto::repo::describe_repo::Error,
     > {
         let response = self
             .xrpc
@@ -2593,16 +3103,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a single record from a repository. Does not require auth.
     pub async fn get_record(
         &self,
         params: crate::com::atproto::repo::get_record::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::get_record::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::get_record::Error>,
+        crate::com::atproto::repo::get_record::Error,
     > {
         let response = self
             .xrpc
@@ -2623,17 +3133,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Import a repo in the form of a CAR file. Requires Content-Length HTTP header to be set.
     pub async fn import_repo(
         &self,
         input: Vec<u8>,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::repo::import_repo::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::repo::import_repo::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -2653,16 +3160,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Returns a list of missing blobs for the requesting account. Intended to be used in the account migration flow.
     pub async fn list_missing_blobs(
         &self,
         params: crate::com::atproto::repo::list_missing_blobs::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::list_missing_blobs::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::list_missing_blobs::Error>,
+        crate::com::atproto::repo::list_missing_blobs::Error,
     > {
         let response = self
             .xrpc
@@ -2683,16 +3190,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///List a range of records in a repository, matching a specific collection. Does not require auth.
     pub async fn list_records(
         &self,
         params: crate::com::atproto::repo::list_records::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::list_records::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::list_records::Error>,
+        crate::com::atproto::repo::list_records::Error,
     > {
         let response = self
             .xrpc
@@ -2713,16 +3220,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Write a repository record, creating or updating it as needed. Requires auth, implemented by PDS.
     pub async fn put_record(
         &self,
         input: crate::com::atproto::repo::put_record::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::put_record::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::put_record::Error>,
+        crate::com::atproto::repo::put_record::Error,
     > {
         let response = self
             .xrpc
@@ -2743,16 +3250,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Upload a new blob, to be referenced from a repository record. The blob will be deleted if it is not referenced within a time window (eg, minutes). Blob restrictions (mimetype, size, etc) are enforced when the reference is created. Requires auth, implemented by PDS.
     pub async fn upload_blob(
         &self,
         input: Vec<u8>,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::repo::upload_blob::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::repo::upload_blob::Error>,
+        crate::com::atproto::repo::upload_blob::Error,
     > {
         let response = self
             .xrpc
@@ -2773,7 +3280,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -2787,10 +3294,7 @@ where
     ///Activates a currently deactivated account. Used to finalize account migration after the account's repo is imported and identity is setup.
     pub async fn activate_account(
         &self,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::activate_account::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::activate_account::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -2810,17 +3314,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Returns the status of an account, especially as pertaining to import or recovery. Can be called many times over the course of an account migration. Requires auth and can only be called pertaining to oneself.
     pub async fn check_account_status(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::check_account_status::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::check_account_status::Error,
-        >,
+        crate::com::atproto::server::check_account_status::Error,
     > {
         let response = self
             .xrpc
@@ -2841,17 +3343,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Confirm an email using a token from com.atproto.server.requestEmailConfirmation.
     pub async fn confirm_email(
         &self,
         input: crate::com::atproto::server::confirm_email::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::confirm_email::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::confirm_email::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -2871,16 +3370,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Create an account. Implemented by PDS.
     pub async fn create_account(
         &self,
         input: crate::com::atproto::server::create_account::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::create_account::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::create_account::Error>,
+        crate::com::atproto::server::create_account::Error,
     > {
         let response = self
             .xrpc
@@ -2901,18 +3400,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Create an App Password.
     pub async fn create_app_password(
         &self,
         input: crate::com::atproto::server::create_app_password::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::create_app_password::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::create_app_password::Error,
-        >,
+        crate::com::atproto::server::create_app_password::Error,
     > {
         let response = self
             .xrpc
@@ -2933,16 +3430,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Create an invite code.
     pub async fn create_invite_code(
         &self,
         input: crate::com::atproto::server::create_invite_code::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::create_invite_code::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::create_invite_code::Error>,
+        crate::com::atproto::server::create_invite_code::Error,
     > {
         let response = self
             .xrpc
@@ -2963,18 +3460,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Create invite codes.
     pub async fn create_invite_codes(
         &self,
         input: crate::com::atproto::server::create_invite_codes::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::create_invite_codes::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::create_invite_codes::Error,
-        >,
+        crate::com::atproto::server::create_invite_codes::Error,
     > {
         let response = self
             .xrpc
@@ -2995,16 +3490,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Create an authentication session.
     pub async fn create_session(
         &self,
         input: crate::com::atproto::server::create_session::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::create_session::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::create_session::Error>,
+        crate::com::atproto::server::create_session::Error,
     > {
         let response = self
             .xrpc
@@ -3025,16 +3520,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Deactivates a currently active account. Stops serving of repo, and future writes to repo until reactivated. Used to finalize account migration with the old host after the account has been activated on the new host.
     pub async fn deactivate_account(
         &self,
         input: crate::com::atproto::server::deactivate_account::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::deactivate_account::Error>,
+        crate::com::atproto::server::deactivate_account::Error,
     > {
         let response = self
             .xrpc
@@ -3055,17 +3550,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Delete an actor's account with a token and password. Can only be called after requesting a deletion token. Requires auth.
     pub async fn delete_account(
         &self,
         input: crate::com::atproto::server::delete_account::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::delete_account::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::delete_account::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3085,16 +3577,13 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Delete the current session. Requires auth.
     pub async fn delete_session(
         &self,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::delete_session::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::delete_session::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3114,15 +3603,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Describes the server's account creation requirements and capabilities. Implemented by PDS.
     pub async fn describe_server(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::describe_server::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::describe_server::Error>,
+        crate::com::atproto::server::describe_server::Error,
     > {
         let response = self
             .xrpc
@@ -3143,18 +3632,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get all invite codes for the current account. Requires auth.
     pub async fn get_account_invite_codes(
         &self,
         params: crate::com::atproto::server::get_account_invite_codes::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::get_account_invite_codes::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::get_account_invite_codes::Error,
-        >,
+        crate::com::atproto::server::get_account_invite_codes::Error,
     > {
         let response = self
             .xrpc
@@ -3175,16 +3662,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get a signed token on behalf of the requesting DID for the requested service.
     pub async fn get_service_auth(
         &self,
         params: crate::com::atproto::server::get_service_auth::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::get_service_auth::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::get_service_auth::Error>,
+        crate::com::atproto::server::get_service_auth::Error,
     > {
         let response = self
             .xrpc
@@ -3205,15 +3692,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get information about the current auth session. Requires auth.
     pub async fn get_session(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::get_session::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::get_session::Error>,
+        crate::com::atproto::server::get_session::Error,
     > {
         let response = self
             .xrpc
@@ -3234,15 +3721,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///List all App Passwords.
     pub async fn list_app_passwords(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::list_app_passwords::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::list_app_passwords::Error>,
+        crate::com::atproto::server::list_app_passwords::Error,
     > {
         let response = self
             .xrpc
@@ -3263,15 +3750,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Refresh an authentication session. Requires auth using the 'refreshJwt' (not the 'accessJwt').
     pub async fn refresh_session(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::refresh_session::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::server::refresh_session::Error>,
+        crate::com::atproto::server::refresh_session::Error,
     > {
         let response = self
             .xrpc
@@ -3292,17 +3779,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Initiate a user account deletion via email.
     pub async fn request_account_delete(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::request_account_delete::Error,
-        >,
+        crate::com::atproto::server::request_account_delete::Error,
     > {
         let response = self
             .xrpc
@@ -3323,17 +3808,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Request an email with a code to confirm ownership of email.
     pub async fn request_email_confirmation(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::request_email_confirmation::Error,
-        >,
+        crate::com::atproto::server::request_email_confirmation::Error,
     > {
         let response = self
             .xrpc
@@ -3354,17 +3837,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Request a token in order to update email.
     pub async fn request_email_update(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::request_email_update::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::request_email_update::Error,
-        >,
+        crate::com::atproto::server::request_email_update::Error,
     > {
         let response = self
             .xrpc
@@ -3385,18 +3866,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Initiate a user account password reset via email.
     pub async fn request_password_reset(
         &self,
         input: crate::com::atproto::server::request_password_reset::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::request_password_reset::Error,
-        >,
+        crate::com::atproto::server::request_password_reset::Error,
     > {
         let response = self
             .xrpc
@@ -3417,18 +3896,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Reserve a repo signing key, for use with account creation. Necessary so that a DID PLC update operation can be constructed during an account migraiton. Public and does not require auth; implemented by PDS. NOTE: this endpoint may change when full account migration is implemented.
     pub async fn reserve_signing_key(
         &self,
         input: crate::com::atproto::server::reserve_signing_key::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::server::reserve_signing_key::Output,
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::reserve_signing_key::Error,
-        >,
+        crate::com::atproto::server::reserve_signing_key::Error,
     > {
         let response = self
             .xrpc
@@ -3449,17 +3926,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Reset a user account password using a token.
     pub async fn reset_password(
         &self,
         input: crate::com::atproto::server::reset_password::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::reset_password::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::reset_password::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3479,18 +3953,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Revoke an App Password by name.
     pub async fn revoke_app_password(
         &self,
         input: crate::com::atproto::server::revoke_app_password::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::server::revoke_app_password::Error,
-        >,
+        crate::com::atproto::server::revoke_app_password::Error,
     > {
         let response = self
             .xrpc
@@ -3511,17 +3983,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Update an account's email.
     pub async fn update_email(
         &self,
         input: crate::com::atproto::server::update_email::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::server::update_email::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::update_email::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3541,7 +4010,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -3556,10 +4025,7 @@ where
     pub async fn get_blob(
         &self,
         params: crate::com::atproto::sync::get_blob::Parameters,
-    ) -> Result<
-        Vec<u8>,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_blob::Error>,
-    > {
+    ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_blob::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3579,17 +4045,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get data blocks from a given repo, by CID. For example, intermediate MST nodes, or records. Does not require auth; implemented by PDS.
     pub async fn get_blocks(
         &self,
         params: crate::com::atproto::sync::get_blocks::Parameters,
-    ) -> Result<
-        Vec<u8>,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_blocks::Error>,
-    > {
+    ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_blocks::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3609,17 +4072,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///DEPRECATED - please use com.atproto.sync.getRepo instead
     pub async fn get_checkout(
         &self,
         params: crate::com::atproto::sync::get_checkout::Parameters,
-    ) -> Result<
-        Vec<u8>,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_checkout::Error>,
-    > {
+    ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_checkout::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3639,16 +4099,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///DEPRECATED - please use com.atproto.sync.getLatestCommit instead
     pub async fn get_head(
         &self,
         params: crate::com::atproto::sync::get_head::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::sync::get_head::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_head::Error>,
+        crate::com::atproto::sync::get_head::Error,
     > {
         let response = self
             .xrpc
@@ -3669,16 +4129,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get the current commit CID & revision of the specified repo. Does not require auth.
     pub async fn get_latest_commit(
         &self,
         params: crate::com::atproto::sync::get_latest_commit::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::sync::get_latest_commit::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_latest_commit::Error>,
+        crate::com::atproto::sync::get_latest_commit::Error,
     > {
         let response = self
             .xrpc
@@ -3699,17 +4159,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get data blocks needed to prove the existence or non-existence of record in the current version of repo. Does not require auth.
     pub async fn get_record(
         &self,
         params: crate::com::atproto::sync::get_record::Parameters,
-    ) -> Result<
-        Vec<u8>,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_record::Error>,
-    > {
+    ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_record::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3729,17 +4186,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Download a repository export as CAR file. Optionally only a 'diff' since a previous revision. Does not require auth; implemented by PDS.
     pub async fn get_repo(
         &self,
         params: crate::com::atproto::sync::get_repo::Parameters,
-    ) -> Result<
-        Vec<u8>,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::get_repo::Error>,
-    > {
+    ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_repo::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3759,16 +4213,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///List blob CIDso for an account, since some repo revision. Does not require auth; implemented by PDS.
     pub async fn list_blobs(
         &self,
         params: crate::com::atproto::sync::list_blobs::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::sync::list_blobs::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::list_blobs::Error>,
+        crate::com::atproto::sync::list_blobs::Error,
     > {
         let response = self
             .xrpc
@@ -3789,16 +4243,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Enumerates all the DID, rev, and commit CID for all repos hosted by this service. Does not require auth; implemented by PDS and Relay.
     pub async fn list_repos(
         &self,
         params: crate::com::atproto::sync::list_repos::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::sync::list_repos::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::sync::list_repos::Error>,
+        crate::com::atproto::sync::list_repos::Error,
     > {
         let response = self
             .xrpc
@@ -3819,17 +4273,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Notify a crawling service of a recent update, and that crawling should resume. Intended use is after a gap between repo stream events caused the crawling service to disconnect. Does not require auth; implemented by Relay.
     pub async fn notify_of_update(
         &self,
         input: crate::com::atproto::sync::notify_of_update::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::sync::notify_of_update::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::sync::notify_of_update::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3849,17 +4300,14 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Request a service to persistently crawl hosted repos. Expected use is new PDS instances declaring their existence to Relays. Does not require auth.
     pub async fn request_crawl(
         &self,
         input: crate::com::atproto::sync::request_crawl::Input,
-    ) -> Result<
-        (),
-        atrium_xrpc::error::Error<crate::com::atproto::sync::request_crawl::Error>,
-    > {
+    ) -> atrium_xrpc::Result<(), crate::com::atproto::sync::request_crawl::Error> {
         let response = self
             .xrpc
             .send_xrpc::<
@@ -3879,7 +4327,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -3893,9 +4341,9 @@ where
     ///Check accounts location in signup queue.
     pub async fn check_signup_queue(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::temp::check_signup_queue::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::temp::check_signup_queue::Error>,
+        crate::com::atproto::temp::check_signup_queue::Error,
     > {
         let response = self
             .xrpc
@@ -3916,16 +4364,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///DEPRECATED: use queryLabels or subscribeLabels instead -- Fetch all labels from a labeler created after a certain date.
     pub async fn fetch_labels(
         &self,
         params: crate::com::atproto::temp::fetch_labels::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::com::atproto::temp::fetch_labels::Output,
-        atrium_xrpc::error::Error<crate::com::atproto::temp::fetch_labels::Error>,
+        crate::com::atproto::temp::fetch_labels::Error,
     > {
         let response = self
             .xrpc
@@ -3946,18 +4394,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Request a verification code to be sent to the supplied phone number
     pub async fn request_phone_verification(
         &self,
         input: crate::com::atproto::temp::request_phone_verification::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::com::atproto::temp::request_phone_verification::Error,
-        >,
+        crate::com::atproto::temp::request_phone_verification::Error,
     > {
         let response = self
             .xrpc
@@ -3978,7 +4424,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -4018,11 +4464,9 @@ where
     pub async fn create_template(
         &self,
         input: crate::tools::ozone::communication::create_template::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::communication::create_template::Output,
-        atrium_xrpc::error::Error<
-            crate::tools::ozone::communication::create_template::Error,
-        >,
+        crate::tools::ozone::communication::create_template::Error,
     > {
         let response = self
             .xrpc
@@ -4043,18 +4487,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Delete a communication template.
     pub async fn delete_template(
         &self,
         input: crate::tools::ozone::communication::delete_template::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         (),
-        atrium_xrpc::error::Error<
-            crate::tools::ozone::communication::delete_template::Error,
-        >,
+        crate::tools::ozone::communication::delete_template::Error,
     > {
         let response = self
             .xrpc
@@ -4075,17 +4517,15 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get list of all communication templates.
     pub async fn list_templates(
         &self,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::communication::list_templates::Output,
-        atrium_xrpc::error::Error<
-            crate::tools::ozone::communication::list_templates::Error,
-        >,
+        crate::tools::ozone::communication::list_templates::Error,
     > {
         let response = self
             .xrpc
@@ -4106,18 +4546,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Administrative action to update an existing communication template. Allows passing partial fields to patch specific fields only.
     pub async fn update_template(
         &self,
         input: crate::tools::ozone::communication::update_template::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::communication::update_template::Output,
-        atrium_xrpc::error::Error<
-            crate::tools::ozone::communication::update_template::Error,
-        >,
+        crate::tools::ozone::communication::update_template::Error,
     > {
         let response = self
             .xrpc
@@ -4138,7 +4576,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }
@@ -4153,9 +4591,9 @@ where
     pub async fn emit_event(
         &self,
         input: crate::tools::ozone::moderation::emit_event::Input,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::emit_event::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::emit_event::Error>,
+        crate::tools::ozone::moderation::emit_event::Error,
     > {
         let response = self
             .xrpc
@@ -4176,16 +4614,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get details about a moderation event.
     pub async fn get_event(
         &self,
         params: crate::tools::ozone::moderation::get_event::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::get_event::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::get_event::Error>,
+        crate::tools::ozone::moderation::get_event::Error,
     > {
         let response = self
             .xrpc
@@ -4206,16 +4644,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get details about a record.
     pub async fn get_record(
         &self,
         params: crate::tools::ozone::moderation::get_record::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::get_record::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::get_record::Error>,
+        crate::tools::ozone::moderation::get_record::Error,
     > {
         let response = self
             .xrpc
@@ -4236,16 +4674,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Get details about a repository.
     pub async fn get_repo(
         &self,
         params: crate::tools::ozone::moderation::get_repo::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::get_repo::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::get_repo::Error>,
+        crate::tools::ozone::moderation::get_repo::Error,
     > {
         let response = self
             .xrpc
@@ -4266,16 +4704,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///List moderation events related to a subject.
     pub async fn query_events(
         &self,
         params: crate::tools::ozone::moderation::query_events::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::query_events::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::query_events::Error>,
+        crate::tools::ozone::moderation::query_events::Error,
     > {
         let response = self
             .xrpc
@@ -4296,16 +4734,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///View moderation statuses of subjects (record or repo).
     pub async fn query_statuses(
         &self,
         params: crate::tools::ozone::moderation::query_statuses::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::query_statuses::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::query_statuses::Error>,
+        crate::tools::ozone::moderation::query_statuses::Error,
     > {
         let response = self
             .xrpc
@@ -4326,16 +4764,16 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Find repositories based on a search term.
     pub async fn search_repos(
         &self,
         params: crate::tools::ozone::moderation::search_repos::Parameters,
-    ) -> Result<
+    ) -> atrium_xrpc::Result<
         crate::tools::ozone::moderation::search_repos::Output,
-        atrium_xrpc::error::Error<crate::tools::ozone::moderation::search_repos::Error>,
+        crate::tools::ozone::moderation::search_repos::Error,
     > {
         let response = self
             .xrpc
@@ -4356,7 +4794,7 @@ where
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-            _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
 }

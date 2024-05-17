@@ -896,11 +896,11 @@ fn xrpc_impl_common(
             quote! {
                 pub async fn #method_name(
                     #(#args),*
-                ) -> Result<(), atrium_xrpc::error::Error<#error>> {
+                ) -> atrium_xrpc::Result<(), #error> {
                     let response = #xrpc_call;
                     match response {
                         atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                        _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
                     }
                 }
             }
@@ -910,11 +910,11 @@ fn xrpc_impl_common(
             quote! {
                 pub async fn #method_name(
                     #(#args),*
-                ) -> Result<#output, atrium_xrpc::error::Error<#error>> {
+                ) -> atrium_xrpc::Result<#output, #error> {
                     let response = #xrpc_call;
                     match response {
                         atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                        _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
                     }
                 }
             }
@@ -923,11 +923,11 @@ fn xrpc_impl_common(
             quote! {
                 pub async fn #method_name(
                     #(#args),*
-                ) -> Result<Vec<u8>, atrium_xrpc::error::Error<#error>> {
+                ) -> atrium_xrpc::Result<Vec<u8>, #error> {
                     let response = #xrpc_call;
                     match response {
                         atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                        _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
                     }
                 }
             }

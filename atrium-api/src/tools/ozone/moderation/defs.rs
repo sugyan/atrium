@@ -408,6 +408,8 @@ pub enum ModEventViewSubjectRefs {
     ComAtprotoAdminDefsRepoRef(Box<crate::com::atproto::admin::defs::RepoRef>),
     #[serde(rename = "com.atproto.repo.strongRef")]
     ComAtprotoRepoStrongRefMain(Box<crate::com::atproto::repo::strong_ref::Main>),
+    #[serde(rename = "chat.bsky.convo.defs#messageRef")]
+    ChatBskyConvoDefsMessageRef(Box<crate::chat::bsky::convo::defs::MessageRef>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
