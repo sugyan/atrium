@@ -1,4 +1,4 @@
-use crate::error::{Error, Result};
+use crate::error::Error;
 use crate::error::{XrpcError, XrpcErrorKind};
 use crate::types::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use async_trait::async_trait;
@@ -29,6 +29,9 @@ pub trait XrpcClient: HttpClient {
     async fn auth(&self, is_refresh: bool) -> Option<String> {
         None
     }
+    async fn headers(&self) -> Vec<(String, String)> {
+        Vec::new()
+    }
     async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
     where
         P: Serialize + Send + Sync,
@@ -55,6 +58,9 @@ pub trait XrpcClient: HttpClient {
             .await
         {
             builder = builder.header(http::header::AUTHORIZATION, format!("Bearer {}", token));
+        }
+        for (key, value) in self.headers().await {
+            builder = builder.header(key, value);
         }
         let body = if let Some(input) = &request.input {
             match input {
