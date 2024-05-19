@@ -45,7 +45,7 @@ serde_html_form = "0.2.6"
 # Networking
 futures = { version = "0.3.30", default-features = false, features = ["alloc"] }
 http = "1.1.0"
-tokio = { version = "1.36", default-features = false }
+tokio = { version = "1.37", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"
