@@ -580,7 +580,16 @@ fn description(description: &Option<String>) -> TokenStream {
     }
 }
 
-pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
+fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
+    record_enum(refs, name, schema_id, &[])
+}
+
+pub fn record_enum(
+    refs: &[String],
+    name: &str,
+    schema_id: Option<&str>,
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
     let is_record = schema_id.is_none();
     let derives = derives()?;
     let enum_name = format_ident!("{name}");
@@ -608,7 +617,20 @@ pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result
             parts.pop();
         }
         let name = format_ident!("{}", parts.join(""));
+        let mut feature = quote!();
+        if is_record {
+            if let Some((_, Some(feature_name))) = namespaces
+                .iter()
+                .find(|(prefix, _)| r#ref.starts_with(prefix))
+            {
+                feature = quote! {
+                    #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                    #[cfg(feature = #feature_name)]
+                };
+            }
+        }
         variants.push(quote! {
+            #feature
             #[serde(rename = #rename)]
             #name(Box<#path>)
         });
@@ -622,12 +644,28 @@ pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result
     })
 }
 
-pub fn modules(names: &[String]) -> Result<TokenStream> {
+pub fn modules(
+    names: &[String],
+    components: &[&str],
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
     let v = names
         .iter()
         .map(|s| {
+            let namespace = components.iter().chain(&[s.as_str()]).join(".");
+            let feature = if let Some((_, Some(feature_name))) =
+                namespaces.iter().find(|(prefix, _)| &namespace == prefix)
+            {
+                quote! {
+                    #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                    #[cfg(feature = #feature_name)]
+                }
+            } else {
+                quote!()
+            };
             let m = format_ident!("{s}");
             quote! {
+                #feature
                 pub mod #m;
             }
         })
@@ -638,8 +676,9 @@ pub fn modules(names: &[String]) -> Result<TokenStream> {
 pub fn client(
     tree: &HashMap<String, HashSet<(&str, bool)>>,
     schemas: &HashMap<String, &LexUserType>,
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<TokenStream> {
-    let services = client_services("", tree)?;
+    let services = client_services("", tree, namespaces)?;
     let mut impls = Vec::new();
     for key in tree.keys().sorted() {
         let type_name = if key.is_empty() {
@@ -648,7 +687,7 @@ pub fn client(
             let path = syn::parse_str::<Path>(&key.split('.').join("::"))?;
             quote!(#path::Service)
         };
-        let fn_new = client_new(tree, key)?;
+        let fn_new = client_new(tree, key, namespaces)?;
         let mut methods = Vec::new();
         for (name, _) in tree[key].iter().filter(|(_, b)| *b).sorted() {
             let nsid = format!("{key}.{name}");
@@ -659,7 +698,16 @@ pub fn client(
             };
             methods.push(method);
         }
+        let feature = if let Some((_, Some(feature_name))) = namespaces
+            .iter()
+            .find(|(prefix, _)| key.starts_with(prefix))
+        {
+            quote!(#[cfg(feature = #feature_name)])
+        } else {
+            quote!()
+        };
         impls.push(quote! {
+            #feature
             impl<T> #type_name<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -695,6 +743,7 @@ pub fn client(
 fn client_services(
     target: &str,
     tree: &HashMap<String, HashSet<(&str, bool)>>,
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<TokenStream> {
     let mut fields = Vec::new();
     let mut mods = Vec::new();
@@ -705,7 +754,19 @@ fn client_services(
                 has_leaf = true;
             } else {
                 let name = format_ident!("{child}");
+                let namespace = format!("{target}.{child}");
+                let feature = if let Some((_, Some(feature_name))) =
+                    namespaces.iter().find(|(prefix, _)| prefix == &namespace)
+                {
+                    quote! {
+                        #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                        #[cfg(feature = #feature_name)]
+                    }
+                } else {
+                    quote!()
+                };
                 fields.push(quote! {
+                    #feature
                     pub #name: #name::Service<T>,
                 });
                 let target = if target.is_empty() {
@@ -713,8 +774,9 @@ fn client_services(
                 } else {
                     format!("{target}.{child}")
                 };
-                let submodule = client_services(&target, tree)?;
+                let submodule = client_services(&target, tree, namespaces)?;
                 mods.push(quote! {
+                    #feature
                     pub mod #name { #submodule }
                 });
             }
@@ -730,6 +792,7 @@ fn client_services(
         where T: atrium_xrpc::XrpcClient + Send + Sync,
         {
             #(#fields)*
+            pub(crate) _phantom: core::marker::PhantomData<T>,
         }
     };
     Ok(quote! {
@@ -738,7 +801,11 @@ fn client_services(
     })
 }
 
-fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Result<TokenStream> {
+fn client_new(
+    tree: &HashMap<String, HashSet<(&str, bool)>>,
+    key: &str,
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
     let children = tree[key].iter().sorted().collect_vec();
     let mut members = Vec::new();
     for (name, is_leaf) in &children {
@@ -750,9 +817,18 @@ fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Resul
         } else {
             key.split('.').chain([*name]).collect_vec()
         };
+        let namespace = parts.join(".");
+        let feature = if let Some((_, Some(feature_name))) =
+            namespaces.iter().find(|(prefix, _)| prefix == &namespace)
+        {
+            quote!(#[cfg(feature = #feature_name)])
+        } else {
+            quote!()
+        };
         let path = syn::parse_str::<Path>(&parts.join("::"))?;
         let name = format_ident!("{}", name.to_snake_case());
         members.push(quote! {
+            #feature
             #name: #path::Service::new(std::sync::Arc::clone(&xrpc)),
         });
     }
@@ -762,9 +838,11 @@ fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Resul
         });
     }
     Ok(quote! {
+        #[allow(unused_variables)]
         pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
             Self {
                 #(#members)*
+                _phantom: core::marker::PhantomData,
             }
         }
     })

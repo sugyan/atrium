@@ -14,7 +14,7 @@ use std::path::{Path, PathBuf};
 pub fn genapi(
     lexdir: impl AsRef<Path>,
     outdir: impl AsRef<Path>,
-    prefixes: &[&str],
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<Vec<impl AsRef<Path>>, Box<dyn Error>> {
     let lexdir = lexdir.as_ref().canonicalize()?;
     let outdir = outdir.as_ref().canonicalize()?;
@@ -24,16 +24,16 @@ pub fn genapi(
         schemas.push(from_reader::<_, LexiconDoc>(File::open(path)?)?);
     }
     let mut results = Vec::new();
-    for &prefix in prefixes {
+    for &(prefix, _) in namespaces {
         let targets = schemas
             .iter()
             .filter(|schema| schema.id.starts_with(prefix))
             .collect_vec();
         results.extend(gen(&outdir, &targets)?);
     }
-    results.push(generate_records(&outdir, &schemas)?);
-    results.push(generate_client(&outdir, &schemas)?);
-    results.extend(generate_modules(&outdir, &schemas)?);
+    results.push(generate_records(&outdir, &schemas, namespaces)?);
+    results.push(generate_client(&outdir, &schemas, namespaces)?);
+    results.extend(generate_modules(&outdir, &schemas, namespaces)?);
     Ok(results)
 }
 
