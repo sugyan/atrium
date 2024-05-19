@@ -24,8 +24,12 @@ serde_bytes.workspace = true
 tokio = { workspace = true, optional = true }
 
 [features]
-default = ["agent"]
+default = ["agent", "bluesky"]
 agent = ["tokio/sync"]
+bluesky = ["namespace-appbsky", "namespace-chatbsky", "namespace-toolsozone"]
+namespace-appbsky = []
+namespace-chatbsky = []
+namespace-toolsozone = []
 
 [dev-dependencies]
 atrium-xrpc-client.workspace = true

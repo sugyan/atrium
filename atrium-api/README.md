@@ -53,12 +53,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     agent.login("alice@mail.com", "hunter2").await?;
     let result = agent
         .api
-        .app
-        .bsky
-        .actor
-        .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-            actor: "bsky.app".parse()?,
-        })
+        .com
+        .atproto
+        .server
+        .get_session()
         .await?;
     println!("{:?}", result);
     Ok(())
