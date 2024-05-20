@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.2...atrium-xrpc-client-v0.5.3) - 2024-05-20
+
+### Other
+- update Cargo.toml dependencies
+
 ## [0.5.2](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.1...atrium-xrpc-client-v0.5.2) - 2024-04-17
 
 ### Added
