@@ -25,14 +25,20 @@ where
     pub chat: chat::Service<T>,
     pub com: com::Service<T>,
     pub tools: tools::Service<T>,
+    pub(crate) _phantom: core::marker::PhantomData<T>,
 }
 pub mod app {
     pub struct Service<T>
     where
         T: atrium_xrpc::XrpcClient + Send + Sync,
     {
+        #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+        #[cfg(feature = "namespace-appbsky")]
         pub bsky: bsky::Service<T>,
+        pub(crate) _phantom: core::marker::PhantomData<T>,
     }
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     pub mod bsky {
         pub struct Service<T>
         where
@@ -44,6 +50,7 @@ pub mod app {
             pub labeler: labeler::Service<T>,
             pub notification: notification::Service<T>,
             pub unspecced: unspecced::Service<T>,
+            pub(crate) _phantom: core::marker::PhantomData<T>,
         }
         pub mod actor {
             pub struct Service<T>
@@ -51,6 +58,7 @@ pub mod app {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod feed {
@@ -59,6 +67,7 @@ pub mod app {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod graph {
@@ -67,6 +76,7 @@ pub mod app {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod labeler {
@@ -75,6 +85,7 @@ pub mod app {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod notification {
@@ -83,6 +94,7 @@ pub mod app {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod unspecced {
@@ -91,6 +103,7 @@ pub mod app {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
     }
@@ -100,8 +113,13 @@ pub mod chat {
     where
         T: atrium_xrpc::XrpcClient + Send + Sync,
     {
+        #[cfg_attr(docsrs, doc(cfg(feature = "namespace-chatbsky")))]
+        #[cfg(feature = "namespace-chatbsky")]
         pub bsky: bsky::Service<T>,
+        pub(crate) _phantom: core::marker::PhantomData<T>,
     }
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-chatbsky")))]
+    #[cfg(feature = "namespace-chatbsky")]
     pub mod bsky {
         pub struct Service<T>
         where
@@ -110,6 +128,7 @@ pub mod chat {
             pub actor: actor::Service<T>,
             pub convo: convo::Service<T>,
             pub moderation: moderation::Service<T>,
+            pub(crate) _phantom: core::marker::PhantomData<T>,
         }
         pub mod actor {
             pub struct Service<T>
@@ -117,6 +136,7 @@ pub mod chat {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod convo {
@@ -125,6 +145,7 @@ pub mod chat {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod moderation {
@@ -133,6 +154,7 @@ pub mod chat {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
     }
@@ -143,6 +165,7 @@ pub mod com {
         T: atrium_xrpc::XrpcClient + Send + Sync,
     {
         pub atproto: atproto::Service<T>,
+        pub(crate) _phantom: core::marker::PhantomData<T>,
     }
     pub mod atproto {
         pub struct Service<T>
@@ -157,6 +180,7 @@ pub mod com {
             pub server: server::Service<T>,
             pub sync: sync::Service<T>,
             pub temp: temp::Service<T>,
+            pub(crate) _phantom: core::marker::PhantomData<T>,
         }
         pub mod admin {
             pub struct Service<T>
@@ -164,6 +188,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod identity {
@@ -172,6 +197,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod label {
@@ -180,6 +206,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod moderation {
@@ -188,6 +215,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod repo {
@@ -196,6 +224,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod server {
@@ -204,6 +233,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod sync {
@@ -212,6 +242,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod temp {
@@ -220,6 +251,7 @@ pub mod com {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
     }
@@ -229,8 +261,13 @@ pub mod tools {
     where
         T: atrium_xrpc::XrpcClient + Send + Sync,
     {
+        #[cfg_attr(docsrs, doc(cfg(feature = "namespace-toolsozone")))]
+        #[cfg(feature = "namespace-toolsozone")]
         pub ozone: ozone::Service<T>,
+        pub(crate) _phantom: core::marker::PhantomData<T>,
     }
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-toolsozone")))]
+    #[cfg(feature = "namespace-toolsozone")]
     pub mod ozone {
         pub struct Service<T>
         where
@@ -238,6 +275,7 @@ pub mod tools {
         {
             pub communication: communication::Service<T>,
             pub moderation: moderation::Service<T>,
+            pub(crate) _phantom: core::marker::PhantomData<T>,
         }
         pub mod communication {
             pub struct Service<T>
@@ -245,6 +283,7 @@ pub mod tools {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
         pub mod moderation {
@@ -253,6 +292,7 @@ pub mod tools {
                 T: atrium_xrpc::XrpcClient + Send + Sync,
             {
                 pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
             }
         }
     }
@@ -261,12 +301,14 @@ impl<T> self::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             app: app::Service::new(std::sync::Arc::clone(&xrpc)),
             chat: chat::Service::new(std::sync::Arc::clone(&xrpc)),
             com: com::Service::new(std::sync::Arc::clone(&xrpc)),
             tools: tools::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
@@ -274,16 +316,21 @@ impl<T> app::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
+            #[cfg(feature = "namespace-appbsky")]
             bsky: app::bsky::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             actor: app::bsky::actor::Service::new(std::sync::Arc::clone(&xrpc)),
@@ -294,15 +341,21 @@ where
                 std::sync::Arc::clone(&xrpc),
             ),
             unspecced: app::bsky::unspecced::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::actor::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Get private preferences attached to the current account. Expected use is synchronization between multiple devices, and import/export during account migration. Requires auth.
     pub async fn get_preferences(
@@ -512,12 +565,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::feed::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Get information about a feed generator, including policies and offered feed URIs. Does not require auth; implemented by Feed Generator services (not App View).
     pub async fn describe_feed_generator(
@@ -1029,12 +1087,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::graph::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Enumerates which accounts the requesting account is currently blocking. Requires auth.
     pub async fn get_blocks(
@@ -1445,12 +1508,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::labeler::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Get information about a list of labeler services.
     pub async fn get_services(
@@ -1483,12 +1551,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::notification::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Count the number of unread notifications for the requesting account. Requires auth.
     pub async fn get_unread_count(
@@ -1605,12 +1678,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-appbsky")]
 impl<T> app::bsky::unspecced::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///An unspecced view of globally popular feed generators.
     pub async fn get_popular_feed_generators(
@@ -1767,16 +1845,21 @@ impl<T> chat::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
+            #[cfg(feature = "namespace-chatbsky")]
             bsky: chat::bsky::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
+#[cfg(feature = "namespace-chatbsky")]
 impl<T> chat::bsky::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             actor: chat::bsky::actor::Service::new(std::sync::Arc::clone(&xrpc)),
@@ -1784,15 +1867,21 @@ where
             moderation: chat::bsky::moderation::Service::new(
                 std::sync::Arc::clone(&xrpc),
             ),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
+#[cfg(feature = "namespace-chatbsky")]
 impl<T> chat::bsky::actor::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     pub async fn delete_account(
         &self,
@@ -1851,12 +1940,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-chatbsky")]
 impl<T> chat::bsky::convo::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     pub async fn delete_message_for_self(
         &self,
@@ -2207,12 +2301,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-chatbsky")]
 impl<T> chat::bsky::moderation::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     pub async fn get_actor_metadata(
         &self,
@@ -2306,9 +2405,11 @@ impl<T> com::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             atproto: com::atproto::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
@@ -2316,6 +2417,7 @@ impl<T> com::atproto::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             admin: com::atproto::admin::Service::new(std::sync::Arc::clone(&xrpc)),
@@ -2328,6 +2430,7 @@ where
             server: com::atproto::server::Service::new(std::sync::Arc::clone(&xrpc)),
             sync: com::atproto::sync::Service::new(std::sync::Arc::clone(&xrpc)),
             temp: com::atproto::temp::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
@@ -2335,8 +2438,12 @@ impl<T> com::atproto::admin::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Delete a user account as an administrator.
     pub async fn delete_account(
@@ -2730,8 +2837,12 @@ impl<T> com::atproto::identity::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Describe the credentials that should be included in the DID doc of an account that is migrating to this service.
     pub async fn get_recommended_did_credentials(
@@ -2913,8 +3024,12 @@ impl<T> com::atproto::label::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Find labels relevant to the provided AT-URI patterns. Public endpoint for moderation services, though may return different or additional results with auth.
     pub async fn query_labels(
@@ -2951,8 +3066,12 @@ impl<T> com::atproto::moderation::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Submit a moderation report regarding an atproto account or record. Implemented by moderation services (with PDS proxying), and requires auth.
     pub async fn create_report(
@@ -2989,8 +3108,12 @@ impl<T> com::atproto::repo::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Apply a batch transaction of repository creates, updates, and deletes. Requires auth, implemented by PDS.
     pub async fn apply_writes(
@@ -3288,8 +3411,12 @@ impl<T> com::atproto::server::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Activates a currently deactivated account. Used to finalize account migration after the account's repo is imported and identity is setup.
     pub async fn activate_account(
@@ -4018,8 +4145,12 @@ impl<T> com::atproto::sync::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Get a blob associated with a given account. Returns the full blob as originally uploaded. Does not require auth; implemented by PDS.
     pub async fn get_blob(
@@ -4335,8 +4466,12 @@ impl<T> com::atproto::temp::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Check accounts location in signup queue.
     pub async fn check_signup_queue(
@@ -4432,16 +4567,21 @@ impl<T> tools::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
+            #[cfg(feature = "namespace-toolsozone")]
             ozone: tools::ozone::Service::new(std::sync::Arc::clone(&xrpc)),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
+#[cfg(feature = "namespace-toolsozone")]
 impl<T> tools::ozone::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
             communication: tools::ozone::communication::Service::new(
@@ -4450,15 +4590,21 @@ where
             moderation: tools::ozone::moderation::Service::new(
                 std::sync::Arc::clone(&xrpc),
             ),
+            _phantom: core::marker::PhantomData,
         }
     }
 }
+#[cfg(feature = "namespace-toolsozone")]
 impl<T> tools::ozone::communication::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Administrative action to create a new, re-usable communication (email for now) template.
     pub async fn create_template(
@@ -4580,12 +4726,17 @@ where
         }
     }
 }
+#[cfg(feature = "namespace-toolsozone")]
 impl<T> tools::ozone::moderation::Service<T>
 where
     T: atrium_xrpc::XrpcClient + Send + Sync,
 {
+    #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
-        Self { xrpc }
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
     }
     ///Take a moderation action on an actor.
     pub async fn emit_event(

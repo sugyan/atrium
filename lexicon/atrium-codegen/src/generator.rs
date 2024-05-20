@@ -1,6 +1,6 @@
 use crate::fs::find_dirs;
 use crate::schema::find_ref_unions;
-use crate::token_stream::{client, collection, modules, ref_unions, refs_enum, user_type};
+use crate::token_stream::{client, collection, modules, record_enum, ref_unions, user_type};
 use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
@@ -76,6 +76,7 @@ pub(crate) fn generate_schemas(
 pub(crate) fn generate_records(
     outdir: &Path,
     schemas: &[LexiconDoc],
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<PathBuf, Box<dyn Error>> {
     let records = schemas
         .iter()
@@ -88,7 +89,7 @@ pub(crate) fn generate_records(
         })
         .sorted()
         .collect_vec();
-    let tokens = refs_enum(&records, "KnownRecord", None)?;
+    let tokens = record_enum(&records, "KnownRecord", None, namespaces)?;
     let content = quote! {
         #![doc = "A collection of ATP repository record types."]
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -107,6 +108,7 @@ pub(crate) fn generate_records(
 pub(crate) fn generate_client(
     outdir: &Path,
     schemas: &[LexiconDoc],
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<PathBuf, Box<dyn Error>> {
     let mut schema_map = HashMap::new();
     let mut tree = HashMap::new();
@@ -129,7 +131,7 @@ pub(crate) fn generate_client(
             }
         }
     }
-    let tokens = client(&tree, &schema_map)?;
+    let tokens = client(&tree, &schema_map, namespaces)?;
     let content = quote! {
         #![doc = r#"Structs for ATP client, implements all HTTP APIs of XRPC."#]
         #tokens
@@ -142,6 +144,7 @@ pub(crate) fn generate_client(
 pub(crate) fn generate_modules(
     outdir: &Path,
     schemas: &[LexiconDoc],
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<Vec<PathBuf>, Box<dyn Error>> {
     let mut paths = find_dirs(outdir)?;
     paths.reverse();
@@ -171,19 +174,18 @@ pub(crate) fn generate_modules(
             })
             .sorted()
             .collect_vec();
-        let modules = modules(&names)?;
-        let (documentation, collections) = if path.as_ref() == outdir {
-            (
-                quote! {
-                    #![doc = include_str!("../README.md")]
-                    pub use atrium_xrpc as xrpc;
-                },
-                vec![],
-            )
-        } else if let Ok(relative) = path.as_ref().strip_prefix(outdir) {
+        let relative = path.as_ref().strip_prefix(outdir)?;
+        let modules = modules(
+            &names,
+            &relative
+                .components()
+                .filter_map(|c| c.as_os_str().to_str())
+                .collect_vec(),
+            namespaces,
+        )?;
+        let (documentation, collections) = {
             let ns = relative.to_string_lossy().replace(['/', '\\'], ".");
             let doc = format!("Definitions for the `{}` namespace.", ns);
-
             let collections = names
                 .iter()
                 .filter_map(|name| {
@@ -202,10 +204,7 @@ pub(crate) fn generate_modules(
                         .map(|_| collection(name, &nsid))
                 })
                 .collect_vec();
-
             (quote!(#![doc = #doc]), collections)
-        } else {
-            (quote!(), vec![])
         };
         let content = quote! {
             #documentation
