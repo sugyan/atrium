@@ -8,8 +8,6 @@ use serde::{de::DeserializeOwned, Serialize};
 use std::sync::{Arc, RwLock};
 use tokio::sync::{Mutex, Notify};
 
-const REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
-
 struct WrapperClient<S, T> {
     store: Arc<Store<S>>,
     labelers_header: Arc<RwLock<Option<Vec<String>>>>,
@@ -166,7 +164,7 @@ where
             .inner
             .send_xrpc::<(), (), _, _>(&XrpcRequest {
                 method: Method::POST,
-                path: REFRESH_SESSION.into(),
+                nsid: crate::com::atproto::server::refresh_session::NSID.into(),
                 parameters: None,
                 input: None,
                 encoding: None,

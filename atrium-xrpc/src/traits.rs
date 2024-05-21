@@ -49,7 +49,7 @@ pub trait XrpcClient: HttpClient {
         O: DeserializeOwned + Send + Sync,
         E: DeserializeOwned + Send + Sync,
     {
-        let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.path);
+        let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.nsid);
         // Query parameters
         if let Some(p) = &request.parameters {
             serde_html_form::to_string(p).map(|qs| {
@@ -64,7 +64,7 @@ pub trait XrpcClient: HttpClient {
         }
         if let Some(token) = self
             .authentication_token(
-                request.method == Method::POST && request.path == NSID_REFRESH_SESSION,
+                request.method == Method::POST && request.nsid == NSID_REFRESH_SESSION,
             )
             .await
         {

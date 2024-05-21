@@ -25,8 +25,13 @@ pub(crate) fn generate_schemas(
         let mut tokens = Vec::new();
         let mut names = Vec::new();
         for (name, def) in &schema.defs {
-            // NSID (for XrpcSubscription only)
-            if let LexUserType::XrpcSubscription(_) = &def {
+            // NSID (for XRPC Query, Procedure, Subscription)
+            if matches!(
+                def,
+                LexUserType::XrpcQuery(_)
+                    | LexUserType::XrpcProcedure(_)
+                    | LexUserType::XrpcSubscription(_)
+            ) {
                 let nsid = schema.id.clone();
                 tokens.push(quote! {
                     pub const NSID: &str = #nsid;

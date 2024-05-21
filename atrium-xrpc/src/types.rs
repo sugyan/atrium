@@ -29,7 +29,7 @@ where
     I: Serialize,
 {
     pub method: Method,
-    pub path: String,
+    pub nsid: String,
     pub parameters: Option<P>,
     pub input: Option<InputDataOrBytes<I>>,
     pub encoding: Option<String>,
