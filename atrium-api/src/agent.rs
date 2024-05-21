@@ -19,6 +19,7 @@ where
     T: XrpcClient + Send + Sync,
 {
     store: Arc<inner::Store<S>>,
+    inner: Arc<inner::Client<S, T>>,
     pub api: Service<inner::Client<S, T>>,
 }
 
@@ -30,8 +31,9 @@ where
     /// Create a new agent.
     pub fn new(xrpc: T, store: S) -> Self {
         let store = Arc::new(inner::Store::new(store, xrpc.base_uri()));
-        let api = Service::new(Arc::new(inner::Client::new(Arc::clone(&store), xrpc)));
-        Self { store, api }
+        let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
+        let api = Service::new(Arc::clone(&inner));
+        Self { store, inner, api }
     }
     /// Start a new session with this agent.
     pub async fn login(
@@ -83,6 +85,16 @@ where
                 Err(err)
             }
         }
+    }
+    /// Configures the moderation services to be applied on requests.
+    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<String>>) {
+        self.inner.configure_labelers_header(labeler_dids);
+    }
+    /// Configures the atproto-proxy header to be applied on requests.
+    ///
+    /// Returns a new client service with the proxy header configured.
+    pub fn api_with_proxy(&self, proxy: impl AsRef<str>) -> Service<inner::Client<S, T>> {
+        Service::new(Arc::new(self.inner.clone_with_proxy(proxy)))
     }
 }
 

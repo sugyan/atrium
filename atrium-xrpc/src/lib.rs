@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 pub mod error;
 mod traits;
-mod types;
+pub mod types;
 
 pub use crate::error::{Error, Result};
 pub use crate::traits::{HttpClient, XrpcClient};

@@ -10,14 +10,41 @@ use tokio::sync::{Mutex, Notify};
 
 const REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
 
-struct SessionStoreClient<S, T> {
+struct WrapperClient<S, T> {
     store: Arc<Store<S>>,
-    inner: T,
+    labelers_header: Arc<RwLock<Option<Vec<String>>>>,
+    proxy_header: Option<String>,
+    inner: Arc<T>,
+}
+
+impl<S, T> WrapperClient<S, T> {
+    fn configure_labelers_header(&self, labelers_dids: Option<Vec<String>>) {
+        *self
+            .labelers_header
+            .write()
+            .expect("failed to write labelers header") = labelers_dids
+    }
+    fn configure_proxy_header(&mut self, did: impl AsRef<str>) {
+        if did.as_ref().starts_with("did:") {
+            self.proxy_header = Some(did.as_ref().to_string());
+        }
+    }
+}
+
+impl<S, T> Clone for WrapperClient<S, T> {
+    fn clone(&self) -> Self {
+        Self {
+            store: self.store.clone(),
+            labelers_header: self.labelers_header.clone(),
+            proxy_header: self.proxy_header.clone(),
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<S, T> HttpClient for SessionStoreClient<S, T>
+impl<S, T> HttpClient for WrapperClient<S, T>
 where
     S: Send + Sync,
     T: HttpClient + Send + Sync,
@@ -33,7 +60,7 @@ where
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<S, T> XrpcClient for SessionStoreClient<S, T>
+impl<S, T> XrpcClient for WrapperClient<S, T>
 where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
@@ -41,7 +68,7 @@ where
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
-    async fn auth(&self, is_refresh: bool) -> Option<String> {
+    async fn authentication_token(&self, is_refresh: bool) -> Option<String> {
         self.store.get_session().await.map(|session| {
             if is_refresh {
                 session.refresh_jwt
@@ -50,13 +77,22 @@ where
             }
         })
     }
+    async fn atproto_proxy_header(&self) -> Option<String> {
+        self.proxy_header.clone()
+    }
+    async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
+        self.labelers_header
+            .read()
+            .expect("failed to read labelers header")
+            .clone()
+    }
 }
 
 pub struct Client<S, T> {
     store: Arc<Store<S>>,
-    inner: SessionStoreClient<S, T>,
-    is_refreshing: Mutex<bool>,
-    notify: Notify,
+    inner: WrapperClient<S, T>,
+    is_refreshing: Arc<Mutex<bool>>,
+    notify: Arc<Notify>,
 }
 
 impl<S, T> Client<S, T>
@@ -65,16 +101,26 @@ where
     T: XrpcClient + Send + Sync,
 {
     pub(crate) fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
-        let inner = SessionStoreClient {
+        let inner = WrapperClient {
             store: Arc::clone(&store),
-            inner: xrpc,
+            labelers_header: Arc::new(RwLock::new(None)),
+            proxy_header: None,
+            inner: Arc::new(xrpc),
         };
         Self {
             store,
             inner,
-            is_refreshing: Mutex::new(false),
-            notify: Notify::new(),
+            is_refreshing: Arc::new(Mutex::new(false)),
+            notify: Arc::new(Notify::new()),
         }
+    }
+    pub(crate) fn configure_labelers_header(&self, labeler_dids: Option<Vec<String>>) {
+        self.inner.configure_labelers_header(labeler_dids);
+    }
+    pub(crate) fn clone_with_proxy(&self, did: impl AsRef<str>) -> Self {
+        let mut new = self.clone();
+        new.inner.configure_proxy_header(did);
+        new
     }
     // Internal helper to refresh sessions
     // - Wraps the actual implementation to ensure only one refresh is attempted at a time.
@@ -144,6 +190,21 @@ where
             }
         }
         false
+    }
+}
+
+impl<S, T> Clone for Client<S, T>
+where
+    S: SessionStore + Send + Sync,
+    T: XrpcClient + Send + Sync,
+{
+    fn clone(&self) -> Self {
+        Self {
+            store: self.store.clone(),
+            inner: self.inner.clone(),
+            is_refreshing: self.is_refreshing.clone(),
+            notify: self.notify.clone(),
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::error::Error;
 use crate::error::{XrpcError, XrpcErrorKind};
-use crate::types::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
+use crate::types::{Header, NSID_REFRESH_SESSION};
+use crate::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use async_trait::async_trait;
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
@@ -9,6 +10,7 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait HttpClient {
+    /// Send an HTTP request and return the response.
     async fn send_http(
         &self,
         request: Request<Vec<u8>>,
@@ -24,14 +26,22 @@ type XrpcResult<O, E> = core::result::Result<OutputDataOrBytes<O>, self::Error<E
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait XrpcClient: HttpClient {
+    /// The base URI of the XRPC server.
     fn base_uri(&self) -> String;
+    /// Get the authentication token to use `Authorization` header.
     #[allow(unused_variables)]
-    async fn auth(&self, is_refresh: bool) -> Option<String> {
+    async fn authentication_token(&self, is_refresh: bool) -> Option<String> {
         None
     }
-    async fn headers(&self) -> Vec<(String, String)> {
-        Vec::new()
+    /// Get the `atproto-proxy` header.
+    async fn atproto_proxy_header(&self) -> Option<String> {
+        None
     }
+    /// Get the `atproto-accept-labelers` header.
+    async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
+        None
+    }
+    /// Send an XRPC request and return the response.
     async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
     where
         P: Serialize + Send + Sync,
@@ -40,6 +50,7 @@ pub trait XrpcClient: HttpClient {
         E: DeserializeOwned + Send + Sync,
     {
         let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.path);
+        // Query parameters
         if let Some(p) = &request.parameters {
             serde_html_form::to_string(p).map(|qs| {
                 uri += "?";
@@ -47,21 +58,25 @@ pub trait XrpcClient: HttpClient {
             })?;
         };
         let mut builder = Request::builder().method(&request.method).uri(&uri);
+        // Headers
         if let Some(encoding) = &request.encoding {
-            builder = builder.header(http::header::CONTENT_TYPE, encoding);
+            builder = builder.header(Header::ContentType, encoding);
         }
         if let Some(token) = self
-            .auth(
-                request.method == Method::POST
-                    && request.path == "com.atproto.server.refreshSession",
+            .authentication_token(
+                request.method == Method::POST && request.path == NSID_REFRESH_SESSION,
             )
             .await
         {
-            builder = builder.header(http::header::AUTHORIZATION, format!("Bearer {}", token));
+            builder = builder.header(Header::Authorization, format!("Bearer {}", token));
         }
-        for (key, value) in self.headers().await {
-            builder = builder.header(key, value);
+        if let Some(proxy) = self.atproto_proxy_header().await {
+            builder = builder.header(Header::AtprotoProxy, proxy);
         }
+        if let Some(accept_labelers) = self.atproto_accept_labelers_header().await {
+            builder = builder.header(Header::AtprotoAcceptLabelers, accept_labelers.join(", "));
+        }
+        // Body
         let body = if let Some(input) = &request.input {
             match input {
                 InputDataOrBytes::Data(data) => serde_json::to_vec(&data)?,
@@ -70,6 +85,7 @@ pub trait XrpcClient: HttpClient {
         } else {
             Vec::new()
         };
+        // Send
         let (parts, body) = self
             .send_http(builder.body(body)?)
             .await
