@@ -14,6 +14,7 @@ use std::sync::Arc;
 /// because it already uses an [`Arc`] internally.
 ///
 /// [`Rc`]: std::rc::Rc
+#[derive(Clone)]
 pub struct IsahcClient {
     base_uri: String,
     client: Arc<Client>,
