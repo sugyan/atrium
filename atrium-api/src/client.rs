@@ -375,7 +375,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.actor.getPreferences".into(),
+                    nsid: crate::app::bsky::actor::get_preferences::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -405,7 +405,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.actor.getProfile".into(),
+                    nsid: crate::app::bsky::actor::get_profile::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -435,7 +435,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.actor.getProfiles".into(),
+                    nsid: crate::app::bsky::actor::get_profiles::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -465,7 +465,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.actor.getSuggestions".into(),
+                    nsid: crate::app::bsky::actor::get_suggestions::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -492,7 +492,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.actor.putPreferences".into(),
+                    nsid: crate::app::bsky::actor::put_preferences::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -522,7 +522,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.actor.searchActors".into(),
+                    nsid: crate::app::bsky::actor::search_actors::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -552,7 +552,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.actor.searchActorsTypeahead".into(),
+                    nsid: crate::app::bsky::actor::search_actors_typeahead::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -594,7 +594,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.describeFeedGenerator".into(),
+                    nsid: crate::app::bsky::feed::describe_feed_generator::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -624,7 +624,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getActorFeeds".into(),
+                    nsid: crate::app::bsky::feed::get_actor_feeds::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -654,7 +654,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getActorLikes".into(),
+                    nsid: crate::app::bsky::feed::get_actor_likes::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -684,7 +684,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getAuthorFeed".into(),
+                    nsid: crate::app::bsky::feed::get_author_feed::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -714,7 +714,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getFeed".into(),
+                    nsid: crate::app::bsky::feed::get_feed::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -744,7 +744,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getFeedGenerator".into(),
+                    nsid: crate::app::bsky::feed::get_feed_generator::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -774,7 +774,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getFeedGenerators".into(),
+                    nsid: crate::app::bsky::feed::get_feed_generators::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -804,7 +804,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getFeedSkeleton".into(),
+                    nsid: crate::app::bsky::feed::get_feed_skeleton::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -834,7 +834,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getLikes".into(),
+                    nsid: crate::app::bsky::feed::get_likes::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -864,7 +864,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getListFeed".into(),
+                    nsid: crate::app::bsky::feed::get_list_feed::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -894,7 +894,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getPostThread".into(),
+                    nsid: crate::app::bsky::feed::get_post_thread::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -924,7 +924,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getPosts".into(),
+                    nsid: crate::app::bsky::feed::get_posts::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -954,7 +954,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getRepostedBy".into(),
+                    nsid: crate::app::bsky::feed::get_reposted_by::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -984,7 +984,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getSuggestedFeeds".into(),
+                    nsid: crate::app::bsky::feed::get_suggested_feeds::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1014,7 +1014,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.getTimeline".into(),
+                    nsid: crate::app::bsky::feed::get_timeline::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1044,7 +1044,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.feed.searchPosts".into(),
+                    nsid: crate::app::bsky::feed::search_posts::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1074,7 +1074,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.feed.sendInteractions".into(),
+                    nsid: crate::app::bsky::feed::send_interactions::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1117,7 +1117,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getBlocks".into(),
+                    nsid: crate::app::bsky::graph::get_blocks::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1147,7 +1147,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getFollowers".into(),
+                    nsid: crate::app::bsky::graph::get_followers::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1177,7 +1177,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getFollows".into(),
+                    nsid: crate::app::bsky::graph::get_follows::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1207,7 +1207,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getList".into(),
+                    nsid: crate::app::bsky::graph::get_list::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1237,7 +1237,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getListBlocks".into(),
+                    nsid: crate::app::bsky::graph::get_list_blocks::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1267,7 +1267,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getListMutes".into(),
+                    nsid: crate::app::bsky::graph::get_list_mutes::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1297,7 +1297,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getLists".into(),
+                    nsid: crate::app::bsky::graph::get_lists::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1327,7 +1327,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getMutes".into(),
+                    nsid: crate::app::bsky::graph::get_mutes::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1357,7 +1357,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getRelationships".into(),
+                    nsid: crate::app::bsky::graph::get_relationships::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1387,7 +1387,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.graph.getSuggestedFollowsByActor".into(),
+                    nsid: crate::app::bsky::graph::get_suggested_follows_by_actor::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1414,7 +1415,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.graph.muteActor".into(),
+                    nsid: crate::app::bsky::graph::mute_actor::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1441,7 +1442,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.graph.muteActorList".into(),
+                    nsid: crate::app::bsky::graph::mute_actor_list::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1468,7 +1469,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.graph.unmuteActor".into(),
+                    nsid: crate::app::bsky::graph::unmute_actor::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1495,7 +1496,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.graph.unmuteActorList".into(),
+                    nsid: crate::app::bsky::graph::unmute_actor_list::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1538,7 +1539,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.labeler.getServices".into(),
+                    nsid: crate::app::bsky::labeler::get_services::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1581,7 +1582,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.notification.getUnreadCount".into(),
+                    nsid: crate::app::bsky::notification::get_unread_count::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1611,7 +1612,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.notification.listNotifications".into(),
+                    nsid: crate::app::bsky::notification::list_notifications::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1638,7 +1640,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.notification.registerPush".into(),
+                    nsid: crate::app::bsky::notification::register_push::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1665,7 +1667,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "app.bsky.notification.updateSeen".into(),
+                    nsid: crate::app::bsky::notification::update_seen::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1708,7 +1710,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.unspecced.getPopularFeedGenerators".into(),
+                    nsid: crate::app::bsky::unspecced::get_popular_feed_generators::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1738,7 +1741,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.unspecced.getSuggestionsSkeleton".into(),
+                    nsid: crate::app::bsky::unspecced::get_suggestions_skeleton::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1768,7 +1772,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.unspecced.getTaggedSuggestions".into(),
+                    nsid: crate::app::bsky::unspecced::get_tagged_suggestions::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1798,7 +1803,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.unspecced.searchActorsSkeleton".into(),
+                    nsid: crate::app::bsky::unspecced::search_actors_skeleton::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1828,7 +1834,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "app.bsky.unspecced.searchPostsSkeleton".into(),
+                    nsid: crate::app::bsky::unspecced::search_posts_skeleton::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -1899,7 +1906,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.actor.deleteAccount".into(),
+                    nsid: crate::chat::bsky::actor::delete_account::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -1927,7 +1934,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.actor.exportAccountData".into(),
+                    nsid: crate::chat::bsky::actor::export_account_data::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -1969,7 +1976,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.deleteMessageForSelf".into(),
+                    nsid: crate::chat::bsky::convo::delete_message_for_self::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -1998,7 +2005,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.convo.getConvo".into(),
+                    nsid: crate::chat::bsky::convo::get_convo::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2027,7 +2034,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.convo.getConvoForMembers".into(),
+                    nsid: crate::chat::bsky::convo::get_convo_for_members::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2056,7 +2063,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.convo.getLog".into(),
+                    nsid: crate::chat::bsky::convo::get_log::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2085,7 +2092,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.convo.getMessages".into(),
+                    nsid: crate::chat::bsky::convo::get_messages::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2114,7 +2121,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.leaveConvo".into(),
+                    nsid: crate::chat::bsky::convo::leave_convo::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2143,7 +2150,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.convo.listConvos".into(),
+                    nsid: crate::chat::bsky::convo::list_convos::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2172,7 +2179,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.muteConvo".into(),
+                    nsid: crate::chat::bsky::convo::mute_convo::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2201,7 +2208,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.sendMessage".into(),
+                    nsid: crate::chat::bsky::convo::send_message::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2230,7 +2237,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.sendMessageBatch".into(),
+                    nsid: crate::chat::bsky::convo::send_message_batch::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2259,7 +2266,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.unmuteConvo".into(),
+                    nsid: crate::chat::bsky::convo::unmute_convo::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2288,7 +2295,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.convo.updateRead".into(),
+                    nsid: crate::chat::bsky::convo::update_read::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2330,7 +2337,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.moderation.getActorMetadata".into(),
+                    nsid: crate::chat::bsky::moderation::get_actor_metadata::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2359,7 +2366,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "chat.bsky.moderation.getMessageContext".into(),
+                    nsid: crate::chat::bsky::moderation::get_message_context::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2388,7 +2396,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "chat.bsky.moderation.updateActorAccess".into(),
+                    nsid: crate::chat::bsky::moderation::update_actor_access::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2460,7 +2469,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.deleteAccount".into(),
+                    nsid: crate::com::atproto::admin::delete_account::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2490,7 +2499,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.disableAccountInvites".into(),
+                    nsid: crate::com::atproto::admin::disable_account_invites::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2520,7 +2530,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.disableInviteCodes".into(),
+                    nsid: crate::com::atproto::admin::disable_invite_codes::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2550,7 +2560,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.enableAccountInvites".into(),
+                    nsid: crate::com::atproto::admin::enable_account_invites::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2580,7 +2591,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.admin.getAccountInfo".into(),
+                    nsid: crate::com::atproto::admin::get_account_info::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2610,7 +2621,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.admin.getAccountInfos".into(),
+                    nsid: crate::com::atproto::admin::get_account_infos::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2640,7 +2651,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.admin.getInviteCodes".into(),
+                    nsid: crate::com::atproto::admin::get_invite_codes::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2670,7 +2681,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.admin.getSubjectStatus".into(),
+                    nsid: crate::com::atproto::admin::get_subject_status::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2700,7 +2711,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.sendEmail".into(),
+                    nsid: crate::com::atproto::admin::send_email::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2730,7 +2741,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.updateAccountEmail".into(),
+                    nsid: crate::com::atproto::admin::update_account_email::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2760,7 +2771,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.updateAccountHandle".into(),
+                    nsid: crate::com::atproto::admin::update_account_handle::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2790,7 +2801,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.updateAccountPassword".into(),
+                    nsid: crate::com::atproto::admin::update_account_password::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2820,7 +2832,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.admin.updateSubjectStatus".into(),
+                    nsid: crate::com::atproto::admin::update_subject_status::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2861,7 +2873,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.identity.getRecommendedDidCredentials".into(),
+                    nsid: crate::com::atproto::identity::get_recommended_did_credentials::NSID
+                        .into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -2890,7 +2903,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.identity.requestPlcOperationSignature".into(),
+                    nsid: crate::com::atproto::identity::request_plc_operation_signature::NSID
+                        .into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -2920,7 +2934,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.identity.resolveHandle".into(),
+                    nsid: crate::com::atproto::identity::resolve_handle::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2950,7 +2964,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.identity.signPlcOperation".into(),
+                    nsid: crate::com::atproto::identity::sign_plc_operation::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -2980,7 +2994,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.identity.submitPlcOperation".into(),
+                    nsid: crate::com::atproto::identity::submit_plc_operation::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3007,7 +3022,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.identity.updateHandle".into(),
+                    nsid: crate::com::atproto::identity::update_handle::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3049,7 +3064,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.label.queryLabels".into(),
+                    nsid: crate::com::atproto::label::query_labels::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3091,7 +3106,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.moderation.createReport".into(),
+                    nsid: crate::com::atproto::moderation::create_report::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3130,7 +3145,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.repo.applyWrites".into(),
+                    nsid: crate::com::atproto::repo::apply_writes::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3160,7 +3175,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.repo.createRecord".into(),
+                    nsid: crate::com::atproto::repo::create_record::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3187,7 +3202,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.repo.deleteRecord".into(),
+                    nsid: crate::com::atproto::repo::delete_record::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3217,7 +3232,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.repo.describeRepo".into(),
+                    nsid: crate::com::atproto::repo::describe_repo::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3247,7 +3262,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.repo.getRecord".into(),
+                    nsid: crate::com::atproto::repo::get_record::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3274,7 +3289,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.repo.importRepo".into(),
+                    nsid: crate::com::atproto::repo::import_repo::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
                     encoding: Some(String::from("application/vnd.ipld.car")),
@@ -3304,7 +3319,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.repo.listMissingBlobs".into(),
+                    nsid: crate::com::atproto::repo::list_missing_blobs::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3334,7 +3349,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.repo.listRecords".into(),
+                    nsid: crate::com::atproto::repo::list_records::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3364,7 +3379,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.repo.putRecord".into(),
+                    nsid: crate::com::atproto::repo::put_record::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3394,7 +3409,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.repo.uploadBlob".into(),
+                    nsid: crate::com::atproto::repo::upload_blob::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
                     encoding: Some(String::from("*/*")),
@@ -3432,7 +3447,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.activateAccount".into(),
+                    nsid: crate::com::atproto::server::activate_account::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3461,7 +3476,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.server.checkAccountStatus".into(),
+                    nsid: crate::com::atproto::server::check_account_status::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3488,7 +3503,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.confirmEmail".into(),
+                    nsid: crate::com::atproto::server::confirm_email::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3518,7 +3533,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.createAccount".into(),
+                    nsid: crate::com::atproto::server::create_account::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3548,7 +3563,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.createAppPassword".into(),
+                    nsid: crate::com::atproto::server::create_app_password::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3578,7 +3593,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.createInviteCode".into(),
+                    nsid: crate::com::atproto::server::create_invite_code::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3608,7 +3623,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.createInviteCodes".into(),
+                    nsid: crate::com::atproto::server::create_invite_codes::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3638,7 +3653,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.createSession".into(),
+                    nsid: crate::com::atproto::server::create_session::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3668,7 +3683,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.deactivateAccount".into(),
+                    nsid: crate::com::atproto::server::deactivate_account::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3695,7 +3710,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.deleteAccount".into(),
+                    nsid: crate::com::atproto::server::delete_account::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -3721,7 +3736,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.deleteSession".into(),
+                    nsid: crate::com::atproto::server::delete_session::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3750,7 +3765,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.server.describeServer".into(),
+                    nsid: crate::com::atproto::server::describe_server::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3780,7 +3795,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.server.getAccountInviteCodes".into(),
+                    nsid: crate::com::atproto::server::get_account_invite_codes::NSID
+                        .into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3810,7 +3826,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.server.getServiceAuth".into(),
+                    nsid: crate::com::atproto::server::get_service_auth::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -3839,7 +3855,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.server.getSession".into(),
+                    nsid: crate::com::atproto::server::get_session::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3868,7 +3884,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.server.listAppPasswords".into(),
+                    nsid: crate::com::atproto::server::list_app_passwords::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3897,7 +3913,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.refreshSession".into(),
+                    nsid: crate::com::atproto::server::refresh_session::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3926,7 +3942,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.requestAccountDelete".into(),
+                    nsid: crate::com::atproto::server::request_account_delete::NSID
+                        .into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3955,7 +3972,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.requestEmailConfirmation".into(),
+                    nsid: crate::com::atproto::server::request_email_confirmation::NSID
+                        .into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -3984,7 +4002,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.requestEmailUpdate".into(),
+                    nsid: crate::com::atproto::server::request_email_update::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -4014,7 +4032,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.requestPasswordReset".into(),
+                    nsid: crate::com::atproto::server::request_password_reset::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4044,7 +4063,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.reserveSigningKey".into(),
+                    nsid: crate::com::atproto::server::reserve_signing_key::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4071,7 +4090,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.resetPassword".into(),
+                    nsid: crate::com::atproto::server::reset_password::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4101,7 +4120,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.revokeAppPassword".into(),
+                    nsid: crate::com::atproto::server::revoke_app_password::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4128,7 +4147,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.server.updateEmail".into(),
+                    nsid: crate::com::atproto::server::update_email::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4167,7 +4186,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getBlob".into(),
+                    nsid: crate::com::atproto::sync::get_blob::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4194,7 +4213,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getBlocks".into(),
+                    nsid: crate::com::atproto::sync::get_blocks::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4221,7 +4240,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getCheckout".into(),
+                    nsid: crate::com::atproto::sync::get_checkout::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4251,7 +4270,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getHead".into(),
+                    nsid: crate::com::atproto::sync::get_head::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4281,7 +4300,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getLatestCommit".into(),
+                    nsid: crate::com::atproto::sync::get_latest_commit::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4308,7 +4327,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getRecord".into(),
+                    nsid: crate::com::atproto::sync::get_record::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4335,7 +4354,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.getRepo".into(),
+                    nsid: crate::com::atproto::sync::get_repo::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4365,7 +4384,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.listBlobs".into(),
+                    nsid: crate::com::atproto::sync::list_blobs::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4395,7 +4414,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.sync.listRepos".into(),
+                    nsid: crate::com::atproto::sync::list_repos::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4422,7 +4441,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.sync.notifyOfUpdate".into(),
+                    nsid: crate::com::atproto::sync::notify_of_update::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4449,7 +4468,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.sync.requestCrawl".into(),
+                    nsid: crate::com::atproto::sync::request_crawl::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4490,7 +4509,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.temp.checkSignupQueue".into(),
+                    nsid: crate::com::atproto::temp::check_signup_queue::NSID.into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -4520,7 +4539,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "com.atproto.temp.fetchLabels".into(),
+                    nsid: crate::com::atproto::temp::fetch_labels::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4550,7 +4569,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "com.atproto.temp.requestPhoneVerification".into(),
+                    nsid: crate::com::atproto::temp::request_phone_verification::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4624,7 +4644,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "tools.ozone.communication.createTemplate".into(),
+                    nsid: crate::tools::ozone::communication::create_template::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4654,7 +4675,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "tools.ozone.communication.deleteTemplate".into(),
+                    nsid: crate::tools::ozone::communication::delete_template::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4683,7 +4705,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.communication.listTemplates".into(),
+                    nsid: crate::tools::ozone::communication::list_templates::NSID
+                        .into(),
                     parameters: None,
                     input: None,
                     encoding: None,
@@ -4713,7 +4736,8 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "tools.ozone.communication.updateTemplate".into(),
+                    nsid: crate::tools::ozone::communication::update_template::NSID
+                        .into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4756,7 +4780,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::POST,
-                    path: "tools.ozone.moderation.emitEvent".into(),
+                    nsid: crate::tools::ozone::moderation::emit_event::NSID.into(),
                     parameters: None,
                     input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
                     encoding: Some(String::from("application/json")),
@@ -4786,7 +4810,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.moderation.getEvent".into(),
+                    nsid: crate::tools::ozone::moderation::get_event::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4816,7 +4840,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.moderation.getRecord".into(),
+                    nsid: crate::tools::ozone::moderation::get_record::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4846,7 +4870,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.moderation.getRepo".into(),
+                    nsid: crate::tools::ozone::moderation::get_repo::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4876,7 +4900,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.moderation.queryEvents".into(),
+                    nsid: crate::tools::ozone::moderation::query_events::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4906,7 +4930,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.moderation.queryStatuses".into(),
+                    nsid: crate::tools::ozone::moderation::query_statuses::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4936,7 +4960,7 @@ where
             >(
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
-                    path: "tools.ozone.moderation.searchRepos".into(),
+                    nsid: crate::tools::ozone::moderation::search_repos::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,

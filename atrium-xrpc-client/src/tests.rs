@@ -33,7 +33,7 @@ async fn run_query(
     let response = client
         .send_xrpc::<_, (), _, _>(&XrpcRequest {
             method: Method::GET,
-            path,
+            nsid: path,
             parameters: Some(Parameters {
                 query: "foo".into(),
             }),
@@ -54,7 +54,7 @@ async fn run_procedure(
     let response = client
         .send_xrpc::<(), _, _, _>(&XrpcRequest {
             method: Method::POST,
-            path,
+            nsid: path,
             parameters: None,
             input: Some(InputDataOrBytes::Data(Input { data: "foo".into() })),
             encoding: Some("application/json".into()),

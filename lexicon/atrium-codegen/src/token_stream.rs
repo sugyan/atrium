@@ -595,8 +595,7 @@ pub fn record_enum(
     let enum_name = format_ident!("{name}");
     let mut variants = Vec::new();
     for r#ref in refs {
-        let default = if is_record { "record" } else { "main" };
-        let path = resolve_path(r#ref, default)?;
+        let path = resolve_path(r#ref, if is_record { "record" } else { "main" })?;
         let rename = if r#ref.starts_with('#') {
             format!(
                 "{}{}",
@@ -880,10 +879,11 @@ fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
     } else {
         quote!(None)
     };
+    let nsid_path = resolve_path(nsid, "NSID")?;
     let xrpc_call = quote! {
         self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
             method: http::Method::GET,
-            path: #nsid.into(),
+            nsid: #nsid_path.into(),
             parameters: #param_value,
             input: None,
             encoding: None,
@@ -946,10 +946,11 @@ fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<Token
     } else {
         quote!(None)
     };
+    let nsid_path = resolve_path(nsid, "NSID")?;
     let xrpc_call = quote! {
         self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
             method: http::Method::POST,
-            path: #nsid.into(),
+            nsid: #nsid_path.into(),
             parameters: None,
             input: #input_value,
             encoding: #encoding,
@@ -1040,7 +1041,11 @@ fn resolve_path(r#ref: &str, default: &str) -> Result<TokenStream> {
         format!(
             "crate::{}::{}",
             namespace.split('.').map(str::to_snake_case).join("::"),
-            def.to_pascal_case()
+            if def.chars().all(char::is_uppercase) {
+                def.to_string()
+            } else {
+                def.to_pascal_case()
+            }
         )
     })?;
     Ok(quote!(#path))

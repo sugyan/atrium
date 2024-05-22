@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 pub mod error;
 mod traits;
-mod types;
+pub mod types;
 
 pub use crate::error::{Error, Result};
 pub use crate::traits::{HttpClient, XrpcClient};
@@ -57,7 +57,7 @@ mod tests {
             let response = xrpc
                 .send_xrpc::<_, (), _, _>(&XrpcRequest {
                     method: http::Method::GET,
-                    path: "example".into(),
+                    nsid: "example".into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -200,7 +200,7 @@ mod tests {
                 let response = xrpc
                     .send_xrpc::<_, (), (), _>(&XrpcRequest {
                         method: http::Method::GET,
-                        path: "example".into(),
+                        nsid: "example".into(),
                         parameters: Some(params),
                         input: None,
                         encoding: None,
@@ -279,7 +279,7 @@ mod tests {
                 let response = xrpc
                     .send_xrpc::<(), _, (), _>(&XrpcRequest {
                         method: http::Method::POST,
-                        path: "example".into(),
+                        nsid: "example".into(),
                         parameters: None,
                         input: Some(InputDataOrBytes::Data(input)),
                         encoding: None,
@@ -341,7 +341,7 @@ mod tests {
                 let response = xrpc
                     .send_xrpc::<(), Vec<u8>, _, _>(&XrpcRequest {
                         method: http::Method::POST,
-                        path: "example".into(),
+                        nsid: "example".into(),
                         parameters: None,
                         input: Some(InputDataOrBytes::Bytes(input)),
                         encoding: None,
