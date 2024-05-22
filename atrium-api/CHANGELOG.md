@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.3...atrium-api-v0.22.0) - 2024-05-22
+
+### Added
+- Add supporting atproto headers ([#175](https://github.com/sugyan/atrium/pull/175))
+
 ## [0.21.3](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.2...atrium-api-v0.21.3) - 2024-05-20
 
 ### Added
