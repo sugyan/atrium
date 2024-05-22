@@ -23,5 +23,5 @@ impl std::fmt::Display for Error {
 #[serde(rename_all = "camelCase")]
 pub struct BatchItem {
     pub convo_id: String,
-    pub message: crate::chat::bsky::convo::defs::Message,
+    pub message: crate::chat::bsky::convo::defs::MessageInput,
 }

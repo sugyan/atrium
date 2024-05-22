@@ -47,19 +47,18 @@ pub struct LogLeaveConvo {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Message {
+pub struct MessageInput {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<crate::types::Union<MessageEmbedRefs>>,
+    pub embed: Option<crate::types::Union<MessageInputEmbedRefs>>,
     ///Annotations of text (mentions, URLs, hashtags, etc)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
     pub text: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageRef {
+    pub convo_id: String,
     pub did: crate::types::string::Did,
     pub message_id: String,
 }
@@ -108,7 +107,7 @@ pub enum LogDeleteMessageMessageRefs {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
-pub enum MessageEmbedRefs {
+pub enum MessageInputEmbedRefs {
     #[serde(rename = "app.bsky.embed.record")]
     AppBskyEmbedRecordMain(Box<crate::app::bsky::embed::record::Main>),
 }

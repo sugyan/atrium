@@ -8,6 +8,9 @@ pub struct Parameters {
     pub after: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub before: Option<i64>,
+    ///Conversation that the message is from. NOTE: this field will eventually be required.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub convo_id: Option<String>,
     pub message_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
