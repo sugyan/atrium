@@ -1,4 +1,6 @@
 //! Implementation of [`AtpAgent`] and definitions of [`SessionStore`] for it.
+#[cfg(feature = "bluesky")]
+pub mod bluesky;
 mod inner;
 pub mod store;
 
@@ -12,11 +14,16 @@ use std::sync::Arc;
 /// Type alias for the [com::atproto::server::create_session::Output](crate::com::atproto::server::create_session::Output)
 pub type Session = crate::com::atproto::server::create_session::Output;
 
-/// Supported proxy targets
+/// Supported proxy targets.
+#[cfg(feature = "bluesky")]
+pub type AtprotoServiceType = self::bluesky::AtprotoServiceType;
+
+#[cfg(not(feature = "bluesky"))]
 pub enum AtprotoServiceType {
     AtprotoLabeler,
 }
 
+#[cfg(not(feature = "bluesky"))]
 impl AsRef<str> for AtprotoServiceType {
     fn as_ref(&self) -> &str {
         match self {
