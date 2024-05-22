@@ -1,7 +1,9 @@
 //! Bluesky specific constants.
 
 /// DID of the bluesky labeler service.
-pub const CHAT_BSKY_DID: &str = "did:web:api.bsky.chat";
+pub const BSKY_LABELER_DID: &str = "did:plc:ar7c4by46qjdydhdevvrndac";
+/// DID of the bluesky chat service.
+pub const BSKY_CHAT_DID: &str = "did:web:api.bsky.chat";
 
 /// Supported proxy targets, which includes the bluesky specific services.
 pub enum AtprotoServiceType {

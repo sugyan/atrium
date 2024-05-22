@@ -125,6 +125,22 @@ where
     ) -> Service<inner::Client<S, T>> {
         Service::new(Arc::new(self.inner.clone_with_proxy(did, service_type)))
     }
+    /// Get the current session.
+    pub async fn get_session(&self) -> Option<Session> {
+        self.store.get_session().await
+    }
+    /// Get the current endpoint.
+    pub async fn get_endpoint(&self) -> String {
+        self.store.get_endpoint()
+    }
+    /// Get the current labelers header.
+    pub async fn get_labelers_header(&self) -> Option<Vec<String>> {
+        self.inner.get_labelers_header().await
+    }
+    /// Get the current proxy header.
+    pub async fn get_proxy_header(&self) -> Option<String> {
+        self.inner.get_proxy_header().await
+    }
 }
 
 #[cfg(test)]
@@ -261,7 +277,7 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_new() {
         let agent = AtpAgent::new(MockClient::default(), MemorySessionStore::default());
-        assert_eq!(agent.store.get_session().await, None);
+        assert_eq!(agent.get_session().await, None);
     }
 
     #[tokio::test]
@@ -284,7 +300,7 @@ mod tests {
                 .login("test", "pass")
                 .await
                 .expect("login should be succeeded");
-            assert_eq!(agent.store.get_session().await, Some(session));
+            assert_eq!(agent.get_session().await, Some(session));
         }
         // failure with `createSession` error
         {
@@ -299,7 +315,7 @@ mod tests {
                 .login("test", "bad")
                 .await
                 .expect_err("login should be failed");
-            assert_eq!(agent.store.get_session().await, None);
+            assert_eq!(agent.get_session().await, None);
         }
     }
 
@@ -447,7 +463,7 @@ mod tests {
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
-            assert_eq!(agent.store.get_session().await, None);
+            assert_eq!(agent.get_session().await, None);
             agent
                 .resume_session(Session {
                     email: Some(String::from("test@example.com")),
@@ -455,7 +471,7 @@ mod tests {
                 })
                 .await
                 .expect("resume_session should be succeeded");
-            assert_eq!(agent.store.get_session().await, Some(session.clone()));
+            assert_eq!(agent.get_session().await, Some(session.clone()));
         }
         // failure with `getSession` error
         {
@@ -466,12 +482,12 @@ mod tests {
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
-            assert_eq!(agent.store.get_session().await, None);
+            assert_eq!(agent.get_session().await, None);
             agent
                 .resume_session(session)
                 .await
                 .expect_err("resume_session should be failed");
-            assert_eq!(agent.store.get_session().await, None);
+            assert_eq!(agent.get_session().await, None);
         }
     }
 
@@ -501,7 +517,7 @@ mod tests {
             })
             .await
             .expect("resume_session should be succeeded");
-        assert_eq!(agent.store.get_session().await, Some(session));
+        assert_eq!(agent.get_session().await, Some(session));
     }
 
     #[tokio::test]
@@ -542,7 +558,7 @@ mod tests {
                 .login("test", "pass")
                 .await
                 .expect("login should be succeeded");
-            assert_eq!(agent.store.get_endpoint(), "https://bsky.social");
+            assert_eq!(agent.get_endpoint().await, "https://bsky.social");
             assert_eq!(
                 agent.api.com.atproto.server.xrpc.base_uri(),
                 "https://bsky.social"
@@ -580,7 +596,7 @@ mod tests {
                 .await
                 .expect("login should be succeeded");
             // not updated
-            assert_eq!(agent.store.get_endpoint(), "http://localhost:8080");
+            assert_eq!(agent.get_endpoint().await, "http://localhost:8080");
             assert_eq!(
                 agent.api.com.atproto.server.xrpc.base_uri(),
                 "http://localhost:8080"
@@ -642,6 +658,14 @@ mod tests {
                 HeaderName::from_static("atproto-accept-labelers"),
                 HeaderValue::from_static("did:plc:test1, did:plc:test2"),
             )]))
+        );
+
+        assert_eq!(
+            agent.get_labelers_header().await,
+            Some(vec![
+                String::from("did:plc:test1"),
+                String::from("did:plc:test2")
+            ])
         );
     }
 
@@ -735,6 +759,11 @@ mod tests {
                 HeaderName::from_static("atproto-proxy"),
                 HeaderValue::from_static("did:plc:test1#atproto_labeler"),
             ),]))
+        );
+
+        assert_eq!(
+            agent.get_proxy_header().await,
+            Some(String::from("did:plc:test1#atproto_labeler"))
         );
     }
 }

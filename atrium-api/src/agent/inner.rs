@@ -109,7 +109,7 @@ where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
-    pub(crate) fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
+    pub fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
         let inner = WrapperClient {
             store: Arc::clone(&store),
             labelers_header: Arc::new(RwLock::new(None)),
@@ -123,19 +123,25 @@ where
             notify: Arc::new(Notify::new()),
         }
     }
-    pub(crate) fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+    pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
         self.inner
             .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
     }
-    pub(crate) fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
+    pub fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
         let cloned = self.clone();
         cloned
             .inner
             .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
         cloned
     }
-    pub(crate) fn configure_labelers_header(&self, labeler_dids: Option<Vec<Did>>) {
+    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<Did>>) {
         self.inner.configure_labelers_header(labeler_dids);
+    }
+    pub async fn get_labelers_header(&self) -> Option<Vec<String>> {
+        self.inner.atproto_accept_labelers_header().await
+    }
+    pub async fn get_proxy_header(&self) -> Option<String> {
+        self.inner.atproto_proxy_header().await
     }
     // Internal helper to refresh sessions
     // - Wraps the actual implementation to ensure only one refresh is attempted at a time.
