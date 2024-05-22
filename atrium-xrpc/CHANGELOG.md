@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.10.8](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.7...atrium-xrpc-v0.10.8) - 2024-05-22
+## [0.11.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.7...atrium-xrpc-v0.11.0) - 2024-05-22
 
 ### Added
 - Add supporting atproto headers ([#175](https://github.com/sugyan/atrium/pull/175))
