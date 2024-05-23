@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.0...atrium-api-v0.22.1) - 2024-05-23
+
+### Added
+- Update default features of API ([#181](https://github.com/sugyan/atrium/pull/181))
+- Generate lexicon token as const &str ([#179](https://github.com/sugyan/atrium/pull/179))
+
+### Other
+- Add methods to retrieve AtpAgent info ([#178](https://github.com/sugyan/atrium/pull/178))
+
 ## [0.22.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.3...atrium-api-v0.22.0) - 2024-05-22
 
 ### Added
