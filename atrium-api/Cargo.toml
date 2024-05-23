@@ -27,7 +27,7 @@ tokio = { workspace = true, optional = true }
 default = ["agent", "bluesky"]
 agent = ["tokio/sync"]
 bluesky = ["namespace-appbsky", "namespace-chatbsky"]
-ozone = ["namespace-toolsozone"]
+ozone = ["namespace-toolsozone", "namespace-chatbsky"]
 namespace-appbsky = []
 namespace-chatbsky = []
 namespace-toolsozone = []
