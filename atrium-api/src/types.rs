@@ -110,6 +110,7 @@ impl Eq for UnknownData {}
 mod tests {
     use super::*;
     use serde_json::{from_str, to_string};
+    use std::collections::BTreeMap;
 
     const CID_LINK_JSON: &str =
         r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#;
@@ -196,6 +197,56 @@ mod tests {
                 mime_type: "text/plain".into(),
                 size: 0,
             }))
+        );
+    }
+
+    #[test]
+    fn test_union() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[serde(tag = "$type")]
+        enum FooRefs {
+            #[serde(rename = "example.com#bar")]
+            Bar(Box<Bar>),
+            #[serde(rename = "example.com#baz")]
+            Baz(Box<Baz>),
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Bar {
+            bar: String,
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Baz {
+            baz: i32,
+        }
+
+        type Foo = Union<FooRefs>;
+
+        let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#bar","bar":"bar"}"#)
+            .expect("failed to deserialize foo");
+        assert_eq!(
+            foo,
+            Union::Refs(FooRefs::Bar(Box::new(Bar {
+                bar: String::from("bar")
+            })))
+        );
+
+        let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#baz","baz":42}"#)
+            .expect("failed to deserialize foo");
+        assert_eq!(foo, Union::Refs(FooRefs::Baz(Box::new(Baz { baz: 42 }))));
+
+        let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#foo","foo":true}"#)
+            .expect("failed to deserialize foo");
+        assert_eq!(
+            foo,
+            Union::Unknown(UnknownData {
+                r#type: String::from("example.com#foo"),
+                data: Ipld::Map(BTreeMap::from_iter([(
+                    String::from("foo"),
+                    Ipld::Bool(true)
+                )]))
+            })
         );
     }
 }
