@@ -39,14 +39,14 @@ pub(crate) fn generate_schemas(
             }
             // main def
             if name == "main" {
-                tokens.push(user_type(def, basename, true)?);
+                tokens.push(user_type(def, &schema.id, basename, true)?);
             } else {
                 names.push(name);
             }
         }
         // other defs
         for &name in names.iter().sorted() {
-            tokens.push(user_type(&schema.defs[name], name, false)?);
+            tokens.push(user_type(&schema.defs[name], &schema.id, name, false)?);
         }
         // ref unions
         tokens.push(ref_unions(&schema.id, &find_ref_unions(&schema.defs))?);

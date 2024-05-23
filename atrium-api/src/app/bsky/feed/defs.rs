@@ -15,13 +15,13 @@ pub struct BlockedPost {
     pub uri: String,
 }
 ///User clicked through to the author of the feed item
-pub struct ClickthroughAuthor;
+pub const CLICKTHROUGH_AUTHOR: &str = "app.bsky.feed.defs#clickthroughAuthor";
 ///User clicked through to the embedded content of the feed item
-pub struct ClickthroughEmbed;
+pub const CLICKTHROUGH_EMBED: &str = "app.bsky.feed.defs#clickthroughEmbed";
 ///User clicked through to the feed item
-pub struct ClickthroughItem;
+pub const CLICKTHROUGH_ITEM: &str = "app.bsky.feed.defs#clickthroughItem";
 ///User clicked through to the reposter of the feed item
-pub struct ClickthroughReposter;
+pub const CLICKTHROUGH_REPOSTER: &str = "app.bsky.feed.defs#clickthroughReposter";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FeedViewPost {
@@ -76,17 +76,17 @@ pub struct Interaction {
     pub item: Option<String>,
 }
 ///User liked the feed item
-pub struct InteractionLike;
+pub const INTERACTION_LIKE: &str = "app.bsky.feed.defs#interactionLike";
 ///User quoted the feed item
-pub struct InteractionQuote;
+pub const INTERACTION_QUOTE: &str = "app.bsky.feed.defs#interactionQuote";
 ///User replied to the feed item
-pub struct InteractionReply;
+pub const INTERACTION_REPLY: &str = "app.bsky.feed.defs#interactionReply";
 ///User reposted the feed item
-pub struct InteractionRepost;
+pub const INTERACTION_REPOST: &str = "app.bsky.feed.defs#interactionRepost";
 ///Feed item was seen by user
-pub struct InteractionSeen;
+pub const INTERACTION_SEEN: &str = "app.bsky.feed.defs#interactionSeen";
 ///User shared the feed item
-pub struct InteractionShare;
+pub const INTERACTION_SHARE: &str = "app.bsky.feed.defs#interactionShare";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NotFoundPost {
@@ -132,9 +132,9 @@ pub struct ReplyRef {
     pub root: crate::types::Union<ReplyRefRootRefs>,
 }
 ///Request that less content like the given feed item be shown in the feed
-pub struct RequestLess;
+pub const REQUEST_LESS: &str = "app.bsky.feed.defs#requestLess";
 ///Request that more content like the given feed item be shown in the feed
-pub struct RequestMore;
+pub const REQUEST_MORE: &str = "app.bsky.feed.defs#requestMore";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SkeletonFeedPost {

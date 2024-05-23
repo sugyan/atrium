@@ -262,13 +262,13 @@ pub struct RepoViewNotFound {
     pub did: crate::types::string::Did,
 }
 ///Moderator review status of a subject: Closed. Indicates that the subject was already reviewed and resolved by a moderator
-pub struct ReviewClosed;
+pub const REVIEW_CLOSED: &str = "tools.ozone.moderation.defs#reviewClosed";
 ///Moderator review status of a subject: Escalated. Indicates that the subject was escalated for review by a moderator
-pub struct ReviewEscalated;
+pub const REVIEW_ESCALATED: &str = "tools.ozone.moderation.defs#reviewEscalated";
 ///Moderator review status of a subject: Unnecessary. Indicates that the subject does not need a review at the moment but there is probably some moderation related metadata available for it
-pub struct ReviewNone;
+pub const REVIEW_NONE: &str = "tools.ozone.moderation.defs#reviewNone";
 ///Moderator review status of a subject: Open. Indicates that the subject needs to be reviewed by a moderator
-pub struct ReviewOpen;
+pub const REVIEW_OPEN: &str = "tools.ozone.moderation.defs#reviewOpen";
 pub type SubjectReviewState = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
