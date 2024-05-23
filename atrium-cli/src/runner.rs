@@ -1,6 +1,7 @@
 use crate::commands::Command;
 use crate::store::SimpleJsonFileSessionStore;
 use anyhow::{Context, Result};
+use atrium_api::agent::bluesky::{AtprotoServiceType, BSKY_CHAT_DID};
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
@@ -263,6 +264,71 @@ impl Runner {
                     )
                     .await?,
             ),
+            Command::ListConvos => self.print(
+                &self
+                    .agent
+                    .api_with_proxy(
+                        BSKY_CHAT_DID.parse().expect("valid DID"),
+                        AtprotoServiceType::BskyChat,
+                    )
+                    .chat
+                    .bsky
+                    .convo
+                    .list_convos(atrium_api::chat::bsky::convo::list_convos::Parameters {
+                        cursor: None,
+                        limit: Some(limit),
+                    })
+                    .await?,
+            ),
+            Command::SendConvoMessage(args) => {
+                let did = match args.actor {
+                    AtIdentifier::Handle(handle) => {
+                        self.agent
+                            .api
+                            .com
+                            .atproto
+                            .identity
+                            .resolve_handle(
+                                atrium_api::com::atproto::identity::resolve_handle::Parameters {
+                                    handle: handle.clone(),
+                                },
+                            )
+                            .await?
+                            .did
+                    }
+                    AtIdentifier::Did(did) => did,
+                };
+                let chat = &self
+                    .agent
+                    .api_with_proxy(
+                        BSKY_CHAT_DID.parse().expect("valid DID"),
+                        AtprotoServiceType::BskyChat,
+                    )
+                    .chat;
+                let convo = chat
+                    .bsky
+                    .convo
+                    .get_convo_for_members(
+                        atrium_api::chat::bsky::convo::get_convo_for_members::Parameters {
+                            members: vec![did],
+                        },
+                    )
+                    .await?;
+                self.print(
+                    &chat
+                        .bsky
+                        .convo
+                        .send_message(atrium_api::chat::bsky::convo::send_message::Input {
+                            convo_id: convo.convo.id,
+                            message: atrium_api::chat::bsky::convo::defs::MessageInput {
+                                embed: None,
+                                facets: None,
+                                text: args.text,
+                            },
+                        })
+                        .await?,
+                )
+            }
             Command::CreatePost(args) => {
                 let mut images = Vec::new();
                 for image in &args.images {

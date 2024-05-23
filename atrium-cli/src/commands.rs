@@ -35,6 +35,10 @@ pub enum Command {
     GetPreferences,
     /// Get a list of notifications.
     ListNotifications,
+    /// Get a list of chat conversations.
+    ListConvos,
+    /// Send a message to a chat conversation.
+    SendConvoMessage(SendConvoMessageArgs),
     /// Create a new post.
     CreatePost(CreatePostArgs),
     /// Delete a post.
@@ -63,6 +67,16 @@ pub struct UriArgs {
     /// Record's URI
     #[arg(short, long, value_parser)]
     pub(crate) uri: AtUri,
+}
+
+#[derive(Parser, Debug)]
+pub struct SendConvoMessageArgs {
+    /// Actor's handle or did
+    #[arg(short, long, value_parser)]
+    pub(crate) actor: AtIdentifier,
+    /// Message text
+    #[arg(short, long)]
+    pub(crate) text: String,
 }
 
 #[derive(Parser, Debug)]
