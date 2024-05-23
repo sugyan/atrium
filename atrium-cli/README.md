@@ -23,6 +23,8 @@ Commands:
   get-profile         Get detailed profile view of an actor
   get-preferences     Get preferences of an actor
   list-notifications  Get a list of notifications
+  list-convos         Get a list of chat conversations
+  send-convo-message  Send a message to a chat conversation
   create-post         Create a new post
   delete-post         Delete a post
   help                Print this message or the help of the given subcommand(s)
