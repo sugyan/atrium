@@ -1,5 +1,5 @@
 use atrium_lex::lexicon::*;
-use heck::{ToPascalCase, ToSnakeCase};
+use heck::{ToPascalCase, ToShoutySnakeCase, ToSnakeCase};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -13,14 +13,19 @@ enum OutputType {
     Bytes,
 }
 
-pub fn user_type(def: &LexUserType, name: &str, is_main: bool) -> Result<TokenStream> {
+pub fn user_type(
+    def: &LexUserType,
+    schema_id: &str,
+    name: &str,
+    is_main: bool,
+) -> Result<TokenStream> {
     let user_type = match def {
         LexUserType::Record(record) => lex_record(record)?,
         LexUserType::XrpcQuery(query) => lex_query(query)?,
         LexUserType::XrpcProcedure(procedure) => lex_procedure(procedure)?,
         LexUserType::XrpcSubscription(subscription) => lex_subscription(subscription)?,
         LexUserType::Array(array) => lex_array(array, name)?,
-        LexUserType::Token(token) => lex_token(token, name)?,
+        LexUserType::Token(token) => lex_token(token, name, schema_id)?,
         LexUserType::Object(object) => lex_object(object, if is_main { "Main" } else { name })?,
         LexUserType::String(string) => lex_string(string, name)?,
         _ => unimplemented!("{def:?}"),
@@ -245,13 +250,13 @@ fn lex_array(array: &LexArray, name: &str) -> Result<TokenStream> {
     })
 }
 
-fn lex_token(token: &LexToken, name: &str) -> Result<TokenStream> {
+fn lex_token(token: &LexToken, name: &str, schema_id: &str) -> Result<TokenStream> {
     let description = description(&token.description);
-    let token_name = format_ident!("{}", name.to_pascal_case());
-    // TODO
+    let token_name = format_ident!("{}", name.to_shouty_snake_case());
+    let token_value = format!("{schema_id}#{name}");
     Ok(quote! {
         #description
-        pub struct #token_name;
+        pub const #token_name: &str = #token_value;
     })
 }
 
@@ -314,11 +319,6 @@ fn lex_object_property(
         LexObjectProperty::String(string) => string_type(string)?,
         LexObjectProperty::Unknown(unknown) => unknown_type(unknown, Some(name))?,
     };
-    // TODO: must be determined
-    if field_type.is_empty() {
-        return Ok(quote!());
-    }
-    // TODO: other keywords?
     let field_name = format_ident!(
         "{}",
         if name == "ref" || name == "type" {
@@ -412,10 +412,6 @@ fn array_type(
         )?,
         _ => unimplemented!("{:?}", array.items),
     };
-    // TODO: must be determined
-    if item_type.is_empty() {
-        return Ok((description, quote!()));
-    }
     Ok((description, quote!(Vec<#item_type>)))
 }
 
