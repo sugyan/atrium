@@ -99,9 +99,9 @@ pub enum Union<T> {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq)]
 pub struct UnknownData {
     #[serde(rename = "$type")]
-    r#type: String,
+    pub r#type: String,
     #[serde(flatten)]
-    data: Ipld,
+    pub data: Ipld,
 }
 
 impl Eq for UnknownData {}
