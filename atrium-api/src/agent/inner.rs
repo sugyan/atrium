@@ -23,12 +23,21 @@ impl<S, T> WrapperClient<S, T> {
             .expect("failed to write proxy header")
             .replace(value);
     }
-    fn configure_labelers_header(&self, labelers_dids: Option<Vec<Did>>) {
+    fn configure_labelers_header(&self, labelers_dids: Option<Vec<(Did, bool)>>) {
         *self
             .labelers_header
             .write()
-            .expect("failed to write labelers header") =
-            labelers_dids.map(|dids| dids.iter().map(|did| did.as_ref().into()).collect())
+            .expect("failed to write labelers header") = labelers_dids.map(|dids| {
+            dids.iter()
+                .map(|(did, redact)| {
+                    if *redact {
+                        format!("{};redact", did.as_ref())
+                    } else {
+                        did.as_ref().into()
+                    }
+                })
+                .collect()
+        })
     }
 }
 
@@ -123,6 +132,13 @@ where
             notify: Arc::new(Notify::new()),
         }
     }
+    pub fn configure_endpoint(&self, endpoint: String) {
+        *self
+            .store
+            .endpoint
+            .write()
+            .expect("failed to write endpoint") = endpoint;
+    }
     pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
         self.inner
             .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
@@ -134,7 +150,7 @@ where
             .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
         cloned
     }
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<Did>>) {
+    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
         self.inner.configure_labelers_header(labeler_dids);
     }
     pub async fn get_labelers_header(&self) -> Option<Vec<String>> {

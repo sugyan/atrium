@@ -107,8 +107,12 @@ where
             }
         }
     }
+    /// Set the current endpoint.
+    pub fn configure_endpoint(&self, endpoint: String) {
+        self.inner.configure_endpoint(endpoint);
+    }
     /// Configures the moderation services to be applied on requests.
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<Did>>) {
+    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
         self.inner.configure_labelers_header(labeler_dids);
     }
     /// Configures the atproto-proxy header to be applied on requests.
