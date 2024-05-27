@@ -107,8 +107,12 @@ where
             }
         }
     }
+    /// Set the current endpoint.
+    pub fn configure_endpoint(&self, endpoint: String) {
+        self.inner.configure_endpoint(endpoint);
+    }
     /// Configures the moderation services to be applied on requests.
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<Did>>) {
+    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
         self.inner.configure_labelers_header(labeler_dids);
     }
     /// Configures the atproto-proxy header to be applied on requests.
@@ -621,9 +625,10 @@ mod tests {
             .expect("describe_server should be succeeded");
         assert_eq!(headers.read().await.last(), Some(&HeaderMap::new()));
 
-        agent.configure_labelers_header(Some(vec!["did:plc:test1"
-            .parse()
-            .expect("did should be valid")]));
+        agent.configure_labelers_header(Some(vec![(
+            "did:plc:test1".parse().expect("did should be valid"),
+            false,
+        )]));
         agent
             .api
             .com
@@ -641,8 +646,8 @@ mod tests {
         );
 
         agent.configure_labelers_header(Some(vec![
-            "did:plc:test1".parse().expect("did should be valid"),
-            "did:plc:test2".parse().expect("did should be valid"),
+            ("did:plc:test1".parse().expect("did should be valid"), true),
+            ("did:plc:test2".parse().expect("did should be valid"), false),
         ]));
         agent
             .api
@@ -656,14 +661,14 @@ mod tests {
             headers.read().await.last(),
             Some(&HeaderMap::from_iter([(
                 HeaderName::from_static("atproto-accept-labelers"),
-                HeaderValue::from_static("did:plc:test1, did:plc:test2"),
+                HeaderValue::from_static("did:plc:test1;redact, did:plc:test2"),
             )]))
         );
 
         assert_eq!(
             agent.get_labelers_header().await,
             Some(vec![
-                String::from("did:plc:test1"),
+                String::from("did:plc:test1;redact"),
                 String::from("did:plc:test2")
             ])
         );
