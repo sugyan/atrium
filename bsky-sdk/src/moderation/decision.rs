@@ -1,12 +1,7 @@
-use crate::moderation::BehaviorValue;
-
-use super::types::{
-    ContentListBehavior, ContentMediaBehavior, ContentViewBehavior,
-    InterpretedLabelValueDefinition, LabelPreference, LabelValueDefinitionFlag, ModerationBehavior,
-    ModerationCause, ModerationCauseLabel, ModerationCauseSource, ProfileViewBehavior,
-};
+use super::types::*;
 use super::{labels::KnownLabelValue, ui::ModerationUi, Moderator};
-use atrium_api::{com::atproto::label::defs::Label, types::string::Did};
+use atrium_api::com::atproto::label::defs::Label;
+use atrium_api::types::string::Did;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DecisionContext {

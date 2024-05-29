@@ -35,7 +35,7 @@ impl Default for Config {
 }
 
 #[async_trait]
-pub trait Loader: Sized {
+pub trait Loader {
     async fn load(
         &self,
     ) -> core::result::Result<Config, Box<dyn std::error::Error + Send + Sync + 'static>>;
