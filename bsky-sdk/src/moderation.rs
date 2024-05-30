@@ -164,13 +164,13 @@ mod tests {
         }
     }
 
-    fn interpreted_label_value_definition(
+    fn interpret_label_value_definition(
         identifier: &str,
         default_setting: LabelPreference,
         severity: &str,
         blurs: &str,
+        adult_only: bool,
     ) -> InterpretedLabelValueDefinition {
-        let flags = vec![LabelValueDefinitionFlag::NoSelf];
         let alert_or_inform = match severity {
             "alert" => BehaviorValue::Alert,
             "inform" => BehaviorValue::Inform,
@@ -179,7 +179,33 @@ mod tests {
         let mut behaviors = InterpretedLabelValueDefinitionBehaviors::default();
         match blurs {
             "content" => {
-                todo!()
+                // target=account, blurs=content
+                behaviors.account.profile_list = Some(alert_or_inform.try_into().unwrap());
+                behaviors.account.profile_view = Some(alert_or_inform.try_into().unwrap());
+                behaviors.account.content_list = Some(BehaviorValue::Blur.try_into().unwrap());
+                behaviors.account.content_view = Some(
+                    if adult_only {
+                        BehaviorValue::Blur
+                    } else {
+                        alert_or_inform
+                    }
+                    .try_into()
+                    .unwrap(),
+                );
+                // target=profile, blurs=content
+                behaviors.profile.profile_list = Some(alert_or_inform.try_into().unwrap());
+                behaviors.profile.profile_view = Some(alert_or_inform.try_into().unwrap());
+                // target=content, blurs=content
+                behaviors.content.content_list = Some(BehaviorValue::Blur.try_into().unwrap());
+                behaviors.content.content_view = Some(
+                    if adult_only {
+                        BehaviorValue::Blur
+                    } else {
+                        alert_or_inform
+                    }
+                    .try_into()
+                    .unwrap(),
+                );
             }
             "media" => {
                 todo!()
@@ -199,6 +225,10 @@ mod tests {
             }
             _ => unreachable!(),
         }
+        let mut flags = vec![LabelValueDefinitionFlag::NoSelf];
+        if adult_only {
+            flags.push(LabelValueDefinitionFlag::Adult);
+        }
         InterpretedLabelValueDefinition {
             identifier: identifier.into(),
             default_setting,
@@ -213,8 +243,6 @@ mod tests {
         context: DecisionContext,
     ) {
         let ui = decision.ui(context);
-        println!("{:?}", ui.inform());
-        println!("{:?}", ui.blur());
         if expected.is_empty() {
             assert!(
                 !ui.inform(),
@@ -424,11 +452,12 @@ mod tests {
             },
             label_defs: Some(HashMap::from_iter([(
                 String::from("did:web:labeler.test"),
-                vec![interpreted_label_value_definition(
+                vec![interpret_label_value_definition(
                     "porn",
                     LabelPreference::Warn,
                     "inform",
                     "none",
+                    false,
                 )],
             )])),
         };
@@ -441,22 +470,14 @@ mod tests {
                 "porn",
             )]),
         ));
-        assert_ui(&result, &[], DecisionContext::ProfileList);
-        assert_ui(&result, &[], DecisionContext::ProfileView);
-        assert_ui(&result, &[], DecisionContext::Avatar);
-        assert_ui(&result, &[], DecisionContext::Banner);
-        assert_ui(&result, &[], DecisionContext::DisplayName);
-        assert_ui(
-            &result,
-            &[ModerationTestResultFlag::Inform],
-            DecisionContext::ContentList,
-        );
-        assert_ui(
-            &result,
-            &[ModerationTestResultFlag::Inform],
-            DecisionContext::ContentView,
-        );
-        assert_ui(&result, &[], DecisionContext::ContentMedia);
+        for context in DecisionContext::ALL {
+            let expected = match context {
+                DecisionContext::ContentList => vec![ModerationTestResultFlag::Inform],
+                DecisionContext::ContentView => vec![ModerationTestResultFlag::Inform],
+                _ => vec![],
+            };
+            assert_ui(&result, &expected, context);
+        }
     }
 
     #[test]
@@ -474,11 +495,12 @@ mod tests {
             },
             label_defs: Some(HashMap::from_iter([(
                 String::from("did:web:labeler.test"),
-                vec![interpreted_label_value_definition(
+                vec![interpret_label_value_definition(
                     "!hide",
                     LabelPreference::Warn,
                     "inform",
                     "none",
+                    false,
                 )],
             )])),
         };
@@ -491,28 +513,262 @@ mod tests {
                 "!hide",
             )]),
         ));
-        assert_ui(&result, &[], DecisionContext::ProfileList);
-        assert_ui(&result, &[], DecisionContext::ProfileView);
-        assert_ui(&result, &[], DecisionContext::Avatar);
-        assert_ui(&result, &[], DecisionContext::Banner);
-        assert_ui(&result, &[], DecisionContext::DisplayName);
-        assert_ui(
-            &result,
-            &[
-                ModerationTestResultFlag::Filter,
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
-            DecisionContext::ContentList,
-        );
-        assert_ui(
-            &result,
-            &[
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
-            DecisionContext::ContentView,
-        );
-        assert_ui(&result, &[], DecisionContext::ContentMedia);
+        for context in DecisionContext::ALL {
+            let expected = match context {
+                DecisionContext::ContentList => vec![
+                    ModerationTestResultFlag::Filter,
+                    ModerationTestResultFlag::Blur,
+                    ModerationTestResultFlag::NoOverride,
+                ],
+                DecisionContext::ContentView => vec![
+                    ModerationTestResultFlag::Blur,
+                    ModerationTestResultFlag::NoOverride,
+                ],
+                _ => vec![],
+            };
+            assert_ui(&result, &expected, context);
+        }
+    }
+
+    #[test]
+    fn ignore_invalid_label_value_names() {
+        let moderator = Moderator {
+            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
+            prefs: ModerationPrefs {
+                adult_content_enabled: true,
+                labels: HashMap::new(),
+                labelers: vec![ModerationPrefsLabeler {
+                    did: "did:web:labeler.test".parse().expect("invalid did"),
+                    labels: HashMap::from_iter([
+                        (String::from("BadLabel"), LabelPreference::Hide),
+                        (String::from("bad/label"), LabelPreference::Hide),
+                    ]),
+                    is_default_labeler: false,
+                }],
+            },
+            label_defs: Some(HashMap::from_iter([(
+                String::from("did:web:labeler.test"),
+                vec![
+                    interpret_label_value_definition(
+                        "BadLabel",
+                        LabelPreference::Warn,
+                        "inform",
+                        "content",
+                        false,
+                    ),
+                    interpret_label_value_definition(
+                        "bad/label",
+                        LabelPreference::Warn,
+                        "inform",
+                        "content",
+                        false,
+                    ),
+                ],
+            )])),
+        };
+        let result = moderator.moderate_post(&post_view(
+            &profile_view_basic("bob.test", Some("Bob"), None),
+            "Hello",
+            Some(vec![
+                label(
+                    "did:web:labeler.test",
+                    "at://did:web:bob.test/app.bsky.post/fake",
+                    "BadLabel",
+                ),
+                label(
+                    "did:web:labeler.test",
+                    "at://did:web:bob.test/app.bsky.post/fake",
+                    "bad/label",
+                ),
+            ]),
+        ));
+        for context in DecisionContext::ALL {
+            assert_ui(&result, &[], context);
+        }
+    }
+
+    #[test]
+    fn custom_labels_with_default_settings() {
+        let moderator = Moderator {
+            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
+            prefs: ModerationPrefs {
+                adult_content_enabled: true,
+                labels: HashMap::new(),
+                labelers: vec![ModerationPrefsLabeler {
+                    did: "did:web:labeler.test".parse().expect("invalid did"),
+                    labels: HashMap::new(),
+                    is_default_labeler: false,
+                }],
+            },
+            label_defs: Some(HashMap::from_iter([(
+                String::from("did:web:labeler.test"),
+                vec![
+                    interpret_label_value_definition(
+                        "default-hide",
+                        LabelPreference::Hide,
+                        "inform",
+                        "content",
+                        false,
+                    ),
+                    interpret_label_value_definition(
+                        "default-warn",
+                        LabelPreference::Warn,
+                        "inform",
+                        "content",
+                        false,
+                    ),
+                    interpret_label_value_definition(
+                        "default-ignore",
+                        LabelPreference::Ignore,
+                        "inform",
+                        "content",
+                        false,
+                    ),
+                ],
+            )])),
+        };
+        let author = profile_view_basic("bob.test", Some("Bob"), None);
+        {
+            let result = moderator.moderate_post(&post_view(
+                &author,
+                "Hello",
+                Some(vec![label(
+                    "did:web:labeler.test",
+                    "at://did:web:bob.test/app.bsky.post/fake",
+                    "default-hide",
+                )]),
+            ));
+            for context in DecisionContext::ALL {
+                let expected = match context {
+                    DecisionContext::ContentList => vec![
+                        ModerationTestResultFlag::Filter,
+                        ModerationTestResultFlag::Blur,
+                    ],
+                    DecisionContext::ContentView => vec![ModerationTestResultFlag::Inform],
+                    _ => vec![],
+                };
+                assert_ui(&result, &expected, context);
+            }
+        }
+        {
+            let result = moderator.moderate_post(&post_view(
+                &author,
+                "Hello",
+                Some(vec![label(
+                    "did:web:labeler.test",
+                    "at://did:web:bob.test/app.bsky.post/fake",
+                    "default-warn",
+                )]),
+            ));
+            for context in DecisionContext::ALL {
+                let expected = match context {
+                    DecisionContext::ContentList => vec![ModerationTestResultFlag::Blur],
+                    DecisionContext::ContentView => vec![ModerationTestResultFlag::Inform],
+                    _ => vec![],
+                };
+                assert_ui(&result, &expected, context);
+            }
+        }
+        {
+            let result = moderator.moderate_post(&post_view(
+                &author,
+                "Hello",
+                Some(vec![label(
+                    "did:web:labeler.test",
+                    "at://did:web:bob.test/app.bsky.post/fake",
+                    "default-ignore",
+                )]),
+            ));
+            for context in DecisionContext::ALL {
+                assert_ui(&result, &[], context)
+            }
+        }
+    }
+
+    #[test]
+    fn custom_labels_require_adult_content_enabled() {
+        let moderator = Moderator {
+            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
+            prefs: ModerationPrefs {
+                adult_content_enabled: false,
+                labels: HashMap::from_iter([(String::from("adult"), LabelPreference::Ignore)]),
+                labelers: vec![ModerationPrefsLabeler {
+                    did: "did:web:labeler.test".parse().expect("invalid did"),
+                    labels: HashMap::from_iter([(String::from("adult"), LabelPreference::Ignore)]),
+                    is_default_labeler: false,
+                }],
+            },
+            label_defs: Some(HashMap::from_iter([(
+                String::from("did:web:labeler.test"),
+                vec![interpret_label_value_definition(
+                    "adult",
+                    LabelPreference::Hide,
+                    "inform",
+                    "content",
+                    true,
+                )],
+            )])),
+        };
+        let result = moderator.moderate_post(&post_view(
+            &profile_view_basic("bob.test", Some("Bob"), None),
+            "Hello",
+            Some(vec![label(
+                "did:web:labeler.test",
+                "at://did:web:bob.test/app.bsky.post/fake",
+                "adult",
+            )]),
+        ));
+        for context in DecisionContext::ALL {
+            let expected = match context {
+                DecisionContext::ContentList => vec![
+                    ModerationTestResultFlag::Filter,
+                    ModerationTestResultFlag::Blur,
+                    ModerationTestResultFlag::NoOverride,
+                ],
+                DecisionContext::ContentView => vec![
+                    ModerationTestResultFlag::Blur,
+                    ModerationTestResultFlag::NoOverride,
+                ],
+                _ => vec![],
+            };
+            assert_ui(&result, &expected, context);
+        }
+    }
+
+    #[test]
+    fn adult_content_disabled_forces_hide() {
+        let moderator = Moderator {
+            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
+            prefs: ModerationPrefs {
+                adult_content_enabled: false,
+                labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Ignore)]),
+                labelers: vec![ModerationPrefsLabeler {
+                    did: "did:web:labeler.test".parse().expect("invalid did"),
+                    labels: HashMap::new(),
+                    is_default_labeler: false,
+                }],
+            },
+            label_defs: None,
+        };
+        let result = moderator.moderate_post(&post_view(
+            &profile_view_basic("bob.test", Some("Bob"), None),
+            "Hello",
+            Some(vec![label(
+                "did:web:labeler.test",
+                "at://did:web:bob.test/app.bsky.post/fake",
+                "porn",
+            )]),
+        ));
+        for context in DecisionContext::ALL {
+            let expected = match context {
+                DecisionContext::ContentList => vec![ModerationTestResultFlag::Filter],
+                DecisionContext::ContentMedia => vec![
+                    ModerationTestResultFlag::Blur,
+                    ModerationTestResultFlag::NoOverride,
+                ],
+                _ => vec![],
+            };
+            assert_ui(&result, &expected, context);
+        }
     }
 }
