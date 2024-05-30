@@ -150,8 +150,6 @@ struct TestScenarioLabels {
     post: Vec<String>,
     profile: Vec<String>,
     account: Vec<String>,
-    quoted_post: Vec<String>,
-    quoted_account: Vec<String>,
 }
 
 #[derive(Debug, Default)]
@@ -1218,6 +1216,250 @@ fn post_moderation_behaviors() {
                     profile_view: vec![Alert],
                     content_list: vec![Filter, Blur],
                     content_view: vec![Inform],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Mute/block: Muted-by-list user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Elise,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Inform],
+                    profile_view: vec![Alert],
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Inform],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: blocking & blocked-by user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Fern,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur, NoOverride],
+                    profile_view: vec![Alert],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Post with muted author",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Post,
+                author: TestUser::Dan,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Inform],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Post with muted-by-list author",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Post,
+                author: TestUser::Elise,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Inform],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: '!hide' label on account of blocked user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Bob,
+                labels: TestScenarioLabels {
+                    account: vec![String::from("!hide")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur, NoOverride],
+                    profile_view: vec![Blur, Alert, NoOverride],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    display_name: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: '!hide' and 'porn' labels on account (hide)",
+            BehaviorsTestScenario {
+                cfg: TestConfig::PornHide,
+                subject: TestSubject::Profile,
+                author: TestUser::Alice,
+                labels: TestScenarioLabels {
+                    account: vec![String::from("!hide"), String::from("porn")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur, NoOverride],
+                    profile_view: vec![Blur, NoOverride],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    display_name: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: '!warn' and 'porn' labels on account (hide)",
+            BehaviorsTestScenario {
+                cfg: TestConfig::PornHide,
+                subject: TestSubject::Profile,
+                author: TestUser::Alice,
+                labels: TestScenarioLabels {
+                    account: vec![String::from("!warn"), String::from("porn")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur],
+                    profile_view: vec![Blur],
+                    avatar: vec![Blur],
+                    banner: vec![Blur],
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Blur],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: !hide on account, !warn on profile",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Alice,
+                labels: TestScenarioLabels {
+                    account: vec![String::from("!hide")],
+                    profile: vec![String::from("!warn")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur, NoOverride],
+                    profile_view: vec![Blur, NoOverride],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    display_name: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: !warn on account, !hide on profile",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Alice,
+                labels: TestScenarioLabels {
+                    account: vec![String::from("!warn")],
+                    profile: vec![String::from("!hide")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Blur],
+                    profile_view: vec![Blur],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    display_name: vec![Blur, NoOverride],
+                    content_list: vec![Blur],
+                    content_view: vec![Blur],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: post with blocking & blocked-by author",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Post,
+                author: TestUser::Fern,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: '!hide' label on post by blocked user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Post,
+                author: TestUser::Bob,
+                labels: TestScenarioLabels {
+                    post: vec![String::from("!hide")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: '!hide' and 'porn' labels on post (hide)",
+            BehaviorsTestScenario {
+                cfg: TestConfig::PornHide,
+                subject: TestSubject::Post,
+                author: TestUser::Alice,
+                labels: TestScenarioLabels {
+                    post: vec![String::from("!warn"), String::from("porn")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Blur],
+                    content_media: vec![Blur],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Merging: '!warn' and 'porn' labels on post (hide)",
+            BehaviorsTestScenario {
+                cfg: TestConfig::PornHide,
+                subject: TestSubject::Post,
+                author: TestUser::Alice,
+                labels: TestScenarioLabels {
+                    post: vec![String::from("!warn"), String::from("porn")],
+                    ..Default::default()
+                },
+                behaviors: TestExpectedBehaviors {
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Blur],
+                    content_media: vec![Blur],
                     ..Default::default()
                 },
             },
