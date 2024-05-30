@@ -1,5 +1,6 @@
 use super::types::*;
 use super::{labels::KnownLabelValue, ui::ModerationUi, Moderator};
+use atrium_api::app::bsky::graph::defs::ListViewBasic;
 use atrium_api::com::atproto::label::defs::Label;
 use atrium_api::types::string::Did;
 
@@ -46,6 +47,7 @@ pub(crate) enum ModerationBehaviorSeverity {
 pub(crate) enum Priority {
     Priority1,
     Priority2,
+    Priority3,
     Priority5,
     Priority7,
     Priority8,
@@ -69,21 +71,47 @@ impl ModerationDecision {
         };
         for cause in &self.causes {
             match cause {
-                ModerationCause::Blocking()
+                ModerationCause::Blocking(_)
                 | ModerationCause::BlockedBy()
                 | ModerationCause::BlockOther() => {
-                    todo!();
+                    if self.is_me {
+                        continue;
+                    }
+                    if matches!(
+                        context,
+                        DecisionContext::ProfileList | DecisionContext::ContentList
+                    ) {
+                        ui.filters.push(cause.clone())
+                    }
+                    if !cause.downgraded() {
+                        match ModerationBehavior::BLOCK_BEHAVIOR.behavior_for(context) {
+                            Some(BehaviorValue::Blur) => {
+                                ui.no_override = true;
+                                ui.blurs.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Alert) => {
+                                ui.alerts.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Inform) => {
+                                ui.informs.push(cause.clone());
+                            }
+                            _ => {}
+                        }
+                    }
                 }
                 ModerationCause::Label(label) => {
-                    if ((context == DecisionContext::ProfileList
-                        && matches!(label.target, LabelTarget::Account))
-                        || (context == DecisionContext::ContentList
-                            && matches!(label.target, LabelTarget::Account | LabelTarget::Content)))
-                        && (label.setting == LabelPreference::Hide && !self.is_me)
+                    if matches!(
+                        (context, label.target),
+                        (DecisionContext::ProfileList, LabelTarget::Account)
+                            | (
+                                DecisionContext::ContentList,
+                                LabelTarget::Account | LabelTarget::Content,
+                            ),
+                    ) && (label.setting == LabelPreference::Hide && !self.is_me)
                     {
                         ui.filters.push(cause.clone())
                     }
-                    if !label.downgraded.unwrap_or_default() {
+                    if !cause.downgraded() {
                         match label.behavior.behavior_for(context) {
                             Some(BehaviorValue::Blur) => {
                                 ui.blurs.push(cause.clone());
@@ -231,6 +259,18 @@ impl ModerationDecision {
                 priority,
                 downgraded: None,
             })));
+    }
+    pub(crate) fn add_blocking_by_list(&mut self, list_view: &ListViewBasic) {
+        todo!()
+    }
+    pub(crate) fn add_blocking(&mut self, blocking: &str) {
+        self.causes.push(ModerationCause::Blocking(Box::new(
+            ModerationCauseBlocking {
+                source: ModerationCauseSource::User,
+                priority: Priority::Priority3,
+                downgraded: None,
+            },
+        )))
     }
     pub(crate) fn downgrade(&mut self) {
         for cause in self.causes.iter_mut() {

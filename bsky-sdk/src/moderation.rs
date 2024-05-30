@@ -29,8 +29,17 @@ impl Moderator {
         let mut acc = ModerationDecision::new();
         acc.set_did(subject.did().clone());
         acc.set_is_me(self.user_did.as_ref() == Some(subject.did()));
-        // TODO: muted?
-        // TODO: blocked?
+        if let Some(viewer) = subject.viewer() {
+            // TODO: muted?
+            if let Some(blocking) = &viewer.blocking {
+                if let Some(list_view) = &viewer.blocking_by_list {
+                    acc.add_blocking_by_list(list_view);
+                } else {
+                    acc.add_blocking(blocking);
+                }
+            }
+            // TODO: blocked_by?
+        }
         if let Some(labels) = subject.labels() {
             for label in labels.iter().filter(|l| {
                 !l.uri.ends_with("/app.bsky.actor.profile/self") || l.val == "!no-unauthenticated"

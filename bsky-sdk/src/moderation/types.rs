@@ -1,6 +1,8 @@
 use super::decision::{DecisionContext, LabelTarget, Priority};
 use atrium_api::agent::bluesky::BSKY_LABELER_DID;
-use atrium_api::app::bsky::actor::defs::{ProfileView, ProfileViewBasic, ProfileViewDetailed};
+use atrium_api::app::bsky::actor::defs::{
+    ProfileView, ProfileViewBasic, ProfileViewDetailed, ViewerState,
+};
 use atrium_api::app::bsky::feed::defs::PostView;
 use atrium_api::app::bsky::graph::defs::ListViewBasic;
 use atrium_api::com::atproto::label::defs::Label;
@@ -75,18 +77,25 @@ pub enum SubjectProfile {
 }
 
 impl SubjectProfile {
-    pub fn did(&self) -> &Did {
+    pub(crate) fn did(&self) -> &Did {
         match self {
             Self::ProfileViewBasic(p) => &p.did,
             Self::ProfileView(p) => &p.did,
             Self::ProfileViewDetailed(p) => &p.did,
         }
     }
-    pub fn labels(&self) -> &Option<Vec<Label>> {
+    pub(crate) fn labels(&self) -> &Option<Vec<Label>> {
         match self {
             Self::ProfileViewBasic(p) => &p.labels,
             Self::ProfileView(p) => &p.labels,
             Self::ProfileViewDetailed(p) => &p.labels,
+        }
+    }
+    pub(crate) fn viewer(&self) -> &Option<ViewerState> {
+        match self {
+            Self::ProfileViewBasic(p) => &p.viewer,
+            Self::ProfileView(p) => &p.viewer,
+            Self::ProfileViewDetailed(p) => &p.viewer,
         }
     }
 }
@@ -133,6 +142,16 @@ pub(crate) struct ModerationBehavior {
 }
 
 impl ModerationBehavior {
+    pub const BLOCK_BEHAVIOR: Self = Self {
+        profile_list: Some(ProfileListBehavior::Blur),
+        profile_view: Some(ProfileViewBehavior::Alert),
+        avatar: Some(AvatarBehavior::Blur),
+        banner: Some(BannerBehavior::Blur),
+        display_name: None,
+        content_list: Some(ContentListBehavior::Blur),
+        content_view: Some(ContentViewBehavior::Blur),
+        content_media: None,
+    };
     pub fn behavior_for(&self, context: DecisionContext) -> Option<BehaviorValue> {
         match context {
             DecisionContext::ProfileList => self.profile_list.clone().map(Into::into),
@@ -364,9 +383,7 @@ impl TryFrom<BehaviorValue> for ContentMediaBehavior {
 
 #[derive(Debug, Clone)]
 pub(crate) enum ModerationCause {
-    Blocking(
-        //TODO
-    ),
+    Blocking(Box<ModerationCauseBlocking>),
     BlockedBy(
         //TODO
     ),
@@ -386,6 +403,13 @@ pub(crate) enum ModerationCause {
 }
 
 impl ModerationCause {
+    pub fn downgraded(&self) -> bool {
+        match self {
+            Self::Blocking(cause) => cause.downgraded.unwrap_or_default(),
+            Self::Label(cause) => cause.downgraded.unwrap_or_default(),
+            _ => todo!(),
+        }
+    }
     pub fn downgrade(&mut self) {
         match self {
             Self::Label(label) => label.downgraded = Some(true),
@@ -405,6 +429,13 @@ pub(crate) enum ModerationCauseSource {
     User,
     List(ListViewBasic),
     Labeler(Did),
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ModerationCauseBlocking {
+    pub source: ModerationCauseSource,
+    pub priority: Priority,
+    pub downgraded: Option<bool>,
 }
 
 #[derive(Debug, Clone)]
