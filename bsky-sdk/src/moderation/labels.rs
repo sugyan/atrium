@@ -63,6 +63,64 @@ impl KnownLabelValue {
                     },
                 },
             },
+            Self::ReservedWarn => InterpretedLabelValueDefinition {
+                identifier: String::from("!warn"),
+                default_setting: LabelPreference::Warn,
+                flags: vec![LabelValueDefinitionFlag::NoSelf],
+                behaviors: InterpretedLabelValueDefinitionBehaviors {
+                    account: ModerationBehavior {
+                        profile_list: Some(ProfileListBehavior::Blur),
+                        profile_view: Some(ProfileViewBehavior::Blur),
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        content_list: Some(ContentListBehavior::Blur),
+                        content_view: Some(ContentViewBehavior::Blur),
+                        ..Default::default()
+                    },
+                    profile: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        display_name: Some(DisplayNameBehavior::Blur),
+                        ..Default::default()
+                    },
+                    content: ModerationBehavior {
+                        content_list: Some(ContentListBehavior::Blur),
+                        content_view: Some(ContentViewBehavior::Blur),
+                        ..Default::default()
+                    },
+                },
+            },
+            Self::ReservedNoUnauthenticated => InterpretedLabelValueDefinition {
+                identifier: String::from("!no-unauthenticated"),
+                default_setting: LabelPreference::Hide,
+                flags: vec![
+                    LabelValueDefinitionFlag::NoOverride,
+                    LabelValueDefinitionFlag::Unauthed,
+                ],
+                behaviors: InterpretedLabelValueDefinitionBehaviors {
+                    account: ModerationBehavior {
+                        profile_list: Some(ProfileListBehavior::Blur),
+                        profile_view: Some(ProfileViewBehavior::Blur),
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        display_name: Some(DisplayNameBehavior::Blur),
+                        content_list: Some(ContentListBehavior::Blur),
+                        content_view: Some(ContentViewBehavior::Blur),
+                        ..Default::default()
+                    },
+                    profile: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        display_name: Some(DisplayNameBehavior::Blur),
+                        ..Default::default()
+                    },
+                    content: ModerationBehavior {
+                        content_list: Some(ContentListBehavior::Blur),
+                        content_view: Some(ContentViewBehavior::Blur),
+                        ..Default::default()
+                    },
+                },
+            },
             Self::Porn => InterpretedLabelValueDefinition {
                 identifier: String::from("porn"),
                 default_setting: LabelPreference::Hide,
