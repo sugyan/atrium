@@ -167,7 +167,7 @@ struct TestExpectedBehaviors {
 }
 
 #[derive(Debug)]
-struct ModerationTestScenario {
+struct BehaviorsTestScenario {
     cfg: TestConfig,
     subject: TestSubject,
     author: TestUser,
@@ -175,7 +175,7 @@ struct ModerationTestScenario {
     behaviors: TestExpectedBehaviors,
 }
 
-impl ModerationTestScenario {
+impl BehaviorsTestScenario {
     fn run(&self) {
         let moderator = self.moderator();
         let result = match self.subject {
@@ -293,7 +293,7 @@ fn post_moderation_behaviors() {
     let scenarios = [
         (
             "Imperative label ('!hide') on account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -315,7 +315,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -333,7 +333,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on post",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -350,7 +350,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on author profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -368,7 +368,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on author account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -388,7 +388,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -409,7 +409,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -427,7 +427,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on post",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -444,7 +444,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on author profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -462,7 +462,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on author account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -481,7 +481,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on account when logged out",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -503,7 +503,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on profile when logged out",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -525,7 +525,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on post when logged out",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -542,7 +542,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on author profile when logged out",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -562,7 +562,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on author account when logged out",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -582,7 +582,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on account when logged in",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -595,7 +595,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on profile when logged in",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -608,7 +608,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on post when logged in",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -621,7 +621,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on author profile when logged in",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -634,7 +634,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on author account when logged in",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -647,7 +647,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on account (hide)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -666,7 +666,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on profile (hide)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -683,7 +683,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on post (hide)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -700,7 +700,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author profile (hide)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -717,7 +717,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author account (hide)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -736,7 +736,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on account (warn)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -753,7 +753,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on profile (warn)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -770,7 +770,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on post (warn)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -786,7 +786,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author profile (warn)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -803,7 +803,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author account (warn)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -820,7 +820,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on account (ignore)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -833,7 +833,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on profile (ignore)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -846,7 +846,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on post (ignore)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -859,7 +859,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author profile (ignore)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -872,7 +872,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author account (ignore)",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -885,7 +885,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Adult-only label on account when adult content is disabled",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -904,7 +904,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Adult-only label on profile when adult content is disabled",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
@@ -921,7 +921,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Adult-only label on post when adult content is disabled",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -938,7 +938,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Adult-only label on author profile when adult content is disabled",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -955,7 +955,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Adult-only label on author account when adult content is disabled",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
@@ -973,7 +973,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-profile: !hide on account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::UserSelf,
@@ -995,7 +995,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-profile: !hide on profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::UserSelf,
@@ -1013,7 +1013,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!hide') on post",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
@@ -1030,7 +1030,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!hide') on author profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
@@ -1048,7 +1048,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!hide') on author account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
@@ -1068,7 +1068,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!warn') on post",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
@@ -1085,7 +1085,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!warn') on author profile",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
@@ -1103,7 +1103,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!warn') on author account",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
@@ -1122,7 +1122,7 @@ fn post_moderation_behaviors() {
         ),
         (
             "Mute/block: Blocking user",
-            ModerationTestScenario {
+            BehaviorsTestScenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Bob,
@@ -1134,6 +1134,90 @@ fn post_moderation_behaviors() {
                     banner: vec![Blur, NoOverride],
                     content_list: vec![Filter, Blur, NoOverride],
                     content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Post with blocked author",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Post,
+                author: TestUser::Bob,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Post with author blocking user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Post,
+                author: TestUser::Carla,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Mute/block: Blocking-by-list user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Georgia,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur, NoOverride],
+                    profile_view: vec![Alert],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Mute/block: Blocked by user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Carla,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Blur, NoOverride],
+                    profile_view: vec![Alert],
+                    avatar: vec![Blur, NoOverride],
+                    banner: vec![Blur, NoOverride],
+                    content_list: vec![Filter, Blur, NoOverride],
+                    content_view: vec![Blur, NoOverride],
+                    ..Default::default()
+                },
+            },
+        ),
+        (
+            "Mute/block: Muted user",
+            BehaviorsTestScenario {
+                cfg: TestConfig::None,
+                subject: TestSubject::Profile,
+                author: TestUser::Dan,
+                labels: TestScenarioLabels::default(),
+                behaviors: TestExpectedBehaviors {
+                    profile_list: vec![Filter, Inform],
+                    profile_view: vec![Alert],
+                    content_list: vec![Filter, Blur],
+                    content_view: vec![Inform],
                     ..Default::default()
                 },
             },

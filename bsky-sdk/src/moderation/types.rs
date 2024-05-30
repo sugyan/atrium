@@ -152,6 +152,16 @@ impl ModerationBehavior {
         content_view: Some(ContentViewBehavior::Blur),
         content_media: None,
     };
+    pub const MUTE_BEHAVIOR: Self = Self {
+        profile_list: Some(ProfileListBehavior::Inform),
+        profile_view: Some(ProfileViewBehavior::Alert),
+        avatar: None,
+        banner: None,
+        display_name: None,
+        content_list: Some(ContentListBehavior::Blur),
+        content_view: Some(ContentViewBehavior::Inform),
+        content_media: None,
+    };
     pub fn behavior_for(&self, context: DecisionContext) -> Option<BehaviorValue> {
         match context {
             DecisionContext::ProfileList => self.profile_list.clone().map(Into::into),
@@ -383,42 +393,31 @@ impl TryFrom<BehaviorValue> for ContentMediaBehavior {
 
 #[derive(Debug, Clone)]
 pub(crate) enum ModerationCause {
-    Blocking(Box<ModerationCauseBlocking>),
-    BlockedBy(
-        //TODO
-    ),
-    BlockOther(
-        //TODO
-    ),
-    Label(Box<ModerationCauseLabel>),
-    Muted(
-        //TODO
-    ),
-    MuteWord(
-        //TODO
-    ),
-    Hidden(
-        //TODO
-    ),
+    Blocking(ModerationCauseOther),
+    BlockedBy(ModerationCauseOther),
+    BlockOther(ModerationCauseOther),
+    Label(ModerationCauseLabel),
+    Muted(ModerationCauseOther),
+    MuteWord(ModerationCauseOther),
+    Hidden(ModerationCauseOther),
 }
 
 impl ModerationCause {
-    pub fn downgraded(&self) -> bool {
+    pub fn priority(&self) -> Priority {
         match self {
-            Self::Blocking(cause) => cause.downgraded.unwrap_or_default(),
-            Self::Label(cause) => cause.downgraded.unwrap_or_default(),
+            Self::Blocking(_) => Priority::Priority3,
+            Self::BlockedBy(_) => Priority::Priority4,
+            Self::Label(label) => label.priority,
+            Self::Muted(_) => Priority::Priority6,
             _ => todo!(),
         }
     }
     pub fn downgrade(&mut self) {
         match self {
-            Self::Label(label) => label.downgraded = Some(true),
-            _ => todo!(),
-        }
-    }
-    pub fn priority(&self) -> Priority {
-        match self {
-            Self::Label(label) => label.priority,
+            Self::Blocking(blocking) => blocking.downgraded = true,
+            Self::BlockedBy(blocked_by) => blocked_by.downgraded = true,
+            Self::Label(label) => label.downgraded = true,
+            Self::Muted(muted) => muted.downgraded = true,
             _ => todo!(),
         }
     }
@@ -432,13 +431,6 @@ pub(crate) enum ModerationCauseSource {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ModerationCauseBlocking {
-    pub source: ModerationCauseSource,
-    pub priority: Priority,
-    pub downgraded: Option<bool>,
-}
-
-#[derive(Debug, Clone)]
 pub(crate) struct ModerationCauseLabel {
     pub source: ModerationCauseSource,
     pub label: Label,
@@ -448,7 +440,13 @@ pub(crate) struct ModerationCauseLabel {
     pub behavior: ModerationBehavior,
     pub no_override: bool,
     pub priority: Priority,
-    pub downgraded: Option<bool>,
+    pub downgraded: bool,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct ModerationCauseOther {
+    pub source: ModerationCauseSource,
+    pub downgraded: bool,
 }
 
 // moderation preferences

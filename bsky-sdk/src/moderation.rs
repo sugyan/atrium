@@ -30,15 +30,23 @@ impl Moderator {
         acc.set_did(subject.did().clone());
         acc.set_is_me(self.user_did.as_ref() == Some(subject.did()));
         if let Some(viewer) = subject.viewer() {
-            // TODO: muted?
-            if let Some(blocking) = &viewer.blocking {
+            if viewer.muted.unwrap_or_default() {
+                if let Some(list_view) = &viewer.muted_by_list {
+                    acc.add_muted_by_list(list_view);
+                } else {
+                    acc.add_muted();
+                }
+            }
+            if viewer.blocking.is_some() {
                 if let Some(list_view) = &viewer.blocking_by_list {
                     acc.add_blocking_by_list(list_view);
                 } else {
-                    acc.add_blocking(blocking);
+                    acc.add_blocking();
                 }
             }
-            // TODO: blocked_by?
+            if viewer.blocked_by.unwrap_or_default() {
+                acc.add_blocked_by();
+            }
         }
         if let Some(labels) = subject.labels() {
             for label in labels.iter().filter(|l| {

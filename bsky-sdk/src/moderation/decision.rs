@@ -48,7 +48,9 @@ pub(crate) enum Priority {
     Priority1,
     Priority2,
     Priority3,
+    Priority4,
     Priority5,
+    Priority6,
     Priority7,
     Priority8,
 }
@@ -71,9 +73,9 @@ impl ModerationDecision {
         };
         for cause in &self.causes {
             match cause {
-                ModerationCause::Blocking(_)
-                | ModerationCause::BlockedBy()
-                | ModerationCause::BlockOther() => {
+                ModerationCause::Blocking(b)
+                | ModerationCause::BlockedBy(b)
+                | ModerationCause::BlockOther(b) => {
                     if self.is_me {
                         continue;
                     }
@@ -83,7 +85,7 @@ impl ModerationDecision {
                     ) {
                         ui.filters.push(cause.clone())
                     }
-                    if !cause.downgraded() {
+                    if !b.downgraded {
                         match ModerationBehavior::BLOCK_BEHAVIOR.behavior_for(context) {
                             Some(BehaviorValue::Blur) => {
                                 ui.no_override = true;
@@ -111,7 +113,7 @@ impl ModerationDecision {
                     {
                         ui.filters.push(cause.clone())
                     }
-                    if !cause.downgraded() {
+                    if !label.downgraded {
                         match label.behavior.behavior_for(context) {
                             Some(BehaviorValue::Blur) => {
                                 ui.blurs.push(cause.clone());
@@ -129,13 +131,35 @@ impl ModerationDecision {
                         }
                     }
                 }
-                ModerationCause::Muted() => {
+                ModerationCause::Muted(muted) => {
+                    if self.is_me {
+                        continue;
+                    }
+                    if matches!(
+                        context,
+                        DecisionContext::ProfileList | DecisionContext::ContentList
+                    ) {
+                        ui.filters.push(cause.clone())
+                    }
+                    if !muted.downgraded {
+                        match ModerationBehavior::MUTE_BEHAVIOR.behavior_for(context) {
+                            Some(BehaviorValue::Blur) => {
+                                ui.blurs.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Alert) => {
+                                ui.alerts.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Inform) => {
+                                ui.informs.push(cause.clone());
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                ModerationCause::MuteWord(_) => {
                     todo!();
                 }
-                ModerationCause::MuteWord() => {
-                    todo!();
-                }
-                ModerationCause::Hidden() => {
+                ModerationCause::Hidden(_) => {
                     todo!();
                 }
             }
@@ -170,6 +194,27 @@ impl ModerationDecision {
     }
     pub(crate) fn set_is_me(&mut self, is_me: bool) {
         self.is_me = is_me;
+    }
+    pub(crate) fn add_blocking(&mut self) {
+        self.causes
+            .push(ModerationCause::Blocking(ModerationCauseOther {
+                source: ModerationCauseSource::User,
+                downgraded: false,
+            }))
+    }
+    pub(crate) fn add_blocking_by_list(&mut self, list_view: &ListViewBasic) {
+        self.causes
+            .push(ModerationCause::Blocking(ModerationCauseOther {
+                source: ModerationCauseSource::List(list_view.clone()),
+                downgraded: false,
+            }))
+    }
+    pub(crate) fn add_blocked_by(&mut self) {
+        self.causes
+            .push(ModerationCause::BlockedBy(ModerationCauseOther {
+                source: ModerationCauseSource::User,
+                downgraded: false,
+            }))
     }
     pub(crate) fn add_label(&mut self, target: LabelTarget, label: &Label, moderator: &Moderator) {
         let Some(label_def) = Self::lookup_label_def(label, moderator) else {
@@ -244,7 +289,7 @@ impl ModerationDecision {
                 && !moderator.prefs.adult_content_enabled);
 
         self.causes
-            .push(ModerationCause::Label(Box::new(ModerationCauseLabel {
+            .push(ModerationCause::Label(ModerationCauseLabel {
                 source: if is_self || labeler.is_none() {
                     ModerationCauseSource::User
                 } else {
@@ -257,20 +302,22 @@ impl ModerationDecision {
                 behavior,
                 no_override,
                 priority,
-                downgraded: None,
-            })));
+                downgraded: false,
+            }));
     }
-    pub(crate) fn add_blocking_by_list(&mut self, list_view: &ListViewBasic) {
-        todo!()
-    }
-    pub(crate) fn add_blocking(&mut self, blocking: &str) {
-        self.causes.push(ModerationCause::Blocking(Box::new(
-            ModerationCauseBlocking {
+    pub(crate) fn add_muted(&mut self) {
+        self.causes
+            .push(ModerationCause::Muted(ModerationCauseOther {
                 source: ModerationCauseSource::User,
-                priority: Priority::Priority3,
-                downgraded: None,
-            },
-        )))
+                downgraded: false,
+            }))
+    }
+    pub(crate) fn add_muted_by_list(&mut self, list_view: &ListViewBasic) {
+        self.causes
+            .push(ModerationCause::Muted(ModerationCauseOther {
+                source: ModerationCauseSource::List(list_view.clone()),
+                downgraded: false,
+            }))
     }
     pub(crate) fn downgrade(&mut self) {
         for cause in self.causes.iter_mut() {
