@@ -216,12 +216,12 @@ impl BehaviorsTestScenario {
         );
     }
     fn moderator(&self) -> Moderator {
-        Moderator {
-            user_did: match self.cfg {
+        Moderator::new(
+            match self.cfg {
                 TestConfig::LoggedOut => None,
                 _ => Some("did:web:self.test".parse().expect("invalid did")),
             },
-            prefs: ModerationPrefs {
+            ModerationPrefs {
                 adult_content_enabled: matches!(
                     self.cfg,
                     TestConfig::PornHide | TestConfig::PornWarn | TestConfig::PornIgnore
@@ -232,9 +232,10 @@ impl BehaviorsTestScenario {
                     labels: HashMap::new(),
                     is_default_labeler: false,
                 }],
+                ..Default::default()
             },
-            label_defs: None,
-        }
+            HashMap::new(),
+        )
     }
     fn profile(&self) -> ProfileViewBasic {
         let mut labels = Vec::new();
@@ -286,7 +287,7 @@ impl BehaviorsTestScenario {
 }
 
 #[test]
-fn post_moderation_behaviors() {
+fn moderation_behaviors() {
     use ModerationTestResultFlag::*;
     let scenarios = [
         (

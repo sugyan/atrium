@@ -146,8 +146,23 @@ fn interpret_label_value_definition(
         flags.push(LabelValueDefinitionFlag::Adult);
     }
     InterpretedLabelValueDefinition {
-        identifier: identifier.into(),
+        adult_only: false,
+        blurs: match blurs {
+            "content" => LabelValueDefinitionBlurs::Content,
+            "media" => LabelValueDefinitionBlurs::Media,
+            "none" => LabelValueDefinitionBlurs::None,
+            _ => unreachable!(),
+        },
         default_setting,
+        identifier: identifier.into(),
+        locales: Vec::new(),
+        severity: match severity {
+            "alert" => LabelValueDefinitionSeverity::Alert,
+            "inform" => LabelValueDefinitionSeverity::Inform,
+            "none" => LabelValueDefinitionSeverity::None,
+            _ => unreachable!(),
+        },
+        defined_by: None,
         flags,
         behaviors,
     }
@@ -224,15 +239,15 @@ fn self_label_global() {
     ));
     // porn (hide)
     {
-        let moderator = Moderator {
-            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-            prefs: ModerationPrefs {
+        let moderator = Moderator::new(
+            Some("did:web:alice.test".parse().expect("invalid did")),
+            ModerationPrefs {
                 adult_content_enabled: true,
                 labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Hide)]),
                 ..Default::default()
             },
-            label_defs: None,
-        };
+            HashMap::new(),
+        );
         let result = moderator.moderate_profile(&profile);
         assert_ui(
             &result,
@@ -242,15 +257,15 @@ fn self_label_global() {
     }
     // porn (ignore)
     {
-        let moderator = Moderator {
-            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-            prefs: ModerationPrefs {
+        let moderator = Moderator::new(
+            Some("did:web:alice.test".parse().expect("invalid did")),
+            ModerationPrefs {
                 adult_content_enabled: true,
                 labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Ignore)]),
                 ..Default::default()
             },
-            label_defs: None,
-        };
+            HashMap::new(),
+        );
         let result = moderator.moderate_profile(&profile);
         assert_ui(&result, &[], DecisionContext::Avatar)
     }
@@ -269,15 +284,15 @@ fn unsubscribed_or_ignore_labels() {
     ));
     // porn (moderator disabled)
     {
-        let moderator = Moderator {
-            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-            prefs: ModerationPrefs {
+        let moderator = Moderator::new(
+            Some("did:web:alice.test".parse().expect("invalid did")),
+            ModerationPrefs {
                 adult_content_enabled: true,
                 labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Hide)]),
                 ..Default::default()
             },
-            label_defs: None,
-        };
+            HashMap::new(),
+        );
         let result = moderator.moderate_profile(&profile);
         for context in DecisionContext::ALL {
             assert_ui(&result, &[], context);
@@ -285,9 +300,9 @@ fn unsubscribed_or_ignore_labels() {
     }
     // porn (label group disabled)
     {
-        let moderator = Moderator {
-            user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-            prefs: ModerationPrefs {
+        let moderator = Moderator::new(
+            Some("did:web:alice.test".parse().expect("invalid did")),
+            ModerationPrefs {
                 adult_content_enabled: true,
                 labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Hide)]),
                 labelers: vec![ModerationPrefsLabeler {
@@ -295,9 +310,10 @@ fn unsubscribed_or_ignore_labels() {
                     labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Ignore)]),
                     is_default_labeler: false,
                 }],
+                ..Default::default()
             },
-            label_defs: None,
-        };
+            HashMap::new(),
+        );
         let result = moderator.moderate_profile(&profile);
         for context in DecisionContext::ALL {
             assert_ui(&result, &[], context);
@@ -307,9 +323,9 @@ fn unsubscribed_or_ignore_labels() {
 
 #[test]
 fn prioritize_filters_and_blurs() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: true,
             labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Hide)]),
             labelers: vec![ModerationPrefsLabeler {
@@ -317,9 +333,10 @@ fn prioritize_filters_and_blurs() {
                 labels: HashMap::new(),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: None,
-    };
+        HashMap::new(),
+    );
     let result = moderator.moderate_post(&post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
@@ -352,9 +369,9 @@ fn prioritize_filters_and_blurs() {
 
 #[test]
 fn prioritize_custom_labels() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: true,
             labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Warn)]),
             labelers: vec![ModerationPrefsLabeler {
@@ -362,9 +379,10 @@ fn prioritize_custom_labels() {
                 labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Warn)]),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: Some(HashMap::from_iter([(
-            String::from("did:web:labeler.test"),
+        HashMap::from_iter([(
+            "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
                 "porn",
                 LabelPreference::Warn,
@@ -372,8 +390,8 @@ fn prioritize_custom_labels() {
                 "none",
                 false,
             )],
-        )])),
-    };
+        )]),
+    );
     let result = moderator.moderate_post(&post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
@@ -395,9 +413,9 @@ fn prioritize_custom_labels() {
 
 #[test]
 fn does_not_override_imperative_labels() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: true,
             labels: HashMap::new(),
             labelers: vec![ModerationPrefsLabeler {
@@ -405,9 +423,10 @@ fn does_not_override_imperative_labels() {
                 labels: HashMap::new(),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: Some(HashMap::from_iter([(
-            String::from("did:web:labeler.test"),
+        HashMap::from_iter([(
+            "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
                 "!hide",
                 LabelPreference::Warn,
@@ -415,8 +434,8 @@ fn does_not_override_imperative_labels() {
                 "none",
                 false,
             )],
-        )])),
-    };
+        )]),
+    );
     let result = moderator.moderate_post(&post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
@@ -445,9 +464,9 @@ fn does_not_override_imperative_labels() {
 
 #[test]
 fn ignore_invalid_label_value_names() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: true,
             labels: HashMap::new(),
             labelers: vec![ModerationPrefsLabeler {
@@ -458,9 +477,10 @@ fn ignore_invalid_label_value_names() {
                 ]),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: Some(HashMap::from_iter([(
-            String::from("did:web:labeler.test"),
+        HashMap::from_iter([(
+            "did:web:labeler.test".parse().expect("invalid did"),
             vec![
                 interpret_label_value_definition(
                     "BadLabel",
@@ -477,8 +497,8 @@ fn ignore_invalid_label_value_names() {
                     false,
                 ),
             ],
-        )])),
-    };
+        )]),
+    );
     let result = moderator.moderate_post(&post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
@@ -502,9 +522,9 @@ fn ignore_invalid_label_value_names() {
 
 #[test]
 fn custom_labels_with_default_settings() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: true,
             labels: HashMap::new(),
             labelers: vec![ModerationPrefsLabeler {
@@ -512,9 +532,10 @@ fn custom_labels_with_default_settings() {
                 labels: HashMap::new(),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: Some(HashMap::from_iter([(
-            String::from("did:web:labeler.test"),
+        HashMap::from_iter([(
+            "did:web:labeler.test".parse().expect("invalid did"),
             vec![
                 interpret_label_value_definition(
                     "default-hide",
@@ -538,8 +559,8 @@ fn custom_labels_with_default_settings() {
                     false,
                 ),
             ],
-        )])),
-    };
+        )]),
+    );
     let author = profile_view_basic("bob.test", Some("Bob"), None);
     {
         let result = moderator.moderate_post(&post_view(
@@ -600,9 +621,9 @@ fn custom_labels_with_default_settings() {
 
 #[test]
 fn custom_labels_require_adult_content_enabled() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: false,
             labels: HashMap::from_iter([(String::from("adult"), LabelPreference::Ignore)]),
             labelers: vec![ModerationPrefsLabeler {
@@ -610,9 +631,10 @@ fn custom_labels_require_adult_content_enabled() {
                 labels: HashMap::from_iter([(String::from("adult"), LabelPreference::Ignore)]),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: Some(HashMap::from_iter([(
-            String::from("did:web:labeler.test"),
+        HashMap::from_iter([(
+            "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
                 "adult",
                 LabelPreference::Hide,
@@ -620,8 +642,8 @@ fn custom_labels_require_adult_content_enabled() {
                 "content",
                 true,
             )],
-        )])),
-    };
+        )]),
+    );
     let result = moderator.moderate_post(&post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
@@ -650,9 +672,9 @@ fn custom_labels_require_adult_content_enabled() {
 
 #[test]
 fn adult_content_disabled_forces_hide() {
-    let moderator = Moderator {
-        user_did: Some("did:web:alice.test".parse().expect("invalid did")),
-        prefs: ModerationPrefs {
+    let moderator = Moderator::new(
+        Some("did:web:alice.test".parse().expect("invalid did")),
+        ModerationPrefs {
             adult_content_enabled: false,
             labels: HashMap::from_iter([(String::from("porn"), LabelPreference::Ignore)]),
             labelers: vec![ModerationPrefsLabeler {
@@ -660,9 +682,10 @@ fn adult_content_disabled_forces_hide() {
                 labels: HashMap::new(),
                 is_default_labeler: false,
             }],
+            ..Default::default()
         },
-        label_defs: None,
-    };
+        HashMap::new(),
+    );
     let result = moderator.moderate_post(&post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",

@@ -2,20 +2,34 @@ pub mod decision;
 mod labels;
 mod types;
 pub mod ui;
+pub mod util;
 
-use self::decision::{LabelTarget, ModerationDecision};
+use self::decision::ModerationDecision;
 pub use self::types::*;
 use atrium_api::types::{string::Did, Union};
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Moderator {
     user_did: Option<Did>,
     prefs: ModerationPrefs,
-    label_defs: Option<HashMap<String, Vec<InterpretedLabelValueDefinition>>>,
+    label_defs: HashMap<Did, Vec<InterpretedLabelValueDefinition>>,
 }
 
 impl Moderator {
+    pub fn new(
+        user_did: Option<Did>,
+        prefs: ModerationPrefs,
+        label_defs: HashMap<Did, Vec<InterpretedLabelValueDefinition>>,
+    ) -> Self {
+        Self {
+            user_did,
+            prefs,
+            label_defs,
+        }
+    }
     pub fn moderate_profile(&self, profile: &SubjectProfile) -> ModerationDecision {
         ModerationDecision::merge(&[
             self.account_decision(profile),

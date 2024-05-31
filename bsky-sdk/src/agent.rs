@@ -2,7 +2,8 @@ pub mod config;
 
 use self::config::Config;
 use crate::error::Result;
-use crate::moderation::ModerationPrefsLabeler;
+use crate::moderation::util::interpret_label_value_definitions;
+use crate::moderation::{ModerationPrefsLabeler, Moderator};
 use crate::preference::Preferences;
 use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
@@ -63,6 +64,12 @@ where
                 Union::Refs(PreferencesItem::ContentLabelPref(p)) => {
                     label_prefs.push(p);
                 }
+                Union::Refs(PreferencesItem::MutedWordsPref(p)) => {
+                    prefs.moderation_prefs.muted_words = p.items;
+                }
+                Union::Refs(PreferencesItem::HiddenPostsPref(p)) => {
+                    prefs.moderation_prefs.hidden_posts = p.items;
+                }
                 Union::Unknown(u) => {
                     if u.r#type == "app.bsky.actor.defs#labelersPref" {
                         prefs.moderation_prefs.labelers.extend(
@@ -114,6 +121,39 @@ where
                 .take(10)
                 .collect(),
         ));
+    }
+    pub async fn moderator(&self, preferences: &Preferences) -> Result<Moderator> {
+        let labelers = self
+            .api
+            .app
+            .bsky
+            .labeler
+            .get_services(atrium_api::app::bsky::labeler::get_services::Parameters {
+                detailed: Some(true),
+                dids: preferences
+                    .moderation_prefs
+                    .labelers
+                    .iter()
+                    .map(|labeler| labeler.did.clone())
+                    .collect(),
+            })
+            .await?
+            .views;
+        let mut label_defs = HashMap::with_capacity(labelers.len());
+        for labeler in &labelers {
+            let Union::Refs(atrium_api::app::bsky::labeler::get_services::OutputViewsItem::AppBskyLabelerDefsLabelerViewDetailed(labeler_view)) = labeler else {
+                continue;
+            };
+            label_defs.insert(
+                labeler_view.creator.did.clone(),
+                interpret_label_value_definitions(labeler_view)?,
+            );
+        }
+        Ok(Moderator::new(
+            self.get_session().await.map(|s| s.did),
+            preferences.moderation_prefs.clone(),
+            label_defs,
+        ))
     }
 }
 

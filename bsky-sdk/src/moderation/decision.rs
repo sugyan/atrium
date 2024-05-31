@@ -30,13 +30,6 @@ impl DecisionContext {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(crate) enum LabelTarget {
-    Account,
-    Profile,
-    Content,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum ModerationBehaviorSeverity {
     High,
     Medium,
@@ -197,24 +190,24 @@ impl ModerationDecision {
     }
     pub(crate) fn add_blocking(&mut self) {
         self.causes
-            .push(ModerationCause::Blocking(ModerationCauseOther {
+            .push(ModerationCause::Blocking(Box::new(ModerationCauseOther {
                 source: ModerationCauseSource::User,
                 downgraded: false,
-            }))
+            })));
     }
     pub(crate) fn add_blocking_by_list(&mut self, list_view: &ListViewBasic) {
         self.causes
-            .push(ModerationCause::Blocking(ModerationCauseOther {
-                source: ModerationCauseSource::List(list_view.clone()),
+            .push(ModerationCause::Blocking(Box::new(ModerationCauseOther {
+                source: ModerationCauseSource::List(Box::new(list_view.clone())),
                 downgraded: false,
-            }))
+            })));
     }
     pub(crate) fn add_blocked_by(&mut self) {
         self.causes
-            .push(ModerationCause::BlockedBy(ModerationCauseOther {
+            .push(ModerationCause::BlockedBy(Box::new(ModerationCauseOther {
                 source: ModerationCauseSource::User,
                 downgraded: false,
-            }))
+            })));
     }
     pub(crate) fn add_label(&mut self, target: LabelTarget, label: &Label, moderator: &Moderator) {
         let Some(label_def) = Self::lookup_label_def(label, moderator) else {
@@ -289,7 +282,7 @@ impl ModerationDecision {
                 && !moderator.prefs.adult_content_enabled);
 
         self.causes
-            .push(ModerationCause::Label(ModerationCauseLabel {
+            .push(ModerationCause::Label(Box::new(ModerationCauseLabel {
                 source: if is_self || labeler.is_none() {
                     ModerationCauseSource::User
                 } else {
@@ -303,21 +296,21 @@ impl ModerationDecision {
                 no_override,
                 priority,
                 downgraded: false,
-            }));
+            })));
     }
     pub(crate) fn add_muted(&mut self) {
         self.causes
-            .push(ModerationCause::Muted(ModerationCauseOther {
+            .push(ModerationCause::Muted(Box::new(ModerationCauseOther {
                 source: ModerationCauseSource::User,
                 downgraded: false,
-            }))
+            })));
     }
     pub(crate) fn add_muted_by_list(&mut self, list_view: &ListViewBasic) {
         self.causes
-            .push(ModerationCause::Muted(ModerationCauseOther {
-                source: ModerationCauseSource::List(list_view.clone()),
+            .push(ModerationCause::Muted(Box::new(ModerationCauseOther {
+                source: ModerationCauseSource::List(Box::new(list_view.clone())),
                 downgraded: false,
-            }))
+            })));
     }
     pub(crate) fn downgrade(&mut self) {
         for cause in self.causes.iter_mut() {
@@ -335,8 +328,7 @@ impl ModerationDecision {
         {
             if let Some(def) = moderator
                 .label_defs
-                .as_ref()
-                .and_then(|label_defs| label_defs.get(label.src.as_ref()))
+                .get(&label.src)
                 .and_then(|defs| defs.iter().find(|def| def.identifier == label.val))
             {
                 return Some(def.clone());

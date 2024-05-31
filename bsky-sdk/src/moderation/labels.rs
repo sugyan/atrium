@@ -33,8 +33,13 @@ impl KnownLabelValue {
     pub fn definition(&self) -> InterpretedLabelValueDefinition {
         match self {
             Self::ReservedHide => InterpretedLabelValueDefinition {
-                identifier: String::from("!hide"),
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Content,
                 default_setting: LabelPreference::Hide,
+                identifier: String::from("!hide"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::Alert,
+                defined_by: None,
                 flags: vec![
                     LabelValueDefinitionFlag::NoOverride,
                     LabelValueDefinitionFlag::NoSelf,
@@ -64,8 +69,13 @@ impl KnownLabelValue {
                 },
             },
             Self::ReservedWarn => InterpretedLabelValueDefinition {
-                identifier: String::from("!warn"),
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Content,
                 default_setting: LabelPreference::Warn,
+                identifier: String::from("!warn"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::None,
+                defined_by: None,
                 flags: vec![LabelValueDefinitionFlag::NoSelf],
                 behaviors: InterpretedLabelValueDefinitionBehaviors {
                     account: ModerationBehavior {
@@ -91,8 +101,13 @@ impl KnownLabelValue {
                 },
             },
             Self::ReservedNoUnauthenticated => InterpretedLabelValueDefinition {
-                identifier: String::from("!no-unauthenticated"),
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Content,
                 default_setting: LabelPreference::Hide,
+                identifier: String::from("!no-unauthenticated"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::None,
+                defined_by: None,
                 flags: vec![
                     LabelValueDefinitionFlag::NoOverride,
                     LabelValueDefinitionFlag::Unauthed,
@@ -122,8 +137,13 @@ impl KnownLabelValue {
                 },
             },
             Self::Porn => InterpretedLabelValueDefinition {
-                identifier: String::from("porn"),
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Media,
                 default_setting: LabelPreference::Hide,
+                identifier: String::from("porn"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::None,
+                defined_by: None,
                 flags: vec![LabelValueDefinitionFlag::Adult],
                 behaviors: InterpretedLabelValueDefinitionBehaviors {
                     account: ModerationBehavior {
