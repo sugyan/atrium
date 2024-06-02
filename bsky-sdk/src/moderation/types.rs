@@ -21,6 +21,8 @@ pub enum Error {
     LabelValueDefinitionBlurs,
     #[error("invalid label value definition severity")]
     LabelValueDefinitionSeverity,
+    #[error("invalid behavior value")]
+    BehaviorValue,
 }
 
 // behaviors
@@ -107,7 +109,7 @@ impl From<ProfileListBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for ProfileListBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
@@ -137,7 +139,7 @@ impl From<ProfileViewBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for ProfileViewBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
@@ -165,13 +167,13 @@ impl From<AvatarBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for AvatarBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
             BehaviorValue::Blur => Ok(Self::Blur),
             BehaviorValue::Alert => Ok(Self::Alert),
-            BehaviorValue::Inform => Err(()),
+            BehaviorValue::Inform => Err(Error::BehaviorValue),
         }
     }
 }
@@ -191,12 +193,12 @@ impl From<BannerBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for BannerBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
             BehaviorValue::Blur => Ok(Self::Blur),
-            _ => Err(()),
+            _ => Err(Error::BehaviorValue),
         }
     }
 }
@@ -216,12 +218,12 @@ impl From<DisplayNameBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for DisplayNameBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
             BehaviorValue::Blur => Ok(Self::Blur),
-            _ => Err(()),
+            _ => Err(Error::BehaviorValue),
         }
     }
 }
@@ -245,7 +247,7 @@ impl From<ContentListBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for ContentListBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
@@ -275,7 +277,7 @@ impl From<ContentViewBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for ContentViewBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
@@ -301,12 +303,12 @@ impl From<ContentMediaBehavior> for BehaviorValue {
 }
 
 impl TryFrom<BehaviorValue> for ContentMediaBehavior {
-    type Error = ();
+    type Error = Error;
 
     fn try_from(b: BehaviorValue) -> Result<Self, Self::Error> {
         match b {
             BehaviorValue::Blur => Ok(Self::Blur),
-            _ => Err(()),
+            _ => Err(Error::BehaviorValue),
         }
     }
 }
@@ -405,6 +407,7 @@ pub struct InterpretedLabelValueDefinition {
     // others
     #[serde(skip_serializing_if = "Option::is_none")]
     pub defined_by: Option<Did>,
+    pub configurable: bool,
     pub flags: Vec<LabelValueDefinitionFlag>,
     pub behaviors: InterpretedLabelValueDefinitionBehaviors,
 }

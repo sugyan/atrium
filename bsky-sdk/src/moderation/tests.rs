@@ -2,10 +2,11 @@ mod behaviors;
 
 use crate::moderation::decision::{DecisionContext, ModerationDecision};
 use crate::moderation::types::*;
+use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
 use atrium_api::app::bsky::actor::defs::ProfileViewBasic;
 use atrium_api::app::bsky::feed::defs::PostView;
-use atrium_api::com::atproto::label::defs::Label;
+use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinition};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
 use std::collections::HashMap;
@@ -77,94 +78,6 @@ fn label(src: &str, uri: &str, val: &str) -> Label {
         uri: uri.into(),
         val: val.into(),
         ver: None,
-    }
-}
-
-fn interpret_label_value_definition(
-    identifier: &str,
-    default_setting: LabelPreference,
-    severity: &str,
-    blurs: &str,
-    adult_only: bool,
-) -> InterpretedLabelValueDefinition {
-    let alert_or_inform = match severity {
-        "alert" => BehaviorValue::Alert,
-        "inform" => BehaviorValue::Inform,
-        _ => unreachable!(),
-    };
-    let mut behaviors = InterpretedLabelValueDefinitionBehaviors::default();
-    match blurs {
-        "content" => {
-            // target=account, blurs=content
-            behaviors.account.profile_list = Some(alert_or_inform.try_into().unwrap());
-            behaviors.account.profile_view = Some(alert_or_inform.try_into().unwrap());
-            behaviors.account.content_list = Some(BehaviorValue::Blur.try_into().unwrap());
-            behaviors.account.content_view = Some(
-                if adult_only {
-                    BehaviorValue::Blur
-                } else {
-                    alert_or_inform
-                }
-                .try_into()
-                .unwrap(),
-            );
-            // target=profile, blurs=content
-            behaviors.profile.profile_list = Some(alert_or_inform.try_into().unwrap());
-            behaviors.profile.profile_view = Some(alert_or_inform.try_into().unwrap());
-            // target=content, blurs=content
-            behaviors.content.content_list = Some(BehaviorValue::Blur.try_into().unwrap());
-            behaviors.content.content_view = Some(
-                if adult_only {
-                    BehaviorValue::Blur
-                } else {
-                    alert_or_inform
-                }
-                .try_into()
-                .unwrap(),
-            );
-        }
-        "media" => {
-            todo!()
-        }
-        "none" => {
-            // target=account, blurs=none
-            behaviors.account.profile_list = Some(alert_or_inform.try_into().unwrap());
-            behaviors.account.profile_view = Some(alert_or_inform.try_into().unwrap());
-            behaviors.account.content_list = Some(alert_or_inform.try_into().unwrap());
-            behaviors.account.content_view = Some(alert_or_inform.try_into().unwrap());
-            // target=profile, blurs=none
-            behaviors.profile.profile_list = Some(alert_or_inform.try_into().unwrap());
-            behaviors.profile.profile_view = Some(alert_or_inform.try_into().unwrap());
-            // target=content, blurs=none
-            behaviors.content.content_list = Some(alert_or_inform.try_into().unwrap());
-            behaviors.content.content_view = Some(alert_or_inform.try_into().unwrap());
-        }
-        _ => unreachable!(),
-    }
-    let mut flags = vec![LabelValueDefinitionFlag::NoSelf];
-    if adult_only {
-        flags.push(LabelValueDefinitionFlag::Adult);
-    }
-    InterpretedLabelValueDefinition {
-        adult_only: false,
-        blurs: match blurs {
-            "content" => LabelValueDefinitionBlurs::Content,
-            "media" => LabelValueDefinitionBlurs::Media,
-            "none" => LabelValueDefinitionBlurs::None,
-            _ => unreachable!(),
-        },
-        default_setting,
-        identifier: identifier.into(),
-        locales: Vec::new(),
-        severity: match severity {
-            "alert" => LabelValueDefinitionSeverity::Alert,
-            "inform" => LabelValueDefinitionSeverity::Inform,
-            "none" => LabelValueDefinitionSeverity::None,
-            _ => unreachable!(),
-        },
-        defined_by: None,
-        flags,
-        behaviors,
     }
 }
 
@@ -384,12 +297,17 @@ fn prioritize_custom_labels() {
         HashMap::from_iter([(
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
-                "porn",
-                LabelPreference::Warn,
-                "inform",
-                "none",
-                false,
-            )],
+                &LabelValueDefinition {
+                    identifier: String::from("porn"),
+                    default_setting: Some(String::from("warn")),
+                    severity: String::from("inform"),
+                    blurs: String::from("none"),
+                    adult_only: None,
+                    locales: Vec::new(),
+                },
+                Some("did:web:labeler.test".parse().expect("invalid did")),
+            )
+            .expect("invalid label value definition")],
         )]),
     );
     let result = moderator.moderate_post(&post_view(
@@ -428,12 +346,17 @@ fn does_not_override_imperative_labels() {
         HashMap::from_iter([(
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
-                "!hide",
-                LabelPreference::Warn,
-                "inform",
-                "none",
-                false,
-            )],
+                &LabelValueDefinition {
+                    identifier: String::from("!hide"),
+                    default_setting: Some(String::from("warn")),
+                    severity: String::from("inform"),
+                    blurs: String::from("none"),
+                    adult_only: None,
+                    locales: Vec::new(),
+                },
+                Some("did:web:labeler.test".parse().expect("invalid did")),
+            )
+            .expect("invalid label value definition")],
         )]),
     );
     let result = moderator.moderate_post(&post_view(
@@ -483,19 +406,29 @@ fn ignore_invalid_label_value_names() {
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![
                 interpret_label_value_definition(
-                    "BadLabel",
-                    LabelPreference::Warn,
-                    "inform",
-                    "content",
-                    false,
-                ),
+                    &LabelValueDefinition {
+                        identifier: String::from("BadLabel"),
+                        default_setting: Some(String::from("warn")),
+                        severity: String::from("inform"),
+                        blurs: String::from("content"),
+                        adult_only: None,
+                        locales: Vec::new(),
+                    },
+                    Some("did:web:labeler.test".parse().expect("invalid did")),
+                )
+                .expect("invalid label value definition"),
                 interpret_label_value_definition(
-                    "bad/label",
-                    LabelPreference::Warn,
-                    "inform",
-                    "content",
-                    false,
-                ),
+                    &LabelValueDefinition {
+                        identifier: String::from("bad/label"),
+                        default_setting: Some(String::from("warn")),
+                        severity: String::from("inform"),
+                        blurs: String::from("content"),
+                        adult_only: None,
+                        locales: Vec::new(),
+                    },
+                    Some("did:web:labeler.test".parse().expect("invalid did")),
+                )
+                .expect("invalid label value definition"),
             ],
         )]),
     );
@@ -538,26 +471,41 @@ fn custom_labels_with_default_settings() {
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![
                 interpret_label_value_definition(
-                    "default-hide",
-                    LabelPreference::Hide,
-                    "inform",
-                    "content",
-                    false,
-                ),
+                    &LabelValueDefinition {
+                        identifier: String::from("default-hide"),
+                        default_setting: Some(String::from("hide")),
+                        severity: String::from("inform"),
+                        blurs: String::from("content"),
+                        adult_only: None,
+                        locales: Vec::new(),
+                    },
+                    Some("did:web:labeler.test".parse().expect("invalid did")),
+                )
+                .expect("invalid label value definition"),
                 interpret_label_value_definition(
-                    "default-warn",
-                    LabelPreference::Warn,
-                    "inform",
-                    "content",
-                    false,
-                ),
+                    &LabelValueDefinition {
+                        identifier: String::from("default-warn"),
+                        default_setting: Some(String::from("warn")),
+                        severity: String::from("inform"),
+                        blurs: String::from("content"),
+                        adult_only: None,
+                        locales: Vec::new(),
+                    },
+                    Some("did:web:labeler.test".parse().expect("invalid did")),
+                )
+                .expect("invalid label value definition"),
                 interpret_label_value_definition(
-                    "default-ignore",
-                    LabelPreference::Ignore,
-                    "inform",
-                    "content",
-                    false,
-                ),
+                    &LabelValueDefinition {
+                        identifier: String::from("default-ignore"),
+                        default_setting: Some(String::from("ignore")),
+                        severity: String::from("inform"),
+                        blurs: String::from("content"),
+                        adult_only: None,
+                        locales: Vec::new(),
+                    },
+                    Some("did:web:labeler.test".parse().expect("invalid did")),
+                )
+                .expect("invalid label value definition"),
             ],
         )]),
     );
@@ -636,12 +584,17 @@ fn custom_labels_require_adult_content_enabled() {
         HashMap::from_iter([(
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
-                "adult",
-                LabelPreference::Hide,
-                "inform",
-                "content",
-                true,
-            )],
+                &LabelValueDefinition {
+                    identifier: String::from("adult"),
+                    default_setting: Some(String::from("hide")),
+                    severity: String::from("inform"),
+                    blurs: String::from("content"),
+                    adult_only: Some(true),
+                    locales: Vec::new(),
+                },
+                Some("did:web:labeler.test".parse().expect("invalid did")),
+            )
+            .expect("invalid label value definition")],
         )]),
     );
     let result = moderator.moderate_post(&post_view(

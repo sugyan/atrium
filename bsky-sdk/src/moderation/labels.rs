@@ -40,6 +40,7 @@ impl KnownLabelValue {
                 locales: Vec::new(),
                 severity: LabelValueDefinitionSeverity::Alert,
                 defined_by: None,
+                configurable: false,
                 flags: vec![
                     LabelValueDefinitionFlag::NoOverride,
                     LabelValueDefinitionFlag::NoSelf,
@@ -76,6 +77,7 @@ impl KnownLabelValue {
                 locales: Vec::new(),
                 severity: LabelValueDefinitionSeverity::None,
                 defined_by: None,
+                configurable: false,
                 flags: vec![LabelValueDefinitionFlag::NoSelf],
                 behaviors: InterpretedLabelValueDefinitionBehaviors {
                     account: ModerationBehavior {
@@ -108,6 +110,7 @@ impl KnownLabelValue {
                 locales: Vec::new(),
                 severity: LabelValueDefinitionSeverity::None,
                 defined_by: None,
+                configurable: false,
                 flags: vec![
                     LabelValueDefinitionFlag::NoOverride,
                     LabelValueDefinitionFlag::Unauthed,
@@ -144,6 +147,7 @@ impl KnownLabelValue {
                 locales: Vec::new(),
                 severity: LabelValueDefinitionSeverity::None,
                 defined_by: None,
+                configurable: true,
                 flags: vec![LabelValueDefinitionFlag::Adult],
                 behaviors: InterpretedLabelValueDefinitionBehaviors {
                     account: ModerationBehavior {

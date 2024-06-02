@@ -61,6 +61,9 @@ where
             .preferences
         {
             match pref {
+                Union::Refs(PreferencesItem::AdultContentPref(p)) => {
+                    prefs.moderation_prefs.adult_content_enabled = p.enabled;
+                }
                 Union::Refs(PreferencesItem::ContentLabelPref(p)) => {
                     label_prefs.push(p);
                 }
