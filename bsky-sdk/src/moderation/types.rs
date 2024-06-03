@@ -1,4 +1,5 @@
 use super::decision::{DecisionContext, Priority};
+use super::error::Error;
 use atrium_api::agent::bluesky::BSKY_LABELER_DID;
 use atrium_api::app::bsky::actor::defs::{
     MutedWord, ProfileView, ProfileViewBasic, ProfileViewDetailed, ViewerState,
@@ -9,21 +10,6 @@ use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinitionStrings};
 use atrium_api::types::string::Did;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, str::FromStr};
-use thiserror::Error;
-
-// errors
-
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("invalid label preference")]
-    LabelPreference,
-    #[error("invalid label value definition blurs")]
-    LabelValueDefinitionBlurs,
-    #[error("invalid label value definition severity")]
-    LabelValueDefinitionSeverity,
-    #[error("invalid behavior value")]
-    BehaviorValue,
-}
 
 // behaviors
 
@@ -330,6 +316,16 @@ pub enum LabelPreference {
     Hide,
 }
 
+impl AsRef<str> for LabelPreference {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Ignore => "ignore",
+            Self::Warn => "warn",
+            Self::Hide => "hide",
+        }
+    }
+}
+
 impl FromStr for LabelPreference {
     type Err = Error;
 
@@ -360,6 +356,16 @@ pub enum LabelValueDefinitionBlurs {
     None,
 }
 
+impl AsRef<str> for LabelValueDefinitionBlurs {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Content => "content",
+            Self::Media => "media",
+            Self::None => "none",
+        }
+    }
+}
+
 impl FromStr for LabelValueDefinitionBlurs {
     type Err = Error;
 
@@ -379,6 +385,16 @@ pub enum LabelValueDefinitionSeverity {
     Inform,
     Alert,
     None,
+}
+
+impl AsRef<str> for LabelValueDefinitionSeverity {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Inform => "inform",
+            Self::Alert => "alert",
+            Self::None => "none",
+        }
+    }
 }
 
 impl FromStr for LabelValueDefinitionSeverity {

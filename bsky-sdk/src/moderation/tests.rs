@@ -1,4 +1,5 @@
 mod behaviors;
+mod custom_labels;
 
 use crate::moderation::decision::{DecisionContext, ModerationDecision};
 use crate::moderation::types::*;
@@ -20,6 +21,33 @@ enum ModerationTestResultFlag {
     Alert,
     Inform,
     NoOverride,
+}
+
+#[derive(Debug, Default)]
+struct TestExpectedBehaviors {
+    profile_list: Vec<ModerationTestResultFlag>,
+    profile_view: Vec<ModerationTestResultFlag>,
+    avatar: Vec<ModerationTestResultFlag>,
+    banner: Vec<ModerationTestResultFlag>,
+    display_name: Vec<ModerationTestResultFlag>,
+    content_list: Vec<ModerationTestResultFlag>,
+    content_view: Vec<ModerationTestResultFlag>,
+    content_media: Vec<ModerationTestResultFlag>,
+}
+
+impl TestExpectedBehaviors {
+    fn expected_for(&self, context: DecisionContext) -> &Vec<ModerationTestResultFlag> {
+        match context {
+            DecisionContext::ProfileList => &self.profile_list,
+            DecisionContext::ProfileView => &self.profile_view,
+            DecisionContext::Avatar => &self.avatar,
+            DecisionContext::Banner => &self.banner,
+            DecisionContext::DisplayName => &self.display_name,
+            DecisionContext::ContentList => &self.content_list,
+            DecisionContext::ContentView => &self.content_view,
+            DecisionContext::ContentMedia => &self.content_media,
+        }
+    }
 }
 
 fn profile_view_basic(

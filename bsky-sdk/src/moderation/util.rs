@@ -1,5 +1,5 @@
+use super::error::Result;
 use super::types::*;
-use crate::Result;
 use atrium_api::app::bsky::labeler::defs::LabelerViewDetailed;
 use atrium_api::com::atproto::label::defs::LabelValueDefinition;
 use atrium_api::types::string::Did;

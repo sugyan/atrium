@@ -1,3 +1,4 @@
+use super::error::Error;
 use super::types::*;
 use std::str::FromStr;
 
@@ -13,7 +14,7 @@ pub(crate) enum KnownLabelValue {
 }
 
 impl FromStr for KnownLabelValue {
-    type Err = ();
+    type Err = Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -24,7 +25,7 @@ impl FromStr for KnownLabelValue {
             "sexual" => Ok(Self::Sexual),
             "nudity" => Ok(Self::Nudity),
             "graphic-media" => Ok(Self::GraphicMedia),
-            _ => Err(()),
+            _ => Err(Error::KnownLabelValue),
         }
     }
 }

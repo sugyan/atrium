@@ -1,5 +1,5 @@
-use super::{assert_ui, label, profile_view_basic, FAKE_CID};
-use super::{post_view, ModerationTestResultFlag};
+use super::{assert_ui, label, post_view, profile_view_basic};
+use super::{ModerationTestResultFlag, TestExpectedBehaviors, FAKE_CID};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::types::*;
 use crate::moderation::Moderator;
@@ -152,18 +152,6 @@ struct TestScenarioLabels {
     account: Vec<String>,
 }
 
-#[derive(Debug, Default)]
-struct TestExpectedBehaviors {
-    profile_list: Vec<ModerationTestResultFlag>,
-    profile_view: Vec<ModerationTestResultFlag>,
-    avatar: Vec<ModerationTestResultFlag>,
-    banner: Vec<ModerationTestResultFlag>,
-    display_name: Vec<ModerationTestResultFlag>,
-    content_list: Vec<ModerationTestResultFlag>,
-    content_view: Vec<ModerationTestResultFlag>,
-    content_media: Vec<ModerationTestResultFlag>,
-}
-
 #[derive(Debug)]
 struct BehaviorsTestScenario {
     cfg: TestConfig,
@@ -192,28 +180,16 @@ impl BehaviorsTestScenario {
                 DecisionContext::ProfileView,
             );
         }
-        assert_ui(&result, &self.behaviors.avatar, DecisionContext::Avatar);
-        assert_ui(&result, &self.behaviors.banner, DecisionContext::Banner);
-        assert_ui(
-            &result,
-            &self.behaviors.display_name,
+        for context in [
+            DecisionContext::Avatar,
+            DecisionContext::Banner,
             DecisionContext::DisplayName,
-        );
-        assert_ui(
-            &result,
-            &self.behaviors.content_list,
             DecisionContext::ContentList,
-        );
-        assert_ui(
-            &result,
-            &self.behaviors.content_view,
             DecisionContext::ContentView,
-        );
-        assert_ui(
-            &result,
-            &self.behaviors.content_media,
             DecisionContext::ContentMedia,
-        );
+        ] {
+            assert_ui(&result, self.behaviors.expected_for(context), context);
+        }
     }
     fn moderator(&self) -> Moderator {
         Moderator::new(

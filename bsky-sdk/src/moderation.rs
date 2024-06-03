@@ -1,10 +1,12 @@
 pub mod decision;
+mod error;
 mod labels;
 mod types;
 pub mod ui;
 pub mod util;
 
 use self::decision::ModerationDecision;
+pub use self::error::{Error, Result};
 pub use self::types::*;
 use atrium_api::types::{string::Did, Union};
 use serde::{Deserialize, Serialize};
