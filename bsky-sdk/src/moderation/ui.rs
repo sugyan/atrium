@@ -2,10 +2,10 @@ use super::types::ModerationCause;
 
 pub struct ModerationUi {
     pub no_override: bool,
-    pub(crate) filters: Vec<ModerationCause>,
-    pub(crate) blurs: Vec<ModerationCause>,
-    pub(crate) alerts: Vec<ModerationCause>,
-    pub(crate) informs: Vec<ModerationCause>,
+    pub filters: Vec<ModerationCause>,
+    pub blurs: Vec<ModerationCause>,
+    pub alerts: Vec<ModerationCause>,
+    pub informs: Vec<ModerationCause>,
 }
 
 impl ModerationUi {

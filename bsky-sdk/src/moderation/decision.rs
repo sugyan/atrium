@@ -37,7 +37,7 @@ pub(crate) enum ModerationBehaviorSeverity {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(crate) enum Priority {
+pub enum Priority {
     Priority1,
     Priority2,
     Priority3,
@@ -68,7 +68,7 @@ impl ModerationDecision {
             match cause {
                 ModerationCause::Blocking(b)
                 | ModerationCause::BlockedBy(b)
-                | ModerationCause::BlockOther(b) => {
+                /* | ModerationCause::BlockOther(b) */ => {
                     if self.is_me {
                         continue;
                     }
@@ -171,8 +171,24 @@ impl ModerationDecision {
                         }
                     }
                 }
-                ModerationCause::Hidden(_) => {
-                    todo!();
+                ModerationCause::Hidden(hidden) => {
+                    if matches!(context, DecisionContext::ProfileList | DecisionContext::ContentList) {
+                        ui.filters.push(cause.clone())
+                    }
+                    if !hidden.downgraded {
+                        match ModerationBehavior::HIDE_BEHAVIOR.behavior_for(context) {
+                            Some(BehaviorValue::Blur) => {
+                                ui.blurs.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Alert) => {
+                                ui.alerts.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Inform) => {
+                                ui.informs.push(cause.clone());
+                            }
+                            _ => {}
+                        }
+                    }
                 }
             }
         }
@@ -186,7 +202,7 @@ impl ModerationDecision {
                 c,
                 ModerationCause::Blocking(_)
                     | ModerationCause::BlockedBy(_)
-                    | ModerationCause::BlockOther(_)
+                    /* | ModerationCause::BlockOther(_) */
             )
         })
     }
@@ -349,6 +365,13 @@ impl ModerationDecision {
     pub(crate) fn add_muted_word(&mut self) {
         self.causes
             .push(ModerationCause::MuteWord(Box::new(ModerationCauseOther {
+                source: ModerationCauseSource::User,
+                downgraded: false,
+            })));
+    }
+    pub(crate) fn add_hidden(&mut self) {
+        self.causes
+            .push(ModerationCause::Hidden(Box::new(ModerationCauseOther {
                 source: ModerationCauseSource::User,
                 downgraded: false,
             })));

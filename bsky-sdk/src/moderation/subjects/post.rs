@@ -26,7 +26,9 @@ impl Moderator {
                 acc.add_label(LabelTarget::Content, label, self);
             }
         }
-        // TODO: hidden?
+        if check_hidden_post(subject, &self.prefs.hidden_posts) {
+            acc.add_hidden();
+        }
         if !is_me && check_muted_words(subject, &self.prefs.muted_words) {
             acc.add_muted_word();
         }
@@ -112,6 +114,32 @@ impl Moderator {
     }
 }
 
+fn check_hidden_post(subject: &SubjectPost, hidden_posts: &[String]) -> bool {
+    if hidden_posts.is_empty() {
+        return false;
+    }
+    if hidden_posts.contains(&subject.uri) {
+        return true;
+    }
+    match &subject.embed {
+        Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordView(view))) => {
+            if let Union::Refs(ViewRecordRefs::ViewRecord(record)) = &view.record {
+                if hidden_posts.contains(&record.uri) {
+                    return true;
+                }
+            }
+        }
+        Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordWithMediaView(view))) => {
+            if let Union::Refs(ViewRecordRefs::ViewRecord(record)) = &view.record.record {
+                if hidden_posts.contains(&record.uri) {
+                    return true;
+                }
+            }
+        }
+        _ => {}
+    }
+    false
+}
 fn check_muted_words(subject: &SubjectPost, muted_words: &[MutedWord]) -> bool {
     if muted_words.is_empty() {
         return false;

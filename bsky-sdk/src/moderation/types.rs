@@ -68,8 +68,18 @@ impl ModerationBehavior {
         avatar: None,
         banner: None,
         display_name: None,
-        content_list: Some(ContentListBehavior::Inform),
-        content_view: Some(ContentViewBehavior::Inform),
+        content_list: Some(ContentListBehavior::Blur),
+        content_view: Some(ContentViewBehavior::Blur),
+        content_media: None,
+    };
+    pub(crate) const HIDE_BEHAVIOR: Self = Self {
+        profile_list: None,
+        profile_view: None,
+        avatar: None,
+        banner: None,
+        display_name: None,
+        content_list: Some(ContentListBehavior::Blur),
+        content_view: Some(ContentViewBehavior::Blur),
         content_media: None,
     };
     pub(crate) fn behavior_for(&self, context: DecisionContext) -> Option<BehaviorValue> {
@@ -509,10 +519,10 @@ impl From<ProfileViewDetailed> for SubjectProfile {
 pub type SubjectPost = PostView;
 
 #[derive(Debug, Clone)]
-pub(crate) enum ModerationCause {
+pub enum ModerationCause {
     Blocking(Box<ModerationCauseOther>),
     BlockedBy(Box<ModerationCauseOther>),
-    BlockOther(Box<ModerationCauseOther>),
+    // BlockOther(Box<ModerationCauseOther>),
     Label(Box<ModerationCauseLabel>),
     Muted(Box<ModerationCauseOther>),
     MuteWord(Box<ModerationCauseOther>),
@@ -527,7 +537,7 @@ impl ModerationCause {
             Self::Label(label) => label.priority,
             Self::Muted(_) => Priority::Priority6,
             Self::MuteWord(_) => Priority::Priority6,
-            _ => todo!(),
+            Self::Hidden(_) => Priority::Priority6,
         }
     }
     pub fn downgrade(&mut self) {
@@ -537,20 +547,20 @@ impl ModerationCause {
             Self::Label(label) => label.downgraded = true,
             Self::Muted(muted) => muted.downgraded = true,
             Self::MuteWord(mute_word) => mute_word.downgraded = true,
-            _ => todo!(),
+            Self::Hidden(hidden) => hidden.downgraded = true,
         }
     }
 }
 
 #[derive(Debug, Clone)]
-pub(crate) enum ModerationCauseSource {
+pub enum ModerationCauseSource {
     User,
     List(Box<ListViewBasic>),
     Labeler(Did),
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ModerationCauseLabel {
+pub struct ModerationCauseLabel {
     pub source: ModerationCauseSource,
     pub label: Label,
     pub label_def: InterpretedLabelValueDefinition,
@@ -563,7 +573,7 @@ pub(crate) struct ModerationCauseLabel {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct ModerationCauseOther {
+pub struct ModerationCauseOther {
     pub source: ModerationCauseSource,
     pub downgraded: bool,
 }
