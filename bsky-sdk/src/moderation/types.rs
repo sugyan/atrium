@@ -62,6 +62,16 @@ impl ModerationBehavior {
         content_view: Some(ContentViewBehavior::Inform),
         content_media: None,
     };
+    pub(crate) const MUTEWORD_BEHAVIOR: Self = Self {
+        profile_list: None,
+        profile_view: None,
+        avatar: None,
+        banner: None,
+        display_name: None,
+        content_list: Some(ContentListBehavior::Inform),
+        content_view: Some(ContentViewBehavior::Inform),
+        content_media: None,
+    };
     pub(crate) fn behavior_for(&self, context: DecisionContext) -> Option<BehaviorValue> {
         match context {
             DecisionContext::ProfileList => self.profile_list.clone().map(Into::into),
@@ -516,6 +526,7 @@ impl ModerationCause {
             Self::BlockedBy(_) => Priority::Priority4,
             Self::Label(label) => label.priority,
             Self::Muted(_) => Priority::Priority6,
+            Self::MuteWord(_) => Priority::Priority6,
             _ => todo!(),
         }
     }
@@ -525,6 +536,7 @@ impl ModerationCause {
             Self::BlockedBy(blocked_by) => blocked_by.downgraded = true,
             Self::Label(label) => label.downgraded = true,
             Self::Muted(muted) => muted.downgraded = true,
+            Self::MuteWord(mute_word) => mute_word.downgraded = true,
             _ => todo!(),
         }
     }

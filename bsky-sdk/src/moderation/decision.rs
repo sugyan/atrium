@@ -149,8 +149,27 @@ impl ModerationDecision {
                         }
                     }
                 }
-                ModerationCause::MuteWord(_) => {
-                    todo!();
+                ModerationCause::MuteWord(mute_word) => {
+                    if self.is_me {
+                        continue;
+                    }
+                    if matches!(context, DecisionContext::ContentList) {
+                        ui.filters.push(cause.clone())
+                    }
+                    if !mute_word.downgraded {
+                        match ModerationBehavior::MUTEWORD_BEHAVIOR.behavior_for(context) {
+                            Some(BehaviorValue::Blur) => {
+                                ui.blurs.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Alert) => {
+                                ui.alerts.push(cause.clone());
+                            }
+                            Some(BehaviorValue::Inform) => {
+                                ui.informs.push(cause.clone());
+                            }
+                            _ => {}
+                        }
+                    }
                 }
                 ModerationCause::Hidden(_) => {
                     todo!();
@@ -160,6 +179,21 @@ impl ModerationDecision {
         ui.filters.sort_by_cached_key(|c| c.priority());
         ui.blurs.sort_by_cached_key(|c| c.priority());
         ui
+    }
+    pub fn blocked(&self) -> bool {
+        self.causes.iter().any(|c| {
+            matches!(
+                c,
+                ModerationCause::Blocking(_)
+                    | ModerationCause::BlockedBy(_)
+                    | ModerationCause::BlockOther(_)
+            )
+        })
+    }
+    pub fn muted(&self) -> bool {
+        self.causes
+            .iter()
+            .any(|c| matches!(c, ModerationCause::Muted(_)))
     }
     pub(crate) fn new() -> Self {
         Self {
@@ -309,6 +343,13 @@ impl ModerationDecision {
         self.causes
             .push(ModerationCause::Muted(Box::new(ModerationCauseOther {
                 source: ModerationCauseSource::List(Box::new(list_view.clone())),
+                downgraded: false,
+            })));
+    }
+    pub(crate) fn add_muted_word(&mut self) {
+        self.causes
+            .push(ModerationCause::MuteWord(Box::new(ModerationCauseOther {
+                source: ModerationCauseSource::User,
                 downgraded: false,
             })));
     }

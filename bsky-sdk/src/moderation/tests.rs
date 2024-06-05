@@ -1,5 +1,6 @@
 mod behaviors;
 mod custom_labels;
+mod mutewords;
 
 use crate::moderation::decision::{DecisionContext, ModerationDecision};
 use crate::moderation::types::*;
