@@ -1,14 +1,64 @@
 use super::{assert_ui, label, post_view, profile_view_basic};
-use super::{ExpectedBehaviors, ResultFlag};
+use super::{ExpectedBehaviors, ResultFlag, FAKE_CID};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::error::Result;
 use crate::moderation::types::*;
 use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
-use atrium_api::com::atproto::label::defs::LabelValueDefinition;
+use atrium_api::app::bsky::actor::defs::ProfileViewBasic;
+use atrium_api::app::bsky::embed::record::{View, ViewRecord, ViewRecordRefs};
+use atrium_api::app::bsky::feed::defs::{PostView, PostViewEmbedRefs};
+use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinition};
+use atrium_api::records::{KnownRecord, Record};
+use atrium_api::types::string::Datetime;
+use atrium_api::types::Union;
 use std::collections::HashMap;
 
-#[derive(Debug)]
+fn embed_record_view(
+    author: &ProfileViewBasic,
+    record: &atrium_api::app::bsky::feed::post::Record,
+    labels: Option<Vec<Label>>,
+) -> Union<PostViewEmbedRefs> {
+    Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordView(Box::new(View {
+        record: Union::Refs(ViewRecordRefs::ViewRecord(Box::new(ViewRecord {
+            author: author.clone(),
+            cid: FAKE_CID.parse().expect("invalid cid"),
+            embeds: None,
+            indexed_at: Datetime::now(),
+            labels,
+            like_count: None,
+            reply_count: None,
+            repost_count: None,
+            uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
+            value: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(record.clone()))),
+        }))),
+    })))
+}
+
+fn quoted_post(profile_labels: Option<Vec<Label>>, post_labels: Option<Vec<Label>>) -> PostView {
+    let mut quoted = post_view(
+        &profile_view_basic("bob.test", Some("Bob"), None),
+        "Hello",
+        None,
+    );
+    quoted.embed = Some(embed_record_view(
+        &profile_view_basic("carla.test", Some("Carla"), profile_labels),
+        &atrium_api::app::bsky::feed::post::Record {
+            created_at: Datetime::now(),
+            embed: None,
+            entities: None,
+            facets: None,
+            labels: None,
+            langs: Some(vec!["en".parse().expect("invalid lang")]),
+            reply: None,
+            tags: None,
+            text: String::from("Quoted post text"),
+        },
+        post_labels,
+    ));
+    quoted
+}
+
 struct Scenario {
     blurs: LabelValueDefinitionBlurs,
     severity: LabelValueDefinitionSeverity,
@@ -22,48 +72,39 @@ impl Scenario {
         let moderator = self.moderator().expect("failed to create moderator");
         // account
         {
-            let result = moderator.moderate_profile(
-                &profile_view_basic(
-                    "bob.test",
-                    Some("Bob"),
-                    Some(vec![label(
-                        "did:web:labeler.test",
-                        "did:web:bob.test",
-                        "custom",
-                    )]),
-                )
-                .into(),
-            );
+            let result = moderator.moderate_post(&quoted_post(
+                Some(vec![label(
+                    "did:web:labeler.test",
+                    "did:web:carla.test",
+                    "custom",
+                )]),
+                None,
+            ));
             for context in DecisionContext::ALL {
                 assert_ui(&result, self.account.expected_for(context), context);
             }
         }
         // profile
         {
-            let result = moderator.moderate_profile(
-                &profile_view_basic(
-                    "bob.test",
-                    Some("Bob"),
-                    Some(vec![label(
-                        "did:web:labeler.test",
-                        "at://did:web:bob.test/app.bsky.actor.profile/self",
-                        "custom",
-                    )]),
-                )
-                .into(),
-            );
+            let result = moderator.moderate_post(&quoted_post(
+                Some(vec![label(
+                    "did:web:labeler.test",
+                    "at://did:web:carla.test/app.bsky.actor.profile/self",
+                    "custom",
+                )]),
+                None,
+            ));
             for context in DecisionContext::ALL {
                 assert_ui(&result, self.profile.expected_for(context), context);
             }
         }
         // post
         {
-            let result = moderator.moderate_post(&post_view(
-                &profile_view_basic("bob.test", Some("Bob"), None),
-                "Hello",
+            let result = moderator.moderate_post(&quoted_post(
+                None,
                 Some(vec![label(
                     "did:web:labeler.test",
-                    "at://did:web:bob.test/app.bsky.feed.post/fake",
+                    "at://did:web:carla.test/app.bsky.feed.post/fake",
                     "custom",
                 )]),
             ));
@@ -105,27 +146,20 @@ impl Scenario {
 }
 
 #[test]
-fn moderation_custom_labels() {
+fn moderation_quoteposts() {
     use ResultFlag::*;
     let scenarios = [
         Scenario {
             blurs: LabelValueDefinitionBlurs::Content,
             severity: LabelValueDefinitionSeverity::Alert,
             account: ExpectedBehaviors {
-                profile_list: vec![Filter, Alert],
-                profile_view: vec![Alert],
-                content_list: vec![Filter, Blur],
-                content_view: vec![Alert],
+                profile_list: vec![Filter],
+                content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                profile_list: vec![Alert],
-                profile_view: vec![Alert],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
-                content_list: vec![Filter, Blur],
-                content_view: vec![Alert],
+                content_list: vec![Filter],
                 ..Default::default()
             },
         },
@@ -133,20 +167,13 @@ fn moderation_custom_labels() {
             blurs: LabelValueDefinitionBlurs::Content,
             severity: LabelValueDefinitionSeverity::Inform,
             account: ExpectedBehaviors {
-                profile_list: vec![Filter, Inform],
-                profile_view: vec![Inform],
-                content_list: vec![Filter, Blur],
-                content_view: vec![Inform],
+                profile_list: vec![Filter],
+                content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                profile_list: vec![Inform],
-                profile_view: vec![Inform],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
-                content_list: vec![Filter, Blur],
-                content_view: vec![Inform],
+                content_list: vec![Filter],
                 ..Default::default()
             },
         },
@@ -155,14 +182,12 @@ fn moderation_custom_labels() {
             severity: LabelValueDefinitionSeverity::None,
             account: ExpectedBehaviors {
                 profile_list: vec![Filter],
-                content_list: vec![Filter, Blur],
+                content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
-                content_list: vec![Filter, Blur],
+                content_list: vec![Filter],
                 ..Default::default()
             },
         },
@@ -170,23 +195,13 @@ fn moderation_custom_labels() {
             blurs: LabelValueDefinitionBlurs::Media,
             severity: LabelValueDefinitionSeverity::Alert,
             account: ExpectedBehaviors {
-                profile_list: vec![Filter, Alert],
-                profile_view: vec![Alert],
-                avatar: vec![Blur],
-                banner: vec![Blur],
+                profile_list: vec![Filter],
                 content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                profile_list: vec![Alert],
-                profile_view: vec![Alert],
-                avatar: vec![Blur],
-                banner: vec![Blur],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
                 content_list: vec![Filter],
-                content_media: vec![Blur],
                 ..Default::default()
             },
         },
@@ -194,23 +209,13 @@ fn moderation_custom_labels() {
             blurs: LabelValueDefinitionBlurs::Media,
             severity: LabelValueDefinitionSeverity::Inform,
             account: ExpectedBehaviors {
-                profile_list: vec![Filter, Inform],
-                profile_view: vec![Inform],
-                avatar: vec![Blur],
-                banner: vec![Blur],
+                profile_list: vec![Filter],
                 content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                profile_list: vec![Inform],
-                profile_view: vec![Inform],
-                avatar: vec![Blur],
-                banner: vec![Blur],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
                 content_list: vec![Filter],
-                content_media: vec![Blur],
                 ..Default::default()
             },
         },
@@ -219,19 +224,12 @@ fn moderation_custom_labels() {
             severity: LabelValueDefinitionSeverity::None,
             account: ExpectedBehaviors {
                 profile_list: vec![Filter],
-                avatar: vec![Blur],
-                banner: vec![Blur],
                 content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                avatar: vec![Blur],
-                banner: vec![Blur],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
                 content_list: vec![Filter],
-                content_media: vec![Blur],
                 ..Default::default()
             },
         },
@@ -239,20 +237,13 @@ fn moderation_custom_labels() {
             blurs: LabelValueDefinitionBlurs::None,
             severity: LabelValueDefinitionSeverity::Alert,
             account: ExpectedBehaviors {
-                profile_list: vec![Filter, Alert],
-                profile_view: vec![Alert],
-                content_list: vec![Filter, Alert],
-                content_view: vec![Alert],
+                profile_list: vec![Filter],
+                content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                profile_list: vec![Alert],
-                profile_view: vec![Alert],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
-                content_list: vec![Filter, Alert],
-                content_view: vec![Alert],
+                content_list: vec![Filter],
                 ..Default::default()
             },
         },
@@ -260,20 +251,13 @@ fn moderation_custom_labels() {
             blurs: LabelValueDefinitionBlurs::None,
             severity: LabelValueDefinitionSeverity::Inform,
             account: ExpectedBehaviors {
-                profile_list: vec![Filter, Inform],
-                profile_view: vec![Inform],
-                content_list: vec![Filter, Inform],
-                content_view: vec![Inform],
+                profile_list: vec![Filter],
+                content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                profile_list: vec![Inform],
-                profile_view: vec![Inform],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
-                content_list: vec![Filter, Inform],
-                content_view: vec![Inform],
+                content_list: vec![Filter],
                 ..Default::default()
             },
         },
@@ -285,9 +269,7 @@ fn moderation_custom_labels() {
                 content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors::default(),
             post: ExpectedBehaviors {
                 content_list: vec![Filter],
                 ..Default::default()

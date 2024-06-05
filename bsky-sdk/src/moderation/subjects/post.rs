@@ -2,6 +2,8 @@ use super::super::decision::ModerationDecision;
 use super::super::types::{LabelTarget, SubjectPost};
 use super::super::Moderator;
 use atrium_api::app::bsky::actor::defs::MutedWord;
+use atrium_api::app::bsky::embed::record::{ViewBlocked, ViewRecord, ViewRecordRefs};
+use atrium_api::app::bsky::feed::defs::PostViewEmbedRefs;
 use atrium_api::app::bsky::richtext::facet::MainFeaturesItem;
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::Union;
@@ -29,10 +31,35 @@ impl Moderator {
             acc.add_muted_word();
         }
 
-        let embed_acc = Option::<ModerationDecision>::None;
-        if let Some(Union::Refs(embed)) = &subject.embed {
-            todo!()
-        }
+        let embed_acc = match &subject.embed {
+            Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordView(view))) => {
+                match &view.record {
+                    Union::Refs(ViewRecordRefs::ViewRecord(record)) => {
+                        // quoted post
+                        Some(self.decide_quoted_post(record))
+                    }
+                    Union::Refs(ViewRecordRefs::ViewBlocked(blocked)) => {
+                        // blocked quote post
+                        Some(self.decide_bloked_quoted_post(blocked))
+                    }
+                    _ => None,
+                }
+            }
+            Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordWithMediaView(view))) => {
+                match &view.record.record {
+                    Union::Refs(ViewRecordRefs::ViewRecord(record)) => {
+                        // quoted post with media
+                        Some(self.decide_quoted_post(record))
+                    }
+                    Union::Refs(ViewRecordRefs::ViewBlocked(blocked)) => {
+                        // blocked quote post with media
+                        Some(self.decide_bloked_quoted_post(blocked))
+                    }
+                    _ => None,
+                }
+            }
+            _ => None,
+        };
 
         let mut decisions = vec![acc];
         if let Some(mut embed_acc) = embed_acc {
@@ -42,6 +69,46 @@ impl Moderator {
         let author = subject.author.clone().into();
         decisions.extend([self.decide_account(&author), self.decide_profile(&author)]);
         ModerationDecision::merge(&decisions)
+    }
+    fn decide_quoted_post(&self, subject: &ViewRecord) -> ModerationDecision {
+        let mut acc = ModerationDecision::new();
+        acc.set_did(subject.author.did.clone());
+        acc.set_is_me(self.user_did.as_ref() == Some(&subject.author.did));
+        if let Some(labels) = &subject.labels {
+            for label in labels {
+                acc.add_label(LabelTarget::Content, label, self);
+            }
+        }
+        ModerationDecision::merge(&[
+            acc,
+            self.decide_account(&subject.author.clone().into()),
+            self.decide_profile(&subject.author.clone().into()),
+        ])
+    }
+    fn decide_bloked_quoted_post(&self, subject: &ViewBlocked) -> ModerationDecision {
+        let mut acc = ModerationDecision::new();
+        acc.set_did(subject.author.did.clone());
+        acc.set_is_me(self.user_did.as_ref() == Some(&subject.author.did));
+        if let Some(viewer) = &subject.author.viewer {
+            if viewer.muted.unwrap_or_default() {
+                if let Some(list_view) = &viewer.muted_by_list {
+                    acc.add_muted_by_list(list_view);
+                } else {
+                    acc.add_muted();
+                }
+            }
+            if viewer.blocking.is_some() {
+                if let Some(list_view) = &viewer.blocking_by_list {
+                    acc.add_blocking_by_list(list_view);
+                } else {
+                    acc.add_blocking();
+                }
+            }
+            if viewer.blocked_by.unwrap_or_default() {
+                acc.add_blocked_by();
+            }
+        }
+        acc
     }
 }
 

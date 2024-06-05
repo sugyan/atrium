@@ -204,9 +204,9 @@ impl ModerationDecision {
     }
     pub(crate) fn merge(decisions: &[Self]) -> Self {
         assert!(!decisions.is_empty());
-        assert!(decisions
-            .windows(2)
-            .all(|w| w[0].did == w[1].did && w[0].is_me == w[1].is_me));
+        // assert!(decisions
+        //     .windows(2)
+        //     .all(|w| w[0].did == w[1].did && w[0].is_me == w[1].is_me));
         Self {
             did: decisions[0].did.clone(),
             is_me: decisions[0].is_me,

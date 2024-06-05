@@ -1,6 +1,7 @@
 mod behaviors;
 mod custom_labels;
 mod mutewords;
+mod quoteposts;
 
 use crate::moderation::decision::{DecisionContext, ModerationDecision};
 use crate::moderation::types::*;
@@ -16,7 +17,7 @@ use std::collections::HashMap;
 const FAKE_CID: &str = "bafyreiclp443lavogvhj3d2ob2cxbfuscni2k5jk7bebjzg7khl3esabwq";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ModerationTestResultFlag {
+enum ResultFlag {
     Filter,
     Blur,
     Alert,
@@ -25,19 +26,19 @@ enum ModerationTestResultFlag {
 }
 
 #[derive(Debug, Default)]
-struct TestExpectedBehaviors {
-    profile_list: Vec<ModerationTestResultFlag>,
-    profile_view: Vec<ModerationTestResultFlag>,
-    avatar: Vec<ModerationTestResultFlag>,
-    banner: Vec<ModerationTestResultFlag>,
-    display_name: Vec<ModerationTestResultFlag>,
-    content_list: Vec<ModerationTestResultFlag>,
-    content_view: Vec<ModerationTestResultFlag>,
-    content_media: Vec<ModerationTestResultFlag>,
+struct ExpectedBehaviors {
+    profile_list: Vec<ResultFlag>,
+    profile_view: Vec<ResultFlag>,
+    avatar: Vec<ResultFlag>,
+    banner: Vec<ResultFlag>,
+    display_name: Vec<ResultFlag>,
+    content_list: Vec<ResultFlag>,
+    content_view: Vec<ResultFlag>,
+    content_media: Vec<ResultFlag>,
 }
 
-impl TestExpectedBehaviors {
-    fn expected_for(&self, context: DecisionContext) -> &Vec<ModerationTestResultFlag> {
+impl ExpectedBehaviors {
+    fn expected_for(&self, context: DecisionContext) -> &Vec<ResultFlag> {
         match context {
             DecisionContext::ProfileList => &self.profile_list,
             DecisionContext::ProfileView => &self.profile_view,
@@ -110,11 +111,7 @@ fn label(src: &str, uri: &str, val: &str) -> Label {
     }
 }
 
-fn assert_ui(
-    decision: &ModerationDecision,
-    expected: &[ModerationTestResultFlag],
-    context: DecisionContext,
-) {
+fn assert_ui(decision: &ModerationDecision, expected: &[ResultFlag], context: DecisionContext) {
     let ui = decision.ui(context);
     if expected.is_empty() {
         assert!(
@@ -137,31 +134,31 @@ fn assert_ui(
     } else {
         assert_eq!(
             ui.inform(),
-            expected.contains(&ModerationTestResultFlag::Inform),
+            expected.contains(&ResultFlag::Inform),
             "inform should be {} for context {context:?}",
             !ui.inform()
         );
         assert_eq!(
             ui.alert(),
-            expected.contains(&ModerationTestResultFlag::Alert),
+            expected.contains(&ResultFlag::Alert),
             "alert should be {} for context {context:?}",
             !ui.alert()
         );
         assert_eq!(
             ui.blur(),
-            expected.contains(&ModerationTestResultFlag::Blur),
+            expected.contains(&ResultFlag::Blur),
             "blur should be {} for context {context:?}",
             !ui.blur()
         );
         assert_eq!(
             ui.filter(),
-            expected.contains(&ModerationTestResultFlag::Filter),
+            expected.contains(&ResultFlag::Filter),
             "filter should be {} for context {context:?}",
             !ui.filter()
         );
         assert_eq!(
             ui.no_override,
-            expected.contains(&ModerationTestResultFlag::NoOverride),
+            expected.contains(&ResultFlag::NoOverride),
             "no_override should be {} for context {context:?}",
             !ui.no_override
         );
@@ -191,11 +188,7 @@ fn self_label_global() {
             HashMap::new(),
         );
         let result = moderator.moderate_profile(&profile);
-        assert_ui(
-            &result,
-            &[ModerationTestResultFlag::Blur],
-            DecisionContext::Avatar,
-        )
+        assert_ui(&result, &[ResultFlag::Blur], DecisionContext::Avatar)
     }
     // porn (ignore)
     {
@@ -350,8 +343,8 @@ fn prioritize_custom_labels() {
     ));
     for context in DecisionContext::ALL {
         let expected = match context {
-            DecisionContext::ContentList => vec![ModerationTestResultFlag::Inform],
-            DecisionContext::ContentView => vec![ModerationTestResultFlag::Inform],
+            DecisionContext::ContentList => vec![ResultFlag::Inform],
+            DecisionContext::ContentView => vec![ResultFlag::Inform],
             _ => vec![],
         };
         assert_ui(&result, &expected, context);
@@ -399,15 +392,10 @@ fn does_not_override_imperative_labels() {
     ));
     for context in DecisionContext::ALL {
         let expected = match context {
-            DecisionContext::ContentList => vec![
-                ModerationTestResultFlag::Filter,
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
-            DecisionContext::ContentView => vec![
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
+            DecisionContext::ContentList => {
+                vec![ResultFlag::Filter, ResultFlag::Blur, ResultFlag::NoOverride]
+            }
+            DecisionContext::ContentView => vec![ResultFlag::Blur, ResultFlag::NoOverride],
             _ => vec![],
         };
         assert_ui(&result, &expected, context);
@@ -551,11 +539,8 @@ fn custom_labels_with_default_settings() {
         ));
         for context in DecisionContext::ALL {
             let expected = match context {
-                DecisionContext::ContentList => vec![
-                    ModerationTestResultFlag::Filter,
-                    ModerationTestResultFlag::Blur,
-                ],
-                DecisionContext::ContentView => vec![ModerationTestResultFlag::Inform],
+                DecisionContext::ContentList => vec![ResultFlag::Filter, ResultFlag::Blur],
+                DecisionContext::ContentView => vec![ResultFlag::Inform],
                 _ => vec![],
             };
             assert_ui(&result, &expected, context);
@@ -573,8 +558,8 @@ fn custom_labels_with_default_settings() {
         ));
         for context in DecisionContext::ALL {
             let expected = match context {
-                DecisionContext::ContentList => vec![ModerationTestResultFlag::Blur],
-                DecisionContext::ContentView => vec![ModerationTestResultFlag::Inform],
+                DecisionContext::ContentList => vec![ResultFlag::Blur],
+                DecisionContext::ContentView => vec![ResultFlag::Inform],
                 _ => vec![],
             };
             assert_ui(&result, &expected, context);
@@ -637,15 +622,10 @@ fn custom_labels_require_adult_content_enabled() {
     ));
     for context in DecisionContext::ALL {
         let expected = match context {
-            DecisionContext::ContentList => vec![
-                ModerationTestResultFlag::Filter,
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
-            DecisionContext::ContentView => vec![
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
+            DecisionContext::ContentList => {
+                vec![ResultFlag::Filter, ResultFlag::Blur, ResultFlag::NoOverride]
+            }
+            DecisionContext::ContentView => vec![ResultFlag::Blur, ResultFlag::NoOverride],
             _ => vec![],
         };
         assert_ui(&result, &expected, context);
@@ -679,11 +659,8 @@ fn adult_content_disabled_forces_hide() {
     ));
     for context in DecisionContext::ALL {
         let expected = match context {
-            DecisionContext::ContentList => vec![ModerationTestResultFlag::Filter],
-            DecisionContext::ContentMedia => vec![
-                ModerationTestResultFlag::Blur,
-                ModerationTestResultFlag::NoOverride,
-            ],
+            DecisionContext::ContentList => vec![ResultFlag::Filter],
+            DecisionContext::ContentMedia => vec![ResultFlag::Blur, ResultFlag::NoOverride],
             _ => vec![],
         };
         assert_ui(&result, &expected, context);

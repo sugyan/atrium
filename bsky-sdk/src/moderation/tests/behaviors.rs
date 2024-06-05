@@ -1,5 +1,5 @@
 use super::{assert_ui, label, post_view, profile_view_basic};
-use super::{ModerationTestResultFlag, TestExpectedBehaviors, FAKE_CID};
+use super::{ExpectedBehaviors, ResultFlag, FAKE_CID};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::types::*;
 use crate::moderation::Moderator;
@@ -146,22 +146,22 @@ impl AsRef<str> for TestUser {
 }
 
 #[derive(Debug, Default)]
-struct TestScenarioLabels {
+struct TestLabels {
     post: Vec<String>,
     profile: Vec<String>,
     account: Vec<String>,
 }
 
 #[derive(Debug)]
-struct BehaviorsTestScenario {
+struct Scenario {
     cfg: TestConfig,
     subject: TestSubject,
     author: TestUser,
-    labels: TestScenarioLabels,
-    behaviors: TestExpectedBehaviors,
+    labels: TestLabels,
+    behaviors: ExpectedBehaviors,
 }
 
-impl BehaviorsTestScenario {
+impl Scenario {
     fn run(&self) {
         let moderator = self.moderator();
         let result = match self.subject {
@@ -264,19 +264,19 @@ impl BehaviorsTestScenario {
 
 #[test]
 fn moderation_behaviors() {
-    use ModerationTestResultFlag::*;
+    use ResultFlag::*;
     let scenarios = [
         (
             "Imperative label ('!hide') on account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, NoOverride],
                     avatar: vec![Blur, NoOverride],
@@ -290,15 +290,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     display_name: vec![Blur, NoOverride],
@@ -308,15 +308,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on post",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur, NoOverride],
                     content_view: vec![Blur, NoOverride],
                     ..Default::default()
@@ -325,15 +325,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on author profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     display_name: vec![Blur, NoOverride],
@@ -343,15 +343,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!hide') on author account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     display_name: vec![Blur, NoOverride],
@@ -363,15 +363,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Blur],
                     profile_view: vec![Blur],
                     avatar: vec![Blur],
@@ -384,15 +384,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     display_name: vec![Blur],
@@ -402,15 +402,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on post",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Blur],
                     content_view: vec![Blur],
                     ..Default::default()
@@ -419,15 +419,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on author profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     display_name: vec![Blur],
@@ -437,15 +437,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!warn') on author account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     content_list: vec![Blur],
@@ -456,15 +456,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on account when logged out",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, NoOverride],
                     avatar: vec![Blur, NoOverride],
@@ -478,15 +478,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on profile when logged out",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, NoOverride],
                     avatar: vec![Blur, NoOverride],
@@ -500,15 +500,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on post when logged out",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur, NoOverride],
                     content_view: vec![Blur, NoOverride],
                     ..Default::default()
@@ -517,15 +517,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on author profile when logged out",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     display_name: vec![Blur, NoOverride],
@@ -537,15 +537,15 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on author account when logged out",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::LoggedOut,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     display_name: vec![Blur, NoOverride],
@@ -557,80 +557,80 @@ fn moderation_behaviors() {
         ),
         (
             "Imperative label ('!no-unauthenticated') on account when logged in",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Imperative label ('!no-unauthenticated') on profile when logged in",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Imperative label ('!no-unauthenticated') on post when logged in",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Imperative label ('!no-unauthenticated') on author profile when logged in",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Imperative label ('!no-unauthenticated') on author account when logged in",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!no-unauthenticated")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Blur-media label ('porn') on account (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter],
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -641,15 +641,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on profile (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     ..Default::default()
@@ -658,15 +658,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on post (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter],
                     content_media: vec![Blur],
                     ..Default::default()
@@ -675,15 +675,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author profile (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     ..Default::default()
@@ -692,15 +692,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author account (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter],
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -711,15 +711,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on account (warn)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     ..Default::default()
@@ -728,15 +728,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on profile (warn)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     ..Default::default()
@@ -745,15 +745,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on post (warn)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_media: vec![Blur],
                     ..Default::default()
                 },
@@ -761,15 +761,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author profile (warn)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     ..Default::default()
@@ -778,15 +778,15 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on author account (warn)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     ..Default::default()
@@ -795,80 +795,80 @@ fn moderation_behaviors() {
         ),
         (
             "Blur-media label ('porn') on account (ignore)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Blur-media label ('porn') on profile (ignore)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Blur-media label ('porn') on post (ignore)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Blur-media label ('porn') on author profile (ignore)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Blur-media label ('porn') on author account (ignore)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors::default(),
+                behaviors: ExpectedBehaviors::default(),
             },
         ),
         (
             "Adult-only label on account when adult content is disabled",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter],
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -879,15 +879,15 @@ fn moderation_behaviors() {
         ),
         (
             "Adult-only label on profile when adult content is disabled",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     ..Default::default()
@@ -896,15 +896,15 @@ fn moderation_behaviors() {
         ),
         (
             "Adult-only label on post when adult content is disabled",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter],
                     content_media: vec![Blur, NoOverride],
                     ..Default::default()
@@ -913,15 +913,15 @@ fn moderation_behaviors() {
         ),
         (
             "Adult-only label on author profile when adult content is disabled",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     ..Default::default()
@@ -930,15 +930,15 @@ fn moderation_behaviors() {
         ),
         (
             "Adult-only label on author account when adult content is disabled",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     content_list: vec![Filter],
@@ -948,15 +948,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-profile: !hide on account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Blur],
                     profile_view: vec![Blur],
                     avatar: vec![Blur],
@@ -970,15 +970,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-profile: !hide on profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     display_name: vec![Blur],
@@ -988,15 +988,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!hide') on post",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Blur],
                     content_view: vec![Blur],
                     ..Default::default()
@@ -1005,15 +1005,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!hide') on author profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     display_name: vec![Blur],
@@ -1023,15 +1023,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!hide') on author account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     display_name: vec![Blur],
@@ -1043,15 +1043,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!warn') on post",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Blur],
                     content_view: vec![Blur],
                     ..Default::default()
@@ -1060,15 +1060,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!warn') on author profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     profile: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     display_name: vec![Blur],
@@ -1078,15 +1078,15 @@ fn moderation_behaviors() {
         ),
         (
             "Self-post: Imperative label ('!warn') on author account",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
                     content_list: vec![Blur],
@@ -1097,12 +1097,12 @@ fn moderation_behaviors() {
         ),
         (
             "Mute/block: Blocking user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Bob,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Alert],
                     avatar: vec![Blur, NoOverride],
@@ -1115,12 +1115,12 @@ fn moderation_behaviors() {
         ),
         (
             "Post with blocked author",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Bob,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     content_list: vec![Filter, Blur, NoOverride],
@@ -1131,12 +1131,12 @@ fn moderation_behaviors() {
         ),
         (
             "Post with author blocking user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Carla,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     content_list: vec![Filter, Blur, NoOverride],
@@ -1147,12 +1147,12 @@ fn moderation_behaviors() {
         ),
         (
             "Mute/block: Blocking-by-list user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Georgia,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Alert],
                     avatar: vec![Blur, NoOverride],
@@ -1165,12 +1165,12 @@ fn moderation_behaviors() {
         ),
         (
             "Mute/block: Blocked by user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Carla,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Alert],
                     avatar: vec![Blur, NoOverride],
@@ -1183,12 +1183,12 @@ fn moderation_behaviors() {
         ),
         (
             "Mute/block: Muted user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Dan,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Inform],
                     profile_view: vec![Alert],
                     content_list: vec![Filter, Blur],
@@ -1199,12 +1199,12 @@ fn moderation_behaviors() {
         ),
         (
             "Mute/block: Muted-by-list user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Elise,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Inform],
                     profile_view: vec![Alert],
                     content_list: vec![Filter, Blur],
@@ -1215,12 +1215,12 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: blocking & blocked-by user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Fern,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Alert],
                     avatar: vec![Blur, NoOverride],
@@ -1233,12 +1233,12 @@ fn moderation_behaviors() {
         ),
         (
             "Post with muted author",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Dan,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur],
                     content_view: vec![Inform],
                     ..Default::default()
@@ -1247,12 +1247,12 @@ fn moderation_behaviors() {
         ),
         (
             "Post with muted-by-list author",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Elise,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur],
                     content_view: vec![Inform],
                     ..Default::default()
@@ -1261,15 +1261,15 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: '!hide' label on account of blocked user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Bob,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, Alert, NoOverride],
                     avatar: vec![Blur, NoOverride],
@@ -1283,15 +1283,15 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: '!hide' and 'porn' labels on account (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide"), String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, NoOverride],
                     avatar: vec![Blur, NoOverride],
@@ -1305,15 +1305,15 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: '!warn' and 'porn' labels on account (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!warn"), String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur],
                     profile_view: vec![Blur],
                     avatar: vec![Blur],
@@ -1326,16 +1326,16 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: !hide on account, !warn on profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!hide")],
                     profile: vec![String::from("!warn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, NoOverride],
                     avatar: vec![Blur, NoOverride],
@@ -1349,16 +1349,16 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: !warn on account, !hide on profile",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     account: vec![String::from("!warn")],
                     profile: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     profile_list: vec![Blur],
                     profile_view: vec![Blur],
                     avatar: vec![Blur, NoOverride],
@@ -1372,12 +1372,12 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: post with blocking & blocked-by author",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Fern,
-                labels: TestScenarioLabels::default(),
-                behaviors: TestExpectedBehaviors {
+                labels: TestLabels::default(),
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     content_list: vec![Filter, Blur, NoOverride],
@@ -1388,15 +1388,15 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: '!hide' label on post by blocked user",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Bob,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!hide")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
                     content_list: vec![Filter, Blur, NoOverride],
@@ -1407,15 +1407,15 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: '!hide' and 'porn' labels on post (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!warn"), String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur],
                     content_view: vec![Blur],
                     content_media: vec![Blur],
@@ -1425,15 +1425,15 @@ fn moderation_behaviors() {
         ),
         (
             "Merging: '!warn' and 'porn' labels on post (hide)",
-            BehaviorsTestScenario {
+            Scenario {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestScenarioLabels {
+                labels: TestLabels {
                     post: vec![String::from("!warn"), String::from("porn")],
                     ..Default::default()
                 },
-                behaviors: TestExpectedBehaviors {
+                behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur],
                     content_view: vec![Blur],
                     content_media: vec![Blur],
