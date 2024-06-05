@@ -167,7 +167,87 @@ impl KnownLabelValue {
                     },
                 },
             },
-            _ => todo!(),
+            Self::Sexual => InterpretedLabelValueDefinition {
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Media,
+                default_setting: LabelPreference::Warn,
+                identifier: String::from("sexual"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::None,
+                defined_by: None,
+                configurable: true,
+                flags: vec![LabelValueDefinitionFlag::Adult],
+                behaviors: InterpretedLabelValueDefinitionBehaviors {
+                    account: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        ..Default::default()
+                    },
+                    profile: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        ..Default::default()
+                    },
+                    content: ModerationBehavior {
+                        content_media: Some(ContentMediaBehavior::Blur),
+                        ..Default::default()
+                    },
+                },
+            },
+            Self::Nudity => InterpretedLabelValueDefinition {
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Media,
+                default_setting: LabelPreference::Ignore,
+                identifier: String::from("nudity"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::None,
+                defined_by: None,
+                configurable: true,
+                flags: Vec::new(),
+                behaviors: InterpretedLabelValueDefinitionBehaviors {
+                    account: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        ..Default::default()
+                    },
+                    profile: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        ..Default::default()
+                    },
+                    content: ModerationBehavior {
+                        content_media: Some(ContentMediaBehavior::Blur),
+                        ..Default::default()
+                    },
+                },
+            },
+            Self::GraphicMedia => InterpretedLabelValueDefinition {
+                adult_only: false,
+                blurs: LabelValueDefinitionBlurs::Media,
+                default_setting: LabelPreference::Warn,
+                identifier: String::from("graphic-media"),
+                locales: Vec::new(),
+                severity: LabelValueDefinitionSeverity::None,
+                defined_by: None,
+                configurable: true,
+                flags: vec![LabelValueDefinitionFlag::Adult],
+                behaviors: InterpretedLabelValueDefinitionBehaviors {
+                    account: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        ..Default::default()
+                    },
+                    profile: ModerationBehavior {
+                        avatar: Some(AvatarBehavior::Blur),
+                        banner: Some(BannerBehavior::Blur),
+                        ..Default::default()
+                    },
+                    content: ModerationBehavior {
+                        content_media: Some(ContentMediaBehavior::Blur),
+                        ..Default::default()
+                    },
+                },
+            },
         }
     }
 }
