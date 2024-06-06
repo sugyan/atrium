@@ -15,6 +15,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build
-        run: cargo build -p bsky-sdk --verbose
+        run: |
+          cargo build -p bsky-sdk --verbose
+          cargo build -p bsky-sdk --verbose --no-default-features
       - name: Run tests
-        run: cargo test -p bsky-sdk --verbose
+        run: |
+          cargo test -p bsky-sdk --verbose
+          cargo test -p bsky-sdk --verbose --no-default-features

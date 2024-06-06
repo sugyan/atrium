@@ -17,14 +17,17 @@ atrium-api.workspace = true
 atrium-xrpc-client.workspace = true
 http.workspace = true
 ipld-core.workspace = true
+regex.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 toml = { version = "0.8.13", optional = true }
+unicode-segmentation = { version = "1.11.0", optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]
-default = []
+default = ["rich-text"]
+rich-text = ["unicode-segmentation"]
 config-toml = ["toml"]
