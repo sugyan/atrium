@@ -1,5 +1,49 @@
-use atrium_api::app::bsky::richtext::facet::ByteSlice;
+use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, MainFeaturesItem, Mention, Tag};
+use atrium_api::types::Union;
+use std::cmp::Ordering;
 use unicode_segmentation::UnicodeSegmentation;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RichTextSegment {
+    text: String,
+    facet: Option<atrium_api::app::bsky::richtext::facet::Main>,
+}
+
+impl RichTextSegment {
+    pub fn new(
+        text: impl AsRef<str>,
+        facets: Option<atrium_api::app::bsky::richtext::facet::Main>,
+    ) -> Self {
+        Self {
+            text: text.as_ref().into(),
+            facet: facets,
+        }
+    }
+    pub fn mention(&self) -> Option<Mention> {
+        self.facet.as_ref().and_then(|facet| {
+            facet.features.iter().find_map(|feature| match feature {
+                Union::Refs(MainFeaturesItem::Mention(mention)) => Some(mention.as_ref().clone()),
+                _ => None,
+            })
+        })
+    }
+    pub fn link(&self) -> Option<Link> {
+        self.facet.as_ref().and_then(|facet| {
+            facet.features.iter().find_map(|feature| match feature {
+                Union::Refs(MainFeaturesItem::Link(link)) => Some(link.as_ref().clone()),
+                _ => None,
+            })
+        })
+    }
+    pub fn tag(&self) -> Option<Tag> {
+        self.facet.as_ref().and_then(|facet| {
+            facet.features.iter().find_map(|feature| match feature {
+                Union::Refs(MainFeaturesItem::Tag(tag)) => Some(tag.as_ref().clone()),
+                _ => None,
+            })
+        })
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct RichText {
@@ -29,6 +73,43 @@ impl RichText {
     }
     pub fn grapheme_len(&self) -> usize {
         self.text.as_str().graphemes(true).count()
+    }
+    pub fn segments(&self) -> Vec<RichTextSegment> {
+        let Some(facets) = self.facets.as_ref() else {
+            return vec![RichTextSegment::new(&self.text, None)]
+        };
+        let mut segments = Vec::new();
+        let (mut text_cursor, mut facet_cursor) = (0, 0);
+        while facet_cursor < facets.len() {
+            let curr_facet = &facets[facet_cursor];
+            match text_cursor.cmp(&curr_facet.index.byte_start) {
+                Ordering::Less => {
+                    segments.push(RichTextSegment::new(
+                        &self.text[text_cursor..curr_facet.index.byte_start],
+                        None,
+                    ));
+                }
+                Ordering::Greater => {
+                    facet_cursor += 1;
+                    continue;
+                }
+                Ordering::Equal => {}
+            }
+            if curr_facet.index.byte_start < curr_facet.index.byte_end {
+                let subtext = &self.text[curr_facet.index.byte_start..curr_facet.index.byte_end];
+                if subtext.trim().is_empty() {
+                    segments.push(RichTextSegment::new(subtext, None));
+                } else {
+                    segments.push(RichTextSegment::new(subtext, Some(curr_facet.clone())));
+                }
+            }
+            text_cursor = curr_facet.index.byte_end;
+            facet_cursor += 1;
+        }
+        if text_cursor < self.text.len() {
+            segments.push(RichTextSegment::new(&self.text[text_cursor..], None));
+        }
+        segments
     }
     pub fn insert(&mut self, index: usize, text: impl AsRef<str>) {
         self.text.insert_str(index, text.as_ref());

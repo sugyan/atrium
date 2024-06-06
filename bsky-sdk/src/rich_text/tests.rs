@@ -1,7 +1,7 @@
 mod detection;
 
-use crate::rich_text::RichText;
-use atrium_api::app::bsky::richtext::facet::{ByteSlice, Main};
+use crate::rich_text::{RichText, RichTextSegment};
+use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, Main, MainFeaturesItem, Mention};
 use atrium_api::types::{Union, UnknownData};
 use ipld_core::ipld::Ipld;
 
@@ -12,8 +12,8 @@ fn facet(byte_start: usize, byte_end: usize) -> Main {
             data: Ipld::Null,
         })],
         index: ByteSlice {
-            byte_start,
             byte_end,
+            byte_start,
         },
     }
 }
@@ -317,6 +317,166 @@ fn delete_with_fat_unicode() {
         assert_eq!(
             &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
             "two👨‍👩‍👧‍👧"
+        );
+    }
+}
+
+#[test]
+fn segments() {
+    // produces an empty output for an empty input
+    {
+        let input = RichText::new("", None);
+        assert_eq!(input.segments(), vec![RichTextSegment::new("", None)]);
+    }
+    // produces a single segment when no facets are present
+    {
+        let input = RichText::new("hello", None);
+        assert_eq!(input.segments(), vec![RichTextSegment::new("hello", None)]);
+    }
+    // produces 3 segments with 1 entity in the middle
+    {
+        let input = RichText::new("one two three", Some(vec![facet(4, 7)]));
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one ", None),
+                RichTextSegment::new("two", Some(facet(4, 7))),
+                RichTextSegment::new(" three", None),
+            ]
+        );
+    }
+    // produces 2 segments with 1 entity in the byteStart
+    {
+        let input = RichText::new("one two three", Some(vec![facet(0, 7)]));
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one two", Some(facet(0, 7))),
+                RichTextSegment::new(" three", None),
+            ]
+        );
+    }
+    // produces 2 segments with 1 entity in the end
+    {
+        let input = RichText::new("one two three", Some(vec![facet(4, 13)]));
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one ", None),
+                RichTextSegment::new("two three", Some(facet(4, 13))),
+            ]
+        );
+    }
+    // produces 1 segments with 1 entity around the entire string
+    {
+        let input = RichText::new("one two three", Some(vec![facet(0, 13)]));
+        assert_eq!(
+            input.segments(),
+            vec![RichTextSegment::new("one two three", Some(facet(0, 13)))]
+        );
+    }
+    // produces 5 segments with 3 facets covering each word
+    {
+        let input = RichText::new(
+            "one two three",
+            Some(vec![facet(0, 3), facet(4, 7), facet(8, 13)]),
+        );
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one", Some(facet(0, 3))),
+                RichTextSegment::new(" ", None),
+                RichTextSegment::new("two", Some(facet(4, 7))),
+                RichTextSegment::new(" ", None),
+                RichTextSegment::new("three", Some(facet(8, 13))),
+            ]
+        );
+    }
+    // uses utf8 indices
+    {
+        let input = RichText::new(
+            "one👨‍👩‍👧‍👧 two👨‍👩‍👧‍👧 three👨‍👩‍👧‍👧",
+            Some(vec![facet(0, 28), facet(29, 57), facet(58, 88)]),
+        );
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one👨‍👩‍👧‍👧", Some(facet(0, 28))),
+                RichTextSegment::new(" ", None),
+                RichTextSegment::new("two👨‍👩‍👧‍👧", Some(facet(29, 57))),
+                RichTextSegment::new(" ", None),
+                RichTextSegment::new("three👨‍👩‍👧‍👧", Some(facet(58, 88))),
+            ]
+        );
+    }
+    // correctly identifies mentions and links
+    {
+        let input = RichText::new(
+            "one two three",
+            Some(vec![
+                Main {
+                    features: vec![Union::Refs(MainFeaturesItem::Mention(Box::new(Mention {
+                        did: "did:plc:123".parse().expect("invalid did"),
+                    })))],
+                    index: ByteSlice {
+                        byte_end: 3,
+                        byte_start: 0,
+                    },
+                },
+                Main {
+                    features: vec![Union::Refs(MainFeaturesItem::Link(Box::new(Link {
+                        uri: String::from("https://example.com"),
+                    })))],
+                    index: ByteSlice {
+                        byte_end: 7,
+                        byte_start: 4,
+                    },
+                },
+                facet(8, 13),
+            ]),
+        );
+        let segments = input.segments();
+        assert_eq!(segments.len(), 5);
+        assert!(segments[0].link().is_none());
+        assert!(segments[0].mention().is_some());
+        assert!(segments[1].link().is_none());
+        assert!(segments[1].mention().is_none());
+        assert!(segments[2].link().is_some());
+        assert!(segments[2].mention().is_none());
+        assert!(segments[3].link().is_none());
+        assert!(segments[3].mention().is_none());
+        assert!(segments[4].link().is_none());
+        assert!(segments[4].mention().is_none());
+    }
+    // skips facets that incorrectly overlap (left edge)
+    {
+        let input = RichText::new(
+            "one two three",
+            Some(vec![facet(0, 3), facet(2, 9), facet(8, 13)]),
+        );
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one", Some(facet(0, 3))),
+                RichTextSegment::new(" two ", None),
+                RichTextSegment::new("three", Some(facet(8, 13))),
+            ]
+        );
+    }
+    // skips facets that incorrectly overlap (right edge)
+    {
+        let input = RichText::new(
+            "one two three",
+            Some(vec![facet(0, 3), facet(4, 9), facet(8, 13)]),
+        );
+        assert_eq!(
+            input.segments(),
+            vec![
+                RichTextSegment::new("one", Some(facet(0, 3))),
+                RichTextSegment::new(" ", None),
+                RichTextSegment::new("two t", Some(facet(4, 9))),
+                RichTextSegment::new("hree", None),
+            ]
         );
     }
 }
