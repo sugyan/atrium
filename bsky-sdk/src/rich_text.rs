@@ -1,5 +1,12 @@
+mod detection;
+
+use crate::agent::config::Config;
+use crate::agent::BskyAgentBuilder;
+use crate::error::Result;
 use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, MainFeaturesItem, Mention, Tag};
 use atrium_api::types::Union;
+use atrium_api::xrpc::XrpcClient;
+use detection::{detect_facets, FacetFeaturesItem};
 use std::cmp::Ordering;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -173,6 +180,51 @@ impl RichText {
             // filter out any facets that were made irrelevant
             facets.retain(|facet| facet.index.byte_start < facet.index.byte_end);
         }
+    }
+    pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
+        let agent = BskyAgentBuilder::default()
+            .client(client)
+            .config(Config {
+                endpoint: "https://public.api.bsky.app".into(),
+                ..Default::default()
+            })
+            .build()
+            .await?;
+        let facets_without_resolution = detect_facets(&self.text);
+        self.facets = if facets_without_resolution.is_empty() {
+            None
+        } else {
+            let mut facets = Vec::new();
+            for facet_without_resolution in facets_without_resolution {
+                let mut features = Vec::new();
+                for feature in facet_without_resolution.features {
+                    match feature {
+                        FacetFeaturesItem::Mention(mention) => {
+                            let did = agent.api.com.atproto.identity.resolve_handle(
+                                atrium_api::com::atproto::identity::resolve_handle::Parameters {
+                                    handle: mention.handle.parse().expect("invalid handle"),
+                                }
+                            ).await?.did;
+                            features.push(Union::Refs(MainFeaturesItem::Mention(Box::new(
+                                Mention { did },
+                            ))));
+                        }
+                        FacetFeaturesItem::Link(link) => {
+                            features.push(Union::Refs(MainFeaturesItem::Link(link)));
+                        }
+                        FacetFeaturesItem::Tag(tag) => {
+                            features.push(Union::Refs(MainFeaturesItem::Tag(tag)));
+                        }
+                    }
+                }
+                facets.push(atrium_api::app::bsky::richtext::facet::Main {
+                    features,
+                    index: facet_without_resolution.index,
+                });
+            }
+            Some(facets)
+        };
+        Ok(())
     }
 }
 
