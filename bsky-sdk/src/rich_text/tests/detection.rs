@@ -136,10 +136,169 @@ async fn detect_facets() -> Result<()> {
                 (" end", None),
             ],
         ),
+        (
+            "start https://middle.com/foo/bar end",
+            vec![
+                ("start ", None),
+                (
+                    "https://middle.com/foo/bar",
+                    Some("https://middle.com/foo/bar"),
+                ),
+                (" end", None),
+            ],
+        ),
+        (
+            "start https://middle.com/foo/bar?baz=bux end",
+            vec![
+                ("start ", None),
+                (
+                    "https://middle.com/foo/bar?baz=bux",
+                    Some("https://middle.com/foo/bar?baz=bux"),
+                ),
+                (" end", None),
+            ],
+        ),
+        (
+            "start https://middle.com/foo/bar?baz=bux#hash end",
+            vec![
+                ("start ", None),
+                (
+                    "https://middle.com/foo/bar?baz=bux#hash",
+                    Some("https://middle.com/foo/bar?baz=bux#hash"),
+                ),
+                (" end", None),
+            ],
+        ),
+        (
+            "https://start.com/foo/bar?baz=bux#hash middle end",
+            vec![
+                (
+                    "https://start.com/foo/bar?baz=bux#hash",
+                    Some("https://start.com/foo/bar?baz=bux#hash"),
+                ),
+                (" middle end", None),
+            ],
+        ),
+        (
+            "start middle https://end.com/foo/bar?baz=bux#hash",
+            vec![
+                ("start middle ", None),
+                (
+                    "https://end.com/foo/bar?baz=bux#hash",
+                    Some("https://end.com/foo/bar?baz=bux#hash"),
+                ),
+            ],
+        ),
+        (
+            "https://newline1.com\nhttps://newline2.com",
+            vec![
+                ("https://newline1.com", Some("https://newline1.com")),
+                ("\n", None),
+                ("https://newline2.com", Some("https://newline2.com")),
+            ],
+        ),
+        (
+            "👨‍👩‍👧‍👧 https://middle.com 👨‍👩‍👧‍👧",
+            vec![
+                ("👨‍👩‍👧‍👧 ", None),
+                ("https://middle.com", Some("https://middle.com")),
+                (" 👨‍👩‍👧‍👧", None),
+            ],
+        ),
+        (
+            "start middle.com end",
+            vec![
+                ("start ", None),
+                ("middle.com", Some("https://middle.com")),
+                (" end", None),
+            ],
+        ),
+        (
+            "start middle.com/foo/bar end",
+            vec![
+                ("start ", None),
+                ("middle.com/foo/bar", Some("https://middle.com/foo/bar")),
+                (" end", None),
+            ],
+        ),
+        (
+            "start middle.com/foo/bar?baz=bux end",
+            vec![
+                ("start ", None),
+                (
+                    "middle.com/foo/bar?baz=bux",
+                    Some("https://middle.com/foo/bar?baz=bux"),
+                ),
+                (" end", None),
+            ],
+        ),
+        (
+            "start middle.com/foo/bar?baz=bux#hash end",
+            vec![
+                ("start ", None),
+                (
+                    "middle.com/foo/bar?baz=bux#hash",
+                    Some("https://middle.com/foo/bar?baz=bux#hash"),
+                ),
+                (" end", None),
+            ],
+        ),
+        (
+            "start.com/foo/bar?baz=bux#hash middle end",
+            vec![
+                (
+                    "start.com/foo/bar?baz=bux#hash",
+                    Some("https://start.com/foo/bar?baz=bux#hash"),
+                ),
+                (" middle end", None),
+            ],
+        ),
+        (
+            "start middle end.com/foo/bar?baz=bux#hash",
+            vec![
+                ("start middle ", None),
+                (
+                    "end.com/foo/bar?baz=bux#hash",
+                    Some("https://end.com/foo/bar?baz=bux#hash"),
+                ),
+            ],
+        ),
+        (
+            "newline1.com\nnewline2.com",
+            vec![
+                ("newline1.com", Some("https://newline1.com")),
+                ("\n", None),
+                ("newline2.com", Some("https://newline2.com")),
+            ],
+        ),
+        (
+            "a example.com/index.php php link",
+            vec![
+                ("a ", None),
+                (
+                    "example.com/index.php",
+                    Some("https://example.com/index.php"),
+                ),
+                (" php link", None),
+            ],
+        ),
+        (
+            "a trailing bsky.app: colon",
+            vec![
+                ("a trailing ", None),
+                ("bsky.app", Some("https://bsky.app")),
+                (": colon", None),
+            ],
+        ),
+        ("not.. a..url ..here", vec![("not.. a..url ..here", None)]),
+        ("e.g.", vec![("e.g.", None)]),
+        ("something-cool.jpg", vec![("something-cool.jpg", None)]),
+        ("website.com.jpg", vec![("website.com.jpg", None)]),
+        ("e.g./foo", vec![("e.g./foo", None)]),
+        ("website.com.jpg/foo", vec![("website.com.jpg/foo", None)]),
     ];
     for (input, expected) in test_cases {
-        let mut rt = RichText::new(input, None);
-        rt.detect_facets(MockClient).await?;
+        let rt = RichText::new(input, None).detect_facets(MockClient).await?;
         assert_eq!(
             rt.segments()
                 .iter()

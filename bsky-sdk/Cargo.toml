@@ -17,6 +17,7 @@ atrium-api.workspace = true
 atrium-xrpc-client.workspace = true
 http.workspace = true
 ipld-core.workspace = true
+psl = { version = "2.1.42", optional = true }
 regex.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
@@ -29,5 +30,5 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]
 default = ["rich-text"]
-rich-text = ["unicode-segmentation"]
+rich-text = ["psl", "unicode-segmentation"]
 config-toml = ["toml"]

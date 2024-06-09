@@ -10,6 +10,8 @@ use detection::{detect_facets, FacetFeaturesItem};
 use std::cmp::Ordering;
 use unicode_segmentation::UnicodeSegmentation;
 
+const PUBLIC_API_ENDPOINT: &str = "https://public.api.bsky.app";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RichTextSegment {
     text: String,
@@ -181,11 +183,11 @@ impl RichText {
             facets.retain(|facet| facet.index.byte_start < facet.index.byte_end);
         }
     }
-    pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
+    pub async fn detect_facets(mut self, client: impl XrpcClient + Send + Sync) -> Result<Self> {
         let agent = BskyAgentBuilder::default()
             .client(client)
             .config(Config {
-                endpoint: "https://public.api.bsky.app".into(),
+                endpoint: PUBLIC_API_ENDPOINT.into(),
                 ..Default::default()
             })
             .build()
@@ -224,7 +226,7 @@ impl RichText {
             }
             Some(facets)
         };
-        Ok(())
+        Ok(self)
     }
 }
 
