@@ -6,6 +6,8 @@ use std::sync::OnceLock;
 static RE_MENTION: OnceLock<Regex> = OnceLock::new();
 static RE_URL: OnceLock<Regex> = OnceLock::new();
 static RE_ENDING_PUNCTUATION: OnceLock<Regex> = OnceLock::new();
+static RE_TRAILING_PUNCTUATION: OnceLock<Regex> = OnceLock::new();
+static RE_TAG: OnceLock<Regex> = OnceLock::new();
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FacetWithoutResolution {
@@ -73,9 +75,10 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 byte_start: m.start(),
             };
             // strip ending puncuation
-            if RE_ENDING_PUNCTUATION
+            if (RE_ENDING_PUNCTUATION
                 .get_or_init(|| Regex::new(r"[.,;:!?]$").expect("invalid regex"))
-                .is_match(&uri)
+                .is_match(&uri))
+                || (uri.ends_with(')') && !uri.contains('('))
             {
                 uri.pop();
                 index.byte_end -= 1;
@@ -84,6 +87,40 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 features: vec![FacetFeaturesItem::Link(Box::new(Link { uri }))],
                 index,
             });
+        }
+    }
+    // tags
+    {
+        let re = RE_TAG.get_or_init(|| {
+            Regex::new(
+                r"(?:^|\s)([#＃])([^\s\u00AD\u2060\u200A\u200B\u200C\u200D\u20e2]*[^\d\s\p{P}\u00AD\u2060\u200A\u200B\u200C\u200D\u20e2]+[^\s\u00AD\u2060\u200A\u200B\u200C\u200D\u20e2]*)?",
+            )
+            .expect("invalid regex")
+        });
+        for capture in re.captures_iter(text) {
+            println!("{:?}", capture);
+            if let Some(tag) = capture.get(2) {
+                // strip ending punctuation and any spaces
+                let tag = RE_TRAILING_PUNCTUATION
+                    .get_or_init(|| Regex::new(r"\p{P}+$").expect("invalid regex"))
+                    .replace(tag.as_str(), "");
+                // look-around, including look-ahead and look-behind, is not supported in `regex`
+                if tag.starts_with('\u{fe0f}') {
+                    continue;
+                }
+                if tag.len() > 64 {
+                    continue;
+                }
+                let leading = capture.get(1).expect("invalid capture");
+                let index = ByteSlice {
+                    byte_end: leading.end() + tag.len(),
+                    byte_start: leading.start(),
+                };
+                facets.push(FacetWithoutResolution {
+                    features: vec![FacetFeaturesItem::Tag(Box::new(Tag { tag: tag.into() }))],
+                    index,
+                });
+            }
         }
     }
     facets

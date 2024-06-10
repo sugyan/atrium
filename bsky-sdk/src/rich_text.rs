@@ -74,6 +74,17 @@ impl RichText {
             facets,
         }
     }
+    pub async fn new_with_detect_facets(
+        text: impl AsRef<str>,
+        client: impl XrpcClient + Send + Sync,
+    ) -> Result<Self> {
+        let mut rt = Self {
+            text: text.as_ref().into(),
+            facets: None,
+        };
+        rt.detect_facets(client).await?;
+        Ok(rt)
+    }
     pub fn is_empty(&self) -> bool {
         self.text.is_empty()
     }
@@ -183,7 +194,7 @@ impl RichText {
             facets.retain(|facet| facet.index.byte_start < facet.index.byte_end);
         }
     }
-    pub async fn detect_facets(mut self, client: impl XrpcClient + Send + Sync) -> Result<Self> {
+    pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
         let agent = BskyAgentBuilder::default()
             .client(client)
             .config(Config {
@@ -226,7 +237,7 @@ impl RichText {
             }
             Some(facets)
         };
-        Ok(self)
+        Ok(())
     }
 }
 
