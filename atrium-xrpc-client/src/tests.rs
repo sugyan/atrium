@@ -1,6 +1,6 @@
+use atrium_xrpc::http::Method;
 use atrium_xrpc::{InputDataOrBytes, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use futures::future::join_all;
-use http::Method;
 use mockito::{Matcher, Server};
 use serde::{Deserialize, Serialize};
 use tokio::task::JoinError;

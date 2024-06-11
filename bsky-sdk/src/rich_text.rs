@@ -189,8 +189,7 @@ impl RichText {
         }
     }
     pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
-        let agent = BskyAgentBuilder::default()
-            .client(client)
+        let agent = BskyAgentBuilder::new(client)
             .config(Config {
                 endpoint: PUBLIC_API_ENDPOINT.into(),
                 ..Default::default()

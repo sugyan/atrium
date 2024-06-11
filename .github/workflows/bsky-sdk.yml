@@ -18,7 +18,13 @@ jobs:
         run: |
           cargo build -p bsky-sdk --verbose
           cargo build -p bsky-sdk --verbose --no-default-features
+          cargo build -p bsky-sdk --verbose --no-default-features --features default-client
+          cargo build -p bsky-sdk --verbose --no-default-features --features rich-text
+          cargo build -p bsky-sdk --verbose --all-features
       - name: Run tests
         run: |
           cargo test -p bsky-sdk --verbose
           cargo test -p bsky-sdk --verbose --no-default-features
+          cargo test -p bsky-sdk --verbose --no-default-features --features default-client
+          cargo test -p bsky-sdk --verbose --no-default-features --features rich-text
+          cargo test -p bsky-sdk --verbose --all-features

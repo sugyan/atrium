@@ -14,8 +14,7 @@ keywords = ["atproto", "bluesky", "atrium", "sdk"]
 anyhow.workspace = true
 async-trait.workspace = true
 atrium-api.workspace = true
-atrium-xrpc-client.workspace = true
-http.workspace = true
+atrium-xrpc-client = { workspace = true, optional = true }
 ipld-core.workspace = true
 psl = { version = "2.1.42", optional = true }
 regex.workspace = true
@@ -29,6 +28,7 @@ unicode-segmentation = { version = "1.11.0", optional = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]
-default = ["rich-text"]
+default = ["default-client", "rich-text"]
+default-client = ["atrium-xrpc-client"]
 rich-text = ["psl", "unicode-segmentation"]
 config-toml = ["toml"]

@@ -6,6 +6,7 @@ pub mod types;
 pub use crate::error::{Error, Result};
 pub use crate::traits::{HttpClient, XrpcClient};
 pub use crate::types::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
+pub use http;
 
 #[cfg(test)]
 mod tests {

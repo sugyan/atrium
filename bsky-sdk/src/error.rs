@@ -1,5 +1,6 @@
-use atrium_api::xrpc;
-use http::StatusCode;
+use atrium_api::xrpc::error::XrpcErrorKind;
+use atrium_api::xrpc::http::StatusCode;
+use atrium_api::xrpc::Error as XrpcError;
 use thiserror::Error;
 
 /// Error type for this crate.
@@ -36,14 +37,14 @@ impl std::fmt::Display for GenericXrpcError {
     }
 }
 
-impl<E> From<xrpc::Error<E>> for Error {
-    fn from(err: xrpc::Error<E>) -> Self {
-        if let xrpc::Error::XrpcResponse(e) = err {
+impl<E> From<XrpcError<E>> for Error {
+    fn from(err: XrpcError<E>) -> Self {
+        if let XrpcError::XrpcResponse(e) = err {
             Self::Xrpc(Box::new(GenericXrpcError {
                 status: e.status,
                 error: e.error.map(|e| match e {
-                    xrpc::error::XrpcErrorKind::Custom(_) => String::from("custom error"),
-                    xrpc::error::XrpcErrorKind::Undefined(res) => res.to_string(),
+                    XrpcErrorKind::Custom(_) => String::from("custom error"),
+                    XrpcErrorKind::Undefined(res) => res.to_string(),
                 }),
             }))
         } else {

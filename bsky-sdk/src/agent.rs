@@ -1,5 +1,7 @@
+mod builder;
 pub mod config;
 
+pub use self::builder::BskyAgentBuilder;
 use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
@@ -10,29 +12,41 @@ use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::{LabelersPref, PreferencesItem};
 use atrium_api::types::Union;
 use atrium_api::xrpc::XrpcClient;
+#[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use ipld_core::serde::from_ipld;
 use std::collections::HashMap;
 use std::ops::Deref;
 
-pub struct BskyAgent<S = MemorySessionStore, T = ReqwestClient>
+#[cfg(feature = "default-client")]
+pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
 where
-    S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S: SessionStore + Send + Sync,
 {
     inner: AtpAgent<S, T>,
 }
 
+#[cfg(not(feature = "default-client"))]
+pub struct BskyAgent<T, S = MemorySessionStore>
+where
+    T: XrpcClient + Send + Sync,
+    S: SessionStore + Send + Sync,
+{
+    inner: AtpAgent<S, T>,
+}
+
+#[cfg(feature = "default-client")]
 impl BskyAgent {
-    pub fn builder() -> BskyAgentBuilder<MemorySessionStore, ReqwestClient> {
+    pub fn builder() -> BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
         BskyAgentBuilder::default()
     }
 }
 
-impl<S, T> BskyAgent<S, T>
+impl<T, S> BskyAgent<T, S>
 where
-    S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S: SessionStore + Send + Sync,
 {
     pub async fn to_config(&self) -> Config {
         Config {
@@ -160,95 +174,14 @@ where
     }
 }
 
-impl<S, T> Deref for BskyAgent<S, T>
+impl<T, S> Deref for BskyAgent<T, S>
 where
-    S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S: SessionStore + Send + Sync,
 {
     type Target = AtpAgent<S, T>;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
-    }
-}
-
-pub struct BskyAgentBuilder<S, T>
-where
-    S: SessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
-{
-    config: Config,
-    store: S,
-    client: T,
-}
-
-impl<S, T> BskyAgentBuilder<S, T>
-where
-    S: SessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
-{
-    pub fn config(mut self, config: Config) -> Self {
-        self.config = config;
-        self
-    }
-    pub fn store<S0>(self, store: S0) -> BskyAgentBuilder<S0, T>
-    where
-        S0: SessionStore + Send + Sync,
-    {
-        BskyAgentBuilder {
-            config: self.config,
-            store,
-            client: self.client,
-        }
-    }
-    pub fn client<T0>(self, client: T0) -> BskyAgentBuilder<S, T0>
-    where
-        T0: XrpcClient + Send + Sync,
-    {
-        BskyAgentBuilder {
-            config: self.config,
-            store: self.store,
-            client,
-        }
-    }
-    pub async fn build(self) -> Result<BskyAgent<S, T>> {
-        let agent = AtpAgent::new(self.client, self.store);
-        agent.configure_endpoint(self.config.endpoint);
-        if let Some(session) = self.config.session {
-            agent.resume_session(session).await?;
-        }
-        if let Some(labelers) = self.config.labelers_header {
-            agent.configure_labelers_header(Some(
-                labelers
-                    .iter()
-                    .filter_map(|did| {
-                        let (did, redact) = match did.split_once(';') {
-                            Some((did, params)) if params.trim() == "redact" => (did, true),
-                            None => (did.as_str(), false),
-                            _ => return None,
-                        };
-                        did.parse().ok().map(|did| (did, redact))
-                    })
-                    .collect(),
-            ));
-        }
-        if let Some(proxy) = self.config.proxy_header {
-            if let Some((did, service_type)) = proxy.split_once('#') {
-                if let Ok(did) = did.parse() {
-                    agent.configure_proxy_header(did, service_type);
-                }
-            }
-        }
-        Ok(BskyAgent { inner: agent })
-    }
-}
-
-impl Default for BskyAgentBuilder<MemorySessionStore, ReqwestClient> {
-    fn default() -> Self {
-        Self {
-            config: Config::default(),
-            client: ReqwestClient::new(Config::default().endpoint),
-            store: MemorySessionStore::default(),
-        }
     }
 }
