@@ -1,6 +1,7 @@
 pub mod decision;
 mod error;
 mod labels;
+pub mod mutewords;
 mod subjects;
 mod types;
 pub mod ui;

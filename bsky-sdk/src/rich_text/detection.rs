@@ -98,7 +98,6 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
             .expect("invalid regex")
         });
         for capture in re.captures_iter(text) {
-            println!("{:?}", capture);
             if let Some(tag) = capture.get(2) {
                 // strip ending punctuation and any spaces
                 let tag = RE_TRAILING_PUNCTUATION

@@ -22,17 +22,17 @@ fn facet(byte_start: usize, byte_end: usize) -> Main {
 fn calculate_bytelength_and_grapheme_length() {
     {
         let rt = RichText::new("Hello!", None);
-        assert_eq!(rt.len(), 6);
+        assert_eq!(rt.text.len(), 6);
         assert_eq!(rt.grapheme_len(), 6);
     }
     {
         let rt = RichText::new("👨‍👩‍👧‍👧", None);
-        assert_eq!(rt.len(), 25);
+        assert_eq!(rt.text.len(), 25);
         assert_eq!(rt.grapheme_len(), 1);
     }
     {
         let rt = RichText::new("👨‍👩‍👧‍👧🔥 good!✅", None);
-        assert_eq!(rt.len(), 38);
+        assert_eq!(rt.text.len(), 38);
         assert_eq!(rt.grapheme_len(), 9);
     }
 }

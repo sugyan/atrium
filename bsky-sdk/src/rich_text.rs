@@ -56,8 +56,8 @@ impl RichTextSegment {
 
 #[derive(Debug, Clone)]
 pub struct RichText {
-    text: String,
-    facets: Option<Vec<atrium_api::app::bsky::richtext::facet::Main>>,
+    pub text: String,
+    pub facets: Option<Vec<atrium_api::app::bsky::richtext::facet::Main>>,
 }
 
 impl RichText {
@@ -84,12 +84,6 @@ impl RichText {
         };
         rt.detect_facets(client).await?;
         Ok(rt)
-    }
-    pub fn is_empty(&self) -> bool {
-        self.text.is_empty()
-    }
-    pub fn len(&self) -> usize {
-        self.text.len()
     }
     pub fn grapheme_len(&self) -> usize {
         self.text.as_str().graphemes(true).count()
