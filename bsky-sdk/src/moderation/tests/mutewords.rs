@@ -1,17 +1,17 @@
 use super::{post_view, profile_view_basic};
-use crate::error::Result;
 use crate::moderation::decision::DecisionContext;
-use crate::moderation::mutewords::has_muted_word;
 use crate::moderation::{ModerationPrefs, Moderator};
 #[cfg(feature = "rich-text")]
 use crate::rich_text::RichText;
-use crate::tests::MockClient;
 use atrium_api::app::bsky::actor::defs::MutedWord;
 use std::collections::HashMap;
 
 #[cfg(feature = "rich-text")]
 #[tokio::test]
-async fn has_muted_word_from_rich_text() -> Result<()> {
+async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
+    use crate::moderation::mutewords::has_muted_word;
+    use crate::tests::MockClient;
+
     // match: outline tag
     {
         let rt = RichText::new_with_detect_facets("This is a post #inlineTag", MockClient).await?;
@@ -646,4 +646,42 @@ fn does_not_mute_own_post() {
         !result.ui(DecisionContext::ContentList).filter(),
         "post should not be filtered"
     );
+}
+
+#[cfg(feature = "rich-text")]
+#[tokio::test]
+async fn does_not_mute_own_tags() -> crate::error::Result<()> {
+    use crate::tests::MockClient;
+    use atrium_api::records::{KnownRecord, Record};
+
+    let prefs = ModerationPrefs {
+        adult_content_enabled: false,
+        labels: HashMap::new(),
+        labelers: Vec::new(),
+        muted_words: vec![MutedWord {
+            targets: vec![String::from("tag")],
+            value: String::from("words"),
+        }],
+        hidden_posts: Vec::new(),
+    };
+    let rt = RichText::new_with_detect_facets("Mute #words!", MockClient).await?;
+    let mut post = post_view(
+        &profile_view_basic("bob.test", Some("Bob"), None),
+        &rt.text,
+        None,
+    );
+    if let Record::Known(KnownRecord::AppBskyFeedPost(ref mut post)) = post.record {
+        post.facets = rt.facets;
+    }
+    let moderator = Moderator::new(
+        Some("did:web:bob.test".parse().expect("invalid did")),
+        prefs,
+        HashMap::new(),
+    );
+    let result = moderator.moderate_post(&post);
+    assert!(
+        !result.ui(DecisionContext::ContentList).filter(),
+        "post should not be filtered"
+    );
+    Ok(())
 }
