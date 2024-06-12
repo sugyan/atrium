@@ -1,6 +1,6 @@
+use super::rich_text_with_detect_facets;
 use crate::error::Result;
-use crate::rich_text::{RichText, RichTextSegment};
-use crate::tests::MockClient;
+use crate::rich_text::RichTextSegment;
 use atrium_api::app::bsky::richtext::facet::MainFeaturesItem;
 use atrium_api::types::Union;
 
@@ -319,7 +319,7 @@ async fn detect_facets_mentions_and_links() -> Result<()> {
         )
     }
     for (input, expected) in test_cases {
-        let rt = RichText::new_with_detect_facets(input, MockClient).await?;
+        let rt = rich_text_with_detect_facets(input).await?;
         assert_eq!(
             rt.segments()
                 .iter()
@@ -436,7 +436,7 @@ async fn detect_facets_tags() -> Result<()> {
     }
 
     for (input, expected) in test_cases {
-        let rt = RichText::new_with_detect_facets(input, MockClient).await?;
+        let rt = rich_text_with_detect_facets(input).await?;
         assert_eq!(
             rt.segments()
                 .iter()

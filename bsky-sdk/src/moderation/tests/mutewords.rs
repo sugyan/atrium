@@ -1,8 +1,6 @@
 use super::{post_view, profile_view_basic};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::{ModerationPrefs, Moderator};
-#[cfg(feature = "rich-text")]
-use crate::rich_text::RichText;
 use atrium_api::app::bsky::actor::defs::MutedWord;
 use std::collections::HashMap;
 
@@ -10,11 +8,11 @@ use std::collections::HashMap;
 #[tokio::test]
 async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     use crate::moderation::mutewords::has_muted_word;
-    use crate::tests::MockClient;
+    use crate::rich_text::tests::rich_text_with_detect_facets;
 
     // match: outline tag
     {
-        let rt = RichText::new_with_detect_facets("This is a post #inlineTag", MockClient).await?;
+        let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("tag")],
@@ -28,7 +26,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: inline tag
     {
-        let rt = RichText::new_with_detect_facets("This is a post #inlineTag", MockClient).await?;
+        let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("tag")],
@@ -42,7 +40,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: content target matches inline tag
     {
-        let rt = RichText::new_with_detect_facets("This is a post #inlineTag", MockClient).await?;
+        let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -56,7 +54,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // no match: only tag targets
     {
-        let rt = RichText::new_with_detect_facets("This is a post", MockClient).await?;
+        let rt = rich_text_with_detect_facets("This is a post").await?;
         assert!(!has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("tag")],
@@ -70,7 +68,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: single character 希
     {
-        let rt = RichText::new_with_detect_facets("改善希望です", MockClient).await?;
+        let rt = rich_text_with_detect_facets("改善希望です").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -84,7 +82,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: single char with length > 1 ☠︎
     {
-        let rt = RichText::new_with_detect_facets("Idk why ☠︎ but maybe", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Idk why ☠︎ but maybe").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -98,7 +96,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // no match: long muted word, short post
     {
-        let rt = RichText::new_with_detect_facets("hey", MockClient).await?;
+        let rt = rich_text_with_detect_facets("hey").await?;
         assert!(!has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -112,7 +110,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: exact text
     {
-        let rt = RichText::new_with_detect_facets("javascript", MockClient).await?;
+        let rt = rich_text_with_detect_facets("javascript").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -126,8 +124,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: word within post
     {
-        let rt =
-            RichText::new_with_detect_facets("This is a post about javascript", MockClient).await?;
+        let rt = rich_text_with_detect_facets("This is a post about javascript").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -141,7 +138,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // no match: partial word
     {
-        let rt = RichText::new_with_detect_facets("Use your brain, Eric", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Use your brain, Eric").await?;
         assert!(!has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -155,7 +152,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: multiline
     {
-        let rt = RichText::new_with_detect_facets("Use your\n\tbrain, Eric", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Use your\n\tbrain, Eric").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -169,7 +166,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // match: :)
     {
-        let rt = RichText::new_with_detect_facets("So happy :)", MockClient).await?;
+        let rt = rich_text_with_detect_facets("So happy :)").await?;
         assert!(has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -183,7 +180,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // yay!
     {
-        let rt = RichText::new_with_detect_facets("We're federating, yay!", MockClient).await?;
+        let rt = rich_text_with_detect_facets("We're federating, yay!").await?;
         // match: yay!
         assert!(has_muted_word(
             &[MutedWord {
@@ -209,7 +206,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // y!ppee!!
     {
-        let rt = RichText::new_with_detect_facets("We're federating, y!ppee!!", MockClient).await?;
+        let rt = rich_text_with_detect_facets("We're federating, y!ppee!!").await?;
         // match: y!ppee
         assert!(has_muted_word(
             &[MutedWord {
@@ -235,8 +232,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // apostrophes: Bluesky's
     {
-        let rt =
-            RichText::new_with_detect_facets("Yay, Bluesky's mutewords work", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Yay, Bluesky's mutewords work").await?;
         // match: Bluesky's
         assert!(has_muted_word(
             &[MutedWord {
@@ -284,7 +280,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // Why so S@assy?
     {
-        let rt = RichText::new_with_detect_facets("Why so S@assy?", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Why so S@assy?").await?;
         // match: S@assy
         assert!(has_muted_word(
             &[MutedWord {
@@ -310,7 +306,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // New York Times
     {
-        let rt = RichText::new_with_detect_facets("New York Times", MockClient).await?;
+        let rt = rich_text_with_detect_facets("New York Times").await?;
         // match: new york times
         assert!(has_muted_word(
             &[MutedWord {
@@ -325,7 +321,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // !command
     {
-        let rt = RichText::new_with_detect_facets("Idk maybe a bot !command", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Idk maybe a bot !command").await?;
         // match: !command
         assert!(has_muted_word(
             &[MutedWord {
@@ -349,7 +345,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
             &None
         ));
         // no match: !command
-        let rt = RichText::new_with_detect_facets("Idk maybe a bot command", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Idk maybe a bot command").await?;
         assert!(!has_muted_word(
             &[MutedWord {
                 targets: vec![String::from("content")],
@@ -363,7 +359,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // e/acc
     {
-        let rt = RichText::new_with_detect_facets("I'm e/acc pilled", MockClient).await?;
+        let rt = rich_text_with_detect_facets("I'm e/acc pilled").await?;
         // match: e/acc
         assert!(has_muted_word(
             &[MutedWord {
@@ -389,7 +385,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // super-bad
     {
-        let rt = RichText::new_with_detect_facets("I'm super-bad", MockClient).await?;
+        let rt = rich_text_with_detect_facets("I'm super-bad").await?;
         // match: super-bad
         assert!(has_muted_word(
             &[MutedWord {
@@ -448,9 +444,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // idk_what_this_would_be
     {
-        let rt =
-            RichText::new_with_detect_facets("Weird post with idk_what_this_would_be", MockClient)
-                .await?;
+        let rt = rich_text_with_detect_facets("Weird post with idk_what_this_would_be").await?;
         // match: idk what this would be
         assert!(has_muted_word(
             &[MutedWord {
@@ -498,7 +492,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // parentheses
     {
-        let rt = RichText::new_with_detect_facets("Post with context(iykyk)", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Post with context(iykyk)").await?;
         // match: context(iykyk)
         assert!(has_muted_word(
             &[MutedWord {
@@ -546,7 +540,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // 🦋
     {
-        let rt = RichText::new_with_detect_facets("Post with 🦋", MockClient).await?;
+        let rt = rich_text_with_detect_facets("Post with 🦋").await?;
         // match: 🦋
         assert!(has_muted_word(
             &[MutedWord {
@@ -561,9 +555,8 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // phrases
     {
-        let rt = RichText::new_with_detect_facets(
+        let rt = rich_text_with_detect_facets(
             "I like turtles, or how I learned to stop worrying and love the internet.",
-            MockClient,
         )
         .await?;
         // match: stop worrying
@@ -591,7 +584,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     }
     // languages without spaces
     {
-        let rt = RichText::new_with_detect_facets("私はカメが好きです、またはどのようにして心配するのをやめてインターネットを愛するようになったのか", MockClient).await?;
+        let rt = rich_text_with_detect_facets("私はカメが好きです、またはどのようにして心配するのをやめてインターネットを愛するようになったのか").await?;
         // match: インターネット
         assert!(has_muted_word(
             &[MutedWord {
@@ -651,7 +644,7 @@ fn does_not_mute_own_post() {
 #[cfg(feature = "rich-text")]
 #[tokio::test]
 async fn does_not_mute_own_tags() -> crate::error::Result<()> {
-    use crate::tests::MockClient;
+    use crate::rich_text::tests::rich_text_with_detect_facets;
     use atrium_api::records::{KnownRecord, Record};
 
     let prefs = ModerationPrefs {
@@ -664,7 +657,7 @@ async fn does_not_mute_own_tags() -> crate::error::Result<()> {
         }],
         hidden_posts: Vec::new(),
     };
-    let rt = RichText::new_with_detect_facets("Mute #words!", MockClient).await?;
+    let rt = rich_text_with_detect_facets("Mute #words!").await?;
     let mut post = post_view(
         &profile_view_basic("bob.test", Some("Bob"), None),
         &rt.text,

@@ -1,9 +1,24 @@
 mod detection;
 
+use crate::error::Result;
 use crate::rich_text::{RichText, RichTextSegment};
+use crate::tests::MockClient;
 use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, Main, MainFeaturesItem, Mention};
 use atrium_api::types::{Union, UnknownData};
 use ipld_core::ipld::Ipld;
+
+pub async fn rich_text_with_detect_facets(text: &str) -> Result<RichText> {
+    #[cfg(feature = "default-client")]
+    {
+        let mut rt = RichText::new(text, None);
+        rt.detect_facets(MockClient).await?;
+        Ok(rt)
+    }
+    #[cfg(not(feature = "default-client"))]
+    {
+        RichText::new_with_detect_facets(text, MockClient).await
+    }
+}
 
 fn facet(byte_start: usize, byte_end: usize) -> Main {
     Main {

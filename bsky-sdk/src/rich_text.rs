@@ -74,6 +74,18 @@ impl RichText {
             facets,
         }
     }
+    #[cfg(feature = "default-client")]
+    pub async fn new_with_detect_facets(text: impl AsRef<str>) -> Result<Self> {
+        use atrium_xrpc_client::reqwest::ReqwestClient;
+
+        let mut rt = Self {
+            text: text.as_ref().into(),
+            facets: None,
+        };
+        rt.detect_facets(ReqwestClient::new(String::new())).await?;
+        Ok(rt)
+    }
+    #[cfg(not(feature = "default-client"))]
     pub async fn new_with_detect_facets(
         text: impl AsRef<str>,
         client: impl XrpcClient + Send + Sync,
@@ -235,4 +247,4 @@ impl RichText {
 }
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
