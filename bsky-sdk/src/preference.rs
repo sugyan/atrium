@@ -1,3 +1,4 @@
+//! Preferences for Bluesky application.
 use crate::moderation::ModerationPrefs;
 use serde::{Deserialize, Serialize};
 

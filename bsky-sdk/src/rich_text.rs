@@ -1,3 +1,4 @@
+//! Rich text module for working with text that contains facets.
 mod detection;
 
 use crate::agent::config::Config;
@@ -14,8 +15,8 @@ const PUBLIC_API_ENDPOINT: &str = "https://public.api.bsky.app";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RichTextSegment {
-    text: String,
-    facet: Option<atrium_api::app::bsky::richtext::facet::Main>,
+    pub text: String,
+    pub facet: Option<atrium_api::app::bsky::richtext::facet::Main>,
 }
 
 impl RichTextSegment {

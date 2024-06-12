@@ -1,3 +1,4 @@
+//! Moderation module for working with Bluesky's moderation.
 pub mod decision;
 mod error;
 mod labels;

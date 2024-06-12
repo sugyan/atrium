@@ -32,3 +32,7 @@ default = ["default-client", "rich-text"]
 default-client = ["atrium-xrpc-client"]
 rich-text = ["psl", "unicode-segmentation"]
 config-toml = ["toml"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

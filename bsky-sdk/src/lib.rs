@@ -1,7 +1,10 @@
+#![cfg_attr(docsrs, feature(doc_cfg))]
+#![doc = include_str!("../README.md")]
 pub mod agent;
 mod error;
 pub mod moderation;
 pub mod preference;
+#[cfg_attr(docsrs, doc(cfg(feature = "rich-text")))]
 #[cfg(feature = "rich-text")]
 pub mod rich_text;
 

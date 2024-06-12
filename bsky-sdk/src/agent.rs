@@ -1,3 +1,4 @@
+//! Implementation of [`BskyAgent`] and their builder.
 mod builder;
 pub mod config;
 
