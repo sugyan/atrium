@@ -1,4 +1,4 @@
-//! Implementation of [`BskyAgent`] and their builder.
+//! Implementation of [`BskyAgent`] and their builders.
 mod builder;
 pub mod config;
 
@@ -19,6 +19,22 @@ use ipld_core::serde::from_ipld;
 use std::collections::HashMap;
 use std::ops::Deref;
 
+/// A Bluesky agent.
+///
+/// This agent is a wrapper around the [`AtpAgent`] that provides additional functionality for working with Bluesky.
+/// For creating an instance of this agent, use the [`BskyAgentBuilder`].
+///
+/// # Example
+///
+/// ```
+/// use bsky_sdk::BskyAgent;
+///
+/// #[tokio::main]
+/// async fn main() {
+///    let agent = BskyAgent::builder().build().await.expect("failed to build agent");
+/// }
+/// ```
+
 #[cfg(feature = "default-client")]
 pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
 where
@@ -37,8 +53,10 @@ where
     inner: AtpAgent<S, T>,
 }
 
+#[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
 #[cfg(feature = "default-client")]
 impl BskyAgent {
+    /// Create a new [`BskyAgentBuilder`] with the default client and session store.
     pub fn builder() -> BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
         BskyAgentBuilder::default()
     }
@@ -49,6 +67,7 @@ where
     T: XrpcClient + Send + Sync,
     S: SessionStore + Send + Sync,
 {
+    /// Get the agent's current state as a [`Config`].
     pub async fn to_config(&self) -> Config {
         Config {
             endpoint: self.get_endpoint().await,
@@ -57,6 +76,11 @@ where
             proxy_header: self.get_proxy_header().await,
         }
     }
+    /// Get the logged-in user's [`Preferences`].
+    ///
+    /// # Arguments
+    ///
+    /// `enable_bsky_labeler` - If `true`, the [Bluesky's moderation labeler](atrium_api::agent::bluesky::BSKY_LABELER_DID) will be included in the moderation preferences.
     pub async fn get_preferences(&self, enable_bsky_labeler: bool) -> Result<Preferences> {
         let mut prefs = Preferences::default();
         if enable_bsky_labeler {
@@ -129,6 +153,11 @@ where
         }
         Ok(prefs)
     }
+    /// Configure the labelers header.
+    ///
+    /// Read labelers preferences from the provided [`Preferences`] and set the labelers header up to 10 labelers.
+    ///
+    /// See details: [https://docs.bsky.app/docs/advanced-guides/moderation#labeler-subscriptions](https://docs.bsky.app/docs/advanced-guides/moderation#labeler-subscriptions)
     pub fn configure_labelers_from_preferences(&self, preferences: &Preferences) {
         self.configure_labelers_header(Some(
             preferences
@@ -140,6 +169,7 @@ where
                 .collect(),
         ));
     }
+    /// Make a [`Moderator`] instance with the provided [`Preferences`].
     pub async fn moderator(&self, preferences: &Preferences) -> Result<Moderator> {
         let labelers = self
             .api

@@ -7,6 +7,7 @@ use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
 
+/// A builder for creating a [`BskyAgent`].
 pub struct BskyAgentBuilder<T, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
@@ -17,15 +18,33 @@ where
     client: T,
 }
 
+impl<T> BskyAgentBuilder<T>
+where
+    T: XrpcClient + Send + Sync,
+{
+    /// Create a new builder with the given XRPC client.
+    pub fn new(client: T) -> Self {
+        Self {
+            config: Config::default(),
+            store: MemorySessionStore::default(),
+            client,
+        }
+    }
+}
+
 impl<T, S> BskyAgentBuilder<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: SessionStore + Send + Sync,
 {
+    /// Set the configuration for the agent.
     pub fn config(mut self, config: Config) -> Self {
         self.config = config;
         self
     }
+    /// Set the session store for the agent.
+    ///
+    /// Returns a new builder with the session store set.
     pub fn store<S0>(self, store: S0) -> BskyAgentBuilder<T, S0>
     where
         S0: SessionStore + Send + Sync,
@@ -36,6 +55,9 @@ where
             client: self.client,
         }
     }
+    /// Set the XRPC client for the agent.
+    ///
+    /// Returns a new builder with the XRPC client set.
     pub fn client<T0>(self, client: T0) -> BskyAgentBuilder<T0, S>
     where
         T0: XrpcClient + Send + Sync,
@@ -78,21 +100,12 @@ where
     }
 }
 
-impl<T> BskyAgentBuilder<T>
-where
-    T: XrpcClient + Send + Sync,
-{
-    pub fn new(client: T) -> Self {
-        Self {
-            config: Config::default(),
-            store: MemorySessionStore::default(),
-            client,
-        }
-    }
-}
-
+#[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
 #[cfg(feature = "default-client")]
 impl Default for BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
+    /// Create a new builder with the default client and session store.
+    ///
+    /// Default client is [`ReqwestClient`] and default session store is [`MemorySessionStore`].
     fn default() -> Self {
         Self::new(ReqwestClient::new(Config::default().endpoint))
     }

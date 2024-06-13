@@ -3,11 +3,17 @@ use anyhow::anyhow;
 use async_trait::async_trait;
 use std::path::{Path, PathBuf};
 
+/// An implementation of [`Loader`] and [`Saver`] that reads and writes a configuration file.
 pub struct FileStore {
     path: PathBuf,
 }
 
 impl FileStore {
+    /// Create a new [`FileStore`] with the given path.
+    ///
+    /// This `FileStore` will read and write to the file at the given path.
+    /// [`Config`] data will be serialized and deserialized using the file extension.
+    /// By default, this supports only `.json` files.
     pub fn new(path: impl AsRef<Path>) -> Self {
         Self {
             path: path.as_ref().to_path_buf(),
