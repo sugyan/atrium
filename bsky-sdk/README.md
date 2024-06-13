@@ -1,6 +1,9 @@
-# bsky-sdk
+# Bsky SDK: [ATrium](https://github.com/sugyan/atrium)-based SDK for Bluesky.
 
-[ATrium](https://github.com/sugyan/atrium)-based SDK for Bluesky.
+[![](https://img.shields.io/crates/v/bsky-sdk)](https://crates.io/crates/bsky-sdk)
+[![](https://img.shields.io/docsrs/bsky-sdk)](https://docs.rs/bsky-sdk)
+[![](https://img.shields.io/crates/l/bsky-sdk)](https://github.com/sugyan/atrium/blob/main/LICENSE)
+[![Rust](https://github.com/sugyan/atrium/actions/workflows/bsky-sdk.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/bsky-sdk.yml)
 
 - ✔️ APIs for ATProto and Bluesky.
 - ✔️ Session management (same as `atrium-api`'s [`AtpAgent`](https://docs.rs/atrium-api/latest/atrium_api/agent/struct.AtpAgent.html)).

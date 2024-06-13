@@ -5,6 +5,7 @@ authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
 description = "ATrium-based SDK for Bluesky"
+documentation = "https://docs.rs/bsky-sdk"
 readme = "README.md"
 repository.workspace = true
 license.workspace = true
