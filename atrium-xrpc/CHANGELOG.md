@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.11.0...atrium-xrpc-v0.11.1) - 2024-06-13
+
+### Added
+- Add bsky-sdk ([#185](https://github.com/sugyan/atrium/pull/185))
+
 ## [0.11.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.7...atrium-xrpc-v0.11.0) - 2024-05-22
 
 ### Added
