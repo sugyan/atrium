@@ -1,0 +1,39 @@
+[package]
+name = "bsky-sdk"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "ATrium-based SDK for Bluesky"
+documentation = "https://docs.rs/bsky-sdk"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords = ["atproto", "bluesky", "atrium", "sdk"]
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+atrium-api.workspace = true
+atrium-xrpc-client = { workspace = true, optional = true }
+ipld-core.workspace = true
+psl = { version = "2.1.42", optional = true }
+regex.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+thiserror.workspace = true
+toml = { version = "0.8.13", optional = true }
+unicode-segmentation = { version = "1.11.0", optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[features]
+default = ["default-client", "rich-text"]
+default-client = ["atrium-xrpc-client"]
+rich-text = ["psl", "unicode-segmentation"]
+config-toml = ["toml"]
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -1,0 +1,30 @@
+name: bsky-sdk
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cargo build -p bsky-sdk --verbose
+          cargo build -p bsky-sdk --verbose --no-default-features
+          cargo build -p bsky-sdk --verbose --no-default-features --features default-client
+          cargo build -p bsky-sdk --verbose --no-default-features --features rich-text
+          cargo build -p bsky-sdk --verbose --all-features
+      - name: Run tests
+        run: |
+          cargo test -p bsky-sdk
+          cargo test -p bsky-sdk --lib --no-default-features
+          cargo test -p bsky-sdk --lib --no-default-features --features default-client
+          cargo test -p bsky-sdk --lib --no-default-features --features rich-text
+          cargo test -p bsky-sdk --lib --all-features

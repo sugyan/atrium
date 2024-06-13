@@ -54,7 +54,7 @@ macro_rules! string_newtype {
 }
 
 /// An AT Protocol identifier.
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize, Hash)]
 #[serde(untagged)]
 pub enum AtIdentifier {
     Did(Did),
@@ -106,7 +106,7 @@ impl AsRef<str> for AtIdentifier {
 /// A [CID in string format].
 ///
 /// [CID in string format]: https://atproto.com/specs/data-model#link-and-cid-formats
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Cid(cid::Cid);
 
 impl Cid {
@@ -254,7 +254,7 @@ impl AsRef<chrono::DateTime<chrono::FixedOffset>> for Datetime {
 /// A generic [DID Identifier].
 ///
 /// [DID Identifier]: https://atproto.com/specs/did
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(transparent)]
 pub struct Did(String);
 string_newtype!(Did);
@@ -295,7 +295,7 @@ impl Did {
 /// A [Handle Identifier].
 ///
 /// [Handle Identifier]: https://atproto.com/specs/handle
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(transparent)]
 pub struct Handle(String);
 string_newtype!(Handle);
@@ -331,7 +331,7 @@ impl Handle {
 /// A [Namespaced Identifier].
 ///
 /// [Namespaced Identifier]: https://atproto.com/specs/nsid
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(transparent)]
 pub struct Nsid(String);
 string_newtype!(Nsid);
@@ -379,7 +379,7 @@ impl Nsid {
 /// An [IETF Language Tag] string.
 ///
 /// [IETF Language Tag]: https://en.wikipedia.org/wiki/IETF_language_tag
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Hash)]
 #[serde(transparent)]
 pub struct Language(LanguageTagBuf);
 
@@ -416,7 +416,7 @@ impl Serialize for Language {
 /// A [Timestamp Identifier].
 ///
 /// [Timestamp Identifier]: https://atproto.com/specs/record-key#record-key-type-tid
-#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(transparent)]
 pub struct Tid(String);
 string_newtype!(Tid);
@@ -452,7 +452,7 @@ impl Tid {
 
 /// A record key (`rkey`) used to name and reference an individual record within the same
 /// collection of an atproto repository.
-#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Hash)]
 pub struct RecordKey(String);
 string_newtype!(RecordKey);
 

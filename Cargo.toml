@@ -4,6 +4,7 @@ members = [
     "atrium-cli",
     "atrium-xrpc",
     "atrium-xrpc-client",
+    "bsky-sdk",
 ]
 # Examples show how to use the latest published crates, not the workspace state.
 exclude = [
@@ -27,7 +28,7 @@ atrium-xrpc-client = { version = "0.5.4", path = "atrium-xrpc-client" }
 
 # async in traits
 # Can be removed once MSRV is at least 1.75.0.
-async-trait = "0.1.68"
+async-trait = "0.1.80"
 
 # DAG-CBOR codec
 ipld-core = { version = "0.4.0", default-features = false, features = ["std"] }
@@ -37,9 +38,9 @@ serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = [
 chrono = "0.4"
 langtag = "0.3"
 regex = "1"
-serde = "1.0.160"
+serde = "1.0.202"
 serde_bytes = "0.11.9"
-serde_json = "1.0.96"
+serde_json = "1.0.117"
 serde_html_form = "0.2.6"
 
 # Networking
@@ -52,7 +53,7 @@ isahc = "1.7.2"
 reqwest = { version = "0.12", default-features = false }
 
 # Errors
-anyhow = "1.0.80"
+anyhow = "1.0.86"
 thiserror = "1.0"
 
 # CLI
