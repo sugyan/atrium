@@ -20,6 +20,7 @@ pub(crate) enum BehaviorValue {
     Inform,
 }
 
+/// Moderation behaviors for different contexts.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationBehavior {
@@ -96,6 +97,7 @@ impl ModerationBehavior {
     }
 }
 
+/// Moderation behaviors for the profile list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProfileListBehavior {
@@ -126,6 +128,7 @@ impl TryFrom<BehaviorValue> for ProfileListBehavior {
     }
 }
 
+/// Moderation behaviors for the profile view.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ProfileViewBehavior {
@@ -156,6 +159,7 @@ impl TryFrom<BehaviorValue> for ProfileViewBehavior {
     }
 }
 
+/// Moderation behaviors for the user's avatar.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum AvatarBehavior {
@@ -184,6 +188,7 @@ impl TryFrom<BehaviorValue> for AvatarBehavior {
     }
 }
 
+/// Moderation behaviors for the user's banner.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum BannerBehavior {
@@ -209,6 +214,7 @@ impl TryFrom<BehaviorValue> for BannerBehavior {
     }
 }
 
+/// Moderation behaviors for the user's display name.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DisplayNameBehavior {
@@ -234,6 +240,7 @@ impl TryFrom<BehaviorValue> for DisplayNameBehavior {
     }
 }
 
+/// Moderation behaviors for the content list.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ContentListBehavior {
@@ -264,6 +271,7 @@ impl TryFrom<BehaviorValue> for ContentListBehavior {
     }
 }
 
+/// Moderation behaviors for the content view.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ContentViewBehavior {
@@ -294,6 +302,7 @@ impl TryFrom<BehaviorValue> for ContentViewBehavior {
     }
 }
 
+/// Moderation behaviors for the content media.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ContentMediaBehavior {
@@ -321,6 +330,7 @@ impl TryFrom<BehaviorValue> for ContentMediaBehavior {
 
 // labels
 
+/// The target of a label.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LabelTarget {
     Account,
@@ -328,6 +338,7 @@ pub enum LabelTarget {
     Content,
 }
 
+/// The preference for a label.
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum LabelPreference {
@@ -359,6 +370,7 @@ impl FromStr for LabelPreference {
     }
 }
 
+/// A flag for a label value definition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum LabelValueDefinitionFlag {
@@ -368,6 +380,7 @@ pub enum LabelValueDefinitionFlag {
     NoSelf,
 }
 
+/// The blurs for a label value definition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LabelValueDefinitionBlurs {
@@ -399,6 +412,7 @@ impl FromStr for LabelValueDefinitionBlurs {
     }
 }
 
+/// The severity for a label value definition.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum LabelValueDefinitionSeverity {
@@ -430,6 +444,7 @@ impl FromStr for LabelValueDefinitionSeverity {
     }
 }
 
+/// A label value definition.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InterpretedLabelValueDefinition {
@@ -448,6 +463,7 @@ pub struct InterpretedLabelValueDefinition {
     pub behaviors: InterpretedLabelValueDefinitionBehaviors,
 }
 
+/// The behaviors for a label value definition.
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct InterpretedLabelValueDefinitionBehaviors {
     pub account: ModerationBehavior,
@@ -467,6 +483,7 @@ impl InterpretedLabelValueDefinitionBehaviors {
 
 // subjects
 
+/// A subject profile.
 #[derive(Debug)]
 pub enum SubjectProfile {
     ProfileViewBasic(ProfileViewBasic),
@@ -516,8 +533,10 @@ impl From<ProfileViewDetailed> for SubjectProfile {
     }
 }
 
+/// A subject post.
 pub type SubjectPost = PostView;
 
+/// A cause for moderation decisions.
 #[derive(Debug, Clone)]
 pub enum ModerationCause {
     Blocking(Box<ModerationCauseOther>),
@@ -530,14 +549,14 @@ pub enum ModerationCause {
 }
 
 impl ModerationCause {
-    pub fn priority(&self) -> Priority {
+    pub fn priority(&self) -> u8 {
         match self {
-            Self::Blocking(_) => Priority::Priority3,
-            Self::BlockedBy(_) => Priority::Priority4,
-            Self::Label(label) => label.priority,
-            Self::Muted(_) => Priority::Priority6,
-            Self::MuteWord(_) => Priority::Priority6,
-            Self::Hidden(_) => Priority::Priority6,
+            Self::Blocking(_) => *Priority::Priority3.as_ref(),
+            Self::BlockedBy(_) => *Priority::Priority4.as_ref(),
+            Self::Label(label) => *label.priority.as_ref(),
+            Self::Muted(_) => *Priority::Priority6.as_ref(),
+            Self::MuteWord(_) => *Priority::Priority6.as_ref(),
+            Self::Hidden(_) => *Priority::Priority6.as_ref(),
         }
     }
     pub fn downgrade(&mut self) {
@@ -552,6 +571,7 @@ impl ModerationCause {
     }
 }
 
+/// The source of a moderation cause.
 #[derive(Debug, Clone)]
 pub enum ModerationCauseSource {
     User,
@@ -559,6 +579,7 @@ pub enum ModerationCauseSource {
     Labeler(Did),
 }
 
+/// A label moderation cause.
 #[derive(Debug, Clone)]
 pub struct ModerationCauseLabel {
     pub source: ModerationCauseSource,
@@ -568,10 +589,11 @@ pub struct ModerationCauseLabel {
     pub setting: LabelPreference,
     pub behavior: ModerationBehavior,
     pub no_override: bool,
-    pub priority: Priority,
+    pub(crate) priority: Priority,
     pub downgraded: bool,
 }
 
+/// An other moderation cause.
 #[derive(Debug, Clone)]
 pub struct ModerationCauseOther {
     pub source: ModerationCauseSource,
@@ -580,6 +602,7 @@ pub struct ModerationCauseOther {
 
 // moderation preferences
 
+/// The labeler preferences for moderation.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ModerationPrefsLabeler {
     pub did: Did,
@@ -598,6 +621,7 @@ impl Default for ModerationPrefsLabeler {
     }
 }
 
+/// The moderation preferences.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationPrefs {

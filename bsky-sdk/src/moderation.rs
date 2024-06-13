@@ -15,6 +15,7 @@ use atrium_api::types::string::Did;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// A moderator for the different kinds of content on the Bluesky network.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Moderator {
@@ -24,6 +25,7 @@ pub struct Moderator {
 }
 
 impl Moderator {
+    /// Create a new moderator.
     pub fn new(
         user_did: Option<Did>,
         prefs: ModerationPrefs,
@@ -35,18 +37,23 @@ impl Moderator {
             label_defs,
         }
     }
+    /// Calculate the moderation decision for an account profile.
     pub fn moderate_profile(&self, profile: &SubjectProfile) -> ModerationDecision {
         ModerationDecision::merge(&[self.decide_account(profile), self.decide_profile(profile)])
     }
+    /// Calculate the moderation decision for a post.
     pub fn moderate_post(&self, post: &SubjectPost) -> ModerationDecision {
         self.decide_post(post)
     }
+    /// Calculate the moderation decision for a notification.
     pub fn moderate_notification(&self) -> ModerationDecision {
         todo!()
     }
+    /// Calculate the moderation decision for a feed generator.
     pub fn moderate_feed_generator(&self) -> ModerationDecision {
         todo!()
     }
+    /// Calculate the moderation decision for a user list.
     pub fn moderate_user_list(&self) -> ModerationDecision {
         todo!()
     }

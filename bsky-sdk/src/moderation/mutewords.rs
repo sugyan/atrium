@@ -1,3 +1,4 @@
+//! Muteword checking logic.
 use atrium_api::app::bsky::{actor::defs::MutedWord, richtext::facet::MainFeaturesItem};
 use atrium_api::types::Union;
 use regex::Regex;
@@ -22,6 +23,7 @@ const LANGUAGE_EXCEPTIONS: [&str; 5] = [
     "vi", // Vietnamese
 ];
 
+/// Check if a text of facets and outline tags contains a muted word.
 pub fn has_muted_word(
     muted_words: &[MutedWord],
     text: &str,

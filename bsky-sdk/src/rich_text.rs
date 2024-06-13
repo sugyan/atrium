@@ -13,6 +13,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 const PUBLIC_API_ENDPOINT: &str = "https://public.api.bsky.app";
 
+/// A segment of rich text.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RichTextSegment {
     pub text: String,
@@ -20,6 +21,7 @@ pub struct RichTextSegment {
 }
 
 impl RichTextSegment {
+    /// Create a new rich text segment.
     pub fn new(
         text: impl AsRef<str>,
         facets: Option<atrium_api::app::bsky::richtext::facet::Main>,
@@ -29,6 +31,7 @@ impl RichTextSegment {
             facet: facets,
         }
     }
+    /// Get the mention in the segment.
     pub fn mention(&self) -> Option<Mention> {
         self.facet.as_ref().and_then(|facet| {
             facet.features.iter().find_map(|feature| match feature {
@@ -37,6 +40,7 @@ impl RichTextSegment {
             })
         })
     }
+    /// Get the link in the segment.
     pub fn link(&self) -> Option<Link> {
         self.facet.as_ref().and_then(|facet| {
             facet.features.iter().find_map(|feature| match feature {
@@ -45,6 +49,7 @@ impl RichTextSegment {
             })
         })
     }
+    /// Get the tag in the segment.
     pub fn tag(&self) -> Option<Tag> {
         self.facet.as_ref().and_then(|facet| {
             facet.features.iter().find_map(|feature| match feature {
@@ -55,6 +60,7 @@ impl RichTextSegment {
     }
 }
 
+/// A rich text structure that contains text and facets.
 #[derive(Debug, Clone)]
 pub struct RichText {
     pub text: String,
@@ -66,6 +72,7 @@ impl RichText {
         byte_start: 0,
         byte_end: 0,
     };
+    /// Create a new [`RichText`] with the given text and optional facets.
     pub fn new(
         text: impl AsRef<str>,
         facets: Option<Vec<atrium_api::app::bsky::richtext::facet::Main>>,
@@ -75,6 +82,8 @@ impl RichText {
             facets,
         }
     }
+    /// Create a new [`RichText`] with the given text and automatically detect facets.
+    #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
     #[cfg(feature = "default-client")]
     pub async fn new_with_detect_facets(text: impl AsRef<str>) -> Result<Self> {
         use atrium_xrpc_client::reqwest::ReqwestClient;
@@ -86,6 +95,7 @@ impl RichText {
         rt.detect_facets(ReqwestClient::new(String::new())).await?;
         Ok(rt)
     }
+    /// Create a new [`RichText`] with the given text and automatically detect facets with given client.
     #[cfg(not(feature = "default-client"))]
     pub async fn new_with_detect_facets(
         text: impl AsRef<str>,
@@ -98,9 +108,11 @@ impl RichText {
         rt.detect_facets(client).await?;
         Ok(rt)
     }
+    /// Get the number of graphemes in the text.
     pub fn grapheme_len(&self) -> usize {
         self.text.as_str().graphemes(true).count()
     }
+    /// Get segments of the rich text.
     pub fn segments(&self) -> Vec<RichTextSegment> {
         let Some(facets) = self.facets.as_ref() else {
             return vec![RichTextSegment::new(&self.text, None)]
@@ -138,6 +150,7 @@ impl RichText {
         }
         segments
     }
+    /// Insert text at the given index.
     pub fn insert(&mut self, index: usize, text: impl AsRef<str>) {
         self.text.insert_str(index, text.as_ref());
         if let Some(facets) = self.facets.as_mut() {
@@ -157,6 +170,7 @@ impl RichText {
             }
         }
     }
+    /// Delete text between the given indices.
     pub fn delete(&mut self, start_index: usize, end_index: usize) {
         self.text.drain(start_index..end_index);
         if let Some(facets) = self.facets.as_mut() {
@@ -201,6 +215,7 @@ impl RichText {
             facets.retain(|facet| facet.index.byte_start < facet.index.byte_end);
         }
     }
+    /// Detect facets in the text and set them.
     pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
         let agent = BskyAgentBuilder::new(client)
             .config(Config {

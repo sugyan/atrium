@@ -1,3 +1,4 @@
+//! Utility functions for label value definitions.
 use super::error::Result;
 use super::types::*;
 use atrium_api::app::bsky::labeler::defs::LabelerViewDetailed;
@@ -20,6 +21,7 @@ pub(crate) fn interpret_label_value_definitions(
         .collect()
 }
 
+/// Create an [`InterpretedLabelValueDefinition`] from a [`LabelValueDefinition`].
 pub fn interpret_label_value_definition(
     def: &LabelValueDefinition,
     defined_by: Option<Did>,

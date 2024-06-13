@@ -1,18 +1,28 @@
+//! Moderation behavior decision making.
 use super::types::*;
 use super::{labels::KnownLabelValue, ui::ModerationUi, Moderator};
 use atrium_api::app::bsky::graph::defs::ListViewBasic;
 use atrium_api::com::atproto::label::defs::Label;
 use atrium_api::types::string::Did;
 
+/// A moderation decision context.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DecisionContext {
+    /// A profile being listed, e.g. in search or a follower list
     ProfileList,
+    /// A profile being viewed directly
     ProfileView,
+    /// The user's avatar in any context
     Avatar,
+    /// The user's banner in any context
     Banner,
+    /// The user's display name in any context
     DisplayName,
+    /// Content being listed, e.g. posts in a feed, posts as replies, a user list list, a feed generator list, etc
     ContentList,
+    /// Content being viewed direct, e.g. an opened post, the user list page, the feedgen page, etc
     ContentView,
+    /// Media inside the content, e.g. a picture embedded in a post
     ContentMedia,
 }
 
@@ -37,7 +47,7 @@ pub(crate) enum ModerationBehaviorSeverity {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Priority {
+pub(crate) enum Priority {
     Priority1,
     Priority2,
     Priority3,
@@ -48,6 +58,22 @@ pub enum Priority {
     Priority8,
 }
 
+impl AsRef<u8> for Priority {
+    fn as_ref(&self) -> &u8 {
+        match self {
+            Priority::Priority1 => &1,
+            Priority::Priority2 => &2,
+            Priority::Priority3 => &3,
+            Priority::Priority4 => &4,
+            Priority::Priority5 => &5,
+            Priority::Priority6 => &6,
+            Priority::Priority7 => &7,
+            Priority::Priority8 => &8,
+        }
+    }
+}
+
+/// A moderation decision.
 #[derive(Debug)]
 pub struct ModerationDecision {
     did: Option<Did>,
@@ -56,6 +82,7 @@ pub struct ModerationDecision {
 }
 
 impl ModerationDecision {
+    /// Calculate the [`ModerationUi`] for a given context.
     pub fn ui(&self, context: DecisionContext) -> ModerationUi {
         let mut ui = ModerationUi {
             no_override: false,
@@ -196,7 +223,8 @@ impl ModerationDecision {
         ui.blurs.sort_by_cached_key(|c| c.priority());
         ui
     }
-    pub fn blocked(&self) -> bool {
+    /// Check if the decision is blocking or blocked by other user.
+    pub fn is_blocked(&self) -> bool {
         self.causes.iter().any(|c| {
             matches!(
                 c,
@@ -206,7 +234,8 @@ impl ModerationDecision {
             )
         })
     }
-    pub fn muted(&self) -> bool {
+    /// Check if the decision is by muted.
+    pub fn is_muted(&self) -> bool {
         self.causes
             .iter()
             .any(|c| matches!(c, ModerationCause::Muted(_)))

@@ -9,7 +9,7 @@ use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::Union;
 
 impl Moderator {
-    pub fn decide_post(&self, subject: &SubjectPost) -> ModerationDecision {
+    pub(crate) fn decide_post(&self, subject: &SubjectPost) -> ModerationDecision {
         let mut acc = ModerationDecision::new();
         let is_me = self.user_did.as_ref() == Some(&subject.author.did);
         acc.set_did(subject.author.did.clone());
