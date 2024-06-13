@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.15](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.14...atrium-cli-v0.1.15) - 2024-06-13
+
+### Other
+- update Cargo.toml dependencies
+
 ## [0.1.14](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.13...atrium-cli-v0.1.14) - 2024-05-23
 
 ### Added
