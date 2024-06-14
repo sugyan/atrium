@@ -181,6 +181,8 @@ pub struct ViewerState {
     pub reply_disabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repost: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub thread_muted: Option<bool>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

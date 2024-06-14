@@ -6,6 +6,7 @@ pub mod follow;
 pub mod get_blocks;
 pub mod get_followers;
 pub mod get_follows;
+pub mod get_known_followers;
 pub mod get_list;
 pub mod get_list_blocks;
 pub mod get_list_mutes;
@@ -18,8 +19,10 @@ pub mod listblock;
 pub mod listitem;
 pub mod mute_actor;
 pub mod mute_actor_list;
+pub mod mute_thread;
 pub mod unmute_actor;
 pub mod unmute_actor_list;
+pub mod unmute_thread;
 #[derive(Debug)]
 pub struct Block;
 impl crate::types::Collection for Block {

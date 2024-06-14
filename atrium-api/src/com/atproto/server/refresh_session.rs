@@ -5,11 +5,16 @@ pub const NSID: &str = "com.atproto.server.refreshSession";
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub access_jwt: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active: Option<bool>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub did_doc: Option<crate::did_doc::DidDocument>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
+    ///Hosting status of the account. If not specified, then assume 'active'.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -47,6 +47,13 @@ pub struct InterestsPref {
     ///A list of tags which describe the account owner's interests gathered during onboarding.
     pub tags: Vec<String>,
 }
+///The subject's followers whom you also follow
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct KnownFollowers {
+    pub count: i64,
+    pub followers: Vec<ProfileViewBasic>,
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelerPrefItem {
@@ -207,6 +214,8 @@ pub struct ViewerState {
     pub followed_by: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub known_followers: Option<KnownFollowers>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
