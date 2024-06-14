@@ -2,3 +2,4 @@
 //!Definitions for the `tools.ozone` namespace.
 pub mod communication;
 pub mod moderation;
+pub mod server;

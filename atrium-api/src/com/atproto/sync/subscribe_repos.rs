@@ -34,6 +34,19 @@ impl std::fmt::Display for Error {
         Ok(())
     }
 }
+///Represents a change to an account's status on a host (eg, PDS or Relay). The semantics of this event are that the status is at the host which emitted the event, not necessarily that at the currently active PDS. Eg, a Relay takedown would emit a takedown with active=false, even if the PDS is still active.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct Account {
+    ///Indicates that the account has a repository which can be fetched from the host that emitted this event.
+    pub active: bool,
+    pub did: crate::types::string::Did,
+    pub seq: i64,
+    ///If active=false, this optional field indicates a reason for why the account is not active.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    pub time: crate::types::string::Datetime,
+}
 ///Represents an update of repository state. Note that empty commits are allowed, which include no repo data changes, but an update to rev and signature.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -64,7 +77,7 @@ pub struct Commit {
     ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
     pub too_big: bool,
 }
-///Represents an update of the account's handle, or transition to/from invalid state. NOTE: Will be deprecated in favor of #identity.
+///DEPRECATED -- Use #identity event instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Handle {
@@ -78,6 +91,9 @@ pub struct Handle {
 #[serde(rename_all = "camelCase")]
 pub struct Identity {
     pub did: crate::types::string::Did,
+    ///The current handle for the account, or 'handle.invalid' if validation fails. This field is optional, might have been validated or passed-through from an upstream source. Semantics and behaviors for PDS vs Relay may evolve in the future; see atproto specs for more details.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub handle: Option<crate::types::string::Handle>,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
 }
@@ -88,7 +104,7 @@ pub struct Info {
     pub message: Option<String>,
     pub name: String,
 }
-///Represents an account moving from one PDS instance to another. NOTE: not implemented; account migration uses #identity instead
+///DEPRECATED -- Use #account event instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Migrate {
@@ -108,7 +124,7 @@ pub struct RepoOp {
     pub cid: Option<crate::types::CidLink>,
     pub path: String,
 }
-///Indicates that an account has been deleted. NOTE: may be deprecated in favor of #identity or a future #account event
+///DEPRECATED -- Use #account event instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tombstone {
@@ -123,6 +139,8 @@ pub enum Message {
     Commit(Box<Commit>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#identity")]
     Identity(Box<Identity>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#account")]
+    Account(Box<Account>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#handle")]
     Handle(Box<Handle>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#migrate")]

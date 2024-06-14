@@ -14,6 +14,8 @@ pub struct Parameters {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deactivated: Option<crate::com::atproto::admin::defs::StatusAttr>,
     pub subject: crate::types::Union<OutputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takedown: Option<crate::com::atproto::admin::defs::StatusAttr>,
