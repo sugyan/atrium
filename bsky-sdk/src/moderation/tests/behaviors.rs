@@ -116,6 +116,7 @@ impl TestUser {
             },
             followed_by: None,
             following: None,
+            known_followers: None,
             muted: if def.muted || def.muted_by_list {
                 Some(true)
             } else {

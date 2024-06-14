@@ -120,6 +120,7 @@ mod tests {
     fn session() -> Session {
         Session {
             access_jwt: String::new(),
+            active: None,
             did: "did:fake:handle.test".parse().expect("invalid did"),
             did_doc: None,
             email: None,
@@ -127,6 +128,7 @@ mod tests {
             email_confirmed: None,
             handle: "handle.test".parse().expect("invalid handle"),
             refresh_jwt: String::new(),
+            status: None,
         }
     }
 

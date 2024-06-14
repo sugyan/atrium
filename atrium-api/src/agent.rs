@@ -220,10 +220,12 @@ mod tests {
                             body.extend(serde_json::to_vec(
                                 &crate::com::atproto::server::refresh_session::Output {
                                     access_jwt: String::from("access"),
+                                    active: None,
                                     did: "did:web:example.com".parse().expect("valid"),
                                     did_doc: None,
                                     handle: "example.com".parse().expect("valid"),
                                     refresh_jwt: String::from("refresh"),
+                                    status: None,
                                 },
                             )?);
                         }
@@ -267,6 +269,7 @@ mod tests {
     fn session() -> Session {
         Session {
             access_jwt: String::from("access"),
+            active: None,
             did: "did:web:example.com".parse().expect("valid"),
             did_doc: None,
             email: None,
@@ -274,6 +277,7 @@ mod tests {
             email_confirmed: None,
             handle: "example.com".parse().expect("valid"),
             refresh_jwt: String::from("refresh"),
+            status: None,
         }
     }
 
@@ -330,12 +334,14 @@ mod tests {
         let client = MockClient {
             responses: MockResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
+                    active: session.active.clone(),
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
+                    status: session.status.clone(),
                 }),
                 ..Default::default()
             },
@@ -362,12 +368,14 @@ mod tests {
         let client = MockClient {
             responses: MockResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
+                    active: session.active.clone(),
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
+                    status: session.status.clone(),
                 }),
                 ..Default::default()
             },
@@ -402,12 +410,14 @@ mod tests {
         let client = MockClient {
             responses: MockResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
+                    active: session.active.clone(),
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
+                    status: session.status.clone(),
                 }),
                 ..Default::default()
             },
@@ -455,12 +465,14 @@ mod tests {
             let client = MockClient {
                 responses: MockResponses {
                     get_session: Some(crate::com::atproto::server::get_session::Output {
+                        active: session.active.clone(),
                         did: session.did.clone(),
                         did_doc: session.did_doc.clone(),
                         email: session.email.clone(),
                         email_auth_factor: session.email_auth_factor,
                         email_confirmed: session.email_confirmed,
                         handle: session.handle.clone(),
+                        status: session.status.clone(),
                     }),
                     ..Default::default()
                 },
@@ -502,12 +514,14 @@ mod tests {
         let client = MockClient {
             responses: MockResponses {
                 get_session: Some(crate::com::atproto::server::get_session::Output {
+                    active: session.active.clone(),
                     did: session.did.clone(),
                     did_doc: session.did_doc.clone(),
                     email: session.email.clone(),
                     email_auth_factor: session.email_auth_factor,
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
+                    status: session.status.clone(),
                 }),
                 ..Default::default()
             },
