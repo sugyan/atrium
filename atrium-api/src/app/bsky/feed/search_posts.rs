@@ -38,6 +38,8 @@ pub struct Parameters {
     ///Filter to posts with links (facet links or embeds) pointing to this URL. Server may apply URL normalization or fuzzy matching.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -48,6 +50,8 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hits_total: Option<i64>,
     pub posts: Vec<crate::app::bsky::feed::defs::PostView>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -6,6 +6,8 @@ pub const NSID: &str = "com.atproto.sync.requestCrawl";
 pub struct Input {
     ///Hostname of the current service (eg, PDS) that is requesting to be crawled.
     pub hostname: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

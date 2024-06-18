@@ -11,18 +11,24 @@ pub struct BlobView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub moderation: Option<Moderation>,
     pub size: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ImageDetails {
     pub height: i64,
     pub width: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventAcknowledge {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Add a comment to a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -32,6 +38,8 @@ pub struct ModEventComment {
     ///Make the comment persistent on the subject
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sticky: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Divert a record's blobs to a 3rd party service for further scanning/tagging
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -39,6 +47,8 @@ pub struct ModEventComment {
 pub struct ModEventDivert {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Keep a log of outgoing email to a user
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -52,12 +62,16 @@ pub struct ModEventEmail {
     pub content: Option<String>,
     ///The subject line of the email sent to the user.
     pub subject_line: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventEscalate {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Apply/Negate labels on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -67,6 +81,8 @@ pub struct ModEventLabel {
     pub comment: Option<String>,
     pub create_label_vals: Vec<String>,
     pub negate_label_vals: Vec<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Mute incoming reports on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -76,6 +92,8 @@ pub struct ModEventMute {
     pub comment: Option<String>,
     ///Indicates how long the subject should remain muted.
     pub duration_in_hours: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Mute incoming reports from an account
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -85,6 +103,8 @@ pub struct ModEventMuteReporter {
     pub comment: Option<String>,
     ///Indicates how long the account should remain muted.
     pub duration_in_hours: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Report a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -96,6 +116,8 @@ pub struct ModEventReport {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub is_reporter_muted: Option<bool>,
     pub report_type: crate::com::atproto::moderation::defs::ReasonType,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Resolve appeal on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -104,6 +126,8 @@ pub struct ModEventResolveAppeal {
     ///Describe resolution.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Revert take down action on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -112,6 +136,8 @@ pub struct ModEventReverseTakedown {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Add/Remove a tag on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -124,6 +150,8 @@ pub struct ModEventTag {
     pub comment: Option<String>,
     ///Tags to be removed to the subject. Ignores a tag If it doesn't exist, won't be duplicated.
     pub remove: Vec<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Take down a subject permanently or temporarily
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -134,6 +162,8 @@ pub struct ModEventTakedown {
     ///Indicates how long the takedown should be in effect before automatically expiring.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_in_hours: Option<i64>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Unmute action on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -142,6 +172,8 @@ pub struct ModEventUnmute {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Unmute incoming reports from an account
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -150,6 +182,8 @@ pub struct ModEventUnmuteReporter {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -164,6 +198,8 @@ pub struct ModEventView {
     pub subject_blob_cids: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_handle: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -174,18 +210,24 @@ pub struct ModEventViewDetail {
     pub id: i64,
     pub subject: crate::types::Union<ModEventViewDetailSubjectRefs>,
     pub subject_blobs: Vec<BlobView>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Moderation {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_status: Option<SubjectStatusView>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationDetail {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_status: Option<SubjectStatusView>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -197,6 +239,8 @@ pub struct RecordView {
     pub repo: RepoView,
     pub uri: String,
     pub value: crate::records::Record,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -210,11 +254,15 @@ pub struct RecordViewDetail {
     pub repo: RepoView,
     pub uri: String,
     pub value: crate::records::Record,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordViewNotFound {
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -234,6 +282,8 @@ pub struct RepoView {
     pub invites_disabled: Option<bool>,
     pub moderation: Moderation,
     pub related_records: Vec<crate::records::Record>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -259,11 +309,15 @@ pub struct RepoViewDetail {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
     pub related_records: Vec<crate::records::Record>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewNotFound {
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Moderator review status of a subject: Closed. Indicates that the subject was already reviewed and resolved by a moderator
 pub const REVIEW_CLOSED: &str = "tools.ozone.moderation.defs#reviewClosed";
@@ -313,6 +367,8 @@ pub struct SubjectStatusView {
     pub takendown: Option<bool>,
     ///Timestamp referencing when the last update was made to the moderation status of the subject
     pub updated_at: crate::types::string::Datetime,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -320,6 +376,8 @@ pub struct VideoDetails {
     pub height: i64,
     pub length: i64,
     pub width: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

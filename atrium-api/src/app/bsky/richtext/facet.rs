@@ -6,6 +6,8 @@
 pub struct Main {
     pub features: Vec<crate::types::Union<MainFeaturesItem>>,
     pub index: ByteSlice,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Specifies the sub-string range a facet feature applies to. Start index is inclusive, end index is exclusive. Indices are zero-indexed, counting bytes of the UTF-8 encoded text. NOTE: some languages, like Javascript, use UTF-16 or Unicode codepoints for string slice indexing; in these languages, convert to byte arrays before working with facets.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -13,24 +15,32 @@ pub struct Main {
 pub struct ByteSlice {
     pub byte_end: usize,
     pub byte_start: usize,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Link {
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Facet feature for mention of another account. The text is usually a handle, including a '@' prefix, but the facet reference is a DID.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Mention {
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Facet feature for a hashtag. The text usually includes a '#' prefix, but the facet reference should not (except in the case of 'double hash tags').
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tag {
     pub tag: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

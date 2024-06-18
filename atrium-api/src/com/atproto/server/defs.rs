@@ -10,10 +10,14 @@ pub struct InviteCode {
     pub disabled: bool,
     pub for_account: String,
     pub uses: Vec<InviteCodeUse>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InviteCodeUse {
     pub used_at: crate::types::string::Datetime,
     pub used_by: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

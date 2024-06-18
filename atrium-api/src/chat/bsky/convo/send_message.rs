@@ -6,6 +6,8 @@ pub const NSID: &str = "chat.bsky.convo.sendMessage";
 pub struct Input {
     pub convo_id: String,
     pub message: crate::chat::bsky::convo::defs::MessageInput,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::chat::bsky::convo::defs::MessageView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

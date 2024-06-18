@@ -13,6 +13,8 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
     pub writes: Vec<InputWritesItem>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -41,6 +43,8 @@ pub struct Create {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
     pub value: crate::records::Record,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Operation which deletes an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -48,6 +52,8 @@ pub struct Create {
 pub struct Delete {
     pub collection: crate::types::string::Nsid,
     pub rkey: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Operation which updates an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -56,6 +62,8 @@ pub struct Update {
     pub collection: crate::types::string::Nsid,
     pub rkey: String,
     pub value: crate::records::Record,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

@@ -16,4 +16,6 @@ pub struct TemplateView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
     pub updated_at: crate::types::string::Datetime,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

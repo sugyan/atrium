@@ -5,7 +5,7 @@ use crate::agent::config::Config;
 use crate::agent::BskyAgentBuilder;
 use crate::error::Result;
 use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, MainFeaturesItem, Mention, Tag};
-use atrium_api::types::Union;
+use atrium_api::types::{Union, EMPTY_EXTRA_DATA};
 use atrium_api::xrpc::XrpcClient;
 use detection::{detect_facets, FacetFeaturesItem};
 use std::cmp::Ordering;
@@ -71,6 +71,7 @@ impl RichText {
     const BYTE_SLICE_ZERO: ByteSlice = ByteSlice {
         byte_start: 0,
         byte_end: 0,
+        extra_data: EMPTY_EXTRA_DATA,
     };
     /// Create a new [`RichText`] with the given text and optional facets.
     pub fn new(
@@ -237,10 +238,14 @@ impl RichText {
                             let did = agent.api.com.atproto.identity.resolve_handle(
                                 atrium_api::com::atproto::identity::resolve_handle::Parameters {
                                     handle: mention.handle.parse().expect("invalid handle"),
+                                    extra_data: EMPTY_EXTRA_DATA,
                                 }
                             ).await?.did;
                             features.push(Union::Refs(MainFeaturesItem::Mention(Box::new(
-                                Mention { did },
+                                Mention {
+                                    did,
+                                    extra_data: EMPTY_EXTRA_DATA,
+                                },
                             ))));
                         }
                         FacetFeaturesItem::Link(link) => {
@@ -254,6 +259,7 @@ impl RichText {
                 facets.push(atrium_api::app::bsky::richtext::facet::Main {
                     features,
                     index: facet_without_resolution.index,
+                    extra_data: EMPTY_EXTRA_DATA,
                 });
             }
             Some(facets)

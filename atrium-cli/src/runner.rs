@@ -5,7 +5,7 @@ use atrium_api::agent::bluesky::{AtprotoServiceType, BSKY_CHAT_DID};
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
-use atrium_api::types::LimitedNonZeroU8;
+use atrium_api::types::{LimitedNonZeroU8, EMPTY_EXTRA_DATA};
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use serde::Serialize;
 use std::ffi::OsStr;
@@ -62,6 +62,7 @@ impl Runner {
                         algorithm: None,
                         cursor: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -80,6 +81,7 @@ impl Runner {
                         cursor: None,
                         filter: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -95,6 +97,7 @@ impl Runner {
                         cursor: None,
                         limit: Some(limit),
                         uri: args.uri.to_string(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -110,6 +113,7 @@ impl Runner {
                         cursor: None,
                         limit: Some(limit),
                         uri: args.uri.to_string(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -127,6 +131,7 @@ impl Runner {
                             .with_context(|| "Not logged in")?,
                         cursor: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -141,6 +146,7 @@ impl Runner {
                         cursor: None,
                         feed: args.uri.to_string(),
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -155,6 +161,7 @@ impl Runner {
                         cursor: None,
                         limit: Some(limit),
                         list: args.uri.to_string(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -172,6 +179,7 @@ impl Runner {
                             .with_context(|| "Not logged in")?,
                         cursor: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -189,6 +197,7 @@ impl Runner {
                             .with_context(|| "Not logged in")?,
                         cursor: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -206,6 +215,7 @@ impl Runner {
                             .with_context(|| "Not logged in")?,
                         cursor: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -220,6 +230,7 @@ impl Runner {
                         cursor: None,
                         limit: Some(limit),
                         list: args.uri.to_string(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -235,6 +246,7 @@ impl Runner {
                             .actor
                             .or(self.handle.clone().map(AtIdentifier::Handle))
                             .with_context(|| "Not logged in")?,
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -245,7 +257,9 @@ impl Runner {
                     .app
                     .bsky
                     .actor
-                    .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {})
+                    .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {
+                        extra_data: EMPTY_EXTRA_DATA,
+                    })
                     .await?,
             ),
             Command::ListNotifications => self.print(
@@ -260,6 +274,7 @@ impl Runner {
                             cursor: None,
                             limit: Some(limit),
                             seen_at: None,
+                            extra_data: EMPTY_EXTRA_DATA,
                         },
                     )
                     .await?,
@@ -277,6 +292,7 @@ impl Runner {
                     .list_convos(atrium_api::chat::bsky::convo::list_convos::Parameters {
                         cursor: None,
                         limit: Some(limit),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),
@@ -291,6 +307,7 @@ impl Runner {
                             .resolve_handle(
                                 atrium_api::com::atproto::identity::resolve_handle::Parameters {
                                     handle: handle.clone(),
+                                    extra_data: EMPTY_EXTRA_DATA,
                                 },
                             )
                             .await?
@@ -311,6 +328,7 @@ impl Runner {
                     .get_convo_for_members(
                         atrium_api::chat::bsky::convo::get_convo_for_members::Parameters {
                             members: vec![did],
+                            extra_data: EMPTY_EXTRA_DATA,
                         },
                     )
                     .await?;
@@ -324,7 +342,9 @@ impl Runner {
                                 embed: None,
                                 facets: None,
                                 text: args.text,
+                                extra_data: EMPTY_EXTRA_DATA,
                             },
+                            extra_data: EMPTY_EXTRA_DATA,
                         })
                         .await?,
                 )
@@ -352,12 +372,16 @@ impl Runner {
                                 .into(),
                             aspect_ratio: None,
                             image: output.blob,
+                            extra_data: EMPTY_EXTRA_DATA,
                         })
                     }
                 }
                 let embed = Some(atrium_api::types::Union::Refs(
                     atrium_api::app::bsky::feed::post::RecordEmbedRefs::AppBskyEmbedImagesMain(
-                        Box::new(atrium_api::app::bsky::embed::images::Main { images }),
+                        Box::new(atrium_api::app::bsky::embed::images::Main {
+                            images,
+                            extra_data: EMPTY_EXTRA_DATA,
+                        }),
                     ),
                 ));
                 self.print(
@@ -380,12 +404,14 @@ impl Runner {
                                     reply: None,
                                     tags: None,
                                     text: args.text,
+                                    extra_data: EMPTY_EXTRA_DATA,
                                 },
                             ))),
                             repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
                             rkey: None,
                             swap_commit: None,
                             validate: None,
+                            extra_data: EMPTY_EXTRA_DATA,
                         })
                         .await?,
                 )
@@ -403,6 +429,7 @@ impl Runner {
                         rkey: args.uri.rkey,
                         swap_commit: None,
                         swap_record: None,
+                        extra_data: EMPTY_EXTRA_DATA,
                     })
                     .await?,
             ),

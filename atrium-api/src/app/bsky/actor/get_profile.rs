@@ -6,6 +6,8 @@ pub const NSID: &str = "app.bsky.actor.getProfile";
 pub struct Parameters {
     ///Handle or DID of account to fetch profile of.
     pub actor: crate::types::string::AtIdentifier,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::app::bsky::actor::defs::ProfileViewDetailed;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

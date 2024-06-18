@@ -7,6 +7,7 @@ pub mod store;
 use self::store::SessionStore;
 use crate::client::Service;
 use crate::types::string::Did;
+use crate::types::EMPTY_EXTRA_DATA;
 use atrium_xrpc::error::Error;
 use atrium_xrpc::XrpcClient;
 use std::sync::Arc;
@@ -71,6 +72,7 @@ where
                 auth_factor_token: None,
                 identifier: identifier.as_ref().into(),
                 password: password.as_ref().into(),
+                extra_data: EMPTY_EXTRA_DATA,
             })
             .await?;
         self.store.set_session(result.clone()).await;
@@ -226,6 +228,7 @@ mod tests {
                                     handle: "example.com".parse().expect("valid"),
                                     refresh_jwt: String::from("refresh"),
                                     status: None,
+                                    extra_data: EMPTY_EXTRA_DATA,
                                 },
                             )?);
                         }
@@ -239,6 +242,7 @@ mod tests {
                                 invite_code_required: None,
                                 links: None,
                                 phone_verification_required: None,
+                                extra_data: EMPTY_EXTRA_DATA,
                             },
                         )?);
                     }
@@ -278,6 +282,7 @@ mod tests {
             handle: "example.com".parse().expect("valid"),
             refresh_jwt: String::from("refresh"),
             status: None,
+            extra_data: EMPTY_EXTRA_DATA,
         }
     }
 
@@ -342,6 +347,7 @@ mod tests {
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                     status: session.status.clone(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 }),
                 ..Default::default()
             },
@@ -376,6 +382,7 @@ mod tests {
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                     status: session.status.clone(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 }),
                 ..Default::default()
             },
@@ -418,6 +425,7 @@ mod tests {
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                     status: session.status.clone(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 }),
                 ..Default::default()
             },
@@ -473,6 +481,7 @@ mod tests {
                         email_confirmed: session.email_confirmed,
                         handle: session.handle.clone(),
                         status: session.status.clone(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     }),
                     ..Default::default()
                 },
@@ -522,6 +531,7 @@ mod tests {
                     email_confirmed: session.email_confirmed,
                     handle: session.handle.clone(),
                     status: session.status.clone(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 }),
                 ..Default::default()
             },

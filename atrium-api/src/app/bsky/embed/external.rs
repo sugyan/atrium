@@ -5,6 +5,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct Main {
     pub external: External,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -14,11 +16,15 @@ pub struct External {
     pub thumb: Option<crate::types::BlobRef>,
     pub title: String,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
     pub external: ViewExternal,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -28,4 +34,6 @@ pub struct ViewExternal {
     pub thumb: Option<String>,
     pub title: String,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

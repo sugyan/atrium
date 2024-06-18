@@ -5,4 +5,6 @@
 pub struct Record {
     pub created_at: crate::types::string::Datetime,
     pub subject: crate::com::atproto::repo::strong_ref::Main,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

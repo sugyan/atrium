@@ -5,6 +5,8 @@ pub const NSID: &str = "app.bsky.graph.unmuteActorList";
 #[serde(rename_all = "camelCase")]
 pub struct Input {
     pub list: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

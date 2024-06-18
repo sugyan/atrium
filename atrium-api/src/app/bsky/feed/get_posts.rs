@@ -6,11 +6,15 @@ pub const NSID: &str = "app.bsky.feed.getPosts";
 pub struct Parameters {
     ///List of post AT-URIs to return hydrated views for.
     pub uris: Vec<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub posts: Vec<crate::app::bsky::feed::defs::PostView>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

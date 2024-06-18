@@ -7,6 +7,8 @@ pub const CURATELIST: &str = "app.bsky.graph.defs#curatelist";
 pub struct ListItemView {
     pub subject: crate::app::bsky::actor::defs::ProfileView,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type ListPurpose = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -28,6 +30,8 @@ pub struct ListView {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ListViewerState>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -44,6 +48,8 @@ pub struct ListViewBasic {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ListViewerState>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -52,6 +58,8 @@ pub struct ListViewerState {
     pub blocked: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///A list of actors to apply an aggregate moderation action (mute/block) on.
 pub const MODLIST: &str = "app.bsky.graph.defs#modlist";
@@ -61,6 +69,8 @@ pub const MODLIST: &str = "app.bsky.graph.defs#modlist";
 pub struct NotFoundActor {
     pub actor: crate::types::string::AtIdentifier,
     pub not_found: bool,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///lists the bi-directional graph relationships between one actor (not indicated in the object), and the target actors (the DID included in the object)
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -73,4 +83,6 @@ pub struct Relationship {
     ///if the actor follows this DID, this is the AT-URI of the follow record
     #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

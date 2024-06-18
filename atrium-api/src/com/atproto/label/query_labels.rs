@@ -13,6 +13,8 @@ pub struct Parameters {
     pub sources: Option<Vec<crate::types::string::Did>>,
     ///List of AT URI patterns to match (boolean 'OR'). Each may be a prefix (ending with '*'; will match inclusive of the string leading to '*'), or a full URI.
     pub uri_patterns: Vec<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -20,6 +22,8 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub labels: Vec<crate::com::atproto::label::defs::Label>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

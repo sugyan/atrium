@@ -13,6 +13,8 @@ pub struct Parameters {
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///AT-URI of the subject (eg, a post record).
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -23,6 +25,8 @@ pub struct Output {
     pub cursor: Option<String>,
     pub likes: Vec<Like>,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -38,4 +42,6 @@ pub struct Like {
     pub actor: crate::app::bsky::actor::defs::ProfileView,
     pub created_at: crate::types::string::Datetime,
     pub indexed_at: crate::types::string::Datetime,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

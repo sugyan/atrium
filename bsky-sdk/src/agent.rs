@@ -7,11 +7,11 @@ use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
-use crate::preference::Preferences;
+use crate::preference::{FeedViewPreference, Preferences};
 use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::{LabelersPref, PreferencesItem};
-use atrium_api::types::Union;
+use atrium_api::types::{Union, EMPTY_EXTRA_DATA};
 use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
@@ -78,6 +78,8 @@ where
     }
     /// Get the logged-in user's [`Preferences`].
     ///
+    /// This implementation does not perform migration of `SavedFeedsPref` to V2.
+    ///
     /// # Arguments
     ///
     /// `enable_bsky_labeler` - If `true`, the [Bluesky's moderation labeler](atrium_api::agent::bluesky::BSKY_LABELER_DID) will be included in the moderation preferences.
@@ -95,7 +97,9 @@ where
             .app
             .bsky
             .actor
-            .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {})
+            .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {
+                extra_data: EMPTY_EXTRA_DATA,
+            })
             .await?
             .preferences
         {
@@ -105,6 +109,28 @@ where
                 }
                 Union::Refs(PreferencesItem::ContentLabelPref(p)) => {
                     label_prefs.push(p);
+                }
+                Union::Refs(PreferencesItem::SavedFeedsPrefV2(p)) => {
+                    prefs.saved_feeds = p.items;
+                }
+                Union::Refs(PreferencesItem::FeedViewPref(p)) => {
+                    let mut pref = FeedViewPreference::default();
+                    if let Some(v) = p.hide_replies {
+                        pref.hide_replies = v;
+                    }
+                    if let Some(v) = p.hide_replies_by_unfollowed {
+                        pref.hide_replies_by_unfollowed = v;
+                    }
+                    if let Some(v) = p.hide_replies_by_like_count {
+                        pref.hide_replies_by_like_count = v;
+                    }
+                    if let Some(v) = p.hide_reposts {
+                        pref.hide_reposts = v;
+                    }
+                    if let Some(v) = p.hide_quote_posts {
+                        pref.hide_quote_posts = v;
+                    }
+                    prefs.feed_view_prefs.insert(p.feed, pref);
                 }
                 Union::Refs(PreferencesItem::MutedWordsPref(p)) => {
                     prefs.moderation_prefs.muted_words = p.items;
@@ -184,6 +210,7 @@ where
                     .iter()
                     .map(|labeler| labeler.did.clone())
                     .collect(),
+                extra_data: EMPTY_EXTRA_DATA,
             })
             .await?
             .views;

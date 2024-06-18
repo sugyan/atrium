@@ -8,6 +8,8 @@ pub struct Parameters {
     pub cid: crate::types::string::Cid,
     ///The DID of the account.
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

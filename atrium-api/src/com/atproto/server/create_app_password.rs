@@ -9,6 +9,8 @@ pub struct Input {
     ///If an app password has 'privileged' access to possibly sensitive account state. Meant for use with trusted clients.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privileged: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = AppPassword;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -37,4 +39,6 @@ pub struct AppPassword {
     pub password: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privileged: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

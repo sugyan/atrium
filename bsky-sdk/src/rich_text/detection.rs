@@ -1,4 +1,5 @@
 use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, Tag};
+use atrium_api::types::EMPTY_EXTRA_DATA;
 use psl;
 use regex::Regex;
 use std::sync::OnceLock;
@@ -46,6 +47,7 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 index: ByteSlice {
                     byte_end: m.end(),
                     byte_start: m.start() - 1,
+                    extra_data: EMPTY_EXTRA_DATA,
                 },
             });
         }
@@ -73,6 +75,7 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
             let mut index = ByteSlice {
                 byte_end: m.end(),
                 byte_start: m.start(),
+                extra_data: EMPTY_EXTRA_DATA,
             };
             // strip ending puncuation
             if (RE_ENDING_PUNCTUATION
@@ -84,7 +87,10 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 index.byte_end -= 1;
             }
             facets.push(FacetWithoutResolution {
-                features: vec![FacetFeaturesItem::Link(Box::new(Link { uri }))],
+                features: vec![FacetFeaturesItem::Link(Box::new(Link {
+                    uri,
+                    extra_data: EMPTY_EXTRA_DATA,
+                }))],
                 index,
             });
         }
@@ -114,9 +120,13 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 let index = ByteSlice {
                     byte_end: leading.end() + tag.len(),
                     byte_start: leading.start(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 };
                 facets.push(FacetWithoutResolution {
-                    features: vec![FacetFeaturesItem::Tag(Box::new(Tag { tag: tag.into() }))],
+                    features: vec![FacetFeaturesItem::Tag(Box::new(Tag {
+                        tag: tag.into(),
+                        extra_data: EMPTY_EXTRA_DATA,
+                    }))],
                     index,
                 });
             }

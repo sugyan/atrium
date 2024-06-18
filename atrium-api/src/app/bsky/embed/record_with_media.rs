@@ -6,12 +6,16 @@
 pub struct Main {
     pub media: crate::types::Union<MainMediaRefs>,
     pub record: crate::app::bsky::embed::record::Main,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
     pub media: crate::types::Union<ViewMediaRefs>,
     pub record: crate::app::bsky::embed::record::View,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

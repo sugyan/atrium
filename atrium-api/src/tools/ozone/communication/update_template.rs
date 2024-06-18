@@ -20,6 +20,8 @@ pub struct Input {
     ///DID of the user who is updating the template.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_by: Option<crate::types::string::Did>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::tools::ozone::communication::defs::TemplateView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -26,6 +26,8 @@ pub struct Record {
     pub tags: Option<Vec<String>>,
     ///The primary post content. May be an empty string, if there are embeds.
     pub text: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Deprecated: use facets instead.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -35,12 +37,16 @@ pub struct Entity {
     ///Expected values are 'mention' and 'link'.
     pub r#type: String,
     pub value: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReplyRef {
     pub parent: crate::com::atproto::repo::strong_ref::Main,
     pub root: crate::com::atproto::repo::strong_ref::Main,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -48,6 +54,8 @@ pub struct ReplyRef {
 pub struct TextSlice {
     pub end: usize,
     pub start: usize,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

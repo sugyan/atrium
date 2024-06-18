@@ -22,6 +22,8 @@ pub struct AccountView {
     pub invites_disabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub related_records: Option<Vec<crate::records::Record>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -30,11 +32,15 @@ pub struct RepoBlobRef {
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub record_uri: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoRef {
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -42,4 +48,6 @@ pub struct StatusAttr {
     pub applied: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#ref: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

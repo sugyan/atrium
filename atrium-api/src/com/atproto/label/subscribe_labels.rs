@@ -7,6 +7,8 @@ pub struct Parameters {
     ///The last known event seq number to backfill from.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<i64>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -32,12 +34,16 @@ pub struct Info {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
     pub name: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Labels {
     pub labels: Vec<crate::com::atproto::label::defs::Label>,
     pub seq: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

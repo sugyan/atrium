@@ -6,6 +6,8 @@ pub struct BlockedAuthor {
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -13,6 +15,8 @@ pub struct BlockedPost {
     pub author: BlockedAuthor,
     pub blocked: bool,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///User clicked through to the author of the feed item
 pub const CLICKTHROUGH_AUTHOR: &str = "app.bsky.feed.defs#clickthroughAuthor";
@@ -33,6 +37,8 @@ pub struct FeedViewPost {
     pub reason: Option<crate::types::Union<FeedViewPostReasonRefs>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -57,12 +63,16 @@ pub struct GeneratorView {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<GeneratorViewerState>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneratorViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -74,6 +84,8 @@ pub struct Interaction {
     pub feed_context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub item: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///User liked the feed item
 pub const INTERACTION_LIKE: &str = "app.bsky.feed.defs#interactionLike";
@@ -92,6 +104,8 @@ pub const INTERACTION_SHARE: &str = "app.bsky.feed.defs#interactionShare";
 pub struct NotFoundPost {
     pub not_found: bool,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -115,12 +129,16 @@ pub struct PostView {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ReasonRepost {
     pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub indexed_at: crate::types::string::Datetime,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -130,6 +148,8 @@ pub struct ReplyRef {
     pub grandparent_author: Option<crate::app::bsky::actor::defs::ProfileViewBasic>,
     pub parent: crate::types::Union<ReplyRefParentRefs>,
     pub root: crate::types::Union<ReplyRefRootRefs>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Request that less content like the given feed item be shown in the feed
 pub const REQUEST_LESS: &str = "app.bsky.feed.defs#requestLess";
@@ -144,11 +164,15 @@ pub struct SkeletonFeedPost {
     pub post: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SkeletonReasonRepost {
     pub repost: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -158,6 +182,8 @@ pub struct ThreadViewPost {
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replies: Option<Vec<crate::types::Union<ThreadViewPostRepliesItem>>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -170,6 +196,8 @@ pub struct ThreadgateView {
     pub record: Option<crate::records::Record>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Metadata about the requesting account's relationship with the subject content. Only has meaningful content for authed requests.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -183,6 +211,8 @@ pub struct ViewerState {
     pub repost: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_muted: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

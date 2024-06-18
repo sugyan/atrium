@@ -2,7 +2,16 @@ use super::{post_view, profile_view_basic};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::{ModerationPrefs, Moderator};
 use atrium_api::app::bsky::actor::defs::MutedWord;
+use atrium_api::types::EMPTY_EXTRA_DATA;
 use std::collections::HashMap;
+
+fn muted_word(target: &str, value: &str) -> MutedWord {
+    MutedWord {
+        targets: vec![String::from(target)],
+        value: String::from(value),
+        extra_data: EMPTY_EXTRA_DATA,
+    }
+}
 
 #[cfg(feature = "rich-text")]
 #[tokio::test]
@@ -14,10 +23,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("tag")],
-                value: String::from("outlineTag"),
-            }],
+            &[muted_word("tag", "outlineTag")],
             &rt.text,
             &rt.facets,
             &Some(vec![String::from("outlineTag")]),
@@ -28,10 +34,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("tag")],
-                value: String::from("inlineTag"),
-            }],
+            &[muted_word("tag", "inlineTag")],
             &rt.text,
             &rt.facets,
             &Some(vec![String::from("outlineTag")]),
@@ -42,10 +45,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("inlineTag"),
-            }],
+            &[muted_word("content", "inlineTag")],
             &rt.text,
             &rt.facets,
             &Some(vec![String::from("outlineTag")]),
@@ -56,10 +56,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post").await?;
         assert!(!has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("tag")],
-                value: String::from("post"),
-            }],
+            &[muted_word("tag", "post")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -70,10 +67,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("改善希望です").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("希"),
-            }],
+            &[muted_word("content", "希")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -84,10 +78,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("Idk why ☠︎ but maybe").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("☠︎"),
-            }],
+            &[muted_word("content", "☠︎")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -98,10 +89,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("hey").await?;
         assert!(!has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("politics"),
-            }],
+            &[muted_word("content", "politics")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -112,10 +100,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("javascript").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("javascript"),
-            }],
+            &[muted_word("content", "javascript")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -126,10 +111,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post about javascript").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("javascript"),
-            }],
+            &[muted_word("content", "javascript")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -140,10 +122,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("Use your brain, Eric").await?;
         assert!(!has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("ai"),
-            }],
+            &[muted_word("content", "ai")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -154,10 +133,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("Use your\n\tbrain, Eric").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("brain"),
-            }],
+            &[muted_word("content", "brain")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -168,10 +144,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("So happy :)").await?;
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from(":)"),
-            }],
+            &[muted_word("content", ":)")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -183,10 +156,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("We're federating, yay!").await?;
         // match: yay!
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("yay!"),
-            }],
+            &[muted_word("content", "yay!")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -194,10 +164,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: yay
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("yay"),
-            }],
+            &[muted_word("content", "yay")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -209,10 +176,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("We're federating, y!ppee!!").await?;
         // match: y!ppee
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("y!ppee"),
-            }],
+            &[muted_word("content", "y!ppee")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -220,10 +184,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: y!ppee!
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("y!ppee!"),
-            }],
+            &[muted_word("content", "y!ppee!")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -235,10 +196,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Yay, Bluesky's mutewords work").await?;
         // match: Bluesky's
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("Bluesky's"),
-            }],
+            &[muted_word("content", "Bluesky's")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -246,10 +204,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: Bluesky
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("Bluesky"),
-            }],
+            &[muted_word("content", "Bluesky")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -257,10 +212,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: bluesky
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("bluesky"),
-            }],
+            &[muted_word("content", "bluesky")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -268,10 +220,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: blueskys
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("blueskys"),
-            }],
+            &[muted_word("content", "blueskys")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -283,10 +232,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Why so S@assy?").await?;
         // match: S@assy
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("S@assy"),
-            }],
+            &[muted_word("content", "S@assy")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -294,10 +240,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: s@assy
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("s@assy"),
-            }],
+            &[muted_word("content", "s@assy")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -309,10 +252,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("New York Times").await?;
         // match: new york times
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("new york times"),
-            }],
+            &[muted_word("content", "new york times")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -324,10 +264,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Idk maybe a bot !command").await?;
         // match: !command
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("!command"),
-            }],
+            &[muted_word("content", "!command")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -335,10 +272,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: command
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("command"),
-            }],
+            &[muted_word("content", "command")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -347,10 +281,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         // no match: !command
         let rt = rich_text_with_detect_facets("Idk maybe a bot command").await?;
         assert!(!has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("!command"),
-            }],
+            &[muted_word("content", "!command")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -362,10 +293,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("I'm e/acc pilled").await?;
         // match: e/acc
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("e/acc"),
-            }],
+            &[muted_word("content", "e/acc")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -373,10 +301,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: acc
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("acc"),
-            }],
+            &[muted_word("content", "acc")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -388,10 +313,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("I'm super-bad").await?;
         // match: super-bad
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("super-bad"),
-            }],
+            &[muted_word("content", "super-bad")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -399,10 +321,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: super
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("super"),
-            }],
+            &[muted_word("content", "super")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -410,10 +329,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: bad
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("bad"),
-            }],
+            &[muted_word("content", "bad")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -421,10 +337,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: super bad
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("super bad"),
-            }],
+            &[muted_word("content", "super bad")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -432,10 +345,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: superbad
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("superbad"),
-            }],
+            &[muted_word("content", "superbad")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -447,10 +357,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Weird post with idk_what_this_would_be").await?;
         // match: idk what this would be
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("idk what this would be"),
-            }],
+            &[muted_word("content", "idk what this would be")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -458,10 +365,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // no match: idk what this would be for
         assert!(!has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("idk what this would be for"),
-            }],
+            &[muted_word("content", "idk what this would be for")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -469,10 +373,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: idk
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("idk"),
-            }],
+            &[muted_word("content", "idk")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -480,10 +381,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: idkwhatthiswouldbe
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("idkwhatthiswouldbe"),
-            }],
+            &[muted_word("content", "idkwhatthiswouldbe")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -495,10 +393,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Post with context(iykyk)").await?;
         // match: context(iykyk)
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("context(iykyk)"),
-            }],
+            &[muted_word("content", "context(iykyk)")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -506,10 +401,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: context
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("context"),
-            }],
+            &[muted_word("content", "context")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -517,10 +409,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: iykyk
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("iykyk"),
-            }],
+            &[muted_word("content", "iykyk")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -528,10 +417,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: (iykyk)
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("(iykyk)"),
-            }],
+            &[muted_word("content", "(iykyk)")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -543,10 +429,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Post with 🦋").await?;
         // match: 🦋
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("🦋"),
-            }],
+            &[muted_word("content", "🦋")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -561,10 +444,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         .await?;
         // match: stop worrying
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("stop worrying"),
-            }],
+            &[muted_word("content", "stop worrying")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -572,10 +452,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: turtles, or how
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("turtles, or how"),
-            }],
+            &[muted_word("content", "turtles, or how")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -587,10 +464,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("私はカメが好きです、またはどのようにして心配するのをやめてインターネットを愛するようになったのか").await?;
         // match: インターネット
         assert!(has_muted_word(
-            &[MutedWord {
-                targets: vec![String::from("content")],
-                value: String::from("インターネット"),
-            }],
+            &[muted_word("content", "インターネット")],
             &rt.text,
             &rt.facets,
             &Some(vec![]),
@@ -606,10 +480,7 @@ fn does_not_mute_own_post() {
         adult_content_enabled: false,
         labels: HashMap::new(),
         labelers: Vec::new(),
-        muted_words: vec![MutedWord {
-            targets: vec![String::from("content")],
-            value: String::from("words"),
-        }],
+        muted_words: vec![muted_word("content", "words")],
         hidden_posts: Vec::new(),
     };
     let post = &post_view(
@@ -651,10 +522,7 @@ async fn does_not_mute_own_tags() -> crate::error::Result<()> {
         adult_content_enabled: false,
         labels: HashMap::new(),
         labelers: Vec::new(),
-        muted_words: vec![MutedWord {
-            targets: vec![String::from("tag")],
-            value: String::from("words"),
-        }],
+        muted_words: vec![muted_word("tag", "words")],
         hidden_posts: Vec::new(),
     };
     let rt = rich_text_with_detect_facets("Mute #words!").await?;

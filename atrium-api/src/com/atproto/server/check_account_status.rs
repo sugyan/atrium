@@ -13,6 +13,8 @@ pub struct Output {
     pub repo_commit: crate::types::string::Cid,
     pub repo_rev: String,
     pub valid_did: bool,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

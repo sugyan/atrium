@@ -8,4 +8,6 @@ pub struct Record {
     pub list: String,
     ///The account which is included on the list.
     pub subject: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

@@ -5,11 +5,15 @@ pub const NSID: &str = "app.bsky.actor.getProfiles";
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub actors: Vec<crate::types::string::AtIdentifier>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub profiles: Vec<crate::app::bsky::actor::defs::ProfileViewDetailed>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

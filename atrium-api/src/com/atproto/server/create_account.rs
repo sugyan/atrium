@@ -26,6 +26,8 @@ pub struct Input {
     pub verification_code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification_phone: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Account login session returned on successful account creation.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -39,6 +41,8 @@ pub struct Output {
     pub did_doc: Option<crate::did_doc::DidDocument>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

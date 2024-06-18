@@ -5,6 +5,8 @@ pub const NSID: &str = "com.atproto.admin.getAccountInfo";
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::com::atproto::admin::defs::AccountView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

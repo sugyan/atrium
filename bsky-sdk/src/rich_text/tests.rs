@@ -4,7 +4,7 @@ use crate::error::Result;
 use crate::rich_text::{RichText, RichTextSegment};
 use crate::tests::MockClient;
 use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, Main, MainFeaturesItem, Mention};
-use atrium_api::types::{Union, UnknownData};
+use atrium_api::types::{Union, UnknownData, EMPTY_EXTRA_DATA};
 use ipld_core::ipld::Ipld;
 
 pub async fn rich_text_with_detect_facets(text: &str) -> Result<RichText> {
@@ -29,7 +29,9 @@ fn facet(byte_start: usize, byte_end: usize) -> Main {
         index: ByteSlice {
             byte_end,
             byte_start,
+            extra_data: EMPTY_EXTRA_DATA,
         },
+        extra_data: EMPTY_EXTRA_DATA,
     }
 }
 
@@ -432,20 +434,26 @@ fn segments() {
                 Main {
                     features: vec![Union::Refs(MainFeaturesItem::Mention(Box::new(Mention {
                         did: "did:plc:123".parse().expect("invalid did"),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })))],
                     index: ByteSlice {
                         byte_end: 3,
                         byte_start: 0,
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
+                    extra_data: EMPTY_EXTRA_DATA,
                 },
                 Main {
                     features: vec![Union::Refs(MainFeaturesItem::Link(Box::new(Link {
                         uri: String::from("https://example.com"),
+                        extra_data: EMPTY_EXTRA_DATA,
                     })))],
                     index: ByteSlice {
                         byte_end: 7,
                         byte_start: 4,
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
+                    extra_data: EMPTY_EXTRA_DATA,
                 },
                 facet(8, 13),
             ]),

@@ -12,6 +12,8 @@ pub struct Parameters {
     pub did: crate::types::string::Did,
     ///Record Key
     pub rkey: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

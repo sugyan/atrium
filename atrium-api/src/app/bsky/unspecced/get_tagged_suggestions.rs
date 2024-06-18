@@ -3,11 +3,16 @@
 pub const NSID: &str = "app.bsky.unspecced.getTaggedSuggestions";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {}
+pub struct Parameters {
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
+}
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub suggestions: Vec<Suggestion>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -23,4 +28,6 @@ pub struct Suggestion {
     pub subject: String,
     pub subject_type: String,
     pub tag: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

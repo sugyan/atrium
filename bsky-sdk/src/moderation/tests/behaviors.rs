@@ -6,6 +6,7 @@ use crate::moderation::Moderator;
 use atrium_api::app::bsky::actor::defs::{ProfileViewBasic, ViewerState};
 use atrium_api::app::bsky::graph::defs::{ListPurpose, ListViewBasic};
 use atrium_api::types::string::Datetime;
+use atrium_api::types::EMPTY_EXTRA_DATA;
 use std::collections::HashMap;
 
 fn list_view_basic(name: &str) -> ListViewBasic {
@@ -18,6 +19,7 @@ fn list_view_basic(name: &str) -> ListViewBasic {
         purpose: ListPurpose::from("app.bsky.graph.defs#modlist"),
         uri: String::from("at://did:plc:fake/app.bsky.graph.list/fake"),
         viewer: None,
+        extra_data: EMPTY_EXTRA_DATA,
     }
 }
 
@@ -127,6 +129,7 @@ impl TestUser {
             } else {
                 None
             },
+            extra_data: EMPTY_EXTRA_DATA,
         }
     }
 }

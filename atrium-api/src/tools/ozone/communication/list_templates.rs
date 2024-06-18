@@ -7,6 +7,8 @@ pub struct Output {
     pub communication_templates: Vec<
         crate::tools::ozone::communication::defs::TemplateView,
     >,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

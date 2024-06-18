@@ -6,6 +6,7 @@ use crate::moderation::types::*;
 use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
 use atrium_api::com::atproto::label::defs::LabelValueDefinition;
+use atrium_api::types::EMPTY_EXTRA_DATA;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -96,6 +97,7 @@ impl Scenario {
                         identifier: String::from("custom"),
                         locales: Vec::new(),
                         severity: self.severity.as_ref().to_string(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )?],

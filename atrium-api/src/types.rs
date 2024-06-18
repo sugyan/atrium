@@ -13,6 +13,8 @@ pub use integer::*;
 pub mod string;
 use string::RecordKey;
 
+pub const EMPTY_EXTRA_DATA: Ipld = Ipld::Map(std::collections::BTreeMap::new());
+
 /// Trait for a collection of records that can be stored in a repository.
 ///
 /// The records all have the same Lexicon schema.

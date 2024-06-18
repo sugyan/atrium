@@ -16,6 +16,8 @@ pub struct Input {
     ///Compare and swap with the previous record by CID.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_record: Option<crate::types::string::Cid>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

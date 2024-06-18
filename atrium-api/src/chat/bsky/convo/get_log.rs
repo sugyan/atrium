@@ -6,6 +6,8 @@ pub const NSID: &str = "chat.bsky.convo.getLog";
 pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -13,6 +15,8 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub logs: Vec<crate::types::Union<OutputLogsItem>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

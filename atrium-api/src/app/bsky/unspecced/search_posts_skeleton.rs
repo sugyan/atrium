@@ -41,6 +41,8 @@ pub struct Parameters {
     ///DID of the account making the request (not included for public/unauthenticated queries). Used for 'from:me' queries.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::types::string::Did>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -51,6 +53,8 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hits_total: Option<i64>,
     pub posts: Vec<crate::app::bsky::unspecced::defs::SkeletonSearchPost>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

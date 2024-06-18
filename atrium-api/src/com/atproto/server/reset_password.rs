@@ -6,6 +6,8 @@ pub const NSID: &str = "com.atproto.server.resetPassword";
 pub struct Input {
     pub password: String,
     pub token: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

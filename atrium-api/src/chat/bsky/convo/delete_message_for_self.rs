@@ -6,6 +6,8 @@ pub const NSID: &str = "chat.bsky.convo.deleteMessageForSelf";
 pub struct Input {
     pub convo_id: String,
     pub message_id: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::chat::bsky::convo::defs::DeletedMessageView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

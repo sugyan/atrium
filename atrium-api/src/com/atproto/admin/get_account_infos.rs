@@ -5,11 +5,15 @@ pub const NSID: &str = "com.atproto.admin.getAccountInfos";
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub dids: Vec<crate::types::string::Did>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub infos: Vec<crate::com::atproto::admin::defs::AccountView>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

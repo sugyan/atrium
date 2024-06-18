@@ -15,12 +15,16 @@ pub struct Input {
     pub token: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification_methods: Option<crate::records::Record>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     ///A signed DID PLC operation.
     pub operation: crate::records::Record,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -11,7 +11,7 @@ use atrium_api::app::bsky::feed::defs::{PostView, PostViewEmbedRefs};
 use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinition};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
-use atrium_api::types::Union;
+use atrium_api::types::{Union, EMPTY_EXTRA_DATA};
 use std::collections::HashMap;
 
 fn embed_record_view(
@@ -31,7 +31,9 @@ fn embed_record_view(
             repost_count: None,
             uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
             value: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(record.clone()))),
+            extra_data: EMPTY_EXTRA_DATA,
         }))),
+        extra_data: EMPTY_EXTRA_DATA,
     })))
 }
 
@@ -53,6 +55,7 @@ fn quoted_post(profile_labels: Option<Vec<Label>>, post_labels: Option<Vec<Label
             reply: None,
             tags: None,
             text: String::from("Quoted post text"),
+            extra_data: EMPTY_EXTRA_DATA,
         },
         post_labels,
     ));
@@ -137,6 +140,7 @@ impl Scenario {
                         identifier: String::from("custom"),
                         locales: Vec::new(),
                         severity: self.severity.as_ref().to_string(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )?],

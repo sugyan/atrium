@@ -6,6 +6,8 @@ pub const NSID: &str = "com.atproto.repo.describeRepo";
 pub struct Parameters {
     ///The handle or DID of the repo.
     pub repo: crate::types::string::AtIdentifier,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -18,6 +20,8 @@ pub struct Output {
     pub handle: crate::types::string::Handle,
     ///Indicates if handle is currently valid (resolves bi-directionally)
     pub handle_is_correct: bool,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

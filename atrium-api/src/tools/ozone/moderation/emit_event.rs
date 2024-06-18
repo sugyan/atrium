@@ -9,6 +9,8 @@ pub struct Input {
     pub subject: crate::types::Union<InputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::tools::ozone::moderation::defs::ModEventView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

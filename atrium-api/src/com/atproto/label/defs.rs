@@ -29,6 +29,8 @@ pub struct Label {
     ///The AT Protocol version of the label object.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ver: Option<i64>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type LabelValue = String;
 ///Declares a label value and its expected interpertations and behaviors.
@@ -48,6 +50,8 @@ pub struct LabelValueDefinition {
     pub locales: Vec<LabelValueDefinitionStrings>,
     ///How should a client visually convey this label? 'inform' means neutral and informational; 'alert' means negative and warning; 'none' means show nothing.
     pub severity: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Strings which describe the label in the UI, localized into a specific language.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -59,6 +63,8 @@ pub struct LabelValueDefinitionStrings {
     pub lang: crate::types::string::Language,
     ///A short human-readable name for the label.
     pub name: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -66,10 +72,14 @@ pub struct LabelValueDefinitionStrings {
 pub struct SelfLabel {
     ///The short string name of the value or type of this label.
     pub val: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///Metadata tags on an atproto record, published by the author within the record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SelfLabels {
     pub values: Vec<SelfLabel>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

@@ -5,6 +5,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct Main {
     pub images: Vec<Image>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 ///width:height represents an aspect ratio. It may be approximate, and may not correspond to absolute dimensions in any given unit.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -12,6 +14,8 @@ pub struct Main {
 pub struct AspectRatio {
     pub height: core::num::NonZeroU64,
     pub width: core::num::NonZeroU64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -21,11 +25,15 @@ pub struct Image {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aspect_ratio: Option<AspectRatio>,
     pub image: crate::types::BlobRef,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct View {
     pub images: Vec<ViewImage>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -38,4 +46,6 @@ pub struct ViewImage {
     pub fullsize: String,
     ///Fully-qualified URL where a thumbnail of the image can be fetched. For example, CDN location provided by the App View.
     pub thumb: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

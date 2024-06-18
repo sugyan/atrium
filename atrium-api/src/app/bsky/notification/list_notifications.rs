@@ -10,6 +10,8 @@ pub struct Parameters {
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seen_at: Option<crate::types::string::Datetime>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +21,8 @@ pub struct Output {
     pub notifications: Vec<Notification>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub seen_at: Option<crate::types::string::Datetime>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -43,4 +47,6 @@ pub struct Notification {
     pub reason_subject: Option<String>,
     pub record: crate::records::Record,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

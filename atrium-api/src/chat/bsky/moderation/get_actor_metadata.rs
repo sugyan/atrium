@@ -5,6 +5,8 @@ pub const NSID: &str = "chat.bsky.moderation.getActorMetadata";
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub actor: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -12,6 +14,8 @@ pub struct Output {
     pub all: Metadata,
     pub day: Metadata,
     pub month: Metadata,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -28,4 +32,6 @@ pub struct Metadata {
     pub convos_started: i64,
     pub messages_received: i64,
     pub messages_sent: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

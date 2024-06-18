@@ -6,6 +6,8 @@ pub const NSID: &str = "com.atproto.admin.updateAccountHandle";
 pub struct Input {
     pub did: crate::types::string::Did,
     pub handle: crate::types::string::Handle,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

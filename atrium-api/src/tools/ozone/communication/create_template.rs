@@ -13,6 +13,8 @@ pub struct Input {
     pub name: String,
     ///Subject of the message, used in emails.
     pub subject: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::tools::ozone::communication::defs::TemplateView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

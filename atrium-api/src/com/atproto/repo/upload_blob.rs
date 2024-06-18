@@ -5,6 +5,8 @@ pub const NSID: &str = "com.atproto.repo.uploadBlob";
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub blob: crate::types::BlobRef,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

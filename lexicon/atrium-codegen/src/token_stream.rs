@@ -289,6 +289,8 @@ fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
         #[serde(rename_all = "camelCase")]
         pub struct #struct_name {
             #(#fields)*
+            #[serde(flatten)]
+            pub extra_data: ipld_core::ipld::Ipld,
         }
     })
 }

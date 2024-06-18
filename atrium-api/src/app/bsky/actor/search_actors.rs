@@ -14,6 +14,8 @@ pub struct Parameters {
     ///DEPRECATED: use 'q' instead.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub term: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -21,6 +23,8 @@ pub struct Output {
     pub actors: Vec<crate::app::bsky::actor::defs::ProfileView>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

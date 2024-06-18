@@ -8,6 +8,8 @@ pub struct Input {
     pub allow_access: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#ref: Option<String>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -10,6 +10,8 @@ pub struct Parameters {
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Reference (AT-URI) of the list record to hydrate.
     pub list: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -18,6 +20,8 @@ pub struct Output {
     pub cursor: Option<String>,
     pub items: Vec<crate::app::bsky::graph::defs::ListItemView>,
     pub list: crate::app::bsky::graph::defs::ListView,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

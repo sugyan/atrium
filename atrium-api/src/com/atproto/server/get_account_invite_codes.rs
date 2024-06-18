@@ -9,11 +9,15 @@ pub struct Parameters {
     pub create_available: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_used: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub codes: Vec<crate::com::atproto::server::defs::InviteCode>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

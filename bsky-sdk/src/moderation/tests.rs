@@ -12,6 +12,7 @@ use atrium_api::app::bsky::feed::defs::PostView;
 use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinition};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
+use atrium_api::types::EMPTY_EXTRA_DATA;
 use std::collections::HashMap;
 
 const FAKE_CID: &str = "bafyreiclp443lavogvhj3d2ob2cxbfuscni2k5jk7bebjzg7khl3esabwq";
@@ -65,6 +66,7 @@ fn profile_view_basic(
         handle: handle.parse().expect("invalid handle"),
         labels,
         viewer: None,
+        extra_data: EMPTY_EXTRA_DATA,
     }
 }
 
@@ -87,6 +89,7 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
                 reply: None,
                 tags: None,
                 text: text.into(),
+                extra_data: EMPTY_EXTRA_DATA,
             },
         ))),
         reply_count: None,
@@ -94,6 +97,7 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
         threadgate: None,
         uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
         viewer: None,
+        extra_data: EMPTY_EXTRA_DATA,
     }
 }
 
@@ -108,6 +112,7 @@ fn label(src: &str, uri: &str, val: &str) -> Label {
         uri: uri.into(),
         val: val.into(),
         ver: None,
+        extra_data: EMPTY_EXTRA_DATA,
     }
 }
 
@@ -326,6 +331,7 @@ fn prioritize_custom_labels() {
                     blurs: String::from("none"),
                     adult_only: None,
                     locales: Vec::new(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 },
                 Some("did:web:labeler.test".parse().expect("invalid did")),
             )
@@ -375,6 +381,7 @@ fn does_not_override_imperative_labels() {
                     blurs: String::from("none"),
                     adult_only: None,
                     locales: Vec::new(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 },
                 Some("did:web:labeler.test".parse().expect("invalid did")),
             )
@@ -430,6 +437,7 @@ fn ignore_invalid_label_value_names() {
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
@@ -442,6 +450,7 @@ fn ignore_invalid_label_value_names() {
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
@@ -495,6 +504,7 @@ fn custom_labels_with_default_settings() {
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
@@ -507,6 +517,7 @@ fn custom_labels_with_default_settings() {
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
@@ -519,6 +530,7 @@ fn custom_labels_with_default_settings() {
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
+                        extra_data: EMPTY_EXTRA_DATA,
                     },
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
@@ -605,6 +617,7 @@ fn custom_labels_require_adult_content_enabled() {
                     blurs: String::from("content"),
                     adult_only: Some(true),
                     locales: Vec::new(),
+                    extra_data: EMPTY_EXTRA_DATA,
                 },
                 Some("did:web:labeler.test".parse().expect("invalid did")),
             )

@@ -7,11 +7,15 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub detailed: Option<bool>,
     pub dids: Vec<crate::types::string::Did>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub views: Vec<crate::types::Union<OutputViewsItem>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

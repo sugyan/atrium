@@ -5,6 +5,8 @@ pub const NSID: &str = "tools.ozone.moderation.getRepo";
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::tools::ozone::moderation::defs::RepoViewDetail;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -16,6 +16,8 @@ pub struct Record {
     pub name: String,
     ///Defines the purpose of the list (aka, moderation-oriented or curration-oriented)
     pub purpose: crate::app::bsky::graph::defs::ListPurpose,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

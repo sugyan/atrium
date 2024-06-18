@@ -4,4 +4,6 @@
 #[serde(rename_all = "camelCase")]
 pub struct Record {
     pub allow_incoming: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

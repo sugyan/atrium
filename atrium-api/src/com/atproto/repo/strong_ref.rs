@@ -6,4 +6,6 @@
 pub struct Main {
     pub cid: crate::types::string::Cid,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

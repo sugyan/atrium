@@ -18,6 +18,8 @@ pub struct Record {
     ///Self-label values
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

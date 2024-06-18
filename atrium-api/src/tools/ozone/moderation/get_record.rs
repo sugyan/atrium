@@ -7,6 +7,8 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
     pub uri: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::tools::ozone::moderation::defs::RecordViewDetail;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -8,11 +8,15 @@ pub struct Parameters {
     pub limit: Option<crate::types::LimitedNonZeroU8<250u8>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<i64>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub labels: Vec<crate::com::atproto::label::defs::Label>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

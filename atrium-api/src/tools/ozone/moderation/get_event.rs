@@ -5,6 +5,8 @@ pub const NSID: &str = "tools.ozone.moderation.getEvent";
 #[serde(rename_all = "camelCase")]
 pub struct Parameters {
     pub id: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 pub type Output = crate::tools::ozone::moderation::defs::ModEventViewDetail;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -7,12 +7,16 @@ pub struct Input {
     ///The DID to reserve a key for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub did: Option<crate::types::string::Did>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     ///The public key for the reserved signing key, in did:key serialization.
     pub signing_key: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

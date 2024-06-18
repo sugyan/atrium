@@ -6,6 +6,8 @@ pub const NSID: &str = "app.bsky.feed.getFeedGenerator";
 pub struct Parameters {
     ///AT-URI of the feed generator record.
     pub feed: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -15,6 +17,8 @@ pub struct Output {
     ///Indicates whether the feed generator service is compatible with the record declaration.
     pub is_valid: bool,
     pub view: crate::app::bsky::feed::defs::GeneratorView,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

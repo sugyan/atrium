@@ -10,6 +10,8 @@ pub struct Input {
     ///Indicates the broad category of violation the report is for.
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub subject: crate::types::Union<InputSubjectRefs>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -21,6 +23,8 @@ pub struct Output {
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: crate::types::string::Did,
     pub subject: crate::types::Union<OutputSubjectRefs>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

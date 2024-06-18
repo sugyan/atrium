@@ -6,4 +6,6 @@ pub struct Record {
     pub created_at: crate::types::string::Datetime,
     ///DID of the account to be blocked.
     pub subject: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

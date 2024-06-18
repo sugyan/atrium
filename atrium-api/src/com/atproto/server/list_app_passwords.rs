@@ -5,6 +5,8 @@ pub const NSID: &str = "com.atproto.server.listAppPasswords";
 #[serde(rename_all = "camelCase")]
 pub struct Output {
     pub passwords: Vec<AppPassword>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
@@ -31,4 +33,6 @@ pub struct AppPassword {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privileged: Option<bool>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

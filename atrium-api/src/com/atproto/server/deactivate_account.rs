@@ -7,6 +7,8 @@ pub struct Input {
     ///A recommendation to server as to how long they should hold onto the deactivated account before deleting.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delete_after: Option<crate::types::string::Datetime>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

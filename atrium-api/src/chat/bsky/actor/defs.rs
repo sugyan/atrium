@@ -18,4 +18,6 @@ pub struct ProfileViewBasic {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }

@@ -10,6 +10,8 @@ pub struct ConvoView {
     pub muted: bool,
     pub rev: String,
     pub unread_count: i64,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -18,12 +20,16 @@ pub struct DeletedMessageView {
     pub rev: String,
     pub sender: MessageViewSender,
     pub sent_at: crate::types::string::Datetime,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LogBeginConvo {
     pub convo_id: String,
     pub rev: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -31,6 +37,8 @@ pub struct LogCreateMessage {
     pub convo_id: String,
     pub message: crate::types::Union<LogCreateMessageMessageRefs>,
     pub rev: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -38,12 +46,16 @@ pub struct LogDeleteMessage {
     pub convo_id: String,
     pub message: crate::types::Union<LogDeleteMessageMessageRefs>,
     pub rev: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LogLeaveConvo {
     pub convo_id: String,
     pub rev: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -54,6 +66,8 @@ pub struct MessageInput {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub text: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -61,6 +75,8 @@ pub struct MessageRef {
     pub convo_id: String,
     pub did: crate::types::string::Did,
     pub message_id: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -75,11 +91,15 @@ pub struct MessageView {
     pub sender: MessageViewSender,
     pub sent_at: crate::types::string::Datetime,
     pub text: String,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageViewSender {
     pub did: crate::types::string::Did,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

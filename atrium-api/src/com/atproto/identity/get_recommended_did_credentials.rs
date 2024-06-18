@@ -13,6 +13,8 @@ pub struct Output {
     pub services: Option<crate::records::Record>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification_methods: Option<crate::records::Record>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -9,6 +9,8 @@ pub struct Input {
     pub subject: crate::types::Union<InputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takedown: Option<crate::com::atproto::admin::defs::StatusAttr>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -16,6 +18,8 @@ pub struct Output {
     pub subject: crate::types::Union<OutputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takedown: Option<crate::com::atproto::admin::defs::StatusAttr>,
+    #[serde(flatten)]
+    pub extra_data: ipld_core::ipld::Ipld,
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -116,6 +116,7 @@ mod tests {
     use super::*;
     use async_trait::async_trait;
     use atrium_api::agent::Session;
+    use atrium_api::types::EMPTY_EXTRA_DATA;
 
     fn session() -> Session {
         Session {
@@ -129,6 +130,7 @@ mod tests {
             handle: "handle.test".parse().expect("invalid handle"),
             refresh_jwt: String::new(),
             status: None,
+            extra_data: EMPTY_EXTRA_DATA,
         }
     }
 
