@@ -27,8 +27,13 @@ impl std::fmt::Display for Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Repo {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active: Option<bool>,
     pub did: crate::types::string::Did,
     ///Current repo commit CID
     pub head: crate::types::string::Cid,
     pub rev: String,
+    ///If active=false, this optional field indicates a possible reason for why the account is not active. If active=false and no status is supplied, then the host makes no claim for why the repository is no longer being hosted.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
 }

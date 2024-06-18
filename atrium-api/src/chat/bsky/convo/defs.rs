@@ -114,6 +114,6 @@ pub enum MessageInputEmbedRefs {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum MessageViewEmbedRefs {
-    #[serde(rename = "app.bsky.embed.record")]
-    AppBskyEmbedRecordMain(Box<crate::app::bsky::embed::record::Main>),
+    #[serde(rename = "app.bsky.embed.record#view")]
+    AppBskyEmbedRecordView(Box<crate::app::bsky::embed::record::View>),
 }

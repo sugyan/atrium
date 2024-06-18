@@ -3,6 +3,8 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountView {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deactivated_at: Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
