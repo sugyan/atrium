@@ -4,8 +4,7 @@ use atrium_api::agent::bluesky::BSKY_LABELER_DID;
 use atrium_api::app::bsky::actor::defs::{
     MutedWord, ProfileView, ProfileViewBasic, ProfileViewDetailed, ViewerState,
 };
-use atrium_api::app::bsky::feed::defs::PostView;
-use atrium_api::app::bsky::graph::defs::ListViewBasic;
+use atrium_api::app::bsky::graph::defs::{ListView, ListViewBasic};
 use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinitionStrings};
 use atrium_api::types::string::Did;
 use serde::{Deserialize, Serialize};
@@ -486,9 +485,9 @@ impl InterpretedLabelValueDefinitionBehaviors {
 /// A subject profile.
 #[derive(Debug)]
 pub enum SubjectProfile {
-    ProfileViewBasic(ProfileViewBasic),
-    ProfileView(ProfileView),
-    ProfileViewDetailed(ProfileViewDetailed),
+    ProfileViewBasic(Box<ProfileViewBasic>),
+    ProfileView(Box<ProfileView>),
+    ProfileViewDetailed(Box<ProfileViewDetailed>),
 }
 
 impl SubjectProfile {
@@ -517,24 +516,50 @@ impl SubjectProfile {
 
 impl From<ProfileViewBasic> for SubjectProfile {
     fn from(p: ProfileViewBasic) -> Self {
-        Self::ProfileViewBasic(p)
+        Self::ProfileViewBasic(Box::new(p))
     }
 }
 
 impl From<ProfileView> for SubjectProfile {
     fn from(p: ProfileView) -> Self {
-        Self::ProfileView(p)
+        Self::ProfileView(Box::new(p))
     }
 }
 
 impl From<ProfileViewDetailed> for SubjectProfile {
     fn from(p: ProfileViewDetailed) -> Self {
-        Self::ProfileViewDetailed(p)
+        Self::ProfileViewDetailed(Box::new(p))
     }
 }
 
 /// A subject post.
-pub type SubjectPost = PostView;
+pub type SubjectPost = atrium_api::app::bsky::feed::defs::PostView;
+
+/// A subject notification.
+pub type SubjectNotification =
+    atrium_api::app::bsky::notification::list_notifications::Notification;
+
+/// A subject feed generator.
+pub type SubjectFeedGenerator = atrium_api::app::bsky::feed::defs::GeneratorView;
+
+/// A subject user list.
+#[derive(Debug)]
+pub enum SubjectUserList {
+    ListView(Box<ListView>),
+    ListViewBasic(Box<ListViewBasic>),
+}
+
+impl From<ListView> for SubjectUserList {
+    fn from(list_view: ListView) -> Self {
+        Self::ListView(Box::new(list_view))
+    }
+}
+
+impl From<ListViewBasic> for SubjectUserList {
+    fn from(list_view_basic: ListViewBasic) -> Self {
+        Self::ListViewBasic(Box::new(list_view_basic))
+    }
+}
 
 /// A cause for moderation decisions.
 #[derive(Debug, Clone)]
