@@ -1,8 +1,12 @@
 use super::{post_view, profile_view_basic};
 use crate::moderation::decision::DecisionContext;
+use crate::moderation::mutewords::has_muted_word;
 use crate::moderation::{ModerationPrefs, Moderator};
 use atrium_api::app::bsky::actor::defs::{MutedWord, MutedWordData};
-use std::collections::HashMap;
+use atrium_api::app::bsky::richtext::facet::{ByteSliceData, MainData, MainFeaturesItem, TagData};
+use atrium_api::types::{Union, UnknownData};
+use ipld_core::ipld::Ipld;
+use std::collections::{BTreeMap, HashMap};
 
 fn muted_word(target: &str, value: &str) -> MutedWord {
     MutedWordData {
@@ -471,6 +475,73 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
     }
     Ok(())
+}
+
+#[test]
+fn facet_with_multiple_features() {
+    // multiple tags
+    {
+        assert!(has_muted_word(
+            &[muted_word("content", "bad")],
+            "tags",
+            &Some(vec![MainData {
+                features: vec![
+                    Union::Refs(MainFeaturesItem::Tag(Box::new(
+                        TagData {
+                            tag: String::from("good")
+                        }
+                        .into()
+                    ))),
+                    Union::Refs(MainFeaturesItem::Tag(Box::new(
+                        TagData {
+                            tag: String::from("bad")
+                        }
+                        .into()
+                    )))
+                ],
+                index: ByteSliceData {
+                    byte_end: 4,
+                    byte_start: 0,
+                }
+                .into()
+            }
+            .into()]),
+            &Some(vec![]),
+            &None,
+        ))
+    }
+    // other features
+    {
+        assert!(has_muted_word(
+            &[muted_word("content", "bad")],
+            "test",
+            &Some(vec![MainData {
+                features: vec![
+                    Union::Unknown(UnknownData {
+                        r#type: String::from("com.example.richtext.facet#other"),
+                        data: Ipld::Map(BTreeMap::from_iter([(
+                            String::from("foo"),
+                            Ipld::String(String::from("bar"))
+                        ),]))
+                    }),
+                    Union::Refs(MainFeaturesItem::Tag(Box::new(
+                        TagData {
+                            tag: String::from("bad")
+                        }
+                        .into()
+                    )))
+                ],
+                index: ByteSliceData {
+                    byte_end: 4,
+                    byte_start: 0,
+                }
+                .into()
+            }
+            .into()]),
+            &Some(vec![]),
+            &None,
+        ))
+    }
 }
 
 #[test]
