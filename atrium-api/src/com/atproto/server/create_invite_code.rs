@@ -3,16 +3,18 @@
 pub const NSID: &str = "com.atproto.server.createInviteCode";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub for_account: Option<crate::types::string::Did>,
     pub use_count: i64,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub code: String,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

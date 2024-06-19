@@ -3,16 +3,18 @@
 //!A representation of a record embedded in a Bluesky record (eg, a post), alongside other compatible embeds. For example, a quote post and image, or a quote post and external URL card.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Main {
+pub struct MainData {
     pub media: crate::types::Union<MainMediaRefs>,
     pub record: crate::app::bsky::embed::record::Main,
 }
+pub type Main = crate::types::Object<MainData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct View {
+pub struct ViewData {
     pub media: crate::types::Union<ViewMediaRefs>,
     pub record: crate::app::bsky::embed::record::View,
 }
+pub type View = crate::types::Object<ViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum MainMediaRefs {

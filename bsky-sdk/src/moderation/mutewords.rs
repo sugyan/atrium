@@ -45,8 +45,8 @@ pub fn has_muted_word(
         tags.extend(
             facets
                 .iter()
-                .filter_map(|facet| {
-                    facet.features.iter().find_map(|feature| {
+                .flat_map(|facet| {
+                    facet.features.iter().filter_map(|feature| {
                         if let Union::Refs(MainFeaturesItem::Tag(tag)) = feature {
                             Some(&tag.tag)
                         } else {

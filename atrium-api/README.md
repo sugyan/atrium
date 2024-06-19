@@ -14,7 +14,6 @@ Any HTTP client that implements [`atrium_xrpc::HttpClient`](https://docs.rs/atri
 
 ```rust,no_run
 use atrium_api::client::AtpServiceClient;
-use atrium_api::com::atproto::server::create_session::Input;
 use atrium_xrpc_client::reqwest::ReqwestClient;
 
 #[tokio::main]
@@ -25,11 +24,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .com
         .atproto
         .server
-        .create_session(Input {
-            auth_factor_token: None,
-            identifier: "alice@mail.com".into(),
-            password: "hunter2".into(),
-        })
+        .create_session(
+            atrium_api::com::atproto::server::create_session::InputData {
+                auth_factor_token: None,
+                identifier: "alice@mail.com".into(),
+                password: "hunter2".into(),
+            }
+            .into(),
+        )
         .await;
     println!("{:?}", result);
     Ok(())

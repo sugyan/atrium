@@ -2,8 +2,9 @@
 //!Definitions for the `app.bsky.graph.listblock` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     pub created_at: crate::types::string::Datetime,
     ///Reference (AT-URI) to the mod list record.
     pub subject: String,
 }
+pub type Record = crate::types::Object<RecordData>;

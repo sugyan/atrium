@@ -2,18 +2,20 @@
 //!Definitions for the `app.bsky.feed.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct BlockedAuthor {
+pub struct BlockedAuthorData {
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
 }
+pub type BlockedAuthor = crate::types::Object<BlockedAuthorData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct BlockedPost {
+pub struct BlockedPostData {
     pub author: BlockedAuthor,
     pub blocked: bool,
     pub uri: String,
 }
+pub type BlockedPost = crate::types::Object<BlockedPostData>;
 ///User clicked through to the author of the feed item
 pub const CLICKTHROUGH_AUTHOR: &str = "app.bsky.feed.defs#clickthroughAuthor";
 ///User clicked through to the embedded content of the feed item
@@ -24,7 +26,7 @@ pub const CLICKTHROUGH_ITEM: &str = "app.bsky.feed.defs#clickthroughItem";
 pub const CLICKTHROUGH_REPOSTER: &str = "app.bsky.feed.defs#clickthroughReposter";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct FeedViewPost {
+pub struct FeedViewPostData {
     ///Context provided by feed generator that may be passed back alongside interactions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feed_context: Option<String>,
@@ -34,9 +36,10 @@ pub struct FeedViewPost {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply: Option<ReplyRef>,
 }
+pub type FeedViewPost = crate::types::Object<FeedViewPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct GeneratorView {
+pub struct GeneratorViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub accepts_interactions: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,15 +61,17 @@ pub struct GeneratorView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<GeneratorViewerState>,
 }
+pub type GeneratorView = crate::types::Object<GeneratorViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct GeneratorViewerState {
+pub struct GeneratorViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
 }
+pub type GeneratorViewerState = crate::types::Object<GeneratorViewerStateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Interaction {
+pub struct InteractionData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event: Option<String>,
     ///Context on a feed item that was orginally supplied by the feed generator on getFeedSkeleton.
@@ -75,6 +80,7 @@ pub struct Interaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub item: Option<String>,
 }
+pub type Interaction = crate::types::Object<InteractionData>;
 ///User liked the feed item
 pub const INTERACTION_LIKE: &str = "app.bsky.feed.defs#interactionLike";
 ///User quoted the feed item
@@ -89,13 +95,14 @@ pub const INTERACTION_SEEN: &str = "app.bsky.feed.defs#interactionSeen";
 pub const INTERACTION_SHARE: &str = "app.bsky.feed.defs#interactionShare";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct NotFoundPost {
+pub struct NotFoundPostData {
     pub not_found: bool,
     pub uri: String,
 }
+pub type NotFoundPost = crate::types::Object<NotFoundPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct PostView {
+pub struct PostViewData {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -116,28 +123,31 @@ pub struct PostView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
+pub type PostView = crate::types::Object<PostViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ReasonRepost {
+pub struct ReasonRepostData {
     pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub indexed_at: crate::types::string::Datetime,
 }
+pub type ReasonRepost = crate::types::Object<ReasonRepostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ReplyRef {
+pub struct ReplyRefData {
     ///When parent is a reply to another post, this is the author of that post.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub grandparent_author: Option<crate::app::bsky::actor::defs::ProfileViewBasic>,
     pub parent: crate::types::Union<ReplyRefParentRefs>,
     pub root: crate::types::Union<ReplyRefRootRefs>,
 }
+pub type ReplyRef = crate::types::Object<ReplyRefData>;
 ///Request that less content like the given feed item be shown in the feed
 pub const REQUEST_LESS: &str = "app.bsky.feed.defs#requestLess";
 ///Request that more content like the given feed item be shown in the feed
 pub const REQUEST_MORE: &str = "app.bsky.feed.defs#requestMore";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SkeletonFeedPost {
+pub struct SkeletonFeedPostData {
     ///Context that will be passed through to client and may be passed to feed generator back alongside interactions.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feed_context: Option<String>,
@@ -145,23 +155,26 @@ pub struct SkeletonFeedPost {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
 }
+pub type SkeletonFeedPost = crate::types::Object<SkeletonFeedPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SkeletonReasonRepost {
+pub struct SkeletonReasonRepostData {
     pub repost: String,
 }
+pub type SkeletonReasonRepost = crate::types::Object<SkeletonReasonRepostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ThreadViewPost {
+pub struct ThreadViewPostData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<crate::types::Union<ThreadViewPostParentRefs>>,
     pub post: PostView,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub replies: Option<Vec<crate::types::Union<ThreadViewPostRepliesItem>>>,
 }
+pub type ThreadViewPost = crate::types::Object<ThreadViewPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ThreadgateView {
+pub struct ThreadgateViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -171,10 +184,11 @@ pub struct ThreadgateView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }
+pub type ThreadgateView = crate::types::Object<ThreadgateViewData>;
 ///Metadata about the requesting account's relationship with the subject content. Only has meaningful content for authed requests.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewerState {
+pub struct ViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -184,6 +198,7 @@ pub struct ViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thread_muted: Option<bool>,
 }
+pub type ViewerState = crate::types::Object<ViewerStateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum FeedViewPostReasonRefs {

@@ -3,16 +3,17 @@
 pub const NSID: &str = "com.atproto.server.createSession";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub auth_factor_token: Option<String>,
     ///Handle or other identifier supported by the server for the authenticating user.
     pub identifier: String,
     pub password: String,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub access_jwt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
@@ -31,6 +32,7 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

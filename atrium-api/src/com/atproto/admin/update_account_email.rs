@@ -3,11 +3,12 @@
 pub const NSID: &str = "com.atproto.admin.updateAccountEmail";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///The handle or DID of the repo.
     pub account: crate::types::string::AtIdentifier,
     pub email: String,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

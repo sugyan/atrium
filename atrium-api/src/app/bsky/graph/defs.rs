@@ -4,14 +4,15 @@
 pub const CURATELIST: &str = "app.bsky.graph.defs#curatelist";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ListItemView {
+pub struct ListItemViewData {
     pub subject: crate::app::bsky::actor::defs::ProfileView,
     pub uri: String,
 }
+pub type ListItemView = crate::types::Object<ListItemViewData>;
 pub type ListPurpose = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ListView {
+pub struct ListViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub cid: crate::types::string::Cid,
@@ -29,9 +30,10 @@ pub struct ListView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ListViewerState>,
 }
+pub type ListView = crate::types::Object<ListViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ListViewBasic {
+pub struct ListViewBasicData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     pub cid: crate::types::string::Cid,
@@ -45,27 +47,30 @@ pub struct ListViewBasic {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ListViewerState>,
 }
+pub type ListViewBasic = crate::types::Object<ListViewBasicData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ListViewerState {
+pub struct ListViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
 }
+pub type ListViewerState = crate::types::Object<ListViewerStateData>;
 ///A list of actors to apply an aggregate moderation action (mute/block) on.
 pub const MODLIST: &str = "app.bsky.graph.defs#modlist";
 ///indicates that a handle or DID could not be resolved
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct NotFoundActor {
+pub struct NotFoundActorData {
     pub actor: crate::types::string::AtIdentifier,
     pub not_found: bool,
 }
+pub type NotFoundActor = crate::types::Object<NotFoundActorData>;
 ///lists the bi-directional graph relationships between one actor (not indicated in the object), and the target actors (the DID included in the object)
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Relationship {
+pub struct RelationshipData {
     pub did: crate::types::string::Did,
     ///if the actor is followed by this DID, contains the AT-URI of the follow record
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -74,3 +79,4 @@ pub struct Relationship {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,
 }
+pub type Relationship = crate::types::Object<RelationshipData>;

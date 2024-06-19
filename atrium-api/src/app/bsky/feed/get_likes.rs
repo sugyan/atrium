@@ -3,7 +3,7 @@
 pub const NSID: &str = "app.bsky.feed.getLikes";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///CID of the subject record (aka, specific version of record), to filter likes.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
@@ -14,9 +14,10 @@ pub struct Parameters {
     ///AT-URI of the subject (eg, a post record).
     pub uri: String,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -24,6 +25,7 @@ pub struct Output {
     pub likes: Vec<Like>,
     pub uri: String,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
@@ -34,8 +36,9 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Like {
+pub struct LikeData {
     pub actor: crate::app::bsky::actor::defs::ProfileView,
     pub created_at: crate::types::string::Datetime,
     pub indexed_at: crate::types::string::Datetime,
 }
+pub type Like = crate::types::Object<LikeData>;

@@ -3,7 +3,7 @@
 pub const NSID: &str = "app.bsky.graph.getList";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -11,14 +11,16 @@ pub struct Parameters {
     ///Reference (AT-URI) of the list record to hydrate.
     pub list: String,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub items: Vec<crate::app::bsky::graph::defs::ListItemView>,
     pub list: crate::app::bsky::graph::defs::ListView,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

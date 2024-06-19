@@ -3,13 +3,13 @@ use super::{ExpectedBehaviors, ResultFlag, FAKE_CID};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::types::*;
 use crate::moderation::Moderator;
-use atrium_api::app::bsky::actor::defs::{ProfileViewBasic, ViewerState};
-use atrium_api::app::bsky::graph::defs::{ListPurpose, ListViewBasic};
+use atrium_api::app::bsky::actor::defs::{ProfileViewBasic, ViewerState, ViewerStateData};
+use atrium_api::app::bsky::graph::defs::{ListPurpose, ListViewBasic, ListViewBasicData};
 use atrium_api::types::string::Datetime;
 use std::collections::HashMap;
 
 fn list_view_basic(name: &str) -> ListViewBasic {
-    ListViewBasic {
+    ListViewBasicData {
         avatar: None,
         cid: FAKE_CID.parse().expect("invalid cid"),
         indexed_at: Some(Datetime::now()),
@@ -19,6 +19,7 @@ fn list_view_basic(name: &str) -> ListViewBasic {
         uri: String::from("at://did:plc:fake/app.bsky.graph.list/fake"),
         viewer: None,
     }
+    .into()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -100,7 +101,7 @@ impl TestUser {
             },
             _ => Definition::default(),
         };
-        ViewerState {
+        ViewerStateData {
             blocked_by: if def.blocked_by { Some(true) } else { None },
             blocking: if def.blocking || def.blocking_by_list {
                 Some(String::from(
@@ -128,6 +129,7 @@ impl TestUser {
                 None
             },
         }
+        .into()
     }
 }
 

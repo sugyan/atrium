@@ -3,9 +3,10 @@
 pub const NSID: &str = "tools.ozone.moderation.getEvent";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     pub id: i64,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 pub type Output = crate::tools::ozone::moderation::defs::ModEventViewDetail;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

@@ -1,4 +1,6 @@
-use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, Tag};
+use atrium_api::app::bsky::richtext::facet::{
+    ByteSlice, ByteSliceData, Link, LinkData, Tag, TagData,
+};
 use psl;
 use regex::Regex;
 use std::sync::OnceLock;
@@ -43,10 +45,11 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                         handle: m.as_str().into(),
                     },
                 ))],
-                index: ByteSlice {
+                index: ByteSliceData {
                     byte_end: m.end(),
                     byte_start: m.start() - 1,
-                },
+                }
+                .into(),
             });
         }
     }
@@ -70,7 +73,7 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
             } else {
                 m.as_str().into()
             };
-            let mut index = ByteSlice {
+            let mut index = ByteSliceData {
                 byte_end: m.end(),
                 byte_start: m.start(),
             };
@@ -84,8 +87,8 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 index.byte_end -= 1;
             }
             facets.push(FacetWithoutResolution {
-                features: vec![FacetFeaturesItem::Link(Box::new(Link { uri }))],
-                index,
+                features: vec![FacetFeaturesItem::Link(Box::new(LinkData { uri }.into()))],
+                index: index.into(),
             });
         }
     }
@@ -111,12 +114,15 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                     continue;
                 }
                 let leading = capture.get(1).expect("invalid capture");
-                let index = ByteSlice {
+                let index = ByteSliceData {
                     byte_end: leading.end() + tag.len(),
                     byte_start: leading.start(),
-                };
+                }
+                .into();
                 facets.push(FacetWithoutResolution {
-                    features: vec![FacetFeaturesItem::Tag(Box::new(Tag { tag: tag.into() }))],
+                    features: vec![FacetFeaturesItem::Tag(Box::new(
+                        TagData { tag: tag.into() }.into(),
+                    ))],
                     index,
                 });
             }

@@ -3,9 +3,10 @@
 pub const NSID: &str = "app.bsky.notification.updateSeen";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub seen_at: crate::types::string::Datetime,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

@@ -3,10 +3,11 @@
 pub const NSID: &str = "app.bsky.actor.getProfile";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///Handle or DID of account to fetch profile of.
     pub actor: crate::types::string::AtIdentifier,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 pub type Output = crate::app::bsky::actor::defs::ProfileViewDetailed;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

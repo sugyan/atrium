@@ -3,12 +3,14 @@
 pub const NSID: &str = "app.bsky.unspecced.getTaggedSuggestions";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {}
+pub struct ParametersData {}
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub suggestions: Vec<Suggestion>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
@@ -19,8 +21,9 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Suggestion {
+pub struct SuggestionData {
     pub subject: String,
     pub subject_type: String,
     pub tag: String,
 }
+pub type Suggestion = crate::types::Object<SuggestionData>;

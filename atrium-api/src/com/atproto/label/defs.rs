@@ -3,7 +3,7 @@
 ///Metadata tag on an atproto resource (eg, repo or record).
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Label {
+pub struct LabelData {
     ///Optionally, CID specifying the specific version of 'uri' resource this label applies to.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
@@ -30,11 +30,12 @@ pub struct Label {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ver: Option<i64>,
 }
+pub type Label = crate::types::Object<LabelData>;
 pub type LabelValue = String;
 ///Declares a label value and its expected interpertations and behaviors.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelValueDefinition {
+pub struct LabelValueDefinitionData {
     ///Does the user need to have adult content enabled in order to configure this label?
     #[serde(skip_serializing_if = "Option::is_none")]
     pub adult_only: Option<bool>,
@@ -49,10 +50,11 @@ pub struct LabelValueDefinition {
     ///How should a client visually convey this label? 'inform' means neutral and informational; 'alert' means negative and warning; 'none' means show nothing.
     pub severity: String,
 }
+pub type LabelValueDefinition = crate::types::Object<LabelValueDefinitionData>;
 ///Strings which describe the label in the UI, localized into a specific language.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelValueDefinitionStrings {
+pub struct LabelValueDefinitionStringsData {
     ///A longer description of what the label means and why it might be applied.
     pub description: String,
     ///The code of the language these strings are written in.
@@ -60,16 +62,21 @@ pub struct LabelValueDefinitionStrings {
     ///A short human-readable name for the label.
     pub name: String,
 }
+pub type LabelValueDefinitionStrings = crate::types::Object<
+    LabelValueDefinitionStringsData,
+>;
 ///Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SelfLabel {
+pub struct SelfLabelData {
     ///The short string name of the value or type of this label.
     pub val: String,
 }
+pub type SelfLabel = crate::types::Object<SelfLabelData>;
 ///Metadata tags on an atproto record, published by the author within the record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SelfLabels {
+pub struct SelfLabelsData {
     pub values: Vec<SelfLabel>,
 }
+pub type SelfLabels = crate::types::Object<SelfLabelsData>;

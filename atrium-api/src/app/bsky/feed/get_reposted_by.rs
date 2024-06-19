@@ -3,7 +3,7 @@
 pub const NSID: &str = "app.bsky.feed.getRepostedBy";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///If supplied, filters to reposts of specific version (by CID) of the post record.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
@@ -14,9 +14,10 @@ pub struct Parameters {
     ///Reference (AT-URI) of post record
     pub uri: String,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -24,6 +25,7 @@ pub struct Output {
     pub reposted_by: Vec<crate::app::bsky::actor::defs::ProfileView>,
     pub uri: String,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

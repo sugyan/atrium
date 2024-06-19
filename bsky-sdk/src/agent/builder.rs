@@ -116,9 +116,10 @@ mod tests {
     use super::*;
     use async_trait::async_trait;
     use atrium_api::agent::Session;
+    use atrium_api::com::atproto::server::create_session::OutputData;
 
     fn session() -> Session {
-        Session {
+        OutputData {
             access_jwt: String::new(),
             active: None,
             did: "did:fake:handle.test".parse().expect("invalid did"),
@@ -130,6 +131,7 @@ mod tests {
             refresh_jwt: String::new(),
             status: None,
         }
+        .into()
     }
 
     struct MockSessionStore;
@@ -160,7 +162,7 @@ mod tests {
                 .await?;
             assert_eq!(agent.get_endpoint().await, "https://bsky.social");
             assert_eq!(
-                agent.get_session().await.map(|session| session.handle),
+                agent.get_session().await.map(|session| session.data.handle),
                 Some("handle.test".parse().expect("invalid handle"))
             );
         }
@@ -197,7 +199,7 @@ mod tests {
                 .await?;
             assert_eq!(agent.get_endpoint().await, "https://bsky.social");
             assert_eq!(
-                agent.get_session().await.map(|session| session.handle),
+                agent.get_session().await.map(|session| session.data.handle),
                 Some("handle.test".parse().expect("invalid handle"))
             );
         }

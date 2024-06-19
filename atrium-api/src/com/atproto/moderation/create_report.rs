@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.moderation.createReport";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///Additional context about the content and violation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
@@ -11,9 +11,10 @@ pub struct Input {
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub subject: crate::types::Union<InputSubjectRefs>,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub created_at: crate::types::string::Datetime,
     pub id: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,6 +23,7 @@ pub struct Output {
     pub reported_by: crate::types::string::Did,
     pub subject: crate::types::Union<OutputSubjectRefs>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

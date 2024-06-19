@@ -3,7 +3,7 @@
 pub const NSID: &str = "app.bsky.actor.searchActorsTypeahead";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search query prefix; not a full query string.
@@ -13,11 +13,13 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub term: Option<String>,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub actors: Vec<crate::app::bsky::actor::defs::ProfileViewBasic>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

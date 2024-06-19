@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.repo.deleteRecord";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///The NSID of the record collection.
     pub collection: crate::types::string::Nsid,
     ///The handle or DID of the repo (aka, current account).
@@ -17,6 +17,7 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_record: Option<crate::types::string::Cid>,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

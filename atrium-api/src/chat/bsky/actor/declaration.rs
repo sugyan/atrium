@@ -2,6 +2,7 @@
 //!Definitions for the `chat.bsky.actor.declaration` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     pub allow_incoming: String,
 }
+pub type Record = crate::types::Object<RecordData>;

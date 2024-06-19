@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.sync.getRecord";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     pub collection: crate::types::string::Nsid,
     ///DEPRECATED: referenced a repo commit by CID, and retrieved record as of that commit
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -13,6 +13,7 @@ pub struct Parameters {
     ///Record Key
     pub rkey: String,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

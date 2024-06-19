@@ -3,10 +3,11 @@
 pub const NSID: &str = "chat.bsky.convo.sendMessage";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub convo_id: String,
     pub message: crate::chat::bsky::convo::defs::MessageInput,
 }
+pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::chat::bsky::convo::defs::MessageView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

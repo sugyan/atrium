@@ -3,9 +3,10 @@
 pub const NSID: &str = "com.atproto.admin.getAccountInfo";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     pub did: crate::types::string::Did,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 pub type Output = crate::com::atproto::admin::defs::AccountView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

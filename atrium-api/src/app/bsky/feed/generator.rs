@@ -2,7 +2,7 @@
 //!Definitions for the `app.bsky.feed.generator` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     ///Declaration that a feed accepts feedback interactions from a client through app.bsky.feed.sendInteractions
     #[serde(skip_serializing_if = "Option::is_none")]
     pub accepts_interactions: Option<bool>,
@@ -19,6 +19,7 @@ pub struct Record {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
 }
+pub type Record = crate::types::Object<RecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum RecordLabelsRefs {

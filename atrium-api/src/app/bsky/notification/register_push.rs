@@ -3,12 +3,13 @@
 pub const NSID: &str = "app.bsky.notification.registerPush";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub app_id: String,
     pub platform: String,
     pub service_did: crate::types::string::Did,
     pub token: String,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

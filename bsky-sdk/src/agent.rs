@@ -7,11 +7,11 @@ use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
-use crate::preference::Preferences;
+use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
 use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::{LabelersPref, PreferencesItem};
-use atrium_api::types::Union;
+use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
@@ -78,6 +78,8 @@ where
     }
     /// Get the logged-in user's [`Preferences`].
     ///
+    /// This implementation does not perform migration of `SavedFeedsPref` to V2.
+    ///
     /// # Arguments
     ///
     /// `enable_bsky_labeler` - If `true`, the [Bluesky's moderation labeler](atrium_api::agent::bluesky::BSKY_LABELER_DID) will be included in the moderation preferences.
@@ -95,8 +97,11 @@ where
             .app
             .bsky
             .actor
-            .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {})
+            .get_preferences(
+                atrium_api::app::bsky::actor::get_preferences::ParametersData {}.into(),
+            )
             .await?
+            .data
             .preferences
         {
             match pref {
@@ -106,20 +111,62 @@ where
                 Union::Refs(PreferencesItem::ContentLabelPref(p)) => {
                     label_prefs.push(p);
                 }
+                Union::Refs(PreferencesItem::SavedFeedsPrefV2(p)) => {
+                    prefs.saved_feeds = p.data.items;
+                }
+                Union::Refs(PreferencesItem::FeedViewPref(p)) => {
+                    let mut pref = FeedViewPreferenceData::default();
+                    if let Some(v) = p.hide_replies {
+                        pref.hide_replies = v;
+                    }
+                    if let Some(v) = p.hide_replies_by_unfollowed {
+                        pref.hide_replies_by_unfollowed = v;
+                    }
+                    if let Some(v) = p.hide_replies_by_like_count {
+                        pref.hide_replies_by_like_count = v;
+                    }
+                    if let Some(v) = p.hide_reposts {
+                        pref.hide_reposts = v;
+                    }
+                    if let Some(v) = p.hide_quote_posts {
+                        pref.hide_quote_posts = v;
+                    }
+                    prefs.feed_view_prefs.insert(
+                        p.data.feed,
+                        Object {
+                            data: pref,
+                            extra_data: p.extra_data, // pass through extra data
+                        },
+                    );
+                }
+                Union::Refs(PreferencesItem::ThreadViewPref(p)) => {
+                    let mut pref = ThreadViewPreferenceData::default();
+                    if let Some(v) = &p.sort {
+                        pref.sort = v.clone();
+                    }
+                    if let Some(v) = p.prioritize_followed_users {
+                        pref.prioritize_followed_users = v;
+                    }
+                    prefs.thread_view_prefs = Object {
+                        data: pref,
+                        extra_data: p.extra_data, // pass through extra data
+                    };
+                }
                 Union::Refs(PreferencesItem::MutedWordsPref(p)) => {
-                    prefs.moderation_prefs.muted_words = p.items;
+                    prefs.moderation_prefs.muted_words = p.data.items;
                 }
                 Union::Refs(PreferencesItem::HiddenPostsPref(p)) => {
-                    prefs.moderation_prefs.hidden_posts = p.items;
+                    prefs.moderation_prefs.hidden_posts = p.data.items;
                 }
                 Union::Unknown(u) => {
                     if u.r#type == "app.bsky.actor.defs#labelersPref" {
                         prefs.moderation_prefs.labelers.extend(
                             from_ipld::<LabelersPref>(u.data)?
+                                .data
                                 .labelers
                                 .into_iter()
                                 .map(|item| ModerationPrefsLabeler {
-                                    did: item.did,
+                                    did: item.data.did,
                                     labels: HashMap::default(),
                                     is_default_labeler: false,
                                 }),
@@ -132,7 +179,7 @@ where
             }
         }
         for pref in label_prefs {
-            if let Some(did) = pref.labeler_did {
+            if let Some(did) = pref.data.labeler_did {
                 if let Some(l) = prefs
                     .moderation_prefs
                     .labelers
@@ -140,14 +187,14 @@ where
                     .find(|l| l.did == did)
                 {
                     l.labels.insert(
-                        pref.label,
-                        pref.visibility.parse().expect("invalid visibility"),
+                        pref.data.label,
+                        pref.data.visibility.parse().expect("invalid visibility"),
                     );
                 }
             } else {
                 prefs.moderation_prefs.labels.insert(
-                    pref.label,
-                    pref.visibility.parse().expect("invalid visibility"),
+                    pref.data.label,
+                    pref.data.visibility.parse().expect("invalid visibility"),
                 );
             }
         }
@@ -171,24 +218,26 @@ where
     }
     /// Make a [`Moderator`] instance with the provided [`Preferences`].
     pub async fn moderator(&self, preferences: &Preferences) -> Result<Moderator> {
-        let labelers = self
+        let output = self
             .api
             .app
             .bsky
             .labeler
-            .get_services(atrium_api::app::bsky::labeler::get_services::Parameters {
-                detailed: Some(true),
-                dids: preferences
-                    .moderation_prefs
-                    .labelers
-                    .iter()
-                    .map(|labeler| labeler.did.clone())
-                    .collect(),
-            })
-            .await?
-            .views;
-        let mut label_defs = HashMap::with_capacity(labelers.len());
-        for labeler in &labelers {
+            .get_services(
+                atrium_api::app::bsky::labeler::get_services::ParametersData {
+                    detailed: Some(true),
+                    dids: preferences
+                        .moderation_prefs
+                        .labelers
+                        .iter()
+                        .map(|labeler| labeler.did.clone())
+                        .collect(),
+                }
+                .into(),
+            )
+            .await?;
+        let mut label_defs = HashMap::with_capacity(output.views.len());
+        for labeler in &output.views {
             let Union::Refs(atrium_api::app::bsky::labeler::get_services::OutputViewsItem::AppBskyLabelerDefsLabelerViewDetailed(labeler_view)) = labeler else {
                 continue;
             };
@@ -198,7 +247,7 @@ where
             );
         }
         Ok(Moderator::new(
-            self.get_session().await.map(|s| s.did),
+            self.get_session().await.map(|s| s.data.did),
             preferences.moderation_prefs.clone(),
             label_defs,
         ))

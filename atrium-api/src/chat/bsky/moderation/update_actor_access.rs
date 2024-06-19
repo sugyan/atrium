@@ -3,12 +3,13 @@
 pub const NSID: &str = "chat.bsky.moderation.updateActorAccess";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub actor: crate::types::string::Did,
     pub allow_access: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#ref: Option<String>,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

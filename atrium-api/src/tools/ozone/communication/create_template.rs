@@ -3,7 +3,7 @@
 pub const NSID: &str = "tools.ozone.communication.createTemplate";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///Content of the template, markdown supported, can contain variable placeholders.
     pub content_markdown: String,
     ///DID of the user who is creating the template.
@@ -14,6 +14,7 @@ pub struct Input {
     ///Subject of the message, used in emails.
     pub subject: String,
 }
+pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::communication::defs::TemplateView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

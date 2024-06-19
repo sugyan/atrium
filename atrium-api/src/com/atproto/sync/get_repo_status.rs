@@ -3,13 +3,14 @@
 pub const NSID: &str = "com.atproto.sync.getRepoStatus";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///The DID of the repo.
     pub did: crate::types::string::Did,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub active: bool,
     pub did: crate::types::string::Did,
     ///Optional field, the current rev of the repo, if active=true
@@ -19,6 +20,7 @@ pub struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

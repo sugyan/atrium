@@ -2,7 +2,7 @@
 //!Definitions for the `tools.ozone.moderation.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct BlobView {
+pub struct BlobViewData {
     pub cid: crate::types::string::Cid,
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -12,38 +12,43 @@ pub struct BlobView {
     pub moderation: Option<Moderation>,
     pub size: i64,
 }
+pub type BlobView = crate::types::Object<BlobViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ImageDetails {
+pub struct ImageDetailsData {
     pub height: i64,
     pub width: i64,
 }
+pub type ImageDetails = crate::types::Object<ImageDetailsData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventAcknowledge {
+pub struct ModEventAcknowledgeData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventAcknowledge = crate::types::Object<ModEventAcknowledgeData>;
 ///Add a comment to a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventComment {
+pub struct ModEventCommentData {
     pub comment: String,
     ///Make the comment persistent on the subject
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sticky: Option<bool>,
 }
+pub type ModEventComment = crate::types::Object<ModEventCommentData>;
 ///Divert a record's blobs to a 3rd party service for further scanning/tagging
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventDivert {
+pub struct ModEventDivertData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventDivert = crate::types::Object<ModEventDivertData>;
 ///Keep a log of outgoing email to a user
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventEmail {
+pub struct ModEventEmailData {
     ///Additional comment about the outgoing comm.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
@@ -53,43 +58,48 @@ pub struct ModEventEmail {
     ///The subject line of the email sent to the user.
     pub subject_line: String,
 }
+pub type ModEventEmail = crate::types::Object<ModEventEmailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventEscalate {
+pub struct ModEventEscalateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventEscalate = crate::types::Object<ModEventEscalateData>;
 ///Apply/Negate labels on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventLabel {
+pub struct ModEventLabelData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     pub create_label_vals: Vec<String>,
     pub negate_label_vals: Vec<String>,
 }
+pub type ModEventLabel = crate::types::Object<ModEventLabelData>;
 ///Mute incoming reports on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventMute {
+pub struct ModEventMuteData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Indicates how long the subject should remain muted.
     pub duration_in_hours: i64,
 }
+pub type ModEventMute = crate::types::Object<ModEventMuteData>;
 ///Mute incoming reports from an account
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventMuteReporter {
+pub struct ModEventMuteReporterData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Indicates how long the account should remain muted.
     pub duration_in_hours: i64,
 }
+pub type ModEventMuteReporter = crate::types::Object<ModEventMuteReporterData>;
 ///Report a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventReport {
+pub struct ModEventReportData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Set to true if the reporter was muted from reporting at the time of the event. These reports won't impact the reviewState of the subject.
@@ -97,26 +107,29 @@ pub struct ModEventReport {
     pub is_reporter_muted: Option<bool>,
     pub report_type: crate::com::atproto::moderation::defs::ReasonType,
 }
+pub type ModEventReport = crate::types::Object<ModEventReportData>;
 ///Resolve appeal on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventResolveAppeal {
+pub struct ModEventResolveAppealData {
     ///Describe resolution.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventResolveAppeal = crate::types::Object<ModEventResolveAppealData>;
 ///Revert take down action on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventReverseTakedown {
+pub struct ModEventReverseTakedownData {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventReverseTakedown = crate::types::Object<ModEventReverseTakedownData>;
 ///Add/Remove a tag on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventTag {
+pub struct ModEventTagData {
     ///Tags to be added to the subject. If already exists, won't be duplicated.
     pub add: Vec<String>,
     ///Additional comment about added/removed tags.
@@ -125,35 +138,39 @@ pub struct ModEventTag {
     ///Tags to be removed to the subject. Ignores a tag If it doesn't exist, won't be duplicated.
     pub remove: Vec<String>,
 }
+pub type ModEventTag = crate::types::Object<ModEventTagData>;
 ///Take down a subject permanently or temporarily
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventTakedown {
+pub struct ModEventTakedownData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Indicates how long the takedown should be in effect before automatically expiring.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub duration_in_hours: Option<i64>,
 }
+pub type ModEventTakedown = crate::types::Object<ModEventTakedownData>;
 ///Unmute action on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventUnmute {
+pub struct ModEventUnmuteData {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventUnmute = crate::types::Object<ModEventUnmuteData>;
 ///Unmute incoming reports from an account
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventUnmuteReporter {
+pub struct ModEventUnmuteReporterData {
     ///Describe reasoning behind the reversal.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+pub type ModEventUnmuteReporter = crate::types::Object<ModEventUnmuteReporterData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventView {
+pub struct ModEventViewData {
     pub created_at: crate::types::string::Datetime,
     pub created_by: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -165,9 +182,10 @@ pub struct ModEventView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_handle: Option<String>,
 }
+pub type ModEventView = crate::types::Object<ModEventViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModEventViewDetail {
+pub struct ModEventViewDetailData {
     pub created_at: crate::types::string::Datetime,
     pub created_by: crate::types::string::Did,
     pub event: crate::types::Union<ModEventViewDetailEventRefs>,
@@ -175,21 +193,24 @@ pub struct ModEventViewDetail {
     pub subject: crate::types::Union<ModEventViewDetailSubjectRefs>,
     pub subject_blobs: Vec<BlobView>,
 }
+pub type ModEventViewDetail = crate::types::Object<ModEventViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Moderation {
+pub struct ModerationData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_status: Option<SubjectStatusView>,
 }
+pub type Moderation = crate::types::Object<ModerationData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ModerationDetail {
+pub struct ModerationDetailData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_status: Option<SubjectStatusView>,
 }
+pub type ModerationDetail = crate::types::Object<ModerationDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RecordView {
+pub struct RecordViewData {
     pub blob_cids: Vec<crate::types::string::Cid>,
     pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
@@ -198,9 +219,10 @@ pub struct RecordView {
     pub uri: String,
     pub value: crate::records::Record,
 }
+pub type RecordView = crate::types::Object<RecordViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RecordViewDetail {
+pub struct RecordViewDetailData {
     pub blobs: Vec<BlobView>,
     pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
@@ -211,14 +233,16 @@ pub struct RecordViewDetail {
     pub uri: String,
     pub value: crate::records::Record,
 }
+pub type RecordViewDetail = crate::types::Object<RecordViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RecordViewNotFound {
+pub struct RecordViewNotFoundData {
     pub uri: String,
 }
+pub type RecordViewNotFound = crate::types::Object<RecordViewNotFoundData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RepoView {
+pub struct RepoViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deactivated_at: Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
@@ -235,9 +259,10 @@ pub struct RepoView {
     pub moderation: Moderation,
     pub related_records: Vec<crate::records::Record>,
 }
+pub type RepoView = crate::types::Object<RepoViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RepoViewDetail {
+pub struct RepoViewDetailData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deactivated_at: Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
@@ -260,11 +285,13 @@ pub struct RepoViewDetail {
     pub moderation: ModerationDetail,
     pub related_records: Vec<crate::records::Record>,
 }
+pub type RepoViewDetail = crate::types::Object<RepoViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RepoViewNotFound {
+pub struct RepoViewNotFoundData {
     pub did: crate::types::string::Did,
 }
+pub type RepoViewNotFound = crate::types::Object<RepoViewNotFoundData>;
 ///Moderator review status of a subject: Closed. Indicates that the subject was already reviewed and resolved by a moderator
 pub const REVIEW_CLOSED: &str = "tools.ozone.moderation.defs#reviewClosed";
 ///Moderator review status of a subject: Escalated. Indicates that the subject was escalated for review by a moderator
@@ -276,7 +303,7 @@ pub const REVIEW_OPEN: &str = "tools.ozone.moderation.defs#reviewOpen";
 pub type SubjectReviewState = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SubjectStatusView {
+pub struct SubjectStatusViewData {
     ///True indicates that the a previously taken moderator action was appealed against, by the author of the content. False indicates last appeal was resolved by moderators.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appealed: Option<bool>,
@@ -314,13 +341,15 @@ pub struct SubjectStatusView {
     ///Timestamp referencing when the last update was made to the moderation status of the subject
     pub updated_at: crate::types::string::Datetime,
 }
+pub type SubjectStatusView = crate::types::Object<SubjectStatusViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct VideoDetails {
+pub struct VideoDetailsData {
     pub height: i64,
     pub length: i64,
     pub width: i64,
 }
+pub type VideoDetails = crate::types::Object<VideoDetailsData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum BlobViewDetailsRefs {

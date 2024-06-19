@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.server.updateEmail";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub email: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email_auth_factor: Option<bool>,
@@ -11,6 +11,7 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

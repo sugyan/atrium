@@ -67,11 +67,14 @@ where
             .com
             .atproto
             .server
-            .create_session(crate::com::atproto::server::create_session::Input {
-                auth_factor_token: None,
-                identifier: identifier.as_ref().into(),
-                password: password.as_ref().into(),
-            })
+            .create_session(
+                crate::com::atproto::server::create_session::InputData {
+                    auth_factor_token: None,
+                    identifier: identifier.as_ref().into(),
+                    password: password.as_ref().into(),
+                }
+                .into(),
+            )
             .await?;
         self.store.set_session(result.clone()).await;
         if let Some(did_doc) = &result.did_doc {
@@ -88,15 +91,15 @@ where
         let result = self.api.com.atproto.server.get_session().await;
         match result {
             Ok(output) => {
-                assert_eq!(output.did, session.did);
+                assert_eq!(output.data.did, session.data.did);
                 if let Some(mut session) = self.store.get_session().await {
-                    session.did_doc = output.did_doc.clone();
-                    session.email = output.email;
-                    session.email_confirmed = output.email_confirmed;
-                    session.handle = output.handle;
+                    session.did_doc = output.data.did_doc.clone();
+                    session.email = output.data.email;
+                    session.email_confirmed = output.data.email_confirmed;
+                    session.handle = output.data.handle;
                     self.store.set_session(session).await;
                 }
-                if let Some(did_doc) = &output.did_doc {
+                if let Some(did_doc) = &output.data.did_doc {
                     self.store.update_endpoint(did_doc);
                 }
                 Ok(())
@@ -151,6 +154,7 @@ where
 mod tests {
     use super::*;
     use crate::agent::store::MemorySessionStore;
+    use crate::com::atproto::server::create_session::OutputData;
     use crate::did_doc::{DidDocument, Service, VerificationMethod};
     use async_trait::async_trait;
     use atrium_xrpc::HttpClient;
@@ -162,8 +166,8 @@ mod tests {
 
     #[derive(Default)]
     struct MockResponses {
-        create_session: Option<crate::com::atproto::server::create_session::Output>,
-        get_session: Option<crate::com::atproto::server::get_session::Output>,
+        create_session: Option<crate::com::atproto::server::create_session::OutputData>,
+        get_session: Option<crate::com::atproto::server::get_session::OutputData>,
     }
 
     #[derive(Default)]
@@ -218,7 +222,7 @@ mod tests {
                     crate::com::atproto::server::refresh_session::NSID => {
                         if token == Some("refresh") {
                             body.extend(serde_json::to_vec(
-                                &crate::com::atproto::server::refresh_session::Output {
+                                &crate::com::atproto::server::refresh_session::OutputData {
                                     access_jwt: String::from("access"),
                                     active: None,
                                     did: "did:web:example.com".parse().expect("valid"),
@@ -232,7 +236,7 @@ mod tests {
                     }
                     crate::com::atproto::server::describe_server::NSID => {
                         body.extend(serde_json::to_vec(
-                            &crate::com::atproto::server::describe_server::Output {
+                            &crate::com::atproto::server::describe_server::OutputData {
                                 available_user_domains: Vec::new(),
                                 contact: None,
                                 did: "did:web:example.com".parse().expect("valid"),
@@ -266,8 +270,8 @@ mod tests {
         }
     }
 
-    fn session() -> Session {
-        Session {
+    fn session_data() -> OutputData {
+        OutputData {
             access_jwt: String::from("access"),
             active: None,
             did: "did:web:example.com".parse().expect("valid"),
@@ -291,13 +295,13 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_login() {
-        let session = session();
+        let session_data = session_data();
         // success
         {
             let client = MockClient {
                 responses: MockResponses {
-                    create_session: Some(crate::com::atproto::server::create_session::Output {
-                        ..session.clone()
+                    create_session: Some(crate::com::atproto::server::create_session::OutputData {
+                        ..session_data.clone()
                     }),
                     ..Default::default()
                 },
@@ -308,7 +312,7 @@ mod tests {
                 .login("test", "pass")
                 .await
                 .expect("login should be succeeded");
-            assert_eq!(agent.get_session().await, Some(session));
+            assert_eq!(agent.get_session().await, Some(session_data.into()));
         }
         // failure with `createSession` error
         {
@@ -330,25 +334,25 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_xrpc_get_session() {
-        let session = session();
+        let session_data = session_data();
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::Output {
-                    active: session.active.clone(),
-                    did: session.did.clone(),
-                    did_doc: session.did_doc.clone(),
-                    email: session.email.clone(),
-                    email_auth_factor: session.email_auth_factor,
-                    email_confirmed: session.email_confirmed,
-                    handle: session.handle.clone(),
-                    status: session.status.clone(),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
                 }),
                 ..Default::default()
             },
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.store.set_session(session).await;
+        agent.store.set_session(session_data.clone().into()).await;
         let output = agent
             .api
             .com
@@ -363,26 +367,26 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_xrpc_get_session_with_refresh() {
-        let mut session = session();
-        session.access_jwt = String::from("expired");
+        let mut session_data = session_data();
+        session_data.access_jwt = String::from("expired");
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::Output {
-                    active: session.active.clone(),
-                    did: session.did.clone(),
-                    did_doc: session.did_doc.clone(),
-                    email: session.email.clone(),
-                    email_auth_factor: session.email_auth_factor,
-                    email_confirmed: session.email_confirmed,
-                    handle: session.handle.clone(),
-                    status: session.status.clone(),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
                 }),
                 ..Default::default()
             },
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.store.set_session(session).await;
+        agent.store.set_session(session_data.clone().into()).await;
         let output = agent
             .api
             .com
@@ -397,7 +401,7 @@ mod tests {
                 .store
                 .get_session()
                 .await
-                .map(|session| session.access_jwt),
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
     }
@@ -405,19 +409,19 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[tokio::test]
     async fn test_xrpc_get_session_with_duplicated_refresh() {
-        let mut session = session();
-        session.access_jwt = String::from("expired");
+        let mut session_data = session_data();
+        session_data.access_jwt = String::from("expired");
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::Output {
-                    active: session.active.clone(),
-                    did: session.did.clone(),
-                    did_doc: session.did_doc.clone(),
-                    email: session.email.clone(),
-                    email_auth_factor: session.email_auth_factor,
-                    email_confirmed: session.email_confirmed,
-                    handle: session.handle.clone(),
-                    status: session.status.clone(),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
                 }),
                 ..Default::default()
             },
@@ -425,7 +429,7 @@ mod tests {
         };
         let counts = Arc::clone(&client.counts);
         let agent = Arc::new(AtpAgent::new(client, MemorySessionStore::default()));
-        agent.store.set_session(session).await;
+        agent.store.set_session(session_data.clone().into()).await;
         let handles = (0..3).map(|_| {
             let agent = Arc::clone(&agent);
             tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
@@ -444,7 +448,7 @@ mod tests {
                 .store
                 .get_session()
                 .await
-                .map(|session| session.access_jwt),
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
         assert_eq!(
@@ -459,20 +463,20 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_resume_session() {
-        let session = session();
+        let session_data = session_data();
         // success
         {
             let client = MockClient {
                 responses: MockResponses {
-                    get_session: Some(crate::com::atproto::server::get_session::Output {
-                        active: session.active.clone(),
-                        did: session.did.clone(),
-                        did_doc: session.did_doc.clone(),
-                        email: session.email.clone(),
-                        email_auth_factor: session.email_auth_factor,
-                        email_confirmed: session.email_confirmed,
-                        handle: session.handle.clone(),
-                        status: session.status.clone(),
+                    get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                        active: session_data.active,
+                        did: session_data.did.clone(),
+                        did_doc: session_data.did_doc.clone(),
+                        email: session_data.email.clone(),
+                        email_auth_factor: session_data.email_auth_factor,
+                        email_confirmed: session_data.email_confirmed,
+                        handle: session_data.handle.clone(),
+                        status: session_data.status.clone(),
                     }),
                     ..Default::default()
                 },
@@ -481,13 +485,16 @@ mod tests {
             let agent = AtpAgent::new(client, MemorySessionStore::default());
             assert_eq!(agent.get_session().await, None);
             agent
-                .resume_session(Session {
-                    email: Some(String::from("test@example.com")),
-                    ..session.clone()
-                })
+                .resume_session(
+                    OutputData {
+                        email: Some(String::from("test@example.com")),
+                        ..session_data.clone()
+                    }
+                    .into(),
+                )
                 .await
                 .expect("resume_session should be succeeded");
-            assert_eq!(agent.get_session().await, Some(session.clone()));
+            assert_eq!(agent.get_session().await, Some(session_data.clone().into()));
         }
         // failure with `getSession` error
         {
@@ -500,7 +507,7 @@ mod tests {
             let agent = AtpAgent::new(client, MemorySessionStore::default());
             assert_eq!(agent.get_session().await, None);
             agent
-                .resume_session(session)
+                .resume_session(session_data.clone().into())
                 .await
                 .expect_err("resume_session should be failed");
             assert_eq!(agent.get_session().await, None);
@@ -510,18 +517,18 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_resume_session_with_refresh() {
-        let session = session();
+        let session_data = session_data();
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::Output {
-                    active: session.active.clone(),
-                    did: session.did.clone(),
-                    did_doc: session.did_doc.clone(),
-                    email: session.email.clone(),
-                    email_auth_factor: session.email_auth_factor,
-                    email_confirmed: session.email_confirmed,
-                    handle: session.handle.clone(),
-                    status: session.status.clone(),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
                 }),
                 ..Default::default()
             },
@@ -529,19 +536,22 @@ mod tests {
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
         agent
-            .resume_session(Session {
-                access_jwt: "expired".into(),
-                ..session.clone()
-            })
+            .resume_session(
+                OutputData {
+                    access_jwt: "expired".into(),
+                    ..session_data.clone()
+                }
+                .into(),
+            )
             .await
             .expect("resume_session should be succeeded");
-        assert_eq!(agent.get_session().await, Some(session));
+        assert_eq!(agent.get_session().await, Some(session_data.clone().into()));
     }
 
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_login_with_diddoc() {
-        let session = session();
+        let session_data = session_data();
         let did_doc = DidDocument {
             id: "did:plc:ewvi7nxzyoun6zhxrhs64oiz".into(),
             also_known_as: Some(vec!["at://atproto.com".into()]),
@@ -563,9 +573,9 @@ mod tests {
         {
             let client = MockClient {
                 responses: MockResponses {
-                    create_session: Some(crate::com::atproto::server::create_session::Output {
+                    create_session: Some(crate::com::atproto::server::create_session::OutputData {
                         did_doc: Some(did_doc.clone()),
-                        ..session.clone()
+                        ..session_data.clone()
                     }),
                     ..Default::default()
                 },
@@ -586,7 +596,7 @@ mod tests {
         {
             let client = MockClient {
                 responses: MockResponses {
-                    create_session: Some(crate::com::atproto::server::create_session::Output {
+                    create_session: Some(crate::com::atproto::server::create_session::OutputData {
                         did_doc: Some(DidDocument {
                             service: Some(vec![
                                 Service {
@@ -602,7 +612,7 @@ mod tests {
                             ]),
                             ..did_doc.clone()
                         }),
-                        ..session.clone()
+                        ..session_data.clone()
                     }),
                     ..Default::default()
                 },

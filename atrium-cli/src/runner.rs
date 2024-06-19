@@ -58,11 +58,14 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_timeline(atrium_api::app::bsky::feed::get_timeline::Parameters {
-                        algorithm: None,
-                        cursor: None,
-                        limit: Some(limit),
-                    })
+                    .get_timeline(
+                        atrium_api::app::bsky::feed::get_timeline::ParametersData {
+                            algorithm: None,
+                            cursor: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetAuthorFeed(args) => self.print(
@@ -72,15 +75,18 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_author_feed(atrium_api::app::bsky::feed::get_author_feed::Parameters {
-                        actor: args
-                            .actor
-                            .or(self.handle.clone().map(AtIdentifier::Handle))
-                            .with_context(|| "Not logged in")?,
-                        cursor: None,
-                        filter: None,
-                        limit: Some(limit),
-                    })
+                    .get_author_feed(
+                        atrium_api::app::bsky::feed::get_author_feed::ParametersData {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .with_context(|| "Not logged in")?,
+                            cursor: None,
+                            filter: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetLikes(args) => self.print(
@@ -90,12 +96,15 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_likes(atrium_api::app::bsky::feed::get_likes::Parameters {
-                        cid: None,
-                        cursor: None,
-                        limit: Some(limit),
-                        uri: args.uri.to_string(),
-                    })
+                    .get_likes(
+                        atrium_api::app::bsky::feed::get_likes::ParametersData {
+                            cid: None,
+                            cursor: None,
+                            limit: Some(limit),
+                            uri: args.uri.to_string(),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetRepostedBy(args) => self.print(
@@ -105,12 +114,15 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_reposted_by(atrium_api::app::bsky::feed::get_reposted_by::Parameters {
-                        cid: None,
-                        cursor: None,
-                        limit: Some(limit),
-                        uri: args.uri.to_string(),
-                    })
+                    .get_reposted_by(
+                        atrium_api::app::bsky::feed::get_reposted_by::ParametersData {
+                            cid: None,
+                            cursor: None,
+                            limit: Some(limit),
+                            uri: args.uri.to_string(),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetActorFeeds(args) => self.print(
@@ -120,14 +132,17 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_actor_feeds(atrium_api::app::bsky::feed::get_actor_feeds::Parameters {
-                        actor: args
-                            .actor
-                            .or(self.handle.clone().map(AtIdentifier::Handle))
-                            .with_context(|| "Not logged in")?,
-                        cursor: None,
-                        limit: Some(limit),
-                    })
+                    .get_actor_feeds(
+                        atrium_api::app::bsky::feed::get_actor_feeds::ParametersData {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .with_context(|| "Not logged in")?,
+                            cursor: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetFeed(args) => self.print(
@@ -137,11 +152,14 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_feed(atrium_api::app::bsky::feed::get_feed::Parameters {
-                        cursor: None,
-                        feed: args.uri.to_string(),
-                        limit: Some(limit),
-                    })
+                    .get_feed(
+                        atrium_api::app::bsky::feed::get_feed::ParametersData {
+                            cursor: None,
+                            feed: args.uri.to_string(),
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetListFeed(args) => self.print(
@@ -151,11 +169,14 @@ impl Runner {
                     .app
                     .bsky
                     .feed
-                    .get_list_feed(atrium_api::app::bsky::feed::get_list_feed::Parameters {
-                        cursor: None,
-                        limit: Some(limit),
-                        list: args.uri.to_string(),
-                    })
+                    .get_list_feed(
+                        atrium_api::app::bsky::feed::get_list_feed::ParametersData {
+                            cursor: None,
+                            limit: Some(limit),
+                            list: args.uri.to_string(),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetFollows(args) => self.print(
@@ -165,14 +186,17 @@ impl Runner {
                     .app
                     .bsky
                     .graph
-                    .get_follows(atrium_api::app::bsky::graph::get_follows::Parameters {
-                        actor: args
-                            .actor
-                            .or(self.handle.clone().map(AtIdentifier::Handle))
-                            .with_context(|| "Not logged in")?,
-                        cursor: None,
-                        limit: Some(limit),
-                    })
+                    .get_follows(
+                        atrium_api::app::bsky::graph::get_follows::ParametersData {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .with_context(|| "Not logged in")?,
+                            cursor: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetFollowers(args) => self.print(
@@ -182,14 +206,17 @@ impl Runner {
                     .app
                     .bsky
                     .graph
-                    .get_followers(atrium_api::app::bsky::graph::get_followers::Parameters {
-                        actor: args
-                            .actor
-                            .or(self.handle.clone().map(AtIdentifier::Handle))
-                            .with_context(|| "Not logged in")?,
-                        cursor: None,
-                        limit: Some(limit),
-                    })
+                    .get_followers(
+                        atrium_api::app::bsky::graph::get_followers::ParametersData {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .with_context(|| "Not logged in")?,
+                            cursor: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetLists(args) => self.print(
@@ -199,14 +226,17 @@ impl Runner {
                     .app
                     .bsky
                     .graph
-                    .get_lists(atrium_api::app::bsky::graph::get_lists::Parameters {
-                        actor: args
-                            .actor
-                            .or(self.handle.clone().map(AtIdentifier::Handle))
-                            .with_context(|| "Not logged in")?,
-                        cursor: None,
-                        limit: Some(limit),
-                    })
+                    .get_lists(
+                        atrium_api::app::bsky::graph::get_lists::ParametersData {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .with_context(|| "Not logged in")?,
+                            cursor: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetList(args) => self.print(
@@ -216,11 +246,14 @@ impl Runner {
                     .app
                     .bsky
                     .graph
-                    .get_list(atrium_api::app::bsky::graph::get_list::Parameters {
-                        cursor: None,
-                        limit: Some(limit),
-                        list: args.uri.to_string(),
-                    })
+                    .get_list(
+                        atrium_api::app::bsky::graph::get_list::ParametersData {
+                            cursor: None,
+                            limit: Some(limit),
+                            list: args.uri.to_string(),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetProfile(args) => self.print(
@@ -230,12 +263,15 @@ impl Runner {
                     .app
                     .bsky
                     .actor
-                    .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-                        actor: args
-                            .actor
-                            .or(self.handle.clone().map(AtIdentifier::Handle))
-                            .with_context(|| "Not logged in")?,
-                    })
+                    .get_profile(
+                        atrium_api::app::bsky::actor::get_profile::ParametersData {
+                            actor: args
+                                .actor
+                                .or(self.handle.clone().map(AtIdentifier::Handle))
+                                .with_context(|| "Not logged in")?,
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::GetPreferences => self.print(
@@ -245,7 +281,9 @@ impl Runner {
                     .app
                     .bsky
                     .actor
-                    .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {})
+                    .get_preferences(
+                        atrium_api::app::bsky::actor::get_preferences::ParametersData {}.into(),
+                    )
                     .await?,
             ),
             Command::ListNotifications => self.print(
@@ -256,11 +294,12 @@ impl Runner {
                     .bsky
                     .notification
                     .list_notifications(
-                        atrium_api::app::bsky::notification::list_notifications::Parameters {
+                        atrium_api::app::bsky::notification::list_notifications::ParametersData {
                             cursor: None,
                             limit: Some(limit),
                             seen_at: None,
-                        },
+                        }
+                        .into(),
                     )
                     .await?,
             ),
@@ -274,28 +313,32 @@ impl Runner {
                     .chat
                     .bsky
                     .convo
-                    .list_convos(atrium_api::chat::bsky::convo::list_convos::Parameters {
-                        cursor: None,
-                        limit: Some(limit),
-                    })
+                    .list_convos(
+                        atrium_api::chat::bsky::convo::list_convos::ParametersData {
+                            cursor: None,
+                            limit: Some(limit),
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
             Command::SendConvoMessage(args) => {
                 let did = match args.actor {
-                    AtIdentifier::Handle(handle) => {
-                        self.agent
-                            .api
-                            .com
-                            .atproto
-                            .identity
-                            .resolve_handle(
-                                atrium_api::com::atproto::identity::resolve_handle::Parameters {
-                                    handle: handle.clone(),
-                                },
-                            )
-                            .await?
-                            .did
-                    }
+                    AtIdentifier::Handle(handle) => self
+                        .agent
+                        .api
+                        .com
+                        .atproto
+                        .identity
+                        .resolve_handle(
+                            atrium_api::com::atproto::identity::resolve_handle::ParametersData {
+                                handle: handle.clone(),
+                            }
+                            .into(),
+                        )
+                        .await?
+                        .data
+                        .did,
                     AtIdentifier::Did(did) => did,
                 };
                 let chat = &self
@@ -309,23 +352,28 @@ impl Runner {
                     .bsky
                     .convo
                     .get_convo_for_members(
-                        atrium_api::chat::bsky::convo::get_convo_for_members::Parameters {
+                        atrium_api::chat::bsky::convo::get_convo_for_members::ParametersData {
                             members: vec![did],
-                        },
+                        }
+                        .into(),
                     )
                     .await?;
                 self.print(
                     &chat
                         .bsky
                         .convo
-                        .send_message(atrium_api::chat::bsky::convo::send_message::Input {
-                            convo_id: convo.convo.id,
-                            message: atrium_api::chat::bsky::convo::defs::MessageInput {
-                                embed: None,
-                                facets: None,
-                                text: args.text,
-                            },
-                        })
+                        .send_message(
+                            atrium_api::chat::bsky::convo::send_message::InputData {
+                                convo_id: convo.data.convo.data.id,
+                                message: atrium_api::chat::bsky::convo::defs::MessageInputData {
+                                    embed: None,
+                                    facets: None,
+                                    text: args.text,
+                                }
+                                .into(),
+                            }
+                            .into(),
+                        )
                         .await?,
                 )
             }
@@ -344,20 +392,23 @@ impl Runner {
                             .upload_blob(buf)
                             .await
                             .expect("upload blob");
-                        images.push(atrium_api::app::bsky::embed::images::Image {
-                            alt: image
-                                .file_name()
-                                .map(OsStr::to_string_lossy)
-                                .unwrap_or_default()
-                                .into(),
-                            aspect_ratio: None,
-                            image: output.blob,
-                        })
+                        images.push(
+                            atrium_api::app::bsky::embed::images::ImageData {
+                                alt: image
+                                    .file_name()
+                                    .map(OsStr::to_string_lossy)
+                                    .unwrap_or_default()
+                                    .into(),
+                                aspect_ratio: None,
+                                image: output.data.blob,
+                            }
+                            .into(),
+                        )
                     }
                 }
                 let embed = Some(atrium_api::types::Union::Refs(
                     atrium_api::app::bsky::feed::post::RecordEmbedRefs::AppBskyEmbedImagesMain(
-                        Box::new(atrium_api::app::bsky::embed::images::Main { images }),
+                        Box::new(atrium_api::app::bsky::embed::images::MainData { images }.into()),
                     ),
                 ));
                 self.print(
@@ -367,26 +418,30 @@ impl Runner {
                         .com
                         .atproto
                         .repo
-                        .create_record(atrium_api::com::atproto::repo::create_record::Input {
-                            collection: "app.bsky.feed.post".parse().expect("valid"),
-                            record: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(
-                                atrium_api::app::bsky::feed::post::Record {
-                                    created_at: Datetime::now(),
-                                    embed,
-                                    entities: None,
-                                    facets: None,
-                                    labels: None,
-                                    langs: None,
-                                    reply: None,
-                                    tags: None,
-                                    text: args.text,
-                                },
-                            ))),
-                            repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
-                            rkey: None,
-                            swap_commit: None,
-                            validate: None,
-                        })
+                        .create_record(
+                            atrium_api::com::atproto::repo::create_record::InputData {
+                                collection: "app.bsky.feed.post".parse().expect("valid"),
+                                record: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(
+                                    atrium_api::app::bsky::feed::post::RecordData {
+                                        created_at: Datetime::now(),
+                                        embed,
+                                        entities: None,
+                                        facets: None,
+                                        labels: None,
+                                        langs: None,
+                                        reply: None,
+                                        tags: None,
+                                        text: args.text,
+                                    }
+                                    .into(),
+                                ))),
+                                repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
+                                rkey: None,
+                                swap_commit: None,
+                                validate: None,
+                            }
+                            .into(),
+                        )
                         .await?,
                 )
             }
@@ -397,13 +452,16 @@ impl Runner {
                     .com
                     .atproto
                     .repo
-                    .delete_record(atrium_api::com::atproto::repo::delete_record::Input {
-                        collection: "app.bsky.feed.post".parse().expect("valid"),
-                        repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
-                        rkey: args.uri.rkey,
-                        swap_commit: None,
-                        swap_record: None,
-                    })
+                    .delete_record(
+                        atrium_api::com::atproto::repo::delete_record::InputData {
+                            collection: "app.bsky.feed.post".parse().expect("valid"),
+                            repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
+                            rkey: args.uri.rkey,
+                            swap_commit: None,
+                            swap_record: None,
+                        }
+                        .into(),
+                    )
                     .await?,
             ),
         }

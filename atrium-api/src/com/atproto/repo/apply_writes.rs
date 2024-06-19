@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.repo.applyWrites";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
     ///If provided, the entire operation will fail if the current repo commit CID does not match this value. Used to prevent conflicting repo mutations.
@@ -14,6 +14,7 @@ pub struct Input {
     pub validate: Option<bool>,
     pub writes: Vec<InputWritesItem>,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
@@ -36,27 +37,30 @@ impl std::fmt::Display for Error {
 ///Operation which creates a new record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Create {
+pub struct CreateData {
     pub collection: crate::types::string::Nsid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
     pub value: crate::records::Record,
 }
+pub type Create = crate::types::Object<CreateData>;
 ///Operation which deletes an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Delete {
+pub struct DeleteData {
     pub collection: crate::types::string::Nsid,
     pub rkey: String,
 }
+pub type Delete = crate::types::Object<DeleteData>;
 ///Operation which updates an existing record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Update {
+pub struct UpdateData {
     pub collection: crate::types::string::Nsid,
     pub rkey: String,
     pub value: crate::records::Record,
 }
+pub type Update = crate::types::Object<UpdateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum InputWritesItem {

@@ -3,18 +3,20 @@
 pub const NSID: &str = "com.atproto.server.getAccountInviteCodes";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///Controls whether any new 'earned' but not 'created' invites should be created.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub create_available: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_used: Option<bool>,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub codes: Vec<crate::com::atproto::server::defs::InviteCode>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

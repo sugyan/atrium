@@ -2,7 +2,7 @@
 //!Definitions for the `chat.bsky.convo.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ConvoView {
+pub struct ConvoViewData {
     pub id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub last_message: Option<crate::types::Union<ConvoViewLastMessageRefs>>,
@@ -11,43 +11,49 @@ pub struct ConvoView {
     pub rev: String,
     pub unread_count: i64,
 }
+pub type ConvoView = crate::types::Object<ConvoViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct DeletedMessageView {
+pub struct DeletedMessageViewData {
     pub id: String,
     pub rev: String,
     pub sender: MessageViewSender,
     pub sent_at: crate::types::string::Datetime,
 }
+pub type DeletedMessageView = crate::types::Object<DeletedMessageViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LogBeginConvo {
+pub struct LogBeginConvoData {
     pub convo_id: String,
     pub rev: String,
 }
+pub type LogBeginConvo = crate::types::Object<LogBeginConvoData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LogCreateMessage {
+pub struct LogCreateMessageData {
     pub convo_id: String,
     pub message: crate::types::Union<LogCreateMessageMessageRefs>,
     pub rev: String,
 }
+pub type LogCreateMessage = crate::types::Object<LogCreateMessageData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LogDeleteMessage {
+pub struct LogDeleteMessageData {
     pub convo_id: String,
     pub message: crate::types::Union<LogDeleteMessageMessageRefs>,
     pub rev: String,
 }
+pub type LogDeleteMessage = crate::types::Object<LogDeleteMessageData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LogLeaveConvo {
+pub struct LogLeaveConvoData {
     pub convo_id: String,
     pub rev: String,
 }
+pub type LogLeaveConvo = crate::types::Object<LogLeaveConvoData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct MessageInput {
+pub struct MessageInputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<crate::types::Union<MessageInputEmbedRefs>>,
     ///Annotations of text (mentions, URLs, hashtags, etc)
@@ -55,16 +61,18 @@ pub struct MessageInput {
     pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub text: String,
 }
+pub type MessageInput = crate::types::Object<MessageInputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct MessageRef {
+pub struct MessageRefData {
     pub convo_id: String,
     pub did: crate::types::string::Did,
     pub message_id: String,
 }
+pub type MessageRef = crate::types::Object<MessageRefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct MessageView {
+pub struct MessageViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub embed: Option<crate::types::Union<MessageViewEmbedRefs>>,
     ///Annotations of text (mentions, URLs, hashtags, etc)
@@ -76,11 +84,13 @@ pub struct MessageView {
     pub sent_at: crate::types::string::Datetime,
     pub text: String,
 }
+pub type MessageView = crate::types::Object<MessageViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct MessageViewSender {
+pub struct MessageViewSenderData {
     pub did: crate::types::string::Did,
 }
+pub type MessageViewSender = crate::types::Object<MessageViewSenderData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ConvoViewLastMessageRefs {

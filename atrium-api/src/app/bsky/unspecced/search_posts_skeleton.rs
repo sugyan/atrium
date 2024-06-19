@@ -3,7 +3,7 @@
 pub const NSID: &str = "app.bsky.unspecced.searchPostsSkeleton";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///Filter to posts by the given account. Handles are resolved to DID before query-time.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub author: Option<crate::types::string::AtIdentifier>,
@@ -42,9 +42,10 @@ pub struct Parameters {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::types::string::Did>,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     ///Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.
@@ -52,6 +53,7 @@ pub struct Output {
     pub hits_total: Option<i64>,
     pub posts: Vec<crate::app::bsky::unspecced::defs::SkeletonSearchPost>,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

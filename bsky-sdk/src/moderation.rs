@@ -46,16 +46,19 @@ impl Moderator {
         self.decide_post(post)
     }
     /// Calculate the moderation decision for a notification.
-    pub fn moderate_notification(&self) -> ModerationDecision {
-        todo!()
+    pub fn moderate_notification(&self, notification: &SubjectNotification) -> ModerationDecision {
+        self.decide_notification(notification)
     }
     /// Calculate the moderation decision for a feed generator.
-    pub fn moderate_feed_generator(&self) -> ModerationDecision {
-        todo!()
+    pub fn moderate_feed_generator(
+        &self,
+        feed_generator: &SubjectFeedGenerator,
+    ) -> ModerationDecision {
+        self.decide_feed_generator(feed_generator)
     }
     /// Calculate the moderation decision for a user list.
-    pub fn moderate_user_list(&self) -> ModerationDecision {
-        todo!()
+    pub fn moderate_user_list(&self, user_list: &SubjectUserList) -> ModerationDecision {
+        self.decide_user_list(user_list)
     }
 }
 

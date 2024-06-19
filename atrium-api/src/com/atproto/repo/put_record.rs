@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.repo.putRecord";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///The NSID of the record collection.
     pub collection: crate::types::string::Nsid,
     ///The record to write.
@@ -22,12 +22,14 @@ pub struct Input {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
