@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.22.4](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.3...atrium-api-v0.22.4) - 2024-06-19
+
+### Added
+- Update bsky-sdk, and redesign of object types in API ([#189](https://github.com/sugyan/atrium/pull/189))
+- Update API, based on the latest lexicon schemas ([#188](https://github.com/sugyan/atrium/pull/188))
+
 ## [0.22.3](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.2...atrium-api-v0.22.3) - 2024-06-13
 
 ### Added
