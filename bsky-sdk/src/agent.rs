@@ -7,11 +7,11 @@ use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
-use crate::preference::{FeedViewPreference, Preferences};
+use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
 use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::{LabelersPref, PreferencesItem};
-use atrium_api::types::Union;
+use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
@@ -115,7 +115,7 @@ where
                     prefs.saved_feeds = p.data.items;
                 }
                 Union::Refs(PreferencesItem::FeedViewPref(p)) => {
-                    let mut pref = FeedViewPreference::default();
+                    let mut pref = FeedViewPreferenceData::default();
                     if let Some(v) = p.hide_replies {
                         pref.hide_replies = v;
                     }
@@ -131,7 +131,26 @@ where
                     if let Some(v) = p.hide_quote_posts {
                         pref.hide_quote_posts = v;
                     }
-                    prefs.feed_view_prefs.insert(p.data.feed, pref);
+                    prefs.feed_view_prefs.insert(
+                        p.data.feed,
+                        Object {
+                            data: pref,
+                            extra_data: p.extra_data, // pass through extra data
+                        },
+                    );
+                }
+                Union::Refs(PreferencesItem::ThreadViewPref(p)) => {
+                    let mut pref = ThreadViewPreferenceData::default();
+                    if let Some(v) = &p.sort {
+                        pref.sort = v.clone();
+                    }
+                    if let Some(v) = p.prioritize_followed_users {
+                        pref.prioritize_followed_users = v;
+                    }
+                    prefs.thread_view_prefs = Object {
+                        data: pref,
+                        extra_data: p.extra_data, // pass through extra data
+                    };
                 }
                 Union::Refs(PreferencesItem::MutedWordsPref(p)) => {
                     prefs.moderation_prefs.muted_words = p.data.items;

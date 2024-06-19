@@ -1,13 +1,14 @@
 //! Preferences for Bluesky application.
 use crate::moderation::ModerationPrefs;
 use atrium_api::app::bsky::actor::defs::SavedFeed;
+use atrium_api::types::Object;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// A preference for a feed view.
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct FeedViewPreference {
+pub struct FeedViewPreferenceData {
     pub hide_replies: bool,
     pub hide_replies_by_unfollowed: bool,
     pub hide_replies_by_like_count: i64,
@@ -15,7 +16,7 @@ pub struct FeedViewPreference {
     pub hide_quote_posts: bool,
 }
 
-impl Default for FeedViewPreference {
+impl Default for FeedViewPreferenceData {
     fn default() -> Self {
         Self {
             hide_replies: false,
@@ -27,13 +28,53 @@ impl Default for FeedViewPreference {
     }
 }
 
+pub type FeedViewPreference = Object<FeedViewPreferenceData>;
+
+/// A preference for a thread view.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ThreadViewPreferenceData {
+    pub sort: String,
+    pub prioritize_followed_users: bool,
+}
+
+impl ThreadViewPreferenceData {
+    pub const SORT_OLDEST: &str = "oldest";
+    pub const SORT_NEWEST: &str = "newest";
+    pub const SORT_MOST_LIKES: &str = "most-likes";
+    pub const SORT_RANDOM: &str = "random";
+}
+
+impl Default for ThreadViewPreferenceData {
+    fn default() -> Self {
+        Self {
+            sort: Self::SORT_OLDEST.to_string(),
+            prioritize_followed_users: true,
+        }
+    }
+}
+
+pub type ThreadViewPreference = Object<ThreadViewPreferenceData>;
+
 /// Preferences for Bluesky application.
-#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Preferences {
     pub saved_feeds: Vec<SavedFeed>,
     pub feed_view_prefs: HashMap<String, FeedViewPreference>,
+    pub thread_view_prefs: ThreadViewPreference,
     pub moderation_prefs: ModerationPrefs,
+}
+
+impl Default for Preferences {
+    fn default() -> Self {
+        Self {
+            saved_feeds: Default::default(),
+            feed_view_prefs: Default::default(),
+            thread_view_prefs: ThreadViewPreferenceData::default().into(),
+            moderation_prefs: Default::default(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -57,6 +98,11 @@ mod tests {
             ]
         },
         {
+            "$type": "app.bsky.actor.defs#threadViewPref",
+            "sort": "oldest",
+            "lab_treeViewEnabled": false
+        },
+        {
             "$type": "app.bsky.actor.defs#feedViewPref",
             "feed": "home",
             "hideRepliesByUnfollowed": false,
@@ -69,7 +115,7 @@ mod tests {
     fn xrpc_preferences_json() {
         let deserialized1 = from_str::<Output>(XRPC_PREFERENCES_JSON)
             .expect("deserializing preferences should succeed");
-        assert_eq!(deserialized1.preferences.len(), 2);
+        assert_eq!(deserialized1.preferences.len(), 3);
         let serialized = to_string(&deserialized1).expect("serializing preferences should succeed");
         assert_eq!(
             serialized.replace(char::is_whitespace, ""),
@@ -85,6 +131,7 @@ mod tests {
         let preferences = Preferences {
             saved_feeds: Vec::new(),
             feed_view_prefs: HashMap::new(),
+            thread_view_prefs: ThreadViewPreferenceData::default().into(),
             moderation_prefs: ModerationPrefs {
                 labelers: vec![
                     ModerationPrefsLabeler::default(),
