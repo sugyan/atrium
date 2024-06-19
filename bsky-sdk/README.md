@@ -80,19 +80,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let moderator = agent.moderator(&preferences).await?;
 
     // in feeds
-    for feed_view_post in agent
+    let output = agent
         .api
         .app
         .bsky
         .feed
-        .get_timeline(atrium_api::app::bsky::feed::get_timeline::Parameters {
-            algorithm: None,
-            cursor: None,
-            limit: None,
-        })
-        .await?
-        .feed
-    {
+        .get_timeline(
+            atrium_api::app::bsky::feed::get_timeline::ParametersData {
+                algorithm: None,
+                cursor: None,
+                limit: None,
+            }
+            .into(),
+        )
+        .await?;
+    for feed_view_post in &output.feed {
         // We call the appropriate moderation function for the content
         let post_mod = moderator.moderate_post(&feed_view_post.post);
         // don't include in feeds?
@@ -127,7 +129,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     assert!(segments[2].text == ", check out this link: ");
     assert!(segments[3].text == "https://example.com" && segments[3].link().is_some());
 
-    let post_record = atrium_api::app::bsky::feed::post::Record {
+    let record_data = atrium_api::app::bsky::feed::post::RecordData {
         created_at: atrium_api::types::string::Datetime::now(),
         embed: None,
         entities: None,
@@ -138,7 +140,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tags: None,
         text: rt.text,
     };
-    println!("{:?}", post_record);
+    println!("{:?}", record_data);
     Ok(())
 }
 ```
