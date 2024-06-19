@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// A preference for a feed view.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FeedViewPreference {
     pub hide_replies: bool,
@@ -28,7 +28,7 @@ impl Default for FeedViewPreference {
 }
 
 /// Preferences for Bluesky application.
-#[derive(Debug, Default, Serialize, Deserialize)]
+#[derive(Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Preferences {
     pub saved_feeds: Vec<SavedFeed>,
@@ -38,8 +38,10 @@ pub struct Preferences {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::moderation::ModerationPrefsLabeler;
     use atrium_api::app::bsky::actor::get_preferences::Output;
-    use serde_json::{from_str, to_string};
+    use serde_json::{from_str, to_string, Value};
 
     const XRPC_PREFERENCES_JSON: &str = r#"{
     "preferences": [
@@ -65,13 +67,44 @@ mod tests {
 
     #[test]
     fn xrpc_preferences_json() {
-        let deserialized = from_str::<Output>(XRPC_PREFERENCES_JSON)
+        let deserialized1 = from_str::<Output>(XRPC_PREFERENCES_JSON)
             .expect("deserializing preferences should succeed");
-        assert_eq!(deserialized.preferences.len(), 2);
-        let serialized = to_string(&deserialized).expect("serializing preferences should succeed");
+        assert_eq!(deserialized1.preferences.len(), 2);
+        let serialized = to_string(&deserialized1).expect("serializing preferences should succeed");
         assert_eq!(
             serialized.replace(char::is_whitespace, ""),
             XRPC_PREFERENCES_JSON.replace(char::is_whitespace, "")
+        );
+        let deserialized2 =
+            from_str::<Output>(&serialized).expect("deserializing preferences should succeed");
+        assert_eq!(deserialized1, deserialized2);
+    }
+
+    #[test]
+    fn sdk_preferences_json() {
+        let preferences = Preferences {
+            saved_feeds: Vec::new(),
+            feed_view_prefs: HashMap::new(),
+            moderation_prefs: ModerationPrefs {
+                labelers: vec![
+                    ModerationPrefsLabeler::default(),
+                    ModerationPrefsLabeler {
+                        did: "did:fake:labeler.test".parse().expect("invalid did"),
+                        labels: HashMap::new(),
+                        is_default_labeler: false,
+                    },
+                ],
+                ..Default::default()
+            },
+        };
+        let serialized1 = to_string(&preferences).expect("serializing preferences should succeed");
+        let deserialized = from_str::<Preferences>(&serialized1)
+            .expect("deserializing preferences should succeed");
+        assert_eq!(preferences, deserialized);
+        let serialized2 = to_string(&deserialized).expect("serializing preferences should succeed");
+        assert_eq!(
+            from_str::<Value>(&serialized1).expect("deserializing to value should succeed"),
+            from_str::<Value>(&serialized2).expect("deserializing to value should succeed"),
         );
     }
 }

@@ -7,7 +7,7 @@ use atrium_api::app::bsky::actor::defs::{
 use atrium_api::app::bsky::graph::defs::{ListView, ListViewBasic};
 use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinitionStrings};
 use atrium_api::types::string::Did;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::{collections::HashMap, str::FromStr};
 
 // behaviors
@@ -628,11 +628,11 @@ pub struct ModerationCauseOther {
 // moderation preferences
 
 /// The labeler preferences for moderation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ModerationPrefsLabeler {
     pub did: Did,
     pub labels: HashMap<String, LabelPreference>,
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     pub is_default_labeler: bool,
 }
 
@@ -647,14 +647,28 @@ impl Default for ModerationPrefsLabeler {
 }
 
 /// The moderation preferences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationPrefs {
     pub adult_content_enabled: bool,
     pub labels: HashMap<String, LabelPreference>,
+    #[serde(deserialize_with = "deserialize_labelers")]
     pub labelers: Vec<ModerationPrefsLabeler>,
     pub muted_words: Vec<MutedWord>,
     pub hidden_posts: Vec<String>,
+}
+
+fn deserialize_labelers<'de, D>(deserializer: D) -> Result<Vec<ModerationPrefsLabeler>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let mut labelers: Vec<ModerationPrefsLabeler> = Deserialize::deserialize(deserializer)?;
+    for labeler in labelers.iter_mut() {
+        if labeler.did.as_str() == BSKY_LABELER_DID {
+            labeler.is_default_labeler = true;
+        }
+    }
+    Ok(labelers)
 }
 
 impl Default for ModerationPrefs {
