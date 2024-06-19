@@ -92,7 +92,7 @@ where
                 .push(ModerationPrefsLabeler::default());
         }
         let mut label_prefs = Vec::new();
-        let output = self
+        for pref in self
             .api
             .app
             .bsky
@@ -100,8 +100,10 @@ where
             .get_preferences(
                 atrium_api::app::bsky::actor::get_preferences::ParametersData {}.into(),
             )
-            .await?;
-        for pref in &output.preferences {
+            .await?
+            .data
+            .preferences
+        {
             match pref {
                 Union::Refs(PreferencesItem::AdultContentPref(p)) => {
                     prefs.moderation_prefs.adult_content_enabled = p.enabled;
@@ -110,7 +112,7 @@ where
                     label_prefs.push(p);
                 }
                 Union::Refs(PreferencesItem::SavedFeedsPrefV2(p)) => {
-                    prefs.saved_feeds = p.items.clone();
+                    prefs.saved_feeds = p.data.items;
                 }
                 Union::Refs(PreferencesItem::FeedViewPref(p)) => {
                     let mut pref = FeedViewPreference::default();
@@ -129,22 +131,23 @@ where
                     if let Some(v) = p.hide_quote_posts {
                         pref.hide_quote_posts = v;
                     }
-                    prefs.feed_view_prefs.insert(p.feed.clone(), pref);
+                    prefs.feed_view_prefs.insert(p.data.feed, pref);
                 }
                 Union::Refs(PreferencesItem::MutedWordsPref(p)) => {
-                    prefs.moderation_prefs.muted_words = p.items.clone();
+                    prefs.moderation_prefs.muted_words = p.data.items;
                 }
                 Union::Refs(PreferencesItem::HiddenPostsPref(p)) => {
-                    prefs.moderation_prefs.hidden_posts = p.items.clone();
+                    prefs.moderation_prefs.hidden_posts = p.data.items;
                 }
                 Union::Unknown(u) => {
                     if u.r#type == "app.bsky.actor.defs#labelersPref" {
                         prefs.moderation_prefs.labelers.extend(
-                            from_ipld::<LabelersPref>(u.data.clone())?
+                            from_ipld::<LabelersPref>(u.data)?
+                                .data
                                 .labelers
-                                .iter()
+                                .into_iter()
                                 .map(|item| ModerationPrefsLabeler {
-                                    did: item.did.clone(),
+                                    did: item.data.did,
                                     labels: HashMap::default(),
                                     is_default_labeler: false,
                                 }),
@@ -157,22 +160,22 @@ where
             }
         }
         for pref in label_prefs {
-            if let Some(did) = &pref.labeler_did {
+            if let Some(did) = pref.data.labeler_did {
                 if let Some(l) = prefs
                     .moderation_prefs
                     .labelers
                     .iter_mut()
-                    .find(|l| &l.did == did)
+                    .find(|l| l.did == did)
                 {
                     l.labels.insert(
-                        pref.label.clone(),
-                        pref.visibility.parse().expect("invalid visibility"),
+                        pref.data.label,
+                        pref.data.visibility.parse().expect("invalid visibility"),
                     );
                 }
             } else {
                 prefs.moderation_prefs.labels.insert(
-                    pref.label.clone(),
-                    pref.visibility.parse().expect("invalid visibility"),
+                    pref.data.label,
+                    pref.data.visibility.parse().expect("invalid visibility"),
                 );
             }
         }
@@ -225,7 +228,7 @@ where
             );
         }
         Ok(Moderator::new(
-            self.get_session().await.map(|s| s.did.clone()),
+            self.get_session().await.map(|s| s.data.did),
             preferences.moderation_prefs.clone(),
             label_defs,
         ))

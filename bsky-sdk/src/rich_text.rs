@@ -240,7 +240,7 @@ impl RichText {
                                 atrium_api::com::atproto::identity::resolve_handle::ParametersData {
                                     handle: mention.handle.parse().expect("invalid handle"),
                                 }.into()
-                            ).await?.did.clone();
+                            ).await?.data.did;
                             features.push(Union::Refs(MainFeaturesItem::Mention(Box::new(
                                 MentionData { did }.into(),
                             ))));

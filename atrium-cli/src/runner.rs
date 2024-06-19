@@ -337,8 +337,8 @@ impl Runner {
                             .into(),
                         )
                         .await?
-                        .did
-                        .clone(),
+                        .data
+                        .did,
                     AtIdentifier::Did(did) => did,
                 };
                 let chat = &self
@@ -364,7 +364,7 @@ impl Runner {
                         .convo
                         .send_message(
                             atrium_api::chat::bsky::convo::send_message::InputData {
-                                convo_id: convo.convo.id.clone(),
+                                convo_id: convo.data.convo.data.id,
                                 message: atrium_api::chat::bsky::convo::defs::MessageInputData {
                                     embed: None,
                                     facets: None,
@@ -400,7 +400,7 @@ impl Runner {
                                     .unwrap_or_default()
                                     .into(),
                                 aspect_ratio: None,
-                                image: output.blob.clone(),
+                                image: output.data.blob,
                             }
                             .into(),
                         )

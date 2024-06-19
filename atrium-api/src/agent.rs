@@ -91,15 +91,15 @@ where
         let result = self.api.com.atproto.server.get_session().await;
         match result {
             Ok(output) => {
-                assert_eq!(output.did, session.did);
+                assert_eq!(output.data.did, session.data.did);
                 if let Some(mut session) = self.store.get_session().await {
-                    session.did_doc = output.did_doc.clone();
-                    session.email = output.email.clone();
-                    session.email_confirmed = output.email_confirmed;
-                    session.handle = output.handle.clone();
+                    session.did_doc = output.data.did_doc.clone();
+                    session.email = output.data.email;
+                    session.email_confirmed = output.data.email_confirmed;
+                    session.handle = output.data.handle;
                     self.store.set_session(session).await;
                 }
-                if let Some(did_doc) = &output.did_doc {
+                if let Some(did_doc) = &output.data.did_doc {
                     self.store.update_endpoint(did_doc);
                 }
                 Ok(())
@@ -337,25 +337,22 @@ mod tests {
         let session_data = session_data();
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(
-                    crate::com::atproto::server::get_session::OutputData {
-                        active: session_data.active.clone(),
-                        did: session_data.did.clone(),
-                        did_doc: session_data.did_doc.clone(),
-                        email: session_data.email.clone(),
-                        email_auth_factor: session_data.email_auth_factor,
-                        email_confirmed: session_data.email_confirmed,
-                        handle: session_data.handle.clone(),
-                        status: session_data.status.clone(),
-                    }
-                    .into(),
-                ),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
+                }),
                 ..Default::default()
             },
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.store.set_session(session_data.into()).await;
+        agent.store.set_session(session_data.clone().into()).await;
         let output = agent
             .api
             .com
@@ -370,29 +367,26 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_xrpc_get_session_with_refresh() {
-        let mut session = session_data();
-        session.access_jwt = String::from("expired");
+        let mut session_data = session_data();
+        session_data.access_jwt = String::from("expired");
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(
-                    crate::com::atproto::server::get_session::OutputData {
-                        active: session.active.clone(),
-                        did: session.did.clone(),
-                        did_doc: session.did_doc.clone(),
-                        email: session.email.clone(),
-                        email_auth_factor: session.email_auth_factor,
-                        email_confirmed: session.email_confirmed,
-                        handle: session.handle.clone(),
-                        status: session.status.clone(),
-                    }
-                    .into(),
-                ),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
+                }),
                 ..Default::default()
             },
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.store.set_session(session.into()).await;
+        agent.store.set_session(session_data.clone().into()).await;
         let output = agent
             .api
             .com
@@ -407,7 +401,7 @@ mod tests {
                 .store
                 .get_session()
                 .await
-                .map(|session| session.access_jwt.clone()),
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
     }
@@ -415,30 +409,27 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[tokio::test]
     async fn test_xrpc_get_session_with_duplicated_refresh() {
-        let mut session = session_data();
-        session.access_jwt = String::from("expired");
+        let mut session_data = session_data();
+        session_data.access_jwt = String::from("expired");
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(
-                    crate::com::atproto::server::get_session::OutputData {
-                        active: session.active.clone(),
-                        did: session.did.clone(),
-                        did_doc: session.did_doc.clone(),
-                        email: session.email.clone(),
-                        email_auth_factor: session.email_auth_factor,
-                        email_confirmed: session.email_confirmed,
-                        handle: session.handle.clone(),
-                        status: session.status.clone(),
-                    }
-                    .into(),
-                ),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
+                }),
                 ..Default::default()
             },
             ..Default::default()
         };
         let counts = Arc::clone(&client.counts);
         let agent = Arc::new(AtpAgent::new(client, MemorySessionStore::default()));
-        agent.store.set_session(session.into()).await;
+        agent.store.set_session(session_data.clone().into()).await;
         let handles = (0..3).map(|_| {
             let agent = Arc::clone(&agent);
             tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
@@ -457,7 +448,7 @@ mod tests {
                 .store
                 .get_session()
                 .await
-                .map(|session| session.access_jwt.clone()),
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
         assert_eq!(
@@ -477,19 +468,16 @@ mod tests {
         {
             let client = MockClient {
                 responses: MockResponses {
-                    get_session: Some(
-                        crate::com::atproto::server::get_session::OutputData {
-                            active: session_data.active.clone(),
-                            did: session_data.did.clone(),
-                            did_doc: session_data.did_doc.clone(),
-                            email: session_data.email.clone(),
-                            email_auth_factor: session_data.email_auth_factor,
-                            email_confirmed: session_data.email_confirmed,
-                            handle: session_data.handle.clone(),
-                            status: session_data.status.clone(),
-                        }
-                        .into(),
-                    ),
+                    get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                        active: session_data.active,
+                        did: session_data.did.clone(),
+                        did_doc: session_data.did_doc.clone(),
+                        email: session_data.email.clone(),
+                        email_auth_factor: session_data.email_auth_factor,
+                        email_confirmed: session_data.email_confirmed,
+                        handle: session_data.handle.clone(),
+                        status: session_data.status.clone(),
+                    }),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -532,19 +520,16 @@ mod tests {
         let session_data = session_data();
         let client = MockClient {
             responses: MockResponses {
-                get_session: Some(
-                    crate::com::atproto::server::get_session::OutputData {
-                        active: session_data.active.clone(),
-                        did: session_data.did.clone(),
-                        did_doc: session_data.did_doc.clone(),
-                        email: session_data.email.clone(),
-                        email_auth_factor: session_data.email_auth_factor,
-                        email_confirmed: session_data.email_confirmed,
-                        handle: session_data.handle.clone(),
-                        status: session_data.status.clone(),
-                    }
-                    .into(),
-                ),
+                get_session: Some(crate::com::atproto::server::get_session::OutputData {
+                    active: session_data.active,
+                    did: session_data.did.clone(),
+                    did_doc: session_data.did_doc.clone(),
+                    email: session_data.email.clone(),
+                    email_auth_factor: session_data.email_auth_factor,
+                    email_confirmed: session_data.email_confirmed,
+                    handle: session_data.handle.clone(),
+                    status: session_data.status.clone(),
+                }),
                 ..Default::default()
             },
             ..Default::default()
@@ -560,7 +545,7 @@ mod tests {
             )
             .await
             .expect("resume_session should be succeeded");
-        assert_eq!(agent.get_session().await, Some(session_data.into()));
+        assert_eq!(agent.get_session().await, Some(session_data.clone().into()));
     }
 
     #[tokio::test]

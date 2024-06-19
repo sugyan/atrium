@@ -162,10 +162,7 @@ mod tests {
                 .await?;
             assert_eq!(agent.get_endpoint().await, "https://bsky.social");
             assert_eq!(
-                agent
-                    .get_session()
-                    .await
-                    .map(|session| session.handle.clone()),
+                agent.get_session().await.map(|session| session.data.handle),
                 Some("handle.test".parse().expect("invalid handle"))
             );
         }
@@ -202,10 +199,7 @@ mod tests {
                 .await?;
             assert_eq!(agent.get_endpoint().await, "https://bsky.social");
             assert_eq!(
-                agent
-                    .get_session()
-                    .await
-                    .map(|session| session.handle.clone()),
+                agent.get_session().await.map(|session| session.data.handle),
                 Some("handle.test".parse().expect("invalid handle"))
             );
         }

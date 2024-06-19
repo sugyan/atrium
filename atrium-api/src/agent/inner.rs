@@ -86,9 +86,9 @@ where
     async fn authentication_token(&self, is_refresh: bool) -> Option<String> {
         self.store.get_session().await.map(|session| {
             if is_refresh {
-                session.refresh_jwt.clone()
+                session.data.refresh_jwt
             } else {
-                session.access_jwt.clone()
+                session.data.access_jwt
             }
         })
     }
@@ -178,14 +178,14 @@ where
     async fn refresh_session_inner(&self) {
         if let Ok(output) = self.call_refresh_session().await {
             if let Some(mut session) = self.store.get_session().await {
-                session.access_jwt = output.access_jwt.clone();
-                session.did = output.did.clone();
-                session.did_doc = output.did_doc.clone();
-                session.handle = output.handle.clone();
-                session.refresh_jwt = output.refresh_jwt.clone();
+                session.access_jwt = output.data.access_jwt;
+                session.did = output.data.did;
+                session.did_doc = output.data.did_doc.clone();
+                session.handle = output.data.handle;
+                session.refresh_jwt = output.data.refresh_jwt;
                 self.store.set_session(session).await;
             }
-            if let Some(did_doc) = &output.did_doc {
+            if let Some(did_doc) = &output.data.did_doc {
                 self.store.update_endpoint(did_doc);
             }
         } else {
