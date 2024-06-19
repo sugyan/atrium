@@ -3,7 +3,7 @@
 pub const NSID: &str = "tools.ozone.communication.updateTemplate";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///Content of the template, markdown supported, can contain variable placeholders.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub content_markdown: Option<String>,
@@ -20,9 +20,8 @@ pub struct Input {
     ///DID of the user who is updating the template.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub updated_by: Option<crate::types::string::Did>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::communication::defs::TemplateView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

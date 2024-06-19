@@ -3,24 +3,22 @@
 pub const NSID: &str = "com.atproto.admin.updateSubjectStatus";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub deactivated: Option<crate::com::atproto::admin::defs::StatusAttr>,
     pub subject: crate::types::Union<InputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takedown: Option<crate::com::atproto::admin::defs::StatusAttr>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub subject: crate::types::Union<OutputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takedown: Option<crate::com::atproto::admin::defs::StatusAttr>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

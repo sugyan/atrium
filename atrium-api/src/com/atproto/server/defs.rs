@@ -2,7 +2,7 @@
 //!Definitions for the `com.atproto.server.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct InviteCode {
+pub struct InviteCodeData {
     pub available: i64,
     pub code: String,
     pub created_at: crate::types::string::Datetime,
@@ -10,14 +10,12 @@ pub struct InviteCode {
     pub disabled: bool,
     pub for_account: String,
     pub uses: Vec<InviteCodeUse>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type InviteCode = crate::types::Object<InviteCodeData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct InviteCodeUse {
+pub struct InviteCodeUseData {
     pub used_at: crate::types::string::Datetime,
     pub used_by: crate::types::string::Did,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type InviteCodeUse = crate::types::Object<InviteCodeUseData>;

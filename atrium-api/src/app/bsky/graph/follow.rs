@@ -2,9 +2,8 @@
 //!Definitions for the `app.bsky.graph.follow` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     pub created_at: crate::types::string::Datetime,
     pub subject: crate::types::string::Did,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Record = crate::types::Object<RecordData>;

@@ -3,13 +3,12 @@
 pub const NSID: &str = "com.atproto.sync.subscribeRepos";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///The last known event seq number to backfill from.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<i64>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
@@ -39,7 +38,7 @@ impl std::fmt::Display for Error {
 ///Represents a change to an account's status on a host (eg, PDS or Relay). The semantics of this event are that the status is at the host which emitted the event, not necessarily that at the currently active PDS. Eg, a Relay takedown would emit a takedown with active=false, even if the PDS is still active.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Account {
+pub struct AccountData {
     ///Indicates that the account has a repository which can be fetched from the host that emitted this event.
     pub active: bool,
     pub did: crate::types::string::Did,
@@ -48,13 +47,12 @@ pub struct Account {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
     pub time: crate::types::string::Datetime,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Account = crate::types::Object<AccountData>;
 ///Represents an update of repository state. Note that empty commits are allowed, which include no repo data changes, but an update to rev and signature.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Commit {
+pub struct CommitData {
     pub blobs: Vec<crate::types::CidLink>,
     ///CAR file containing relevant blocks, as a diff since the previous repo state.
     #[serde(with = "serde_bytes")]
@@ -80,76 +78,69 @@ pub struct Commit {
     pub time: crate::types::string::Datetime,
     ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
     pub too_big: bool,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Commit = crate::types::Object<CommitData>;
 ///DEPRECATED -- Use #identity event instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Handle {
+pub struct HandleData {
     pub did: crate::types::string::Did,
     pub handle: crate::types::string::Handle,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Handle = crate::types::Object<HandleData>;
 ///Represents a change to an account's identity. Could be an updated handle, signing key, or pds hosting endpoint. Serves as a prod to all downstream services to refresh their identity cache.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Identity {
+pub struct IdentityData {
     pub did: crate::types::string::Did,
     ///The current handle for the account, or 'handle.invalid' if validation fails. This field is optional, might have been validated or passed-through from an upstream source. Semantics and behaviors for PDS vs Relay may evolve in the future; see atproto specs for more details.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub handle: Option<crate::types::string::Handle>,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Identity = crate::types::Object<IdentityData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Info {
+pub struct InfoData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub message: Option<String>,
     pub name: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Info = crate::types::Object<InfoData>;
 ///DEPRECATED -- Use #account event instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Migrate {
+pub struct MigrateData {
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub migrate_to: Option<String>,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Migrate = crate::types::Object<MigrateData>;
 ///A repo operation, ie a mutation of a single record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RepoOp {
+pub struct RepoOpData {
     pub action: String,
     ///For creates and updates, the new record CID. For deletions, null.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::CidLink>,
     pub path: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type RepoOp = crate::types::Object<RepoOpData>;
 ///DEPRECATED -- Use #account event instead
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Tombstone {
+pub struct TombstoneData {
     pub did: crate::types::string::Did,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Tombstone = crate::types::Object<TombstoneData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum Message {

@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.repo.listRecords";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///The NSID of the record type.
     pub collection: crate::types::string::Nsid,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -22,18 +22,16 @@ pub struct Parameters {
     ///DEPRECATED: The lowest sort-ordered rkey to start from (exclusive)
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey_start: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub records: Vec<Record>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
@@ -44,10 +42,9 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
     pub value: crate::records::Record,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Record = crate::types::Object<RecordData>;

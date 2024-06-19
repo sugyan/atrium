@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.server.refreshSession";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub access_jwt: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active: Option<bool>,
@@ -15,9 +15,8 @@ pub struct Output {
     ///Hosting status of the account. If not specified, then assume 'active'.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

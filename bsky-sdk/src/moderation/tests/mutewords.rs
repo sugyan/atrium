@@ -1,16 +1,15 @@
 use super::{post_view, profile_view_basic};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::{ModerationPrefs, Moderator};
-use atrium_api::app::bsky::actor::defs::MutedWord;
-use atrium_api::types::EMPTY_EXTRA_DATA;
+use atrium_api::app::bsky::actor::defs::{MutedWord, MutedWordData};
 use std::collections::HashMap;
 
 fn muted_word(target: &str, value: &str) -> MutedWord {
-    MutedWord {
+    MutedWordData {
         targets: vec![String::from(target)],
         value: String::from(value),
-        extra_data: EMPTY_EXTRA_DATA,
     }
+    .into()
 }
 
 #[cfg(feature = "rich-text")]

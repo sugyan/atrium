@@ -2,7 +2,7 @@
 //!Definitions for the `chat.bsky.actor.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileViewBasic {
+pub struct ProfileViewBasicData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub associated: Option<crate::app::bsky::actor::defs::ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -18,6 +18,5 @@ pub struct ProfileViewBasic {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ProfileViewBasic = crate::types::Object<ProfileViewBasicData>;

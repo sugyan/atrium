@@ -2,15 +2,13 @@
 //!Definitions for the `app.bsky.unspecced.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SkeletonSearchActor {
+pub struct SkeletonSearchActorData {
     pub did: crate::types::string::Did,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type SkeletonSearchActor = crate::types::Object<SkeletonSearchActorData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SkeletonSearchPost {
+pub struct SkeletonSearchPostData {
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type SkeletonSearchPost = crate::types::Object<SkeletonSearchPostData>;

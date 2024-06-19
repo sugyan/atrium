@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.server.createAccount";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///Pre-existing atproto DID, being imported to a new account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub did: Option<crate::types::string::Did>,
@@ -26,13 +26,12 @@ pub struct Input {
     pub verification_code: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification_phone: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Input = crate::types::Object<InputData>;
 ///Account login session returned on successful account creation.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub access_jwt: String,
     ///The DID of the new account.
     pub did: crate::types::string::Did,
@@ -41,9 +40,8 @@ pub struct Output {
     pub did_doc: Option<crate::did_doc::DidDocument>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

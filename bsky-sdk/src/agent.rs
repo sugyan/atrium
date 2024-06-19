@@ -11,7 +11,7 @@ use crate::preference::{FeedViewPreference, Preferences};
 use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::{LabelersPref, PreferencesItem};
-use atrium_api::types::{Union, EMPTY_EXTRA_DATA};
+use atrium_api::types::Union;
 use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
@@ -92,17 +92,16 @@ where
                 .push(ModerationPrefsLabeler::default());
         }
         let mut label_prefs = Vec::new();
-        for pref in self
+        let output = self
             .api
             .app
             .bsky
             .actor
-            .get_preferences(atrium_api::app::bsky::actor::get_preferences::Parameters {
-                extra_data: EMPTY_EXTRA_DATA,
-            })
-            .await?
-            .preferences
-        {
+            .get_preferences(
+                atrium_api::app::bsky::actor::get_preferences::ParametersData {}.into(),
+            )
+            .await?;
+        for pref in &output.preferences {
             match pref {
                 Union::Refs(PreferencesItem::AdultContentPref(p)) => {
                     prefs.moderation_prefs.adult_content_enabled = p.enabled;
@@ -111,7 +110,7 @@ where
                     label_prefs.push(p);
                 }
                 Union::Refs(PreferencesItem::SavedFeedsPrefV2(p)) => {
-                    prefs.saved_feeds = p.items;
+                    prefs.saved_feeds = p.items.clone();
                 }
                 Union::Refs(PreferencesItem::FeedViewPref(p)) => {
                     let mut pref = FeedViewPreference::default();
@@ -130,22 +129,22 @@ where
                     if let Some(v) = p.hide_quote_posts {
                         pref.hide_quote_posts = v;
                     }
-                    prefs.feed_view_prefs.insert(p.feed, pref);
+                    prefs.feed_view_prefs.insert(p.feed.clone(), pref);
                 }
                 Union::Refs(PreferencesItem::MutedWordsPref(p)) => {
-                    prefs.moderation_prefs.muted_words = p.items;
+                    prefs.moderation_prefs.muted_words = p.items.clone();
                 }
                 Union::Refs(PreferencesItem::HiddenPostsPref(p)) => {
-                    prefs.moderation_prefs.hidden_posts = p.items;
+                    prefs.moderation_prefs.hidden_posts = p.items.clone();
                 }
                 Union::Unknown(u) => {
                     if u.r#type == "app.bsky.actor.defs#labelersPref" {
                         prefs.moderation_prefs.labelers.extend(
-                            from_ipld::<LabelersPref>(u.data)?
+                            from_ipld::<LabelersPref>(u.data.clone())?
                                 .labelers
-                                .into_iter()
+                                .iter()
                                 .map(|item| ModerationPrefsLabeler {
-                                    did: item.did,
+                                    did: item.did.clone(),
                                     labels: HashMap::default(),
                                     is_default_labeler: false,
                                 }),
@@ -158,21 +157,21 @@ where
             }
         }
         for pref in label_prefs {
-            if let Some(did) = pref.labeler_did {
+            if let Some(did) = &pref.labeler_did {
                 if let Some(l) = prefs
                     .moderation_prefs
                     .labelers
                     .iter_mut()
-                    .find(|l| l.did == did)
+                    .find(|l| &l.did == did)
                 {
                     l.labels.insert(
-                        pref.label,
+                        pref.label.clone(),
                         pref.visibility.parse().expect("invalid visibility"),
                     );
                 }
             } else {
                 prefs.moderation_prefs.labels.insert(
-                    pref.label,
+                    pref.label.clone(),
                     pref.visibility.parse().expect("invalid visibility"),
                 );
             }
@@ -197,25 +196,26 @@ where
     }
     /// Make a [`Moderator`] instance with the provided [`Preferences`].
     pub async fn moderator(&self, preferences: &Preferences) -> Result<Moderator> {
-        let labelers = self
+        let output = self
             .api
             .app
             .bsky
             .labeler
-            .get_services(atrium_api::app::bsky::labeler::get_services::Parameters {
-                detailed: Some(true),
-                dids: preferences
-                    .moderation_prefs
-                    .labelers
-                    .iter()
-                    .map(|labeler| labeler.did.clone())
-                    .collect(),
-                extra_data: EMPTY_EXTRA_DATA,
-            })
-            .await?
-            .views;
-        let mut label_defs = HashMap::with_capacity(labelers.len());
-        for labeler in &labelers {
+            .get_services(
+                atrium_api::app::bsky::labeler::get_services::ParametersData {
+                    detailed: Some(true),
+                    dids: preferences
+                        .moderation_prefs
+                        .labelers
+                        .iter()
+                        .map(|labeler| labeler.did.clone())
+                        .collect(),
+                }
+                .into(),
+            )
+            .await?;
+        let mut label_defs = HashMap::with_capacity(output.views.len());
+        for labeler in &output.views {
             let Union::Refs(atrium_api::app::bsky::labeler::get_services::OutputViewsItem::AppBskyLabelerDefsLabelerViewDetailed(labeler_view)) = labeler else {
                 continue;
             };
@@ -225,7 +225,7 @@ where
             );
         }
         Ok(Moderator::new(
-            self.get_session().await.map(|s| s.did),
+            self.get_session().await.map(|s| s.did.clone()),
             preferences.moderation_prefs.clone(),
             label_defs,
         ))

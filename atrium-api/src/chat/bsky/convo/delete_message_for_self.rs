@@ -3,12 +3,11 @@
 pub const NSID: &str = "chat.bsky.convo.deleteMessageForSelf";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub convo_id: String,
     pub message_id: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::chat::bsky::convo::defs::DeletedMessageView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

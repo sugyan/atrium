@@ -3,15 +3,14 @@
 pub const NSID: &str = "tools.ozone.moderation.emitEvent";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     pub created_by: crate::types::string::Did,
     pub event: crate::types::Union<InputEventRefs>,
     pub subject: crate::types::Union<InputSubjectRefs>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::moderation::defs::ModEventView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]

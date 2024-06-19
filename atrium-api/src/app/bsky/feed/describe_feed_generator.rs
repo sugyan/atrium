@@ -3,14 +3,13 @@
 pub const NSID: &str = "app.bsky.feed.describeFeedGenerator";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub did: crate::types::string::Did,
     pub feeds: Vec<Feed>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub links: Option<Links>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
@@ -21,18 +20,16 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Feed {
+pub struct FeedData {
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Feed = crate::types::Object<FeedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Links {
+pub struct LinksData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privacy_policy: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub terms_of_service: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Links = crate::types::Object<LinksData>;

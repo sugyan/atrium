@@ -3,8 +3,10 @@ mod detection;
 use crate::error::Result;
 use crate::rich_text::{RichText, RichTextSegment};
 use crate::tests::MockClient;
-use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, Main, MainFeaturesItem, Mention};
-use atrium_api::types::{Union, UnknownData, EMPTY_EXTRA_DATA};
+use atrium_api::app::bsky::richtext::facet::{
+    ByteSliceData, LinkData, Main, MainData, MainFeaturesItem, MentionData,
+};
+use atrium_api::types::{Union, UnknownData};
 use ipld_core::ipld::Ipld;
 
 pub async fn rich_text_with_detect_facets(text: &str) -> Result<RichText> {
@@ -21,18 +23,18 @@ pub async fn rich_text_with_detect_facets(text: &str) -> Result<RichText> {
 }
 
 fn facet(byte_start: usize, byte_end: usize) -> Main {
-    Main {
+    MainData {
         features: vec![Union::Unknown(UnknownData {
             r#type: String::new(),
             data: Ipld::Null,
         })],
-        index: ByteSlice {
+        index: ByteSliceData {
             byte_end,
             byte_start,
-            extra_data: EMPTY_EXTRA_DATA,
-        },
-        extra_data: EMPTY_EXTRA_DATA,
+        }
+        .into(),
     }
+    .into()
 }
 
 #[test]
@@ -431,30 +433,34 @@ fn segments() {
         let input = RichText::new(
             "one two three",
             Some(vec![
-                Main {
-                    features: vec![Union::Refs(MainFeaturesItem::Mention(Box::new(Mention {
-                        did: "did:plc:123".parse().expect("invalid did"),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    })))],
-                    index: ByteSlice {
+                MainData {
+                    features: vec![Union::Refs(MainFeaturesItem::Mention(Box::new(
+                        MentionData {
+                            did: "did:plc:123".parse().expect("invalid did"),
+                        }
+                        .into(),
+                    )))],
+                    index: ByteSliceData {
                         byte_end: 3,
                         byte_start: 0,
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
-                    extra_data: EMPTY_EXTRA_DATA,
-                },
-                Main {
-                    features: vec![Union::Refs(MainFeaturesItem::Link(Box::new(Link {
-                        uri: String::from("https://example.com"),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    })))],
-                    index: ByteSlice {
+                    }
+                    .into(),
+                }
+                .into(),
+                MainData {
+                    features: vec![Union::Refs(MainFeaturesItem::Link(Box::new(
+                        LinkData {
+                            uri: String::from("https://example.com"),
+                        }
+                        .into(),
+                    )))],
+                    index: ByteSliceData {
                         byte_end: 7,
                         byte_start: 4,
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
-                    extra_data: EMPTY_EXTRA_DATA,
-                },
+                    }
+                    .into(),
+                }
+                .into(),
                 facet(8, 13),
             ]),
         );

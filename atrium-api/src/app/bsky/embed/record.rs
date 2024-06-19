@@ -3,38 +3,34 @@
 //!A representation of a record embedded in a Bluesky record (eg, a post). For example, a quote-post, or sharing a feed generator record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Main {
+pub struct MainData {
     pub record: crate::com::atproto::repo::strong_ref::Main,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Main = crate::types::Object<MainData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct View {
+pub struct ViewData {
     pub record: crate::types::Union<ViewRecordRefs>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type View = crate::types::Object<ViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewBlocked {
+pub struct ViewBlockedData {
     pub author: crate::app::bsky::feed::defs::BlockedAuthor,
     pub blocked: bool,
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ViewBlocked = crate::types::Object<ViewBlockedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewNotFound {
+pub struct ViewNotFoundData {
     pub not_found: bool,
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ViewNotFound = crate::types::Object<ViewNotFoundData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewRecord {
+pub struct ViewRecordData {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: crate::types::string::Cid,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -51,9 +47,8 @@ pub struct ViewRecord {
     pub uri: String,
     ///The record data itself.
     pub value: crate::records::Record,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ViewRecord = crate::types::Object<ViewRecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ViewRecordEmbedsItem {

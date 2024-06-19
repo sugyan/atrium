@@ -3,7 +3,7 @@
 pub const NSID: &str = "tools.ozone.moderation.queryStatuses";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///Get subjects in unresolved appealed status
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appealed: Option<bool>,
@@ -53,18 +53,16 @@ pub struct Parameters {
     ///Get subjects that were taken down
     #[serde(skip_serializing_if = "Option::is_none")]
     pub takendown: Option<bool>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub subject_statuses: Vec<crate::tools::ozone::moderation::defs::SubjectStatusView>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

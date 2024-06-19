@@ -3,37 +3,33 @@
 ///A representation of some externally linked content (eg, a URL and 'card'), embedded in a Bluesky record (eg, a post).
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Main {
+pub struct MainData {
     pub external: External,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Main = crate::types::Object<MainData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct External {
+pub struct ExternalData {
     pub description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumb: Option<crate::types::BlobRef>,
     pub title: String,
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type External = crate::types::Object<ExternalData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct View {
+pub struct ViewData {
     pub external: ViewExternal,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type View = crate::types::Object<ViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewExternal {
+pub struct ViewExternalData {
     pub description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub thumb: Option<String>,
     pub title: String,
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ViewExternal = crate::types::Object<ViewExternalData>;

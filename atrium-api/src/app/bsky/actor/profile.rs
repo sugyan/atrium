@@ -2,7 +2,7 @@
 //!Definitions for the `app.bsky.actor.profile` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     ///Small image to be displayed next to posts from account. AKA, 'profile picture'
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<crate::types::BlobRef>,
@@ -17,9 +17,8 @@ pub struct Record {
     ///Self-label values, specific to the Bluesky application, on the overall account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Record = crate::types::Object<RecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum RecordLabelsRefs {

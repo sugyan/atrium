@@ -3,7 +3,7 @@
 pub const NSID: &str = "tools.ozone.server.getConfig";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appview: Option<ServiceConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -14,9 +14,8 @@ pub struct Output {
     pub pds: Option<ServiceConfig>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerConfig>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
@@ -27,17 +26,15 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ServiceConfig {
+pub struct ServiceConfigData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ServiceConfig = crate::types::Object<ServiceConfigData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewerConfig {
+pub struct ViewerConfigData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub role: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type ViewerConfig = crate::types::Object<ViewerConfigData>;

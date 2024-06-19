@@ -3,7 +3,7 @@
 pub const NSID: &str = "app.bsky.feed.getPostThread";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///How many levels of reply depth should be included in response.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub depth: Option<crate::types::LimitedU16<1000u16>>,
@@ -12,16 +12,14 @@ pub struct Parameters {
     pub parent_height: Option<crate::types::LimitedU16<1000u16>>,
     ///Reference (AT-URI) to post record.
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub thread: crate::types::Union<OutputThreadRefs>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

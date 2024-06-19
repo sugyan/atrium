@@ -7,12 +7,11 @@ use crate::moderation::decision::{DecisionContext, ModerationDecision};
 use crate::moderation::types::*;
 use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
-use atrium_api::app::bsky::actor::defs::ProfileViewBasic;
-use atrium_api::app::bsky::feed::defs::PostView;
-use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinition};
+use atrium_api::app::bsky::actor::defs::{ProfileViewBasic, ProfileViewBasicData};
+use atrium_api::app::bsky::feed::defs::{PostView, PostViewData};
+use atrium_api::com::atproto::label::defs::{Label, LabelData, LabelValueDefinitionData};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
-use atrium_api::types::EMPTY_EXTRA_DATA;
 use std::collections::HashMap;
 
 const FAKE_CID: &str = "bafyreiclp443lavogvhj3d2ob2cxbfuscni2k5jk7bebjzg7khl3esabwq";
@@ -58,7 +57,7 @@ fn profile_view_basic(
     display_name: Option<&str>,
     labels: Option<Vec<Label>>,
 ) -> ProfileViewBasic {
-    ProfileViewBasic {
+    ProfileViewBasicData {
         associated: None,
         avatar: None,
         did: format!("did:web:{handle}").parse().expect("invalid did"),
@@ -66,12 +65,12 @@ fn profile_view_basic(
         handle: handle.parse().expect("invalid handle"),
         labels,
         viewer: None,
-        extra_data: EMPTY_EXTRA_DATA,
     }
+    .into()
 }
 
 fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) -> PostView {
-    PostView {
+    PostViewData {
         author: author.clone(),
         cid: FAKE_CID.parse().expect("invalid cid"),
         embed: None,
@@ -79,7 +78,7 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
         labels,
         like_count: None,
         record: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(
-            atrium_api::app::bsky::feed::post::Record {
+            atrium_api::app::bsky::feed::post::RecordData {
                 created_at: Datetime::now(),
                 embed: None,
                 entities: None,
@@ -89,20 +88,20 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
                 reply: None,
                 tags: None,
                 text: text.into(),
-                extra_data: EMPTY_EXTRA_DATA,
-            },
+            }
+            .into(),
         ))),
         reply_count: None,
         repost_count: None,
         threadgate: None,
         uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
         viewer: None,
-        extra_data: EMPTY_EXTRA_DATA,
     }
+    .into()
 }
 
 fn label(src: &str, uri: &str, val: &str) -> Label {
-    Label {
+    LabelData {
         cid: None,
         cts: Datetime::now(),
         exp: None,
@@ -112,8 +111,8 @@ fn label(src: &str, uri: &str, val: &str) -> Label {
         uri: uri.into(),
         val: val.into(),
         ver: None,
-        extra_data: EMPTY_EXTRA_DATA,
     }
+    .into()
 }
 
 fn assert_ui(decision: &ModerationDecision, expected: &[ResultFlag], context: DecisionContext) {
@@ -324,15 +323,15 @@ fn prioritize_custom_labels() {
         HashMap::from_iter([(
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
-                &LabelValueDefinition {
+                &LabelValueDefinitionData {
                     identifier: String::from("porn"),
                     default_setting: Some(String::from("warn")),
                     severity: String::from("inform"),
                     blurs: String::from("none"),
                     adult_only: None,
                     locales: Vec::new(),
-                    extra_data: EMPTY_EXTRA_DATA,
-                },
+                }
+                .into(),
                 Some("did:web:labeler.test".parse().expect("invalid did")),
             )
             .expect("invalid label value definition")],
@@ -374,15 +373,15 @@ fn does_not_override_imperative_labels() {
         HashMap::from_iter([(
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
-                &LabelValueDefinition {
+                &LabelValueDefinitionData {
                     identifier: String::from("!hide"),
                     default_setting: Some(String::from("warn")),
                     severity: String::from("inform"),
                     blurs: String::from("none"),
                     adult_only: None,
                     locales: Vec::new(),
-                    extra_data: EMPTY_EXTRA_DATA,
-                },
+                }
+                .into(),
                 Some("did:web:labeler.test".parse().expect("invalid did")),
             )
             .expect("invalid label value definition")],
@@ -430,28 +429,28 @@ fn ignore_invalid_label_value_names() {
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![
                 interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         identifier: String::from("BadLabel"),
                         default_setting: Some(String::from("warn")),
                         severity: String::from("inform"),
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
                 .expect("invalid label value definition"),
                 interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         identifier: String::from("bad/label"),
                         default_setting: Some(String::from("warn")),
                         severity: String::from("inform"),
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
                 .expect("invalid label value definition"),
@@ -497,41 +496,41 @@ fn custom_labels_with_default_settings() {
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![
                 interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         identifier: String::from("default-hide"),
                         default_setting: Some(String::from("hide")),
                         severity: String::from("inform"),
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
                 .expect("invalid label value definition"),
                 interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         identifier: String::from("default-warn"),
                         default_setting: Some(String::from("warn")),
                         severity: String::from("inform"),
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
                 .expect("invalid label value definition"),
                 interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         identifier: String::from("default-ignore"),
                         default_setting: Some(String::from("ignore")),
                         severity: String::from("inform"),
                         blurs: String::from("content"),
                         adult_only: None,
                         locales: Vec::new(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )
                 .expect("invalid label value definition"),
@@ -610,15 +609,15 @@ fn custom_labels_require_adult_content_enabled() {
         HashMap::from_iter([(
             "did:web:labeler.test".parse().expect("invalid did"),
             vec![interpret_label_value_definition(
-                &LabelValueDefinition {
+                &LabelValueDefinitionData {
                     identifier: String::from("adult"),
                     default_setting: Some(String::from("hide")),
                     severity: String::from("inform"),
                     blurs: String::from("content"),
                     adult_only: Some(true),
                     locales: Vec::new(),
-                    extra_data: EMPTY_EXTRA_DATA,
-                },
+                }
+                .into(),
                 Some("did:web:labeler.test".parse().expect("invalid did")),
             )
             .expect("invalid label value definition")],

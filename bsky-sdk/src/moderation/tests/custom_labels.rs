@@ -5,8 +5,7 @@ use crate::moderation::error::Result;
 use crate::moderation::types::*;
 use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
-use atrium_api::com::atproto::label::defs::LabelValueDefinition;
-use atrium_api::types::EMPTY_EXTRA_DATA;
+use atrium_api::com::atproto::label::defs::LabelValueDefinitionData;
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -90,15 +89,15 @@ impl Scenario {
             HashMap::from_iter([(
                 "did:web:labeler.test".parse().expect("invalid did"),
                 vec![interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         adult_only: None,
                         blurs: self.blurs.as_ref().to_string(),
                         default_setting: Some(LabelPreference::Warn.as_ref().to_string()),
                         identifier: String::from("custom"),
                         locales: Vec::new(),
                         severity: self.severity.as_ref().to_string(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )?],
             )]),

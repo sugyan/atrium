@@ -2,7 +2,7 @@
 //!Definitions for the `app.bsky.labeler.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelerPolicies {
+pub struct LabelerPoliciesData {
     ///Label values created by this labeler and scoped exclusively to it. Labels defined here will override global label definitions for this labeler.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub label_value_definitions: Option<
@@ -10,12 +10,11 @@ pub struct LabelerPolicies {
     >,
     ///The label values which this labeler publishes. May include global or custom labels.
     pub label_values: Vec<crate::com::atproto::label::defs::LabelValue>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type LabelerPolicies = crate::types::Object<LabelerPoliciesData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelerView {
+pub struct LabelerViewData {
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     pub indexed_at: crate::types::string::Datetime,
@@ -26,12 +25,11 @@ pub struct LabelerView {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<LabelerViewerState>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type LabelerView = crate::types::Object<LabelerViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelerViewDetailed {
+pub struct LabelerViewDetailedData {
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     pub indexed_at: crate::types::string::Datetime,
@@ -43,14 +41,12 @@ pub struct LabelerViewDetailed {
     pub uri: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<LabelerViewerState>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type LabelerViewDetailed = crate::types::Object<LabelerViewDetailedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelerViewerState {
+pub struct LabelerViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type LabelerViewerState = crate::types::Object<LabelerViewerStateData>;

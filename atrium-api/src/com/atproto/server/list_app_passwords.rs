@@ -3,11 +3,10 @@
 pub const NSID: &str = "com.atproto.server.listAppPasswords";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub passwords: Vec<AppPassword>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
@@ -28,11 +27,10 @@ impl std::fmt::Display for Error {
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct AppPassword {
+pub struct AppPasswordData {
     pub created_at: crate::types::string::Datetime,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub privileged: Option<bool>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type AppPassword = crate::types::Object<AppPasswordData>;

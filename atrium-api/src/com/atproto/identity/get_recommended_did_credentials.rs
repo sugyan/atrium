@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.identity.getRecommendedDidCredentials";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub also_known_as: Option<Vec<String>>,
     ///Recommended rotation keys for PLC dids. Should be undefined (or ignored) for did:webs.
@@ -13,9 +13,8 @@ pub struct Output {
     pub services: Option<crate::records::Record>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verification_methods: Option<crate::records::Record>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

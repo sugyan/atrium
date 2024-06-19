@@ -6,12 +6,12 @@ use crate::moderation::types::*;
 use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
 use atrium_api::app::bsky::actor::defs::ProfileViewBasic;
-use atrium_api::app::bsky::embed::record::{View, ViewRecord, ViewRecordRefs};
+use atrium_api::app::bsky::embed::record::{ViewData, ViewRecordData, ViewRecordRefs};
 use atrium_api::app::bsky::feed::defs::{PostView, PostViewEmbedRefs};
-use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinition};
+use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinitionData};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
-use atrium_api::types::{Union, EMPTY_EXTRA_DATA};
+use atrium_api::types::Union;
 use std::collections::HashMap;
 
 fn embed_record_view(
@@ -19,22 +19,26 @@ fn embed_record_view(
     record: &atrium_api::app::bsky::feed::post::Record,
     labels: Option<Vec<Label>>,
 ) -> Union<PostViewEmbedRefs> {
-    Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordView(Box::new(View {
-        record: Union::Refs(ViewRecordRefs::ViewRecord(Box::new(ViewRecord {
-            author: author.clone(),
-            cid: FAKE_CID.parse().expect("invalid cid"),
-            embeds: None,
-            indexed_at: Datetime::now(),
-            labels,
-            like_count: None,
-            reply_count: None,
-            repost_count: None,
-            uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
-            value: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(record.clone()))),
-            extra_data: EMPTY_EXTRA_DATA,
-        }))),
-        extra_data: EMPTY_EXTRA_DATA,
-    })))
+    Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordView(Box::new(
+        ViewData {
+            record: Union::Refs(ViewRecordRefs::ViewRecord(Box::new(
+                ViewRecordData {
+                    author: author.clone(),
+                    cid: FAKE_CID.parse().expect("invalid cid"),
+                    embeds: None,
+                    indexed_at: Datetime::now(),
+                    labels,
+                    like_count: None,
+                    reply_count: None,
+                    repost_count: None,
+                    uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
+                    value: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(record.clone()))),
+                }
+                .into(),
+            ))),
+        }
+        .into(),
+    )))
 }
 
 fn quoted_post(profile_labels: Option<Vec<Label>>, post_labels: Option<Vec<Label>>) -> PostView {
@@ -45,7 +49,7 @@ fn quoted_post(profile_labels: Option<Vec<Label>>, post_labels: Option<Vec<Label
     );
     quoted.embed = Some(embed_record_view(
         &profile_view_basic("carla.test", Some("Carla"), profile_labels),
-        &atrium_api::app::bsky::feed::post::Record {
+        &atrium_api::app::bsky::feed::post::RecordData {
             created_at: Datetime::now(),
             embed: None,
             entities: None,
@@ -55,8 +59,8 @@ fn quoted_post(profile_labels: Option<Vec<Label>>, post_labels: Option<Vec<Label
             reply: None,
             tags: None,
             text: String::from("Quoted post text"),
-            extra_data: EMPTY_EXTRA_DATA,
-        },
+        }
+        .into(),
         post_labels,
     ));
     quoted
@@ -133,15 +137,15 @@ impl Scenario {
             HashMap::from_iter([(
                 "did:web:labeler.test".parse().expect("invalid did"),
                 vec![interpret_label_value_definition(
-                    &LabelValueDefinition {
+                    &LabelValueDefinitionData {
                         adult_only: None,
                         blurs: self.blurs.as_ref().to_string(),
                         default_setting: Some(LabelPreference::Warn.as_ref().to_string()),
                         identifier: String::from("custom"),
                         locales: Vec::new(),
                         severity: self.severity.as_ref().to_string(),
-                        extra_data: EMPTY_EXTRA_DATA,
-                    },
+                    }
+                    .into(),
                     Some("did:web:labeler.test".parse().expect("invalid did")),
                 )?],
             )]),

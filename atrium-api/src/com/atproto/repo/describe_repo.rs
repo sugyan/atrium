@@ -3,15 +3,14 @@
 pub const NSID: &str = "com.atproto.repo.describeRepo";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///The handle or DID of the repo.
     pub repo: crate::types::string::AtIdentifier,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     ///List of all the collections (NSIDs) for which this repo contains at least one record.
     pub collections: Vec<crate::types::string::Nsid>,
     pub did: crate::types::string::Did,
@@ -20,9 +19,8 @@ pub struct Output {
     pub handle: crate::types::string::Handle,
     ///Indicates if handle is currently valid (resolves bi-directionally)
     pub handle_is_correct: bool,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

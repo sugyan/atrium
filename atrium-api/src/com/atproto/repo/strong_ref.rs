@@ -3,9 +3,8 @@
 //!A URI with a content-hash fingerprint.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Main {
+pub struct MainData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Main = crate::types::Object<MainData>;

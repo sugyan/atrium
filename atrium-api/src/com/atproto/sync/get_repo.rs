@@ -3,15 +3,14 @@
 pub const NSID: &str = "com.atproto.sync.getRepo";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///The DID of the repo.
     pub did: crate::types::string::Did,
     ///The revision ('rev') of the repo to create a diff from.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub since: Option<String>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

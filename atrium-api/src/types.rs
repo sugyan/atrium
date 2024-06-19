@@ -3,6 +3,7 @@
 
 use ipld_core::ipld::Ipld;
 use std::fmt;
+use std::ops::{Deref, DerefMut};
 
 mod cid_link;
 pub use cid_link::CidLink;
@@ -12,8 +13,6 @@ pub use integer::*;
 
 pub mod string;
 use string::RecordKey;
-
-pub const EMPTY_EXTRA_DATA: Ipld = Ipld::Map(std::collections::BTreeMap::new());
 
 /// Trait for a collection of records that can be stored in a repository.
 ///
@@ -89,6 +88,38 @@ pub struct Blob {
     pub size: usize, // TODO
 }
 
+/// A generic object type.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct Object<T> {
+    #[serde(flatten)]
+    pub data: T,
+    #[serde(flatten)]
+    pub extra_data: Ipld,
+}
+
+impl<T> From<T> for Object<T> {
+    fn from(data: T) -> Self {
+        Self {
+            data,
+            extra_data: Ipld::Map(std::collections::BTreeMap::new()),
+        }
+    }
+}
+
+impl<T> Deref for Object<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
+impl<T> DerefMut for Object<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.data
+    }
+}
+
 /// An "open" union type.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
@@ -98,15 +129,13 @@ pub enum Union<T> {
 }
 
 /// The data of variants represented by a map and include a `$type` field indicating the variant type.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UnknownData {
     #[serde(rename = "$type")]
     pub r#type: String,
     #[serde(flatten)]
     pub data: Ipld,
 }
-
-impl Eq for UnknownData {}
 
 #[cfg(test)]
 mod tests {

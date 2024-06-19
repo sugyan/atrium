@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.server.checkAccountStatus";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub activated: bool,
     pub expected_blobs: i64,
     pub imported_blobs: i64,
@@ -13,9 +13,8 @@ pub struct Output {
     pub repo_commit: crate::types::string::Cid,
     pub repo_rev: String,
     pub valid_did: bool,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}

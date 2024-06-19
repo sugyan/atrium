@@ -263,7 +263,8 @@ fn lex_token(token: &LexToken, name: &str, schema_id: &str) -> Result<TokenStrea
 fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
     let description = description(&object.description);
     let derives = derives()?;
-    let struct_name = format_ident!("{}", name.to_pascal_case());
+    let struct_name = format_ident!("{}Data", name.to_pascal_case());
+    let object_name = format_ident!("{}", name.to_pascal_case());
     let mut required = if let Some(required) = &object.required {
         HashSet::from_iter(required)
     } else {
@@ -289,9 +290,9 @@ fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
         #[serde(rename_all = "camelCase")]
         pub struct #struct_name {
             #(#fields)*
-            #[serde(flatten)]
-            pub extra_data: ipld_core::ipld::Ipld,
         }
+
+        pub type #object_name = crate::types::Object<#struct_name>;
     })
 }
 

@@ -4,8 +4,10 @@ mod detection;
 use crate::agent::config::Config;
 use crate::agent::BskyAgentBuilder;
 use crate::error::Result;
-use atrium_api::app::bsky::richtext::facet::{ByteSlice, Link, MainFeaturesItem, Mention, Tag};
-use atrium_api::types::{Union, EMPTY_EXTRA_DATA};
+use atrium_api::app::bsky::richtext::facet::{
+    ByteSliceData, Link, MainFeaturesItem, Mention, MentionData, Tag,
+};
+use atrium_api::types::Union;
 use atrium_api::xrpc::XrpcClient;
 use detection::{detect_facets, FacetFeaturesItem};
 use std::cmp::Ordering;
@@ -68,10 +70,9 @@ pub struct RichText {
 }
 
 impl RichText {
-    const BYTE_SLICE_ZERO: ByteSlice = ByteSlice {
+    const BYTE_SLICE_ZERO: ByteSliceData = ByteSliceData {
         byte_start: 0,
         byte_end: 0,
-        extra_data: EMPTY_EXTRA_DATA,
     };
     /// Create a new [`RichText`] with the given text and optional facets.
     pub fn new(
@@ -180,7 +181,7 @@ impl RichText {
                 // scenario A (entirely outer)
                 if start_index <= facet.index.byte_start && end_index >= facet.index.byte_end {
                     // delete slice (will get removed in final pass)
-                    facet.index = Self::BYTE_SLICE_ZERO;
+                    facet.index = Self::BYTE_SLICE_ZERO.into();
                 }
                 // scenario B (entirely after)
                 else if start_index > facet.index.byte_end {
@@ -236,16 +237,12 @@ impl RichText {
                     match feature {
                         FacetFeaturesItem::Mention(mention) => {
                             let did = agent.api.com.atproto.identity.resolve_handle(
-                                atrium_api::com::atproto::identity::resolve_handle::Parameters {
+                                atrium_api::com::atproto::identity::resolve_handle::ParametersData {
                                     handle: mention.handle.parse().expect("invalid handle"),
-                                    extra_data: EMPTY_EXTRA_DATA,
-                                }
-                            ).await?.did;
+                                }.into()
+                            ).await?.did.clone();
                             features.push(Union::Refs(MainFeaturesItem::Mention(Box::new(
-                                Mention {
-                                    did,
-                                    extra_data: EMPTY_EXTRA_DATA,
-                                },
+                                MentionData { did }.into(),
                             ))));
                         }
                         FacetFeaturesItem::Link(link) => {
@@ -256,11 +253,13 @@ impl RichText {
                         }
                     }
                 }
-                facets.push(atrium_api::app::bsky::richtext::facet::Main {
-                    features,
-                    index: facet_without_resolution.index,
-                    extra_data: EMPTY_EXTRA_DATA,
-                });
+                facets.push(
+                    atrium_api::app::bsky::richtext::facet::MainData {
+                        features,
+                        index: facet_without_resolution.index,
+                    }
+                    .into(),
+                );
             }
             Some(facets)
         };

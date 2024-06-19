@@ -3,7 +3,7 @@
 pub const NSID: &str = "com.atproto.repo.createRecord";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Input {
+pub struct InputData {
     ///The NSID of the record collection.
     pub collection: crate::types::string::Nsid,
     ///The record itself. Must contain a $type field.
@@ -19,17 +19,15 @@ pub struct Input {
     ///Can be set to 'false' to skip Lexicon schema validation of record data.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {

@@ -3,7 +3,7 @@
 pub const NSID: &str = "tools.ozone.moderation.queryEvents";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Parameters {
+pub struct ParametersData {
     ///If specified, only events where all of these labels were added are returned
     #[serde(skip_serializing_if = "Option::is_none")]
     pub added_labels: Option<Vec<String>>,
@@ -47,18 +47,16 @@ pub struct Parameters {
     ///The types of events (fully qualified string in the format of tools.ozone.moderation.defs#modEvent<name>) to filter by. If not specified, all events are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<Vec<String>>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Output {
+pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cursor: Option<String>,
     pub events: Vec<crate::tools::ozone::moderation::defs::ModEventView>,
-    #[serde(flatten)]
-    pub extra_data: ipld_core::ipld::Ipld,
 }
+pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {}
