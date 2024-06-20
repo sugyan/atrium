@@ -228,8 +228,6 @@ version = "0.1.16"
 dependencies = [
  "anyhow",
  "async-trait",
- "atrium-api",
- "atrium-xrpc-client",
  "bsky-sdk",
  "chrono",
  "clap",

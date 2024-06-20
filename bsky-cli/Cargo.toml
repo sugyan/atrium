@@ -13,8 +13,6 @@ keywords = ["atproto", "bluesky", "atrium", "cli"]
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-atrium-api.workspace = true
-atrium-xrpc-client.workspace = true
 bsky-sdk.workspace = true
 chrono.workspace = true
 clap.workspace = true

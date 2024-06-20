@@ -1,4 +1,4 @@
-use atrium_api::types::string::AtIdentifier;
+use bsky_sdk::api::types::string::AtIdentifier;
 use clap::Parser;
 use std::path::PathBuf;
 use std::str::FromStr;
