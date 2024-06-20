@@ -8,7 +8,7 @@ pub use file::FileStore;
 use serde::{Deserialize, Serialize};
 
 /// Configuration data struct for the [`BskyAgent`](super::BskyAgent).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     /// The base URL for the XRPC endpoint.
     pub endpoint: String,

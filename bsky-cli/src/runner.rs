@@ -1,12 +1,13 @@
 use crate::commands::Command;
-use crate::store::SimpleJsonFileSessionStore;
 use anyhow::{Context, Result};
 use atrium_api::agent::bluesky::{AtprotoServiceType, BSKY_CHAT_DID};
-use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::{AtIdentifier, Datetime, Handle};
 use atrium_api::types::LimitedNonZeroU8;
 use atrium_xrpc_client::reqwest::ReqwestClient;
+use bsky_sdk::agent::config::{Config, FileStore};
+use bsky_sdk::BskyAgent;
 use serde::Serialize;
 use std::ffi::OsStr;
 use std::path::PathBuf;
@@ -14,33 +15,51 @@ use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncReadExt;
 
 pub struct Runner {
-    agent: AtpAgent<SimpleJsonFileSessionStore, ReqwestClient>,
+    agent: BskyAgent<ReqwestClient, MemorySessionStore>,
     limit: LimitedNonZeroU8<100>,
     debug: bool,
-    session_path: PathBuf,
-    handle: Option<Handle>,
+    config_path: PathBuf,
 }
 
 impl Runner {
-    pub async fn new(pds_host: String, limit: LimitedNonZeroU8<100>, debug: bool) -> Result<Self> {
+    pub async fn new(
+        pds_host: String,
+        limit: LimitedNonZeroU8<100>,
+        debug: bool,
+        is_login: bool,
+    ) -> Result<Self> {
         let config_dir = dirs::config_dir()
             .with_context(|| format!("No config dir: {:?}", dirs::config_dir()))?;
-        let dir = config_dir.join("atrium-cli");
+        let dir = config_dir.join("bsky-cli");
         create_dir_all(&dir).await?;
-        let session_path = dir.join("session.json");
-        let store = SimpleJsonFileSessionStore::new(session_path.clone());
-        let session = store.get_session().await;
-        let handle = session.as_ref().map(|s| s.handle.clone());
-        let agent = AtpAgent::new(ReqwestClient::new(pds_host), store);
-        if let Some(s) = &session {
-            agent.resume_session(s.clone()).await?;
-        }
+        let config_path = dir.join("config.json");
+
+        let agent = if is_login {
+            BskyAgent::builder()
+                .config(Config {
+                    endpoint: pds_host,
+                    ..Default::default()
+                })
+                .build()
+                .await?
+        } else {
+            let store = FileStore::new(&config_path);
+            let agent = BskyAgent::builder()
+                .config(
+                    Config::load(&store)
+                        .await
+                        .with_context(|| "Not logged in")?,
+                )
+                .build()
+                .await?;
+            agent.to_config().await.save(&store).await?;
+            agent
+        };
         Ok(Self {
             agent,
             limit,
             debug,
-            session_path,
-            handle,
+            config_path,
         })
     }
     pub async fn run(&self, command: Command) -> Result<()> {
@@ -48,7 +67,16 @@ impl Runner {
         match command {
             Command::Login(args) => {
                 self.agent.login(args.identifier, args.password).await?;
-                println!("Login successful! Saved session to {:?}", self.session_path);
+                // Set labelers from preferences
+                let preferences = self.agent.get_preferences(true).await?;
+                self.agent.configure_labelers_from_preferences(&preferences);
+                // Save config to file
+                self.agent
+                    .to_config()
+                    .await
+                    .save(&FileStore::new(&self.config_path))
+                    .await?;
+                println!("Login successful! Saved config to {:?}", self.config_path);
                 Ok(())
             }
             Command::GetTimeline => self.print(
@@ -77,10 +105,7 @@ impl Runner {
                     .feed
                     .get_author_feed(
                         atrium_api::app::bsky::feed::get_author_feed::ParametersData {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .with_context(|| "Not logged in")?,
+                            actor: args.actor.unwrap_or(self.handle().await?.into()),
                             cursor: None,
                             filter: None,
                             limit: Some(limit),
@@ -134,10 +159,7 @@ impl Runner {
                     .feed
                     .get_actor_feeds(
                         atrium_api::app::bsky::feed::get_actor_feeds::ParametersData {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .with_context(|| "Not logged in")?,
+                            actor: args.actor.unwrap_or(self.handle().await?.into()),
                             cursor: None,
                             limit: Some(limit),
                         }
@@ -188,10 +210,7 @@ impl Runner {
                     .graph
                     .get_follows(
                         atrium_api::app::bsky::graph::get_follows::ParametersData {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .with_context(|| "Not logged in")?,
+                            actor: args.actor.unwrap_or(self.handle().await?.into()),
                             cursor: None,
                             limit: Some(limit),
                         }
@@ -208,10 +227,7 @@ impl Runner {
                     .graph
                     .get_followers(
                         atrium_api::app::bsky::graph::get_followers::ParametersData {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .with_context(|| "Not logged in")?,
+                            actor: args.actor.unwrap_or(self.handle().await?.into()),
                             cursor: None,
                             limit: Some(limit),
                         }
@@ -228,10 +244,7 @@ impl Runner {
                     .graph
                     .get_lists(
                         atrium_api::app::bsky::graph::get_lists::ParametersData {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .with_context(|| "Not logged in")?,
+                            actor: args.actor.unwrap_or(self.handle().await?.into()),
                             cursor: None,
                             limit: Some(limit),
                         }
@@ -265,10 +278,7 @@ impl Runner {
                     .actor
                     .get_profile(
                         atrium_api::app::bsky::actor::get_profile::ParametersData {
-                            actor: args
-                                .actor
-                                .or(self.handle.clone().map(AtIdentifier::Handle))
-                                .with_context(|| "Not logged in")?,
+                            actor: args.actor.unwrap_or(self.handle().await?.into()),
                         }
                         .into(),
                     )
@@ -435,7 +445,7 @@ impl Runner {
                                     }
                                     .into(),
                                 ))),
-                                repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
+                                repo: self.handle().await?.into(),
                                 rkey: None,
                                 swap_commit: None,
                                 validate: None,
@@ -455,7 +465,7 @@ impl Runner {
                     .delete_record(
                         atrium_api::com::atproto::repo::delete_record::InputData {
                             collection: "app.bsky.feed.post".parse().expect("valid"),
-                            repo: self.handle.clone().with_context(|| "Not logged in")?.into(),
+                            repo: self.handle().await?.into(),
                             rkey: args.uri.rkey,
                             swap_commit: None,
                             swap_record: None,
@@ -473,5 +483,14 @@ impl Runner {
             println!("{}", serde_json::to_string_pretty(result)?);
         }
         Ok(())
+    }
+    async fn handle(&self) -> Result<Handle> {
+        Ok(self
+            .agent
+            .get_session()
+            .await
+            .with_context(|| "Not logged in")?
+            .data
+            .handle)
     }
 }

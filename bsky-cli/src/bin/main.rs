@@ -1,4 +1,4 @@
-use atrium_cli::runner::Runner;
+use bsky_cli::{Command, Runner};
 use clap::Parser;
 use std::fmt::Debug;
 
@@ -20,16 +20,19 @@ struct Args {
     debug: bool,
     #[command(subcommand)]
     // command: Command,
-    command: atrium_cli::commands::Command,
+    command: Command,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    Ok(
-        Runner::new(args.pds_host, args.limit.try_into()?, args.debug)
-            .await?
-            .run(args.command)
-            .await?,
+    Ok(Runner::new(
+        args.pds_host,
+        args.limit.try_into()?,
+        args.debug,
+        matches!(args.command, Command::Login(_)),
     )
+    .await?
+    .run(args.command)
+    .await?)
 }
