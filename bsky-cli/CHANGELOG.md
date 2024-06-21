@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.16](https://github.com/sugyan/atrium/releases/tag/bsky-cli-v0.1.16) - 2024-06-21
+
+### Added
+- Rename atrium-cli to bsky-cli ([#191](https://github.com/sugyan/atrium/pull/191))
+
 ## [0.1.16](https://github.com/sugyan/atrium/compare/atrium-cli-v0.1.15...atrium-cli-v0.1.16) - 2024-06-19
 
 ### Added
