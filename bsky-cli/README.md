@@ -1,11 +1,11 @@
-# ATrium CLI
+# Bsky CLI
 
-[![](https://img.shields.io/crates/v/atrium-cli)](https://crates.io/crates/atrium-cli)
+[![](https://img.shields.io/crates/v/bsky-cli)](https://crates.io/crates/bsky-cli)
 
-CLI application for AT Protocol using ATrium API
+CLI application for Bluesky using ATrium API
 
 ```
-Usage: atrium-cli [OPTIONS] <COMMAND>
+Usage: bsky-cli [OPTIONS] <COMMAND>
 
 Commands:
   login               Login (Create an authentication session)

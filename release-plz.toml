@@ -26,14 +26,14 @@ git_tag_enable = true
 changelog_update = true
 
 [[package]]
-name = "atrium-cli"
+name = "bsky-sdk"
 publish = true
 git_release_enable = true
 git_tag_enable = true
 changelog_update = true
 
 [[package]]
-name = "bsky-sdk"
+name = "bsky-cli"
 publish = true
 git_release_enable = true
 git_tag_enable = true
