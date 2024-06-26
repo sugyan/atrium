@@ -14,6 +14,7 @@ fn list_view_basic(name: &str) -> ListViewBasic {
         cid: FAKE_CID.parse().expect("invalid cid"),
         indexed_at: Some(Datetime::now()),
         labels: None,
+        list_item_count: None,
         name: name.into(),
         purpose: ListPurpose::from("app.bsky.graph.defs#modlist"),
         uri: String::from("at://did:plc:fake/app.bsky.graph.list/fake"),
