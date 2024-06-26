@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct MemorySessionStore {
     session: Arc<RwLock<Option<Session>>>,
 }

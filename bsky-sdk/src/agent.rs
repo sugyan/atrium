@@ -18,6 +18,7 @@ use atrium_xrpc_client::reqwest::ReqwestClient;
 use ipld_core::serde::from_ipld;
 use std::collections::HashMap;
 use std::ops::Deref;
+use std::sync::Arc;
 
 /// A Bluesky agent.
 ///
@@ -36,12 +37,13 @@ use std::ops::Deref;
 /// ```
 
 #[cfg(feature = "default-client")]
+#[derive(Clone)]
 pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
     S: SessionStore + Send + Sync,
 {
-    inner: AtpAgent<S, T>,
+    inner: Arc<AtpAgent<S, T>>,
 }
 
 #[cfg(not(feature = "default-client"))]
@@ -50,7 +52,7 @@ where
     T: XrpcClient + Send + Sync,
     S: SessionStore + Send + Sync,
 {
-    inner: AtpAgent<S, T>,
+    inner: Arc<AtpAgent<S, T>>,
 }
 
 #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
@@ -263,5 +265,42 @@ where
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use async_trait::async_trait;
+    use atrium_api::agent::Session;
+
+    #[derive(Clone)]
+    struct NoopStore;
+
+    #[async_trait]
+    impl SessionStore for NoopStore {
+        async fn get_session(&self) -> Option<Session> {
+            unimplemented!()
+        }
+        async fn set_session(&self, _: Session) {
+            unimplemented!()
+        }
+        async fn clear_session(&self) {
+            unimplemented!()
+        }
+    }
+
+    #[cfg(feature = "default-client")]
+    #[tokio::test]
+    async fn clone_agent() {
+        let agent = BskyAgent::builder()
+            .store(NoopStore)
+            .build()
+            .await
+            .expect("failed to build agent");
+        let cloned = agent.clone();
+
+        agent.configure_endpoint(String::from("https://example.com"));
+        assert_eq!(cloned.get_endpoint().await, "https://example.com");
     }
 }

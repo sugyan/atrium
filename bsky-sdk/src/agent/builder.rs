@@ -6,6 +6,7 @@ use atrium_api::agent::{store::SessionStore, AtpAgent};
 use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
+use std::sync::Arc;
 
 /// A builder for creating a [`BskyAgent`].
 pub struct BskyAgentBuilder<T, S = MemorySessionStore>
@@ -96,7 +97,9 @@ where
                 }
             }
         }
-        Ok(BskyAgent { inner: agent })
+        Ok(BskyAgent {
+            inner: Arc::new(agent),
+        })
     }
 }
 
