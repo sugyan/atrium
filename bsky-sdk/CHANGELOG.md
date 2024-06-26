@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.2...bsky-sdk-v0.1.3) - 2024-06-26
+
+### Added
+- Update API, based on the latest lexicon schemas ([#194](https://github.com/sugyan/atrium/pull/194))
+- Add `Clone` and `Debug` ([#193](https://github.com/sugyan/atrium/pull/193))
+
 ## [0.1.2](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.1...bsky-sdk-v0.1.2) - 2024-06-21
 
 ### Added
