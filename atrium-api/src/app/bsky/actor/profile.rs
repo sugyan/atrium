@@ -9,11 +9,15 @@ pub struct RecordData {
     ///Larger horizontal image to display behind profile view.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<crate::types::BlobRef>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
     ///Free-form profile description text.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_via_starter_pack: Option<crate::com::atproto::repo::strong_ref::Main>,
     ///Self-label values, specific to the Bluesky application, on the overall account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<crate::types::Union<RecordLabelsRefs>>,

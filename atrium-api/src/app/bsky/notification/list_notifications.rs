@@ -39,7 +39,7 @@ pub struct NotificationData {
     pub is_read: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    ///Expected values are 'like', 'repost', 'follow', 'mention', 'reply', and 'quote'.
+    ///Expected values are 'like', 'repost', 'follow', 'mention', 'reply', 'quote', and 'starterpack-joined'.
     pub reason: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason_subject: Option<String>,

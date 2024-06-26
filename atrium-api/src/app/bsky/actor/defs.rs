@@ -110,6 +110,8 @@ pub struct ProfileAssociatedData {
     pub labeler: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lists: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starter_packs: Option<i64>,
 }
 pub type ProfileAssociated = crate::types::Object<ProfileAssociatedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -125,6 +127,8 @@ pub struct ProfileViewData {
     pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub did: crate::types::string::Did,
@@ -146,6 +150,8 @@ pub struct ProfileViewBasicData {
     pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
@@ -166,6 +172,8 @@ pub struct ProfileViewDetailedData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -177,6 +185,10 @@ pub struct ProfileViewDetailedData {
     pub handle: crate::types::string::Handle,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_via_starter_pack: Option<
+        crate::app::bsky::graph::defs::StarterPackViewBasic,
+    >,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]

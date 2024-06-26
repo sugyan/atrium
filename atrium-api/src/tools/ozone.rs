@@ -3,3 +3,4 @@
 pub mod communication;
 pub mod moderation;
 pub mod server;
+pub mod team;
