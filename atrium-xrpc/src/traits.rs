@@ -5,6 +5,7 @@ use crate::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use async_trait::async_trait;
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
+use std::fmt::Debug;
 
 /// An abstract HTTP client.
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
@@ -47,7 +48,7 @@ pub trait XrpcClient: HttpClient {
         P: Serialize + Send + Sync,
         I: Serialize + Send + Sync,
         O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync + Debug,
     {
         let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.nsid);
         // Query parameters

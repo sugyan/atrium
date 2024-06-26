@@ -6,6 +6,7 @@ use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response, Uri};
 use serde::{de::DeserializeOwned, Serialize};
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use tokio::sync::{Mutex, Notify};
 
@@ -217,7 +218,7 @@ where
     fn is_expired<O, E>(result: &Result<OutputDataOrBytes<O>, E>) -> bool
     where
         O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync + Debug,
     {
         if let Err(Error::XrpcResponse(response)) = &result {
             if let Some(XrpcErrorKind::Undefined(body)) = &response.error {
@@ -279,7 +280,7 @@ where
         P: Serialize + Send + Sync,
         I: Serialize + Send + Sync,
         O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync + Debug,
     {
         let result = self.inner.send_xrpc(request).await;
         // handle session-refreshes as needed

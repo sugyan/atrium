@@ -1,6 +1,7 @@
 use atrium_api::xrpc::error::XrpcErrorKind;
 use atrium_api::xrpc::http::StatusCode;
 use atrium_api::xrpc::Error as XrpcError;
+use std::fmt::Debug;
 use thiserror::Error;
 
 /// Error type for this crate.
@@ -19,28 +20,41 @@ pub enum Error {
 }
 
 #[derive(Error, Debug)]
-pub struct GenericXrpcError {
-    status: StatusCode,
-    error: Option<String>,
+pub enum GenericXrpcError {
+    Response {
+        status: StatusCode,
+        error: Option<String>,
+    },
+    Other(String),
 }
 
 impl std::fmt::Display for GenericXrpcError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.status.as_str())?;
-        let Some(error) = &self.error else {
-            return Ok(());
-        };
-        if !error.is_empty() {
-            write!(f, " {error}")?;
+        match self {
+            Self::Response { status, error } => {
+                write!(f, "{}", status.as_str())?;
+                let Some(error) = &error else {
+                    return Ok(());
+                };
+                if !error.is_empty() {
+                    write!(f, " {error}")?;
+                }
+            }
+            Self::Other(s) => {
+                write!(f, "{s}")?;
+            }
         }
         Ok(())
     }
 }
 
-impl<E> From<XrpcError<E>> for Error {
+impl<E> From<XrpcError<E>> for Error
+where
+    E: Debug,
+{
     fn from(err: XrpcError<E>) -> Self {
         if let XrpcError::XrpcResponse(e) = err {
-            Self::Xrpc(Box::new(GenericXrpcError {
+            Self::Xrpc(Box::new(GenericXrpcError::Response {
                 status: e.status,
                 error: e.error.map(|e| match e {
                     XrpcErrorKind::Custom(_) => String::from("custom error"),
@@ -48,7 +62,7 @@ impl<E> From<XrpcError<E>> for Error {
                 }),
             }))
         } else {
-            err.into()
+            Self::Xrpc(Box::new(GenericXrpcError::Other(format!("{err:?}"))))
         }
     }
 }

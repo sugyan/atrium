@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// A preference for a feed view.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FeedViewPreferenceData {
     pub hide_replies: bool,
@@ -31,7 +31,7 @@ impl Default for FeedViewPreferenceData {
 pub type FeedViewPreference = Object<FeedViewPreferenceData>;
 
 /// A preference for a thread view.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ThreadViewPreferenceData {
     pub sort: String,
@@ -39,10 +39,10 @@ pub struct ThreadViewPreferenceData {
 }
 
 impl ThreadViewPreferenceData {
-    pub const SORT_OLDEST: &str = "oldest";
-    pub const SORT_NEWEST: &str = "newest";
-    pub const SORT_MOST_LIKES: &str = "most-likes";
-    pub const SORT_RANDOM: &str = "random";
+    pub const SORT_OLDEST: &'static str = "oldest";
+    pub const SORT_NEWEST: &'static str = "newest";
+    pub const SORT_MOST_LIKES: &'static str = "most-likes";
+    pub const SORT_RANDOM: &'static str = "random";
 }
 
 impl Default for ThreadViewPreferenceData {
@@ -57,7 +57,7 @@ impl Default for ThreadViewPreferenceData {
 pub type ThreadViewPreference = Object<ThreadViewPreferenceData>;
 
 /// Preferences for Bluesky application.
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Preferences {
     pub saved_feeds: Vec<SavedFeed>,
