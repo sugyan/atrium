@@ -55,6 +55,10 @@ pub enum KnownRecord {
     AppBskyGraphListitem(Box<crate::app::bsky::graph::listitem::Record>),
     #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
     #[cfg(feature = "namespace-appbsky")]
+    #[serde(rename = "app.bsky.graph.starterpack")]
+    AppBskyGraphStarterpack(Box<crate::app::bsky::graph::starterpack::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.labeler.service")]
     AppBskyLabelerService(Box<crate::app::bsky::labeler::service::Record>),
     #[cfg_attr(docsrs, doc(cfg(feature = "namespace-chatbsky")))]

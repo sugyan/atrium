@@ -276,6 +276,7 @@ pub mod tools {
             pub communication: communication::Service<T>,
             pub moderation: moderation::Service<T>,
             pub server: server::Service<T>,
+            pub team: team::Service<T>,
             pub(crate) _phantom: core::marker::PhantomData<T>,
         }
         pub mod communication {
@@ -297,6 +298,15 @@ pub mod tools {
             }
         }
         pub mod server {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
+            }
+        }
+        pub mod team {
             pub struct Service<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -1109,6 +1119,36 @@ where
             _phantom: core::marker::PhantomData,
         }
     }
+    ///Get a list of starter packs created by the actor.
+    pub async fn get_actor_starter_packs(
+        &self,
+        params: crate::app::bsky::graph::get_actor_starter_packs::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::graph::get_actor_starter_packs::Output,
+        crate::app::bsky::graph::get_actor_starter_packs::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_actor_starter_packs::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
     ///Enumerates which accounts the requesting account is currently blocking. Requires auth.
     pub async fn get_blocks(
         &self,
@@ -1398,6 +1438,66 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
                     nsid: crate::app::bsky::graph::get_relationships::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Gets a view of a starter pack.
+    pub async fn get_starter_pack(
+        &self,
+        params: crate::app::bsky::graph::get_starter_pack::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::graph::get_starter_pack::Output,
+        crate::app::bsky::graph::get_starter_pack::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_starter_pack::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get views for a list of starter packs.
+    pub async fn get_starter_packs(
+        &self,
+        params: crate::app::bsky::graph::get_starter_packs::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::graph::get_starter_packs::Output,
+        crate::app::bsky::graph::get_starter_packs::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_starter_packs::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -4520,7 +4620,7 @@ where
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
-    ///List blob CIDso for an account, since some repo revision. Does not require auth; implemented by PDS.
+    ///List blob CIDs for an account, since some repo revision. Does not require auth; implemented by PDS.
     pub async fn list_blobs(
         &self,
         params: crate::com::atproto::sync::list_blobs::Parameters,
@@ -4765,6 +4865,7 @@ where
                 std::sync::Arc::clone(&xrpc),
             ),
             server: tools::ozone::server::Service::new(std::sync::Arc::clone(&xrpc)),
+            team: tools::ozone::team::Service::new(std::sync::Arc::clone(&xrpc)),
             _phantom: core::marker::PhantomData,
         }
     }
@@ -5161,6 +5262,136 @@ where
                     parameters: None,
                     input: None,
                     encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+#[cfg(feature = "namespace-toolsozone")]
+impl<T> tools::ozone::team::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    #[allow(unused_variables)]
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
+    }
+    ///Add a member to the ozone team. Requires admin role.
+    pub async fn add_member(
+        &self,
+        input: crate::tools::ozone::team::add_member::Input,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::team::add_member::Output,
+        crate::tools::ozone::team::add_member::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::team::add_member::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Delete a member from ozone team. Requires admin role.
+    pub async fn delete_member(
+        &self,
+        input: crate::tools::ozone::team::delete_member::Input,
+    ) -> atrium_xrpc::Result<(), crate::tools::ozone::team::delete_member::Error> {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::team::delete_member::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///List all members with access to the ozone service.
+    pub async fn list_members(
+        &self,
+        params: crate::tools::ozone::team::list_members::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::team::list_members::Output,
+        crate::tools::ozone::team::list_members::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::team::list_members::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Update a member in the ozone service. Requires admin role.
+    pub async fn update_member(
+        &self,
+        input: crate::tools::ozone::team::update_member::Input,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::team::update_member::Output,
+        crate::tools::ozone::team::update_member::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::team::update_member::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
                 },
             )
             .await?;

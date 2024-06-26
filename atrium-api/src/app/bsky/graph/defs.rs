@@ -24,6 +24,8 @@ pub struct ListViewData {
     pub indexed_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list_item_count: Option<usize>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
@@ -41,6 +43,8 @@ pub struct ListViewBasicData {
     pub indexed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list_item_count: Option<usize>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
@@ -67,6 +71,8 @@ pub struct NotFoundActorData {
     pub not_found: bool,
 }
 pub type NotFoundActor = crate::types::Object<NotFoundActorData>;
+///A list of actors used for only for reference purposes such as within a starter pack.
+pub const REFERENCELIST: &str = "app.bsky.graph.defs#referencelist";
 ///lists the bi-directional graph relationships between one actor (not indicated in the object), and the target actors (the DID included in the object)
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -80,3 +86,43 @@ pub struct RelationshipData {
     pub following: Option<String>,
 }
 pub type Relationship = crate::types::Object<RelationshipData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct StarterPackViewData {
+    pub cid: crate::types::string::Cid,
+    pub creator: crate::app::bsky::actor::defs::ProfileViewBasic,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feeds: Option<Vec<crate::app::bsky::feed::defs::GeneratorView>>,
+    pub indexed_at: crate::types::string::Datetime,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_all_time_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_week_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list: Option<ListViewBasic>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list_items_sample: Option<Vec<ListItemView>>,
+    pub record: crate::records::Record,
+    pub uri: String,
+}
+pub type StarterPackView = crate::types::Object<StarterPackViewData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct StarterPackViewBasicData {
+    pub cid: crate::types::string::Cid,
+    pub creator: crate::app::bsky::actor::defs::ProfileViewBasic,
+    pub indexed_at: crate::types::string::Datetime,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_all_time_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_week_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub list_item_count: Option<usize>,
+    pub record: crate::records::Record,
+    pub uri: String,
+}
+pub type StarterPackViewBasic = crate::types::Object<StarterPackViewBasicData>;

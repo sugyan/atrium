@@ -60,6 +60,7 @@ fn profile_view_basic(
     ProfileViewBasicData {
         associated: None,
         avatar: None,
+        created_at: None,
         did: format!("did:web:{handle}").parse().expect("invalid did"),
         display_name: display_name.map(String::from),
         handle: handle.parse().expect("invalid handle"),
