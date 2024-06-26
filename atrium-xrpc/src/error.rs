@@ -5,7 +5,10 @@ use std::fmt::{self, Debug, Display};
 
 /// An enum of possible error kinds.
 #[derive(thiserror::Error, Debug)]
-pub enum Error<E> {
+pub enum Error<E>
+where
+    E: Debug,
+{
     #[error("xrpc response error: {0}")]
     XrpcResponse(XrpcError<E>),
     #[error("http request error: {0}")]
