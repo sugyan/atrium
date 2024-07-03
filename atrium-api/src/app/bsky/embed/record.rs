@@ -78,4 +78,8 @@ pub enum ViewRecordRefs {
     AppBskyGraphDefsListView(Box<crate::app::bsky::graph::defs::ListView>),
     #[serde(rename = "app.bsky.labeler.defs#labelerView")]
     AppBskyLabelerDefsLabelerView(Box<crate::app::bsky::labeler::defs::LabelerView>),
+    #[serde(rename = "app.bsky.graph.defs#starterPackViewBasic")]
+    AppBskyGraphDefsStarterPackViewBasic(
+        Box<crate::app::bsky::graph::defs::StarterPackViewBasic>,
+    ),
 }
