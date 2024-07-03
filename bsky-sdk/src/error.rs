@@ -14,8 +14,6 @@ pub enum Error {
     #[error("saving config error: {0}")]
     ConfigSave(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error(transparent)]
-    IpldSerde(#[from] ipld_core::serde::SerdeError),
-    #[error(transparent)]
     Moderation(#[from] crate::moderation::Error),
 }
 
