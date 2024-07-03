@@ -6,6 +6,24 @@ pub struct AdultContentPrefData {
     pub enabled: bool,
 }
 pub type AdultContentPref = crate::types::Object<AdultContentPrefData>;
+///If set, an active progress guide. Once completed, can be set to undefined. Should have unspecced fields tracking progress.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct BskyAppProgressGuideData {
+    pub guide: String,
+}
+pub type BskyAppProgressGuide = crate::types::Object<BskyAppProgressGuideData>;
+///A grab bag of state that's specific to the bsky.app program. Third-party apps shouldn't use this.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct BskyAppStatePrefData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active_progress_guide: Option<BskyAppProgressGuide>,
+    ///An array of tokens which identify nudges (modals, popups, tours, highlight dots) that should be shown to the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub queued_nudges: Option<Vec<String>>,
+}
+pub type BskyAppStatePref = crate::types::Object<BskyAppStatePrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ContentLabelPrefData {
@@ -277,4 +295,8 @@ pub enum PreferencesItem {
     MutedWordsPref(Box<MutedWordsPref>),
     #[serde(rename = "app.bsky.actor.defs#hiddenPostsPref")]
     HiddenPostsPref(Box<HiddenPostsPref>),
+    #[serde(rename = "app.bsky.actor.defs#bskyAppStatePref")]
+    BskyAppStatePref(Box<BskyAppStatePref>),
+    #[serde(rename = "app.bsky.actor.defs#labelersPref")]
+    LabelersPref(Box<LabelersPref>),
 }
