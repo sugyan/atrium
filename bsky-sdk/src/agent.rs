@@ -10,12 +10,11 @@ use crate::moderation::{ModerationPrefsLabeler, Moderator};
 use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
 use atrium_api::agent::store::MemorySessionStore;
 use atrium_api::agent::{store::SessionStore, AtpAgent};
-use atrium_api::app::bsky::actor::defs::{LabelersPref, PreferencesItem};
+use atrium_api::app::bsky::actor::defs::PreferencesItem;
 use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
-use ipld_core::serde::from_ipld;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::Arc;
@@ -160,11 +159,12 @@ where
                 Union::Refs(PreferencesItem::HiddenPostsPref(p)) => {
                     prefs.moderation_prefs.hidden_posts = p.data.items;
                 }
-                Union::Unknown(u) => {
-                    if u.r#type == "app.bsky.actor.defs#labelersPref" {
-                        prefs.moderation_prefs.labelers.extend(
-                            from_ipld::<LabelersPref>(u.data)?
-                                .data
+                Union::Refs(PreferencesItem::LabelersPref(p)) => {
+                    prefs
+                        .moderation_prefs
+                        .labelers
+                        .extend(
+                            p.data
                                 .labelers
                                 .into_iter()
                                 .map(|item| ModerationPrefsLabeler {
@@ -173,7 +173,6 @@ where
                                     is_default_labeler: false,
                                 }),
                         );
-                    }
                 }
                 _ => {
                     // TODO
