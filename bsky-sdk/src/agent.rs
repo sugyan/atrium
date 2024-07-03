@@ -213,7 +213,6 @@ where
                 .labelers
                 .iter()
                 .map(|labeler| (labeler.did.clone(), labeler.is_default_labeler))
-                .take(10)
                 .collect(),
         ));
     }
