@@ -218,26 +218,31 @@ where
     }
     /// Make a [`Moderator`] instance with the provided [`Preferences`].
     pub async fn moderator(&self, preferences: &Preferences) -> Result<Moderator> {
-        let output = self
-            .api
-            .app
-            .bsky
-            .labeler
-            .get_services(
-                atrium_api::app::bsky::labeler::get_services::ParametersData {
-                    detailed: Some(true),
-                    dids: preferences
-                        .moderation_prefs
-                        .labelers
-                        .iter()
-                        .map(|labeler| labeler.did.clone())
-                        .collect(),
-                }
-                .into(),
-            )
-            .await?;
-        let mut label_defs = HashMap::with_capacity(output.views.len());
-        for labeler in &output.views {
+        let views = if preferences.moderation_prefs.labelers.is_empty() {
+            Vec::new()
+        } else {
+            self.api
+                .app
+                .bsky
+                .labeler
+                .get_services(
+                    atrium_api::app::bsky::labeler::get_services::ParametersData {
+                        detailed: Some(true),
+                        dids: preferences
+                            .moderation_prefs
+                            .labelers
+                            .iter()
+                            .map(|labeler| labeler.did.clone())
+                            .collect(),
+                    }
+                    .into(),
+                )
+                .await?
+                .data
+                .views
+        };
+        let mut label_defs = HashMap::with_capacity(views.len());
+        for labeler in &views {
             let Union::Refs(atrium_api::app::bsky::labeler::get_services::OutputViewsItem::AppBskyLabelerDefsLabelerViewDetailed(labeler_view)) = labeler else {
                 continue;
             };
