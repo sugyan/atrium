@@ -7,14 +7,13 @@ use crate::moderation::decision::{DecisionContext, ModerationDecision};
 use crate::moderation::types::*;
 use crate::moderation::util::interpret_label_value_definition;
 use crate::moderation::Moderator;
+use crate::tests::FAKE_CID;
 use atrium_api::app::bsky::actor::defs::{ProfileViewBasic, ProfileViewBasicData};
 use atrium_api::app::bsky::feed::defs::{PostView, PostViewData};
 use atrium_api::com::atproto::label::defs::{Label, LabelData, LabelValueDefinitionData};
 use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
 use std::collections::HashMap;
-
-const FAKE_CID: &str = "bafyreiclp443lavogvhj3d2ob2cxbfuscni2k5jk7bebjzg7khl3esabwq";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResultFlag {

@@ -4,6 +4,7 @@ pub mod agent;
 mod error;
 pub mod moderation;
 pub mod preference;
+pub mod record;
 #[cfg_attr(docsrs, doc(cfg(feature = "rich-text")))]
 #[cfg(feature = "rich-text")]
 pub mod rich_text;
@@ -18,6 +19,8 @@ mod tests {
     use atrium_api::xrpc::http::{Request, Response};
     use atrium_api::xrpc::types::Header;
     use atrium_api::xrpc::{HttpClient, XrpcClient};
+
+    pub const FAKE_CID: &str = "bafyreiclp443lavogvhj3d2ob2cxbfuscni2k5jk7bebjzg7khl3esabwq";
 
     pub struct MockClient;
 
