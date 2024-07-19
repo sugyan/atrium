@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.5...bsky-sdk-v0.1.6) - 2024-07-19
+
+### Added
+- *(bsky-sdk)* Add record operations ([#200](https://github.com/sugyan/atrium/pull/200))
+
 ## [0.1.5](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.4...bsky-sdk-v0.1.5) - 2024-07-11
 
 ### Fixed
