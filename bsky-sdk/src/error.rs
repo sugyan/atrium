@@ -7,6 +7,10 @@ use thiserror::Error;
 /// Error type for this crate.
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("not logged in")]
+    NotLoggedIn,
+    #[error("invalid AT URI")]
+    InvalidAtUri,
     #[error("xrpc response error: {0}")]
     Xrpc(Box<GenericXrpcError>),
     #[error("loading config error: {0}")]
