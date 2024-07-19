@@ -1,3 +1,7 @@
+//! Record operations.
+mod agent;
+
+pub use self::agent::*;
 use crate::error::{Error, Result};
 use crate::BskyAgent;
 use async_trait::async_trait;

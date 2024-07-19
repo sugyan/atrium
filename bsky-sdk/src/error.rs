@@ -9,6 +9,8 @@ use thiserror::Error;
 pub enum Error {
     #[error("not logged in")]
     NotLoggedIn,
+    #[error("invalid AT URI")]
+    InvalidAtUri,
     #[error("xrpc response error: {0}")]
     Xrpc(Box<GenericXrpcError>),
     #[error("loading config error: {0}")]
