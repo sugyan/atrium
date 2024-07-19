@@ -44,6 +44,7 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt"] }
 wasm-bindgen-test.workspace = true
+bumpalo.workspace = true
 
 [package.metadata.docs.rs]
 all-features = true
