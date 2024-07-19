@@ -1,5 +1,7 @@
 atrium-api/src/app.rs linguist-generated=true
 atrium-api/src/app/** linguist-generated=true
+atrium-api/src/chat.rs linguist-generated=true
+atrium-api/src/chat/** linguist-generated=true
 atrium-api/src/com.rs linguist-generated=true
 atrium-api/src/com/** linguist-generated=true
 atrium-api/src/tools.rs linguist-generated=true

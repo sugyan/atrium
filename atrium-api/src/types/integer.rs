@@ -7,7 +7,7 @@ use serde::{de::Error, Deserialize};
 macro_rules! uint {
     ($primitive:ident, $nz:ident, $lim:ident, $lim_nz:ident, $bounded:ident) => {
         /// An unsigned integer with a maximum value of `MAX`.
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, Hash)]
         #[repr(transparent)]
         #[serde(transparent)]
         pub struct $lim<const MAX: $primitive>($primitive);
@@ -53,7 +53,7 @@ macro_rules! uint {
         }
 
         /// An unsigned integer with a minimum value of 1 and a maximum value of `MAX`.
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, Hash)]
         #[repr(transparent)]
         #[serde(transparent)]
         pub struct $lim_nz<const MAX: $primitive>($nz);
@@ -111,7 +111,7 @@ macro_rules! uint {
         /// An unsigned integer with a minimum value of `MIN` and a maximum value of `MAX`.
         ///
         /// `MIN` must be non-zero.
-        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize)]
+        #[derive(Clone, Copy, Debug, PartialEq, Eq, serde::Serialize, Hash)]
         #[repr(transparent)]
         #[serde(transparent)]
         pub struct $bounded<const MIN: $primitive, const MAX: $primitive>($nz);

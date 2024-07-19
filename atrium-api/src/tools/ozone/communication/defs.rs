@@ -2,7 +2,7 @@
 //!Definitions for the `tools.ozone.communication.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct TemplateView {
+pub struct TemplateViewData {
     ///Subject of the message, used in emails.
     pub content_markdown: String,
     pub created_at: crate::types::string::Datetime,
@@ -17,3 +17,4 @@ pub struct TemplateView {
     pub subject: Option<String>,
     pub updated_at: crate::types::string::Datetime,
 }
+pub type TemplateView = crate::types::Object<TemplateViewData>;

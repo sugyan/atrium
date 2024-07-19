@@ -6,6 +6,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.2](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.11.1...atrium-xrpc-v0.11.2) - 2024-06-26
+
+### Added
+- Add `Clone` and `Debug` ([#193](https://github.com/sugyan/atrium/pull/193))
+
+## [0.11.1](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.11.0...atrium-xrpc-v0.11.1) - 2024-06-13
+
+### Added
+- Add bsky-sdk ([#185](https://github.com/sugyan/atrium/pull/185))
+
+## [0.11.0](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.7...atrium-xrpc-v0.11.0) - 2024-05-22
+
+### Added
+- Add supporting atproto headers ([#175](https://github.com/sugyan/atrium/pull/175))
+
+## [0.10.7](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.6...atrium-xrpc-v0.10.7) - 2024-05-20
+
+### Other
+- update Cargo.toml dependencies
+
+## [0.10.6](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.5...atrium-xrpc-v0.10.6) - 2024-05-17
+
+### Added
+- Add headers() to `XrpcClient` ([#170](https://github.com/sugyan/atrium/pull/170))
+
 ## [0.10.5](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.10.4...atrium-xrpc-v0.10.5) - 2024-04-22
 
 ### Added

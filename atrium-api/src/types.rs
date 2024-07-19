@@ -3,6 +3,7 @@
 
 use ipld_core::ipld::Ipld;
 use std::fmt;
+use std::ops::{Deref, DerefMut};
 
 mod cid_link;
 pub use cid_link::CidLink;
@@ -87,6 +88,38 @@ pub struct Blob {
     pub size: usize, // TODO
 }
 
+/// A generic object type.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct Object<T> {
+    #[serde(flatten)]
+    pub data: T,
+    #[serde(flatten)]
+    pub extra_data: Ipld,
+}
+
+impl<T> From<T> for Object<T> {
+    fn from(data: T) -> Self {
+        Self {
+            data,
+            extra_data: Ipld::Map(std::collections::BTreeMap::new()),
+        }
+    }
+}
+
+impl<T> Deref for Object<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.data
+    }
+}
+
+impl<T> DerefMut for Object<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.data
+    }
+}
+
 /// An "open" union type.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
@@ -96,20 +129,19 @@ pub enum Union<T> {
 }
 
 /// The data of variants represented by a map and include a `$type` field indicating the variant type.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UnknownData {
     #[serde(rename = "$type")]
-    r#type: String,
+    pub r#type: String,
     #[serde(flatten)]
-    data: Ipld,
+    pub data: Ipld,
 }
-
-impl Eq for UnknownData {}
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::{from_str, to_string};
+    use std::collections::BTreeMap;
 
     const CID_LINK_JSON: &str =
         r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#;
@@ -196,6 +228,56 @@ mod tests {
                 mime_type: "text/plain".into(),
                 size: 0,
             }))
+        );
+    }
+
+    #[test]
+    fn test_union() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[serde(tag = "$type")]
+        enum FooRefs {
+            #[serde(rename = "example.com#bar")]
+            Bar(Box<Bar>),
+            #[serde(rename = "example.com#baz")]
+            Baz(Box<Baz>),
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Bar {
+            bar: String,
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Baz {
+            baz: i32,
+        }
+
+        type Foo = Union<FooRefs>;
+
+        let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#bar","bar":"bar"}"#)
+            .expect("failed to deserialize foo");
+        assert_eq!(
+            foo,
+            Union::Refs(FooRefs::Bar(Box::new(Bar {
+                bar: String::from("bar")
+            })))
+        );
+
+        let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#baz","baz":42}"#)
+            .expect("failed to deserialize foo");
+        assert_eq!(foo, Union::Refs(FooRefs::Baz(Box::new(Baz { baz: 42 }))));
+
+        let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#foo","foo":true}"#)
+            .expect("failed to deserialize foo");
+        assert_eq!(
+            foo,
+            Union::Unknown(UnknownData {
+                r#type: String::from("example.com#foo"),
+                data: Ipld::Map(BTreeMap::from_iter([(
+                    String::from("foo"),
+                    Ipld::Bool(true)
+                )]))
+            })
         );
     }
 }

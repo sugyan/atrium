@@ -9,6 +9,7 @@ pub mod get_account_info;
 pub mod get_account_infos;
 pub mod get_invite_codes;
 pub mod get_subject_status;
+pub mod search_accounts;
 pub mod send_email;
 pub mod update_account_email;
 pub mod update_account_handle;

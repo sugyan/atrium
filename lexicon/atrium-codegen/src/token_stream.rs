@@ -1,5 +1,5 @@
 use atrium_lex::lexicon::*;
-use heck::{ToPascalCase, ToSnakeCase};
+use heck::{ToPascalCase, ToShoutySnakeCase, ToSnakeCase};
 use itertools::Itertools;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -13,14 +13,19 @@ enum OutputType {
     Bytes,
 }
 
-pub fn user_type(def: &LexUserType, name: &str, is_main: bool) -> Result<TokenStream> {
+pub fn user_type(
+    def: &LexUserType,
+    schema_id: &str,
+    name: &str,
+    is_main: bool,
+) -> Result<TokenStream> {
     let user_type = match def {
         LexUserType::Record(record) => lex_record(record)?,
         LexUserType::XrpcQuery(query) => lex_query(query)?,
         LexUserType::XrpcProcedure(procedure) => lex_procedure(procedure)?,
         LexUserType::XrpcSubscription(subscription) => lex_subscription(subscription)?,
         LexUserType::Array(array) => lex_array(array, name)?,
-        LexUserType::Token(token) => lex_token(token, name)?,
+        LexUserType::Token(token) => lex_token(token, name, schema_id)?,
         LexUserType::Object(object) => lex_object(object, if is_main { "Main" } else { name })?,
         LexUserType::String(string) => lex_string(string, name)?,
         _ => unimplemented!("{def:?}"),
@@ -245,20 +250,21 @@ fn lex_array(array: &LexArray, name: &str) -> Result<TokenStream> {
     })
 }
 
-fn lex_token(token: &LexToken, name: &str) -> Result<TokenStream> {
+fn lex_token(token: &LexToken, name: &str, schema_id: &str) -> Result<TokenStream> {
     let description = description(&token.description);
-    let token_name = format_ident!("{}", name.to_pascal_case());
-    // TODO
+    let token_name = format_ident!("{}", name.to_shouty_snake_case());
+    let token_value = format!("{schema_id}#{name}");
     Ok(quote! {
         #description
-        pub struct #token_name;
+        pub const #token_name: &str = #token_value;
     })
 }
 
 fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
     let description = description(&object.description);
     let derives = derives()?;
-    let struct_name = format_ident!("{}", name.to_pascal_case());
+    let struct_name = format_ident!("{}Data", name.to_pascal_case());
+    let object_name = format_ident!("{}", name.to_pascal_case());
     let mut required = if let Some(required) = &object.required {
         HashSet::from_iter(required)
     } else {
@@ -285,6 +291,8 @@ fn lex_object(object: &LexObject, name: &str) -> Result<TokenStream> {
         pub struct #struct_name {
             #(#fields)*
         }
+
+        pub type #object_name = crate::types::Object<#struct_name>;
     })
 }
 
@@ -314,11 +322,6 @@ fn lex_object_property(
         LexObjectProperty::String(string) => string_type(string)?,
         LexObjectProperty::Unknown(unknown) => unknown_type(unknown, Some(name))?,
     };
-    // TODO: must be determined
-    if field_type.is_empty() {
-        return Ok(quote!());
-    }
-    // TODO: other keywords?
     let field_name = format_ident!(
         "{}",
         if name == "ref" || name == "type" {
@@ -412,10 +415,6 @@ fn array_type(
         )?,
         _ => unimplemented!("{:?}", array.items),
     };
-    // TODO: must be determined
-    if item_type.is_empty() {
-        return Ok((description, quote!()));
-    }
     Ok((description, quote!(Vec<#item_type>)))
 }
 
@@ -580,14 +579,22 @@ fn description(description: &Option<String>) -> TokenStream {
     }
 }
 
-pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
+fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
+    record_enum(refs, name, schema_id, &[])
+}
+
+pub fn record_enum(
+    refs: &[String],
+    name: &str,
+    schema_id: Option<&str>,
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
     let is_record = schema_id.is_none();
     let derives = derives()?;
     let enum_name = format_ident!("{name}");
     let mut variants = Vec::new();
     for r#ref in refs {
-        let default = if is_record { "record" } else { "main" };
-        let path = resolve_path(r#ref, default)?;
+        let path = resolve_path(r#ref, if is_record { "record" } else { "main" })?;
         let rename = if r#ref.starts_with('#') {
             format!(
                 "{}{}",
@@ -608,7 +615,20 @@ pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result
             parts.pop();
         }
         let name = format_ident!("{}", parts.join(""));
+        let mut feature = quote!();
+        if is_record {
+            if let Some((_, Some(feature_name))) = namespaces
+                .iter()
+                .find(|(prefix, _)| r#ref.starts_with(prefix))
+            {
+                feature = quote! {
+                    #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                    #[cfg(feature = #feature_name)]
+                };
+            }
+        }
         variants.push(quote! {
+            #feature
             #[serde(rename = #rename)]
             #name(Box<#path>)
         });
@@ -622,12 +642,28 @@ pub fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result
     })
 }
 
-pub fn modules(names: &[String]) -> Result<TokenStream> {
+pub fn modules(
+    names: &[String],
+    components: &[&str],
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
     let v = names
         .iter()
         .map(|s| {
+            let namespace = components.iter().chain(&[s.as_str()]).join(".");
+            let feature = if let Some((_, Some(feature_name))) =
+                namespaces.iter().find(|(prefix, _)| &namespace == prefix)
+            {
+                quote! {
+                    #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                    #[cfg(feature = #feature_name)]
+                }
+            } else {
+                quote!()
+            };
             let m = format_ident!("{s}");
             quote! {
+                #feature
                 pub mod #m;
             }
         })
@@ -638,8 +674,9 @@ pub fn modules(names: &[String]) -> Result<TokenStream> {
 pub fn client(
     tree: &HashMap<String, HashSet<(&str, bool)>>,
     schemas: &HashMap<String, &LexUserType>,
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<TokenStream> {
-    let services = client_services("", tree)?;
+    let services = client_services("", tree, namespaces)?;
     let mut impls = Vec::new();
     for key in tree.keys().sorted() {
         let type_name = if key.is_empty() {
@@ -648,7 +685,7 @@ pub fn client(
             let path = syn::parse_str::<Path>(&key.split('.').join("::"))?;
             quote!(#path::Service)
         };
-        let fn_new = client_new(tree, key)?;
+        let fn_new = client_new(tree, key, namespaces)?;
         let mut methods = Vec::new();
         for (name, _) in tree[key].iter().filter(|(_, b)| *b).sorted() {
             let nsid = format!("{key}.{name}");
@@ -659,7 +696,16 @@ pub fn client(
             };
             methods.push(method);
         }
+        let feature = if let Some((_, Some(feature_name))) = namespaces
+            .iter()
+            .find(|(prefix, _)| key.starts_with(prefix))
+        {
+            quote!(#[cfg(feature = #feature_name)])
+        } else {
+            quote!()
+        };
         impls.push(quote! {
+            #feature
             impl<T> #type_name<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -695,6 +741,7 @@ pub fn client(
 fn client_services(
     target: &str,
     tree: &HashMap<String, HashSet<(&str, bool)>>,
+    namespaces: &[(&str, Option<&str>)],
 ) -> Result<TokenStream> {
     let mut fields = Vec::new();
     let mut mods = Vec::new();
@@ -705,7 +752,19 @@ fn client_services(
                 has_leaf = true;
             } else {
                 let name = format_ident!("{child}");
+                let namespace = format!("{target}.{child}");
+                let feature = if let Some((_, Some(feature_name))) =
+                    namespaces.iter().find(|(prefix, _)| prefix == &namespace)
+                {
+                    quote! {
+                        #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                        #[cfg(feature = #feature_name)]
+                    }
+                } else {
+                    quote!()
+                };
                 fields.push(quote! {
+                    #feature
                     pub #name: #name::Service<T>,
                 });
                 let target = if target.is_empty() {
@@ -713,8 +772,9 @@ fn client_services(
                 } else {
                     format!("{target}.{child}")
                 };
-                let submodule = client_services(&target, tree)?;
+                let submodule = client_services(&target, tree, namespaces)?;
                 mods.push(quote! {
+                    #feature
                     pub mod #name { #submodule }
                 });
             }
@@ -730,6 +790,7 @@ fn client_services(
         where T: atrium_xrpc::XrpcClient + Send + Sync,
         {
             #(#fields)*
+            pub(crate) _phantom: core::marker::PhantomData<T>,
         }
     };
     Ok(quote! {
@@ -738,7 +799,11 @@ fn client_services(
     })
 }
 
-fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Result<TokenStream> {
+fn client_new(
+    tree: &HashMap<String, HashSet<(&str, bool)>>,
+    key: &str,
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
     let children = tree[key].iter().sorted().collect_vec();
     let mut members = Vec::new();
     for (name, is_leaf) in &children {
@@ -750,9 +815,18 @@ fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Resul
         } else {
             key.split('.').chain([*name]).collect_vec()
         };
+        let namespace = parts.join(".");
+        let feature = if let Some((_, Some(feature_name))) =
+            namespaces.iter().find(|(prefix, _)| prefix == &namespace)
+        {
+            quote!(#[cfg(feature = #feature_name)])
+        } else {
+            quote!()
+        };
         let path = syn::parse_str::<Path>(&parts.join("::"))?;
         let name = format_ident!("{}", name.to_snake_case());
         members.push(quote! {
+            #feature
             #name: #path::Service::new(std::sync::Arc::clone(&xrpc)),
         });
     }
@@ -762,9 +836,11 @@ fn client_new(tree: &HashMap<String, HashSet<(&str, bool)>>, key: &str) -> Resul
         });
     }
     Ok(quote! {
+        #[allow(unused_variables)]
         pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
             Self {
                 #(#members)*
+                _phantom: core::marker::PhantomData,
             }
         }
     })
@@ -802,10 +878,11 @@ fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
     } else {
         quote!(None)
     };
+    let nsid_path = resolve_path(nsid, "NSID")?;
     let xrpc_call = quote! {
         self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
             method: http::Method::GET,
-            path: #nsid.into(),
+            nsid: #nsid_path.into(),
             parameters: #param_value,
             input: None,
             encoding: None,
@@ -868,10 +945,11 @@ fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<Token
     } else {
         quote!(None)
     };
+    let nsid_path = resolve_path(nsid, "NSID")?;
     let xrpc_call = quote! {
         self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
             method: http::Method::POST,
-            path: #nsid.into(),
+            nsid: #nsid_path.into(),
             parameters: None,
             input: #input_value,
             encoding: #encoding,
@@ -896,11 +974,11 @@ fn xrpc_impl_common(
             quote! {
                 pub async fn #method_name(
                     #(#args),*
-                ) -> Result<(), atrium_xrpc::error::Error<#error>> {
+                ) -> atrium_xrpc::Result<(), #error> {
                     let response = #xrpc_call;
                     match response {
                         atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
-                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                        _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
                     }
                 }
             }
@@ -910,11 +988,11 @@ fn xrpc_impl_common(
             quote! {
                 pub async fn #method_name(
                     #(#args),*
-                ) -> Result<#output, atrium_xrpc::error::Error<#error>> {
+                ) -> atrium_xrpc::Result<#output, #error> {
                     let response = #xrpc_call;
                     match response {
                         atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
-                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                        _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
                     }
                 }
             }
@@ -923,11 +1001,11 @@ fn xrpc_impl_common(
             quote! {
                 pub async fn #method_name(
                     #(#args),*
-                ) -> Result<Vec<u8>, atrium_xrpc::error::Error<#error>> {
+                ) -> atrium_xrpc::Result<Vec<u8>, #error> {
                     let response = #xrpc_call;
                     match response {
                         atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
-                        _ => Err(atrium_xrpc::error::Error::UnexpectedResponseType),
+                        _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
                     }
                 }
             }
@@ -962,7 +1040,11 @@ fn resolve_path(r#ref: &str, default: &str) -> Result<TokenStream> {
         format!(
             "crate::{}::{}",
             namespace.split('.').map(str::to_snake_case).join("::"),
-            def.to_pascal_case()
+            if def.chars().all(char::is_uppercase) {
+                def.to_string()
+            } else {
+                def.to_pascal_case()
+            }
         )
     })?;
     Ok(quote!(#path))

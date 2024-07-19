@@ -31,9 +31,15 @@ Definitions for XRPC request/response, and their associated errors.
 
 A library provides clients that implement the `XrpcClient` defined in [atrium-xrpc](./atrium-xrpc/)
 
-### [`atrium-cli`](./atrium-cli/)
+### [`bsky-sdk`](./bsky-sdk/)
 
-[![](https://img.shields.io/crates/v/atrium-cli)](https://crates.io/crates/atrium-cli)
+[![](https://img.shields.io/crates/v/bsky-sdk)](https://crates.io/crates/bsky-sdk)
+
+ATrium-based SDK for Bluesky.
+
+### [`bsky-cli`](./bsky-cli/)
+
+[![](https://img.shields.io/crates/v/bsky-cli)](https://crates.io/crates/bsky-cli)
 
 A command-line app using this API library.
 

@@ -1,134 +1,20 @@
 #![doc = include_str!("../README.md")]
 pub mod error;
+mod traits;
+pub mod types;
 
-use crate::error::{Error, XrpcError, XrpcErrorKind};
-use async_trait::async_trait;
-use http::{Method, Request, Response};
-use serde::{de::DeserializeOwned, Serialize};
-
-/// A type which can be used as a parameter of [`XrpcRequest`].
-///
-/// JSON serializable data or raw bytes.
-pub enum InputDataOrBytes<T>
-where
-    T: Serialize,
-{
-    Data(T),
-    Bytes(Vec<u8>),
-}
-
-/// A type which can be used as a return value of [`XrpcClient::send_xrpc()`].
-///
-/// JSON deserializable data or raw bytes.
-pub enum OutputDataOrBytes<T>
-where
-    T: DeserializeOwned,
-{
-    Data(T),
-    Bytes(Vec<u8>),
-}
-
-/// An abstract HTTP client.
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait HttpClient {
-    async fn send_http(
-        &self,
-        request: Request<Vec<u8>>,
-    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>;
-}
-
-/// A request which can be executed with [`XrpcClient::send_xrpc()`].
-pub struct XrpcRequest<P, I>
-where
-    I: Serialize,
-{
-    pub method: Method,
-    pub path: String,
-    pub parameters: Option<P>,
-    pub input: Option<InputDataOrBytes<I>>,
-    pub encoding: Option<String>,
-}
-
-pub type XrpcResult<O, E> = Result<OutputDataOrBytes<O>, self::Error<E>>;
-
-/// An abstract XRPC client.
-///
-/// [`send_xrpc()`](XrpcClient::send_xrpc) method has a default implementation,
-/// which wraps the [`HttpClient::send_http()`]` method to handle input and output as an XRPC Request.
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait XrpcClient: HttpClient {
-    fn base_uri(&self) -> String;
-    #[allow(unused_variables)]
-    async fn auth(&self, is_refresh: bool) -> Option<String> {
-        None
-    }
-    async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
-    where
-        P: Serialize + Send + Sync,
-        I: Serialize + Send + Sync,
-        O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
-    {
-        let mut uri = format!("{}/xrpc/{}", self.base_uri(), request.path);
-        if let Some(p) = &request.parameters {
-            serde_html_form::to_string(p).map(|qs| {
-                uri += "?";
-                uri += &qs;
-            })?;
-        };
-        let mut builder = Request::builder().method(&request.method).uri(&uri);
-        if let Some(encoding) = &request.encoding {
-            builder = builder.header(http::header::CONTENT_TYPE, encoding);
-        }
-        if let Some(token) = self
-            .auth(
-                request.method == Method::POST
-                    && request.path == "com.atproto.server.refreshSession",
-            )
-            .await
-        {
-            builder = builder.header(http::header::AUTHORIZATION, format!("Bearer {}", token));
-        }
-        let body = if let Some(input) = &request.input {
-            match input {
-                InputDataOrBytes::Data(data) => serde_json::to_vec(&data)?,
-                InputDataOrBytes::Bytes(bytes) => bytes.clone(),
-            }
-        } else {
-            Vec::new()
-        };
-        let (parts, body) = self
-            .send_http(builder.body(body)?)
-            .await
-            .map_err(Error::HttpClient)?
-            .into_parts();
-        if parts.status.is_success() {
-            if parts
-                .headers
-                .get(http::header::CONTENT_TYPE)
-                .and_then(|value| value.to_str().ok())
-                .map_or(false, |content_type| {
-                    content_type.starts_with("application/json")
-                })
-            {
-                Ok(OutputDataOrBytes::Data(serde_json::from_slice(&body)?))
-            } else {
-                Ok(OutputDataOrBytes::Bytes(body))
-            }
-        } else {
-            Err(Error::XrpcResponse(XrpcError {
-                status: parts.status,
-                error: serde_json::from_slice::<XrpcErrorKind<E>>(&body).ok(),
-            }))
-        }
-    }
-}
+pub use crate::error::{Error, Result};
+pub use crate::traits::{HttpClient, XrpcClient};
+pub use crate::types::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
+pub use http;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::error::{XrpcError, XrpcErrorKind};
+    use crate::{HttpClient, XrpcClient};
+    use async_trait::async_trait;
+    use http::{Request, Response};
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
 
@@ -144,7 +30,10 @@ mod tests {
         async fn send_http(
             &self,
             _request: Request<Vec<u8>>,
-        ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+        ) -> core::result::Result<
+            Response<Vec<u8>>,
+            Box<dyn std::error::Error + Send + Sync + 'static>,
+        > {
             let mut builder = Response::builder().status(self.status);
             if self.json {
                 builder = builder.header(http::header::CONTENT_TYPE, "application/json")
@@ -162,14 +51,14 @@ mod tests {
     mod errors {
         use super::*;
 
-        async fn get_example<T>(xrpc: &T, params: Parameters) -> Result<Output, crate::Error<Error>>
+        async fn get_example<T>(xrpc: &T, params: Parameters) -> Result<Output, Error>
         where
             T: crate::XrpcClient + Send + Sync,
         {
             let response = xrpc
                 .send_xrpc::<_, (), _, _>(&XrpcRequest {
                     method: http::Method::GET,
-                    path: "example".into(),
+                    nsid: "example".into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -305,17 +194,14 @@ mod tests {
         mod bytes {
             use super::*;
 
-            async fn get_bytes<T>(
-                xrpc: &T,
-                params: Parameters,
-            ) -> Result<Vec<u8>, crate::Error<Error>>
+            async fn get_bytes<T>(xrpc: &T, params: Parameters) -> Result<Vec<u8>, Error>
             where
                 T: crate::XrpcClient + Send + Sync,
             {
                 let response = xrpc
                     .send_xrpc::<_, (), (), _>(&XrpcRequest {
                         method: http::Method::GET,
-                        path: "example".into(),
+                        nsid: "example".into(),
                         parameters: Some(params),
                         input: None,
                         encoding: None,
@@ -387,14 +273,14 @@ mod tests {
         mod no_content {
             use super::*;
 
-            async fn create_data<T>(xrpc: &T, input: Input) -> Result<(), crate::Error<Error>>
+            async fn create_data<T>(xrpc: &T, input: Input) -> Result<(), Error>
             where
                 T: crate::XrpcClient + Send + Sync,
             {
                 let response = xrpc
                     .send_xrpc::<(), _, (), _>(&XrpcRequest {
                         method: http::Method::POST,
-                        path: "example".into(),
+                        nsid: "example".into(),
                         parameters: None,
                         input: Some(InputDataOrBytes::Data(input)),
                         encoding: None,
@@ -449,14 +335,14 @@ mod tests {
         mod bytes {
             use super::*;
 
-            async fn create_data<T>(xrpc: &T, input: Vec<u8>) -> Result<Output, crate::Error<Error>>
+            async fn create_data<T>(xrpc: &T, input: Vec<u8>) -> Result<Output, Error>
             where
                 T: crate::XrpcClient + Send + Sync,
             {
                 let response = xrpc
                     .send_xrpc::<(), Vec<u8>, _, _>(&XrpcRequest {
                         method: http::Method::POST,
-                        path: "example".into(),
+                        nsid: "example".into(),
                         parameters: None,
                         input: Some(InputDataOrBytes::Bytes(input)),
                         encoding: None,

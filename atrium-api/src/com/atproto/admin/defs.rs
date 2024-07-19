@@ -2,7 +2,9 @@
 //!Definitions for the `com.atproto.admin.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct AccountView {
+pub struct AccountViewData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deactivated_at: Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
@@ -21,23 +23,27 @@ pub struct AccountView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub related_records: Option<Vec<crate::records::Record>>,
 }
+pub type AccountView = crate::types::Object<AccountViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RepoBlobRef {
+pub struct RepoBlobRefData {
     pub cid: crate::types::string::Cid,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub record_uri: Option<String>,
 }
+pub type RepoBlobRef = crate::types::Object<RepoBlobRefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct RepoRef {
+pub struct RepoRefData {
     pub did: crate::types::string::Did,
 }
+pub type RepoRef = crate::types::Object<RepoRefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct StatusAttr {
+pub struct StatusAttrData {
     pub applied: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub r#ref: Option<String>,
 }
+pub type StatusAttr = crate::types::Object<StatusAttrData>;

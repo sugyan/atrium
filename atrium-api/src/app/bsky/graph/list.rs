@@ -2,7 +2,7 @@
 //!Definitions for the `app.bsky.graph.list` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<crate::types::BlobRef>,
     pub created_at: crate::types::string::Datetime,
@@ -17,6 +17,7 @@ pub struct Record {
     ///Defines the purpose of the list (aka, moderation-oriented or curration-oriented)
     pub purpose: crate::app::bsky::graph::defs::ListPurpose,
 }
+pub type Record = crate::types::Object<RecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum RecordLabelsRefs {

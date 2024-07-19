@@ -1,6 +1,6 @@
 [package]
 name = "atrium-api"
-version = "0.21.0"
+version = "0.23.2"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -24,8 +24,13 @@ serde_bytes.workspace = true
 tokio = { workspace = true, optional = true }
 
 [features]
-default = ["agent"]
+default = ["agent", "bluesky"]
 agent = ["tokio/sync"]
+bluesky = ["namespace-appbsky", "namespace-chatbsky"]
+ozone = ["namespace-appbsky", "namespace-chatbsky", "namespace-toolsozone"]
+namespace-appbsky = []
+namespace-chatbsky = []
+namespace-toolsozone = []
 
 [dev-dependencies]
 atrium-xrpc-client.workspace = true

@@ -2,7 +2,7 @@
 //!Definitions for the `app.bsky.feed.post` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     ///Client-declared timestamp when this post was originally created.
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -27,28 +27,32 @@ pub struct Record {
     ///The primary post content. May be an empty string, if there are embeds.
     pub text: String,
 }
+pub type Record = crate::types::Object<RecordData>;
 ///Deprecated: use facets instead.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Entity {
+pub struct EntityData {
     pub index: TextSlice,
     ///Expected values are 'mention' and 'link'.
     pub r#type: String,
     pub value: String,
 }
+pub type Entity = crate::types::Object<EntityData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ReplyRef {
+pub struct ReplyRefData {
     pub parent: crate::com::atproto::repo::strong_ref::Main,
     pub root: crate::com::atproto::repo::strong_ref::Main,
 }
+pub type ReplyRef = crate::types::Object<ReplyRefData>;
 ///Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct TextSlice {
+pub struct TextSliceData {
     pub end: usize,
     pub start: usize,
 }
+pub type TextSlice = crate::types::Object<TextSliceData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum RecordEmbedRefs {

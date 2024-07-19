@@ -1,23 +1,66 @@
 use super::{Session, SessionStore};
 use crate::did_doc::DidDocument;
+use crate::types::string::Did;
 use async_trait::async_trait;
-use atrium_xrpc::error::{Error, XrpcErrorKind};
-use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest, XrpcResult};
+use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
+use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response, Uri};
 use serde::{de::DeserializeOwned, Serialize};
+use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
 use tokio::sync::{Mutex, Notify};
 
-const REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
-
-struct SessionStoreClient<S, T> {
+struct WrapperClient<S, T> {
     store: Arc<Store<S>>,
-    inner: T,
+    proxy_header: RwLock<Option<String>>,
+    labelers_header: Arc<RwLock<Option<Vec<String>>>>,
+    inner: Arc<T>,
+}
+
+impl<S, T> WrapperClient<S, T> {
+    fn configure_proxy_header(&self, value: String) {
+        self.proxy_header
+            .write()
+            .expect("failed to write proxy header")
+            .replace(value);
+    }
+    fn configure_labelers_header(&self, labelers_dids: Option<Vec<(Did, bool)>>) {
+        *self
+            .labelers_header
+            .write()
+            .expect("failed to write labelers header") = labelers_dids.map(|dids| {
+            dids.iter()
+                .map(|(did, redact)| {
+                    if *redact {
+                        format!("{};redact", did.as_ref())
+                    } else {
+                        did.as_ref().into()
+                    }
+                })
+                .collect()
+        })
+    }
+}
+
+impl<S, T> Clone for WrapperClient<S, T> {
+    fn clone(&self) -> Self {
+        Self {
+            store: self.store.clone(),
+            labelers_header: self.labelers_header.clone(),
+            proxy_header: RwLock::new(
+                self.proxy_header
+                    .read()
+                    .expect("failed to read proxy header")
+                    .clone(),
+            ),
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<S, T> HttpClient for SessionStoreClient<S, T>
+impl<S, T> HttpClient for WrapperClient<S, T>
 where
     S: Send + Sync,
     T: HttpClient + Send + Sync,
@@ -25,14 +68,15 @@ where
     async fn send_http(
         &self,
         request: Request<Vec<u8>>,
-    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
+    {
         self.inner.send_http(request).await
     }
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<S, T> XrpcClient for SessionStoreClient<S, T>
+impl<S, T> XrpcClient for WrapperClient<S, T>
 where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
@@ -40,22 +84,34 @@ where
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
-    async fn auth(&self, is_refresh: bool) -> Option<String> {
+    async fn authentication_token(&self, is_refresh: bool) -> Option<String> {
         self.store.get_session().await.map(|session| {
             if is_refresh {
-                session.refresh_jwt
+                session.data.refresh_jwt
             } else {
-                session.access_jwt
+                session.data.access_jwt
             }
         })
+    }
+    async fn atproto_proxy_header(&self) -> Option<String> {
+        self.proxy_header
+            .read()
+            .expect("failed to read proxy header")
+            .clone()
+    }
+    async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
+        self.labelers_header
+            .read()
+            .expect("failed to read labelers header")
+            .clone()
     }
 }
 
 pub struct Client<S, T> {
     store: Arc<Store<S>>,
-    inner: SessionStoreClient<S, T>,
-    is_refreshing: Mutex<bool>,
-    notify: Notify,
+    inner: WrapperClient<S, T>,
+    is_refreshing: Arc<Mutex<bool>>,
+    notify: Arc<Notify>,
 }
 
 impl<S, T> Client<S, T>
@@ -63,17 +119,46 @@ where
     S: SessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
-    pub(crate) fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
-        let inner = SessionStoreClient {
+    pub fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
+        let inner = WrapperClient {
             store: Arc::clone(&store),
-            inner: xrpc,
+            labelers_header: Arc::new(RwLock::new(None)),
+            proxy_header: RwLock::new(None),
+            inner: Arc::new(xrpc),
         };
         Self {
             store,
             inner,
-            is_refreshing: Mutex::new(false),
-            notify: Notify::new(),
+            is_refreshing: Arc::new(Mutex::new(false)),
+            notify: Arc::new(Notify::new()),
         }
+    }
+    pub fn configure_endpoint(&self, endpoint: String) {
+        *self
+            .store
+            .endpoint
+            .write()
+            .expect("failed to write endpoint") = endpoint;
+    }
+    pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+        self.inner
+            .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
+    }
+    pub fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
+        let cloned = self.clone();
+        cloned
+            .inner
+            .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
+        cloned
+    }
+    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
+        self.inner.configure_labelers_header(labeler_dids);
+    }
+    pub async fn get_labelers_header(&self) -> Option<Vec<String>> {
+        self.inner.atproto_accept_labelers_header().await
+    }
+    pub async fn get_proxy_header(&self) -> Option<String> {
+        self.inner.atproto_proxy_header().await
     }
     // Internal helper to refresh sessions
     // - Wraps the actual implementation to ensure only one refresh is attempted at a time.
@@ -94,14 +179,14 @@ where
     async fn refresh_session_inner(&self) {
         if let Ok(output) = self.call_refresh_session().await {
             if let Some(mut session) = self.store.get_session().await {
-                session.access_jwt = output.access_jwt;
-                session.did = output.did;
-                session.did_doc = output.did_doc.clone();
-                session.handle = output.handle;
-                session.refresh_jwt = output.refresh_jwt;
+                session.access_jwt = output.data.access_jwt;
+                session.did = output.data.did;
+                session.did_doc = output.data.did_doc.clone();
+                session.handle = output.data.handle;
+                session.refresh_jwt = output.data.refresh_jwt;
                 self.store.set_session(session).await;
             }
-            if let Some(did_doc) = &output.did_doc {
+            if let Some(did_doc) = &output.data.did_doc {
                 self.store.update_endpoint(did_doc);
             }
         } else {
@@ -113,13 +198,13 @@ where
         &self,
     ) -> Result<
         crate::com::atproto::server::refresh_session::Output,
-        Error<crate::com::atproto::server::refresh_session::Error>,
+        crate::com::atproto::server::refresh_session::Error,
     > {
         let response = self
             .inner
             .send_xrpc::<(), (), _, _>(&XrpcRequest {
                 method: Method::POST,
-                path: REFRESH_SESSION.into(),
+                nsid: crate::com::atproto::server::refresh_session::NSID.into(),
                 parameters: None,
                 input: None,
                 encoding: None,
@@ -130,10 +215,10 @@ where
             _ => Err(Error::UnexpectedResponseType),
         }
     }
-    fn is_expired<O, E>(result: &XrpcResult<O, E>) -> bool
+    fn is_expired<O, E>(result: &Result<OutputDataOrBytes<O>, E>) -> bool
     where
         O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync + Debug,
     {
         if let Err(Error::XrpcResponse(response)) = &result {
             if let Some(XrpcErrorKind::Undefined(body)) = &response.error {
@@ -143,6 +228,21 @@ where
             }
         }
         false
+    }
+}
+
+impl<S, T> Clone for Client<S, T>
+where
+    S: SessionStore + Send + Sync,
+    T: XrpcClient + Send + Sync,
+{
+    fn clone(&self) -> Self {
+        Self {
+            store: self.store.clone(),
+            inner: self.inner.clone(),
+            is_refreshing: self.is_refreshing.clone(),
+            notify: self.notify.clone(),
+        }
     }
 }
 
@@ -156,7 +256,8 @@ where
     async fn send_http(
         &self,
         request: Request<Vec<u8>>,
-    ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
+    {
         self.inner.send_http(request).await
     }
 }
@@ -171,12 +272,15 @@ where
     fn base_uri(&self) -> String {
         self.inner.base_uri()
     }
-    async fn send_xrpc<P, I, O, E>(&self, request: &XrpcRequest<P, I>) -> XrpcResult<O, E>
+    async fn send_xrpc<P, I, O, E>(
+        &self,
+        request: &XrpcRequest<P, I>,
+    ) -> Result<OutputDataOrBytes<O>, E>
     where
         P: Serialize + Send + Sync,
         I: Serialize + Send + Sync,
         O: DeserializeOwned + Send + Sync,
-        E: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync + Debug,
     {
         let result = self.inner.send_xrpc(request).await;
         // handle session-refreshes as needed

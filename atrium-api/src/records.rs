@@ -9,28 +9,60 @@ pub enum Record {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum KnownRecord {
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.actor.profile")]
     AppBskyActorProfile(Box<crate::app::bsky::actor::profile::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.feed.generator")]
     AppBskyFeedGenerator(Box<crate::app::bsky::feed::generator::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.feed.like")]
     AppBskyFeedLike(Box<crate::app::bsky::feed::like::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.feed.post")]
     AppBskyFeedPost(Box<crate::app::bsky::feed::post::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.feed.repost")]
     AppBskyFeedRepost(Box<crate::app::bsky::feed::repost::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.feed.threadgate")]
     AppBskyFeedThreadgate(Box<crate::app::bsky::feed::threadgate::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.graph.block")]
     AppBskyGraphBlock(Box<crate::app::bsky::graph::block::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.graph.follow")]
     AppBskyGraphFollow(Box<crate::app::bsky::graph::follow::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.graph.list")]
     AppBskyGraphList(Box<crate::app::bsky::graph::list::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.graph.listblock")]
     AppBskyGraphListblock(Box<crate::app::bsky::graph::listblock::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.graph.listitem")]
     AppBskyGraphListitem(Box<crate::app::bsky::graph::listitem::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
+    #[serde(rename = "app.bsky.graph.starterpack")]
+    AppBskyGraphStarterpack(Box<crate::app::bsky::graph::starterpack::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.labeler.service")]
     AppBskyLabelerService(Box<crate::app::bsky::labeler::service::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-chatbsky")))]
+    #[cfg(feature = "namespace-chatbsky")]
+    #[serde(rename = "chat.bsky.actor.declaration")]
+    ChatBskyActorDeclaration(Box<crate::chat::bsky::actor::declaration::Record>),
 }

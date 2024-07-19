@@ -2,10 +2,11 @@
 //!Definitions for the `app.bsky.graph.listitem` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct Record {
+pub struct RecordData {
     pub created_at: crate::types::string::Datetime,
     ///Reference (AT-URI) to the list record (app.bsky.graph.list).
     pub list: String,
     ///The account which is included on the list.
     pub subject: crate::types::string::Did,
 }
+pub type Record = crate::types::Object<RecordData>;

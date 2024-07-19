@@ -17,7 +17,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let results = genapi(
         &args.lexdir,
         &args.outdir,
-        &["app.bsky", "com.atproto", "tools.ozone"],
+        &[
+            ("com.atproto", None),
+            ("app.bsky", Some("namespace-appbsky")),
+            ("chat.bsky", Some("namespace-chatbsky")),
+            ("tools.ozone", Some("namespace-toolsozone")),
+        ],
     )?;
     for path in &results {
         println!(

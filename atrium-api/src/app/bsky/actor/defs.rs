@@ -2,21 +2,41 @@
 //!Definitions for the `app.bsky.actor.defs` namespace.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct AdultContentPref {
+pub struct AdultContentPrefData {
     pub enabled: bool,
 }
+pub type AdultContentPref = crate::types::Object<AdultContentPrefData>;
+///If set, an active progress guide. Once completed, can be set to undefined. Should have unspecced fields tracking progress.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ContentLabelPref {
+pub struct BskyAppProgressGuideData {
+    pub guide: String,
+}
+pub type BskyAppProgressGuide = crate::types::Object<BskyAppProgressGuideData>;
+///A grab bag of state that's specific to the bsky.app program. Third-party apps shouldn't use this.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct BskyAppStatePrefData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub active_progress_guide: Option<BskyAppProgressGuide>,
+    ///An array of tokens which identify nudges (modals, popups, tours, highlight dots) that should be shown to the user.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub queued_nudges: Option<Vec<String>>,
+}
+pub type BskyAppStatePref = crate::types::Object<BskyAppStatePrefData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ContentLabelPrefData {
     pub label: String,
     ///Which labeler does this preference apply to? If undefined, applies globally.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labeler_did: Option<crate::types::string::Did>,
     pub visibility: String,
 }
+pub type ContentLabelPref = crate::types::Object<ContentLabelPrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct FeedViewPref {
+pub struct FeedViewPrefData {
     ///The URI of the feed, or an identifier which describes the feed.
     pub feed: String,
     ///Hide quote posts in the feed.
@@ -35,69 +55,98 @@ pub struct FeedViewPref {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub hide_reposts: Option<bool>,
 }
+pub type FeedViewPref = crate::types::Object<FeedViewPrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct HiddenPostsPref {
+pub struct HiddenPostsPrefData {
     ///A list of URIs of posts the account owner has hidden.
     pub items: Vec<String>,
 }
+pub type HiddenPostsPref = crate::types::Object<HiddenPostsPrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct InterestsPref {
+pub struct InterestsPrefData {
     ///A list of tags which describe the account owner's interests gathered during onboarding.
     pub tags: Vec<String>,
 }
+pub type InterestsPref = crate::types::Object<InterestsPrefData>;
+///The subject's followers whom you also follow
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelerPrefItem {
+pub struct KnownFollowersData {
+    pub count: i64,
+    pub followers: Vec<ProfileViewBasic>,
+}
+pub type KnownFollowers = crate::types::Object<KnownFollowersData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LabelerPrefItemData {
     pub did: crate::types::string::Did,
 }
+pub type LabelerPrefItem = crate::types::Object<LabelerPrefItemData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct LabelersPref {
+pub struct LabelersPrefData {
     pub labelers: Vec<LabelerPrefItem>,
 }
+pub type LabelersPref = crate::types::Object<LabelersPrefData>;
 ///A word that the account owner has muted.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct MutedWord {
+pub struct MutedWordData {
     ///The intended targets of the muted word.
     pub targets: Vec<crate::app::bsky::actor::defs::MutedWordTarget>,
     ///The muted word itself.
     pub value: String,
 }
+pub type MutedWord = crate::types::Object<MutedWordData>;
 pub type MutedWordTarget = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct MutedWordsPref {
+pub struct MutedWordsPrefData {
     ///A list of words the account owner has muted.
     pub items: Vec<crate::app::bsky::actor::defs::MutedWord>,
 }
+pub type MutedWordsPref = crate::types::Object<MutedWordsPrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct PersonalDetailsPref {
+pub struct PersonalDetailsPrefData {
     ///The birth date of account owner.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub birth_date: Option<crate::types::string::Datetime>,
 }
+pub type PersonalDetailsPref = crate::types::Object<PersonalDetailsPrefData>;
 pub type Preferences = Vec<crate::types::Union<PreferencesItem>>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileAssociated {
+pub struct ProfileAssociatedData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub chat: Option<ProfileAssociatedChat>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feedgens: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labeler: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lists: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub starter_packs: Option<i64>,
 }
+pub type ProfileAssociated = crate::types::Object<ProfileAssociatedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileView {
+pub struct ProfileAssociatedChatData {
+    pub allow_incoming: String,
+}
+pub type ProfileAssociatedChat = crate::types::Object<ProfileAssociatedChatData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub did: crate::types::string::Did,
@@ -111,13 +160,16 @@ pub struct ProfileView {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
+pub type ProfileView = crate::types::Object<ProfileViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileViewBasic {
+pub struct ProfileViewBasicData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
@@ -127,15 +179,18 @@ pub struct ProfileViewBasic {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
+pub type ProfileViewBasic = crate::types::Object<ProfileViewBasicData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileViewDetailed {
+pub struct ProfileViewDetailedData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub associated: Option<ProfileAssociated>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub banner: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub did: crate::types::string::Did,
@@ -149,36 +204,44 @@ pub struct ProfileViewDetailed {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub joined_via_starter_pack: Option<
+        crate::app::bsky::graph::defs::StarterPackViewBasic,
+    >,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub posts_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,
 }
+pub type ProfileViewDetailed = crate::types::Object<ProfileViewDetailedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SavedFeed {
+pub struct SavedFeedData {
     pub id: String,
     pub pinned: bool,
     pub r#type: String,
     pub value: String,
 }
+pub type SavedFeed = crate::types::Object<SavedFeedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SavedFeedsPref {
+pub struct SavedFeedsPrefData {
     pub pinned: Vec<String>,
     pub saved: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub timeline_index: Option<i64>,
 }
+pub type SavedFeedsPref = crate::types::Object<SavedFeedsPrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct SavedFeedsPrefV2 {
+pub struct SavedFeedsPrefV2Data {
     pub items: Vec<crate::app::bsky::actor::defs::SavedFeed>,
 }
+pub type SavedFeedsPrefV2 = crate::types::Object<SavedFeedsPrefV2Data>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ThreadViewPref {
+pub struct ThreadViewPrefData {
     ///Show followed users at the top of all replies.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub prioritize_followed_users: Option<bool>,
@@ -186,10 +249,11 @@ pub struct ThreadViewPref {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort: Option<String>,
 }
+pub type ThreadViewPref = crate::types::Object<ThreadViewPrefData>;
 ///Metadata about the requesting account's relationship with the subject account. Only has meaningful content for authed requests.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct ViewerState {
+pub struct ViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub blocked_by: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -201,10 +265,13 @@ pub struct ViewerState {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub following: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub known_followers: Option<KnownFollowers>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub muted: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub muted_by_list: Option<crate::app::bsky::graph::defs::ListViewBasic>,
 }
+pub type ViewerState = crate::types::Object<ViewerStateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum PreferencesItem {
@@ -228,4 +295,8 @@ pub enum PreferencesItem {
     MutedWordsPref(Box<MutedWordsPref>),
     #[serde(rename = "app.bsky.actor.defs#hiddenPostsPref")]
     HiddenPostsPref(Box<HiddenPostsPref>),
+    #[serde(rename = "app.bsky.actor.defs#bskyAppStatePref")]
+    BskyAppStatePref(Box<BskyAppStatePref>),
+    #[serde(rename = "app.bsky.actor.defs#labelersPref")]
+    LabelersPref(Box<LabelersPref>),
 }

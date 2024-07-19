@@ -1,7 +1,7 @@
 #![doc = "XrpcClient implementation for [reqwest]"]
 use async_trait::async_trait;
+use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::{HttpClient, XrpcClient};
-use http::{Request, Response};
 use reqwest::Client;
 use std::sync::Arc;
 
@@ -14,6 +14,7 @@ use std::sync::Arc;
 /// because it already uses an [`Arc`] internally.
 ///
 /// [`Rc`]: std::rc::Rc
+#[derive(Clone)]
 pub struct ReqwestClient {
     base_uri: String,
     client: Arc<Client>,

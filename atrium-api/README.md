@@ -14,7 +14,6 @@ Any HTTP client that implements [`atrium_xrpc::HttpClient`](https://docs.rs/atri
 
 ```rust,no_run
 use atrium_api::client::AtpServiceClient;
-use atrium_api::com::atproto::server::create_session::Input;
 use atrium_xrpc_client::reqwest::ReqwestClient;
 
 #[tokio::main]
@@ -25,18 +24,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .com
         .atproto
         .server
-        .create_session(Input {
-            auth_factor_token: None,
-            identifier: "alice@mail.com".into(),
-            password: "hunter2".into(),
-        })
+        .create_session(
+            atrium_api::com::atproto::server::create_session::InputData {
+                auth_factor_token: None,
+                identifier: "alice@mail.com".into(),
+                password: "hunter2".into(),
+            }
+            .into(),
+        )
         .await;
     println!("{:?}", result);
     Ok(())
 }
 ```
 
-### `AtpAgent`
+### `AtpAgent` (`agent` feature)
 
 While `AtpServiceClient` can be used for simple XRPC calls, it is better to use `AtpAgent`, which has practical features such as session management.
 
@@ -53,14 +55,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     agent.login("alice@mail.com", "hunter2").await?;
     let result = agent
         .api
-        .app
-        .bsky
-        .actor
-        .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-            actor: "bsky.app".parse()?,
-        })
+        .com
+        .atproto
+        .server
+        .get_session()
         .await?;
     println!("{:?}", result);
     Ok(())
 }
 ```
+
+## Features
+
+The `AtpAgent` used in the above example is included in the `agent` feature. atrium-api enables the `agent` and `bluesky` features by default. It is possible to opt-out if not needed.
+
+- `agent`: enable the `agent` module.
+- `bluesky`: enable bluesky-specific lexicon definitions and XRPC methods.
+  - It is also possible to enable only the namespace specified by `namespace-*`.

@@ -6,6 +6,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.23.1...atrium-api-v0.23.2) - 2024-07-03
+
+### Added
+- Update API, based on the latest lexicon schemas ([#195](https://github.com/sugyan/atrium/pull/195))
+
+## [0.23.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.23.0...atrium-api-v0.23.1) - 2024-06-26
+
+### Added
+- Update API, based on the latest lexicon schemas ([#194](https://github.com/sugyan/atrium/pull/194))
+- Add `Clone` and `Debug` ([#193](https://github.com/sugyan/atrium/pull/193))
+
+## [0.23.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.3...atrium-api-v0.23.0) - 2024-06-20
+
+### Added
+- Update bsky-sdk, and redesign of object types in API ([#189](https://github.com/sugyan/atrium/pull/189))
+- Update API, based on the latest lexicon schemas ([#188](https://github.com/sugyan/atrium/pull/188))
+
+## [0.22.3](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.2...atrium-api-v0.22.3) - 2024-06-13
+
+### Added
+- Add bsky-sdk ([#185](https://github.com/sugyan/atrium/pull/185))
+
+## [0.22.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.1...atrium-api-v0.22.2) - 2024-05-27
+
+### Added
+- Update api ([#182](https://github.com/sugyan/atrium/pull/182))
+
+## [0.22.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.22.0...atrium-api-v0.22.1) - 2024-05-23
+
+### Added
+- Update default features of API ([#181](https://github.com/sugyan/atrium/pull/181))
+- Generate lexicon token as const &str ([#179](https://github.com/sugyan/atrium/pull/179))
+
+### Other
+- Add methods to retrieve AtpAgent info ([#178](https://github.com/sugyan/atrium/pull/178))
+
+## [0.22.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.3...atrium-api-v0.22.0) - 2024-05-22
+
+### Added
+- Add supporting atproto headers ([#175](https://github.com/sugyan/atrium/pull/175))
+
+## [0.21.3](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.2...atrium-api-v0.21.3) - 2024-05-20
+
+### Added
+- *(api)* Add namespace features ([#174](https://github.com/sugyan/atrium/pull/174))
+
+## [0.21.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.1...atrium-api-v0.21.2) - 2024-05-17
+
+### Added
+- Update API, based on the latest lexicon schemas ([#171](https://github.com/sugyan/atrium/pull/171))
+
+## [0.21.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.21.0...atrium-api-v0.21.1) - 2024-05-17
+
+### Added
+- Add headers() to `XrpcClient` ([#170](https://github.com/sugyan/atrium/pull/170))
+- Update API, based on the latest lexicon schemas ([#165](https://github.com/sugyan/atrium/pull/165))
+
 ## [0.21.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.20.1...atrium-api-v0.21.0) - 2024-04-18
 
 ### Added
