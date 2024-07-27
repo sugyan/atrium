@@ -217,7 +217,7 @@ pub struct RecordViewData {
     pub moderation: Moderation,
     pub repo: RepoView,
     pub uri: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type RecordView = crate::types::Object<RecordViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -231,7 +231,7 @@ pub struct RecordViewDetailData {
     pub moderation: ModerationDetail,
     pub repo: RepoView,
     pub uri: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type RecordViewDetail = crate::types::Object<RecordViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

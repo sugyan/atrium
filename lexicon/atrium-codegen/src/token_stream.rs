@@ -320,7 +320,7 @@ fn lex_object_property(
         LexObjectProperty::Boolean(boolean) => boolean_type(boolean)?,
         LexObjectProperty::Integer(integer) => integer_type(integer)?,
         LexObjectProperty::String(string) => string_type(string)?,
-        LexObjectProperty::Unknown(unknown) => unknown_type(unknown, Some(name))?,
+        LexObjectProperty::Unknown(unknown) => unknown_type(unknown, NamedUnknown::Field(name))?,
     };
     let field_name = format_ident!(
         "{}",
@@ -401,7 +401,7 @@ fn array_type(
     let (_, item_type) = match &array.items {
         LexArrayItem::Integer(integer) => integer_type(integer)?,
         LexArrayItem::String(string) => string_type(string)?,
-        LexArrayItem::Unknown(unknown) => unknown_type(unknown, None)?,
+        LexArrayItem::Unknown(unknown) => unknown_type(unknown, NamedUnknown::Array(name))?,
         LexArrayItem::CidLink(cid_link) => cid_link_type(cid_link)?,
         LexArrayItem::Ref(r#ref) => ref_type(r#ref)?,
         LexArrayItem::Union(union) => union_type(
@@ -562,13 +562,26 @@ fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
     Ok((description, typ))
 }
 
-fn unknown_type(unknown: &LexUnknown, name: Option<&str>) -> Result<(TokenStream, TokenStream)> {
+enum NamedUnknown<'s> {
+    Field(&'s str),
+    Array(&'s str),
+}
+
+fn unknown_type(
+    unknown: &LexUnknown,
+    name: NamedUnknown<'_>,
+) -> Result<(TokenStream, TokenStream)> {
     let description = description(&unknown.description);
-    if name == Some("didDoc") {
-        Ok((description, quote!(crate::did_doc::DidDocument)))
-    } else {
-        Ok((description, quote!(crate::records::Record)))
-    }
+
+    let typ = match name {
+        NamedUnknown::Field("didDoc") => quote!(crate::did_doc::DidDocument),
+        NamedUnknown::Field("record") | NamedUnknown::Array("relatedRecords") => {
+            quote!(crate::records::Record)
+        }
+        _ => quote!(crate::types::Unknown),
+    };
+
+    Ok((description, typ))
 }
 
 fn description(description: &Option<String>) -> TokenStream {

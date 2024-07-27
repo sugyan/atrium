@@ -9,19 +9,19 @@ pub struct InputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rotation_keys: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub services: Option<crate::records::Record>,
+    pub services: Option<crate::types::Unknown>,
     ///A token received through com.atproto.identity.requestPlcOperationSignature
     #[serde(skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub verification_methods: Option<crate::records::Record>,
+    pub verification_methods: Option<crate::types::Unknown>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     ///A signed DID PLC operation.
-    pub operation: crate::records::Record,
+    pub operation: crate::types::Unknown,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
