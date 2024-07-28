@@ -17,7 +17,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct IsahcClient {
     base_uri: String,
-    client: Arc<Client>,
+    client: Client,
 }
 
 impl IsahcClient {
@@ -50,10 +50,9 @@ impl IsahcClientBuilder {
     pub fn build(self) -> IsahcClient {
         IsahcClient {
             base_uri: self.base_uri,
-            client: Arc::new(
-                self.client
-                    .unwrap_or(Client::new().expect("failed to create isahc client")),
-            ),
+            client: self
+                .client
+                .unwrap_or(Client::new().expect("failed to create isahc client")),
         }
     }
 }
