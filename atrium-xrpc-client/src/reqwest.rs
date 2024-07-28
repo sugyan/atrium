@@ -3,7 +3,6 @@ use async_trait::async_trait;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::{HttpClient, XrpcClient};
 use reqwest::Client;
-use std::sync::Arc;
 
 /// A [`reqwest`] based asynchronous client to make XRPC requests with.
 ///
@@ -17,7 +16,7 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct ReqwestClient {
     base_uri: String,
-    client: Arc<Client>,
+    client: Client,
 }
 
 impl ReqwestClient {
@@ -50,7 +49,7 @@ impl ReqwestClientBuilder {
     pub fn build(self) -> ReqwestClient {
         ReqwestClient {
             base_uri: self.base_uri,
-            client: Arc::new(self.client.unwrap_or_default()),
+            client: self.client.unwrap_or_default(),
         }
     }
 }
