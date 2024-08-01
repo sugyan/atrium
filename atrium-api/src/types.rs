@@ -2,6 +2,7 @@
 //! <https://atproto.com/specs/data-model>
 
 use ipld_core::ipld::Ipld;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
@@ -145,12 +146,18 @@ pub struct UnknownData {
 ///
 /// [the `unknown` field type]: https://atproto.com/specs/lexicon#unknown
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(try_from = "Ipld")]
-pub struct Unknown {
-    pub data: Ipld,
+#[serde(untagged)]
+pub enum Unknown {
+    Object(BTreeMap<String, DataModel>),
+    Null,
+    Other(DataModel),
 }
 
-impl TryFrom<Ipld> for Unknown {
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(try_from = "Ipld")]
+pub struct DataModel(Ipld);
+
+impl TryFrom<Ipld> for DataModel {
     type Error = &'static str;
 
     fn try_from(value: Ipld) -> Result<Self, Self::Error> {
@@ -158,7 +165,30 @@ impl TryFrom<Ipld> for Unknown {
         // https://atproto.com/specs/data-model
         match value {
             Ipld::Float(_) => Err("Floats are not allowed in ATProto"),
-            data => Ok(Unknown { data }),
+            data => Ok(DataModel(data)),
+        }
+    }
+}
+
+pub trait TryFromUnknown: Sized {
+    type Error;
+
+    fn try_from_unknown(value: Unknown) -> Result<Self, Self::Error>;
+}
+
+impl<T> TryFromUnknown for T
+where
+    T: serde::de::DeserializeOwned,
+{
+    type Error = ipld_core::serde::SerdeError;
+
+    fn try_from_unknown(value: Unknown) -> Result<Self, Self::Error> {
+        match value {
+            Unknown::Object(map) => {
+                T::deserialize(Ipld::Map(map.into_iter().map(|(k, v)| (k, v.0)).collect()))
+            }
+            Unknown::Null => T::deserialize(Ipld::Null),
+            Unknown::Other(data) => T::deserialize(data.0),
         }
     }
 }
@@ -167,13 +197,12 @@ impl TryFrom<Ipld> for Unknown {
 mod tests {
     use super::*;
     use serde_json::{from_str, to_string};
-    use std::collections::BTreeMap;
 
     const CID_LINK_JSON: &str =
         r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#;
 
     #[test]
-    fn test_cid_link_serde_json() {
+    fn cid_link_serde_json() {
         let deserialized =
             from_str::<CidLink>(CID_LINK_JSON).expect("failed to deserialize cid-link");
         let serialized = to_string(&deserialized).expect("failed to serialize cid-link");
@@ -181,7 +210,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_typed_deserialize_json() {
+    fn blob_ref_typed_deserialize_json() {
         let json = format!(
             r#"{{"$type":"blob","ref":{},"mimeType":"text/plain","size":0}}"#,
             CID_LINK_JSON
@@ -201,7 +230,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_untyped_deserialize_json() {
+    fn blob_ref_untyped_deserialize_json() {
         let json = r#"{"cid":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy","mimeType":"text/plain"}"#;
         let deserialized = from_str::<BlobRef>(json).expect("failed to deserialize blob-ref");
         assert_eq!(
@@ -214,7 +243,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_serialize_json() {
+    fn blob_ref_serialize_json() {
         let blob_ref = BlobRef::Typed(TypedBlobRef::Blob(Blob {
             r#ref: CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
                 .expect("failed to create cid-link"),
@@ -232,7 +261,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_deserialize_dag_cbor() {
+    fn blob_ref_deserialize_dag_cbor() {
         // {"$type": "blob", "mimeType": "text/plain", "ref": bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy, "size": 0}
         let dag_cbor = [
             0xa4, 0x65, 0x24, 0x74, 0x79, 0x70, 0x65, 0x64, 0x62, 0x6c, 0x6f, 0x62, 0x63, 0x72,
@@ -258,7 +287,7 @@ mod tests {
     }
 
     #[test]
-    fn test_union() {
+    fn union() {
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
         #[serde(tag = "$type")]
         enum FooRefs {
@@ -305,5 +334,168 @@ mod tests {
                 )]))
             })
         );
+    }
+
+    #[test]
+    fn unknown_serialize() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Foo {
+            foo: Unknown,
+        }
+
+        let foo = Foo {
+            foo: Unknown::Object(BTreeMap::from_iter([(
+                String::from("bar"),
+                DataModel(Ipld::String(String::from("bar"))),
+            )])),
+        };
+        let serialized = to_string(&foo).expect("failed to serialize foo");
+        assert_eq!(serialized, r#"{"foo":{"bar":"bar"}}"#);
+    }
+
+    #[test]
+    fn unknown_deserialize() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Foo {
+            foo: Unknown,
+        }
+
+        // valid: data object
+        {
+            let json = r#"{
+                "foo": {
+                    "$type": "example.com#foo",
+                    "bar": "bar"
+                }
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Object(BTreeMap::from_iter([
+                        (
+                            String::from("bar"),
+                            DataModel(Ipld::String(String::from("bar")))
+                        ),
+                        (
+                            String::from("$type"),
+                            DataModel(Ipld::String(String::from("example.com#foo")))
+                        )
+                    ]))
+                }
+            );
+        }
+        // valid(?): empty object
+        {
+            let json = r#"{
+                "foo": {}
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Object(BTreeMap::default())
+                }
+            );
+        }
+        // valid(?): object with no $type
+        {
+            let json = r#"{
+                "foo": {
+                    "bar": "bar"
+                }
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Object(BTreeMap::from_iter([(
+                        String::from("bar"),
+                        DataModel(Ipld::String(String::from("bar")))
+                    )]))
+                }
+            );
+        }
+        // valid(?): null
+        {
+            let json = r#"{
+                "foo": null
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(deserialized, Foo { foo: Unknown::Null });
+        }
+        // valid(?): primitive types
+        {
+            let json = r#"{
+                "foo": 42
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Other(DataModel(Ipld::Integer(42)))
+                }
+            );
+        }
+        // invalid: unsupported type
+        {
+            let json = r#"{
+                "foo": 42.195
+            }"#;
+            assert!(from_str::<Foo>(json).is_err());
+        }
+    }
+
+    #[test]
+    fn unknown_try_from() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Foo {
+            foo: Unknown,
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Bar {
+            bar: String,
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Baz {
+            baz: i32,
+        }
+
+        {
+            let foo = Foo {
+                foo: Unknown::Object(BTreeMap::from_iter([
+                    (
+                        String::from("$type"),
+                        DataModel(Ipld::String(String::from("example.com#bar"))),
+                    ),
+                    (
+                        String::from("bar"),
+                        DataModel(Ipld::String(String::from("barbar"))),
+                    ),
+                ])),
+            };
+            let bar = Bar::try_from_unknown(foo.foo).expect("failed to convert to Bar");
+            assert_eq!(
+                bar,
+                Bar {
+                    bar: String::from("barbar")
+                }
+            );
+        }
+        {
+            let foo = Foo {
+                foo: Unknown::Object(BTreeMap::from_iter([
+                    (
+                        String::from("$type"),
+                        DataModel(Ipld::String(String::from("example.com#baz"))),
+                    ),
+                    (String::from("baz"), DataModel(Ipld::Integer(42))),
+                ])),
+            };
+            let baz = Baz::try_from_unknown(foo.foo).expect("failed to convert to Baz");
+            assert_eq!(baz, Baz { baz: 42 });
+        }
     }
 }
