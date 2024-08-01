@@ -46,7 +46,7 @@ pub struct ViewRecordData {
     pub repost_count: Option<i64>,
     pub uri: String,
     ///The record data itself.
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type ViewRecord = crate::types::Object<ViewRecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

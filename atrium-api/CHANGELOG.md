@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `atrium_api::types::Unknown`
+
+### Changed
+- `unknown` field types that don't have a well-known format now have the type
+  `atrium_api::types::Unknown` instead of `atrium_api::records::Record`.
+
 ## [0.23.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.23.1...atrium-api-v0.23.2) - 2024-07-03
 
 ### Added

@@ -10,9 +10,9 @@ pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rotation_keys: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub services: Option<crate::records::Record>,
+    pub services: Option<crate::types::Unknown>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub verification_methods: Option<crate::records::Record>,
+    pub verification_methods: Option<crate::types::Unknown>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

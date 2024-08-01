@@ -128,6 +128,8 @@ pub enum Union<T> {
     Unknown(UnknownData),
 }
 
+/// Data with an unknown schema in an open [`Union`].
+///
 /// The data of variants represented by a map and include a `$type` field indicating the variant type.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UnknownData {
@@ -135,6 +137,30 @@ pub struct UnknownData {
     pub r#type: String,
     #[serde(flatten)]
     pub data: Ipld,
+}
+
+/// Arbitrary data with no specific validation and no type-specific fields.
+///
+/// Corresponds to [the `unknown` field type].
+///
+/// [the `unknown` field type]: https://atproto.com/specs/lexicon#unknown
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(try_from = "Ipld")]
+pub struct Unknown {
+    pub data: Ipld,
+}
+
+impl TryFrom<Ipld> for Unknown {
+    type Error = &'static str;
+
+    fn try_from(value: Ipld) -> Result<Self, Self::Error> {
+        // Enforce the ATProto data model.
+        // https://atproto.com/specs/data-model
+        match value {
+            Ipld::Float(_) => Err("Floats are not allowed in ATProto"),
+            data => Ok(Unknown { data }),
+        }
+    }
 }
 
 #[cfg(test)]
