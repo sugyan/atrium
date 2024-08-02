@@ -7,7 +7,7 @@ use crate::BskyAgent;
 use async_trait::async_trait;
 use atrium_api::agent::store::SessionStore;
 use atrium_api::com::atproto::repo::{create_record, get_record, list_records, put_record};
-use atrium_api::types::{Collection, LimitedNonZeroU8};
+use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
 
 #[async_trait]
@@ -28,7 +28,7 @@ where
 }
 
 macro_rules! record_impl {
-    ($collection:path, $record:path, $record_data:path, $variant:ident) => {
+    ($collection:path, $record:path, $record_data:path) => {
         #[async_trait]
         impl<T, S> Record<T, S> for $record
         where
@@ -92,9 +92,7 @@ macro_rules! record_impl {
                     .put_record(
                         atrium_api::com::atproto::repo::put_record::InputData {
                             collection: <$collection>::nsid(),
-                            record: atrium_api::records::Record::Known(
-                                atrium_api::records::KnownRecord::$variant(Box::new(self)),
-                            ),
+                            record: self.try_into_unknown()?,
                             repo: session.data.did.into(),
                             rkey,
                             swap_commit: None,
@@ -115,9 +113,7 @@ macro_rules! record_impl {
                     .create_record(
                         atrium_api::com::atproto::repo::create_record::InputData {
                             collection: <$collection>::nsid(),
-                            record: atrium_api::records::Record::Known(
-                                atrium_api::records::KnownRecord::$variant(Box::new(self)),
-                            ),
+                            record: self.try_into_unknown()?,
                             repo: session.data.did.into(),
                             rkey: None,
                             swap_commit: None,
@@ -184,86 +180,72 @@ macro_rules! record_impl {
 record_impl!(
     atrium_api::app::bsky::actor::Profile,
     atrium_api::app::bsky::actor::profile::Record,
-    atrium_api::app::bsky::actor::profile::RecordData,
-    AppBskyActorProfile
+    atrium_api::app::bsky::actor::profile::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::feed::Generator,
     atrium_api::app::bsky::feed::generator::Record,
-    atrium_api::app::bsky::feed::generator::RecordData,
-    AppBskyFeedGenerator
+    atrium_api::app::bsky::feed::generator::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::feed::Like,
     atrium_api::app::bsky::feed::like::Record,
-    atrium_api::app::bsky::feed::like::RecordData,
-    AppBskyFeedLike
+    atrium_api::app::bsky::feed::like::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::feed::Post,
     atrium_api::app::bsky::feed::post::Record,
-    atrium_api::app::bsky::feed::post::RecordData,
-    AppBskyFeedPost
+    atrium_api::app::bsky::feed::post::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::feed::Repost,
     atrium_api::app::bsky::feed::repost::Record,
-    atrium_api::app::bsky::feed::repost::RecordData,
-    AppBskyFeedRepost
+    atrium_api::app::bsky::feed::repost::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::feed::Threadgate,
     atrium_api::app::bsky::feed::threadgate::Record,
-    atrium_api::app::bsky::feed::threadgate::RecordData,
-    AppBskyFeedThreadgate
+    atrium_api::app::bsky::feed::threadgate::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::graph::Block,
     atrium_api::app::bsky::graph::block::Record,
-    atrium_api::app::bsky::graph::block::RecordData,
-    AppBskyGraphBlock
+    atrium_api::app::bsky::graph::block::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::graph::Follow,
     atrium_api::app::bsky::graph::follow::Record,
-    atrium_api::app::bsky::graph::follow::RecordData,
-    AppBskyGraphFollow
+    atrium_api::app::bsky::graph::follow::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::graph::List,
     atrium_api::app::bsky::graph::list::Record,
-    atrium_api::app::bsky::graph::list::RecordData,
-    AppBskyGraphList
+    atrium_api::app::bsky::graph::list::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::graph::Listblock,
     atrium_api::app::bsky::graph::listblock::Record,
-    atrium_api::app::bsky::graph::listblock::RecordData,
-    AppBskyGraphListblock
+    atrium_api::app::bsky::graph::listblock::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::graph::Listitem,
     atrium_api::app::bsky::graph::listitem::Record,
-    atrium_api::app::bsky::graph::listitem::RecordData,
-    AppBskyGraphListitem
+    atrium_api::app::bsky::graph::listitem::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::graph::Starterpack,
     atrium_api::app::bsky::graph::starterpack::Record,
-    atrium_api::app::bsky::graph::starterpack::RecordData,
-    AppBskyGraphStarterpack
+    atrium_api::app::bsky::graph::starterpack::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::labeler::Service,
     atrium_api::app::bsky::labeler::service::Record,
-    atrium_api::app::bsky::labeler::service::RecordData,
-    AppBskyLabelerService
+    atrium_api::app::bsky::labeler::service::RecordData
 );
 record_impl!(
     atrium_api::chat::bsky::actor::Declaration,
     atrium_api::chat::bsky::actor::declaration::Record,
-    atrium_api::chat::bsky::actor::declaration::RecordData,
-    ChatBskyActorDeclaration
+    atrium_api::chat::bsky::actor::declaration::RecordData
 );
 
 #[cfg(test)]

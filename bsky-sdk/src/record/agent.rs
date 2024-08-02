@@ -3,7 +3,6 @@ use crate::error::{Error, Result};
 use crate::BskyAgent;
 use atrium_api::agent::store::SessionStore;
 use atrium_api::com::atproto::repo::create_record;
-use atrium_api::records::KnownRecord;
 use atrium_api::types::string::RecordKey;
 use atrium_api::xrpc::XrpcClient;
 
@@ -22,38 +21,6 @@ pub enum CreateRecordSubject {
     AppBskyGraphStarterpack(Box<atrium_api::app::bsky::graph::starterpack::Record>),
     AppBskyLabelerService(Box<atrium_api::app::bsky::labeler::service::Record>),
     ChatBskyActorDeclaration(Box<atrium_api::chat::bsky::actor::declaration::Record>),
-}
-
-impl TryFrom<atrium_api::records::Record> for CreateRecordSubject {
-    type Error = ();
-
-    fn try_from(record: atrium_api::records::Record) -> std::result::Result<Self, Self::Error> {
-        match record {
-            atrium_api::records::Record::Known(record) => Ok(record.into()),
-            _ => Err(()),
-        }
-    }
-}
-
-impl From<KnownRecord> for CreateRecordSubject {
-    fn from(value: KnownRecord) -> Self {
-        match value {
-            KnownRecord::AppBskyActorProfile(record) => Self::AppBskyActorProfile(record),
-            KnownRecord::AppBskyFeedGenerator(record) => Self::AppBskyFeedGenerator(record),
-            KnownRecord::AppBskyFeedLike(record) => Self::AppBskyFeedLike(record),
-            KnownRecord::AppBskyFeedPost(record) => Self::AppBskyFeedPost(record),
-            KnownRecord::AppBskyFeedRepost(record) => Self::AppBskyFeedRepost(record),
-            KnownRecord::AppBskyFeedThreadgate(record) => Self::AppBskyFeedThreadgate(record),
-            KnownRecord::AppBskyGraphBlock(record) => Self::AppBskyGraphBlock(record),
-            KnownRecord::AppBskyGraphFollow(record) => Self::AppBskyGraphFollow(record),
-            KnownRecord::AppBskyGraphList(record) => Self::AppBskyGraphList(record),
-            KnownRecord::AppBskyGraphListblock(record) => Self::AppBskyGraphListblock(record),
-            KnownRecord::AppBskyGraphListitem(record) => Self::AppBskyGraphListitem(record),
-            KnownRecord::AppBskyGraphStarterpack(record) => Self::AppBskyGraphStarterpack(record),
-            KnownRecord::AppBskyLabelerService(record) => Self::AppBskyLabelerService(record),
-            KnownRecord::ChatBskyActorDeclaration(record) => Self::ChatBskyActorDeclaration(record),
-        }
-    }
 }
 
 macro_rules! into_create_record_subject {

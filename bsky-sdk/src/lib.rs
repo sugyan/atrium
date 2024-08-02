@@ -4,7 +4,7 @@ pub mod agent;
 mod error;
 pub mod moderation;
 pub mod preference;
-// pub mod record;
+pub mod record;
 #[cfg_attr(docsrs, doc(cfg(feature = "rich-text")))]
 #[cfg(feature = "rich-text")]
 pub mod rich_text;
