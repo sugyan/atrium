@@ -159,6 +159,20 @@ pub enum Unknown {
 #[serde(try_from = "Ipld")]
 pub struct DataModel(Ipld);
 
+impl Deref for DataModel {
+    type Target = Ipld;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for DataModel {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
 impl TryFrom<Ipld> for DataModel {
     type Error = Error;
 
