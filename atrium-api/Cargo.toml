@@ -21,6 +21,7 @@ langtag = { workspace = true, features = ["serde"] }
 regex.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_bytes.workspace = true
+thiserror.workspace = true
 tokio = { workspace = true, optional = true }
 
 [features]

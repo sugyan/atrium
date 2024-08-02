@@ -6,7 +6,9 @@ pub mod store;
 
 use self::store::SessionStore;
 use crate::client::Service;
+use crate::did_doc::DidDocument;
 use crate::types::string::Did;
+use crate::types::TryFromUnknown;
 use atrium_xrpc::error::Error;
 use atrium_xrpc::XrpcClient;
 use std::sync::Arc;
@@ -77,8 +79,12 @@ where
             )
             .await?;
         self.store.set_session(result.clone()).await;
-        if let Some(did_doc) = &result.did_doc {
-            self.store.update_endpoint(did_doc);
+        if let Some(did_doc) = result
+            .did_doc
+            .as_ref()
+            .and_then(|value| DidDocument::try_from_unknown(value.clone()).ok())
+        {
+            self.store.update_endpoint(&did_doc);
         }
         Ok(result)
     }
@@ -99,8 +105,13 @@ where
                     session.handle = output.data.handle;
                     self.store.set_session(session).await;
                 }
-                if let Some(did_doc) = &output.data.did_doc {
-                    self.store.update_endpoint(did_doc);
+                if let Some(did_doc) = output
+                    .data
+                    .did_doc
+                    .as_ref()
+                    .and_then(|value| DidDocument::try_from_unknown(value.clone()).ok())
+                {
+                    self.store.update_endpoint(&did_doc);
                 }
                 Ok(())
             }
@@ -156,6 +167,7 @@ mod tests {
     use crate::agent::store::MemorySessionStore;
     use crate::com::atproto::server::create_session::OutputData;
     use crate::did_doc::{DidDocument, Service, VerificationMethod};
+    use crate::types::TryIntoUnknown;
     use async_trait::async_trait;
     use atrium_xrpc::HttpClient;
     use http::{HeaderMap, HeaderName, HeaderValue, Request, Response};
@@ -574,7 +586,12 @@ mod tests {
             let client = MockClient {
                 responses: MockResponses {
                     create_session: Some(crate::com::atproto::server::create_session::OutputData {
-                        did_doc: Some(did_doc.clone()),
+                        did_doc: Some(
+                            did_doc
+                                .clone()
+                                .try_into_unknown()
+                                .expect("failed to convert to unknown"),
+                        ),
                         ..session_data.clone()
                     }),
                     ..Default::default()
@@ -597,21 +614,25 @@ mod tests {
             let client = MockClient {
                 responses: MockResponses {
                     create_session: Some(crate::com::atproto::server::create_session::OutputData {
-                        did_doc: Some(DidDocument {
-                            service: Some(vec![
-                                Service {
-                                    id: "#pds".into(), // not `#atproto_pds`
-                                    r#type: "AtprotoPersonalDataServer".into(),
-                                    service_endpoint: "https://bsky.social".into(),
-                                },
-                                Service {
-                                    id: "#atproto_pds".into(),
-                                    r#type: "AtprotoPersonalDataServer".into(),
-                                    service_endpoint: "htps://bsky.social".into(), // invalid url (not `https`)
-                                },
-                            ]),
-                            ..did_doc.clone()
-                        }),
+                        did_doc: Some(
+                            DidDocument {
+                                service: Some(vec![
+                                    Service {
+                                        id: "#pds".into(), // not `#atproto_pds`
+                                        r#type: "AtprotoPersonalDataServer".into(),
+                                        service_endpoint: "https://bsky.social".into(),
+                                    },
+                                    Service {
+                                        id: "#atproto_pds".into(),
+                                        r#type: "AtprotoPersonalDataServer".into(),
+                                        service_endpoint: "htps://bsky.social".into(), // invalid url (not `https`)
+                                    },
+                                ]),
+                                ..did_doc.clone()
+                            }
+                            .try_into_unknown()
+                            .expect("failed to convert to unknown"),
+                        ),
                         ..session_data.clone()
                     }),
                     ..Default::default()

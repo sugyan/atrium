@@ -112,7 +112,7 @@ pub struct PostViewData {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like_count: Option<i64>,
-    pub record: crate::records::Record,
+    pub record: crate::types::Unknown,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -180,7 +180,7 @@ pub struct ThreadgateViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub lists: Option<Vec<crate::app::bsky::graph::defs::ListViewBasic>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<crate::records::Record>,
+    pub record: Option<crate::types::Unknown>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uri: Option<String>,
 }

@@ -1,7 +1,9 @@
 //! Definitions for AT Protocol's data models.
 //! <https://atproto.com/specs/data-model>
 
+use crate::error::Error;
 use ipld_core::ipld::Ipld;
+use ipld_core::serde::to_ipld;
 use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
@@ -158,18 +160,33 @@ pub enum Unknown {
 pub struct DataModel(Ipld);
 
 impl TryFrom<Ipld> for DataModel {
-    type Error = &'static str;
+    type Error = Error;
 
     fn try_from(value: Ipld) -> Result<Self, Self::Error> {
         // Enforce the ATProto data model.
         // https://atproto.com/specs/data-model
         match value {
-            Ipld::Float(_) => Err("Floats are not allowed in ATProto"),
+            Ipld::Float(_) => Err(Error::NotAllowed),
+            Ipld::List(list) => {
+                if list.iter().any(|value| matches!(value, Ipld::Float(_))) {
+                    Err(Error::NotAllowed)
+                } else {
+                    Ok(DataModel(Ipld::List(list)))
+                }
+            }
+            Ipld::Map(map) => {
+                if map.values().any(|value| matches!(value, Ipld::Float(_))) {
+                    Err(Error::NotAllowed)
+                } else {
+                    Ok(DataModel(Ipld::Map(map)))
+                }
+            }
             data => Ok(DataModel(data)),
         }
     }
 }
 
+/// Trait for types that can be deserialized from an [`Unknown`] value.
 pub trait TryFromUnknown: Sized {
     type Error;
 
@@ -180,22 +197,41 @@ impl<T> TryFromUnknown for T
 where
     T: serde::de::DeserializeOwned,
 {
-    type Error = ipld_core::serde::SerdeError;
+    type Error = Error;
 
     fn try_from_unknown(value: Unknown) -> Result<Self, Self::Error> {
-        match value {
+        Ok(match value {
             Unknown::Object(map) => {
-                T::deserialize(Ipld::Map(map.into_iter().map(|(k, v)| (k, v.0)).collect()))
+                T::deserialize(Ipld::Map(map.into_iter().map(|(k, v)| (k, v.0)).collect()))?
             }
-            Unknown::Null => T::deserialize(Ipld::Null),
-            Unknown::Other(data) => T::deserialize(data.0),
-        }
+            Unknown::Null => T::deserialize(Ipld::Null)?,
+            Unknown::Other(data) => T::deserialize(data.0)?,
+        })
+    }
+}
+
+/// Trait for types that can be serialized into an [`Unknown`] value.
+pub trait TryIntoUnknown {
+    type Error;
+
+    fn try_into_unknown(self) -> Result<Unknown, Self::Error>;
+}
+
+impl<T> TryIntoUnknown for T
+where
+    T: serde::Serialize,
+{
+    type Error = Error;
+
+    fn try_into_unknown(self) -> Result<Unknown, Self::Error> {
+        Ok(Unknown::Other(to_ipld(self)?.try_into()?))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ipld_core::cid::Cid;
     use serde_json::{from_str, to_string};
 
     const CID_LINK_JSON: &str =
@@ -284,6 +320,42 @@ mod tests {
                 size: 0,
             }))
         );
+    }
+
+    #[test]
+    fn data_model() {
+        assert!(DataModel::try_from(Ipld::Null).is_ok());
+        assert!(DataModel::try_from(Ipld::Bool(true)).is_ok());
+        assert!(DataModel::try_from(Ipld::Integer(1)).is_ok());
+        assert!(
+            DataModel::try_from(Ipld::Float(1.5)).is_err(),
+            "float value should fail"
+        );
+        assert!(DataModel::try_from(Ipld::String("s".into())).is_ok());
+        assert!(DataModel::try_from(Ipld::Bytes(vec![0x01])).is_ok());
+        assert!(DataModel::try_from(Ipld::List(vec![Ipld::Bool(true)])).is_ok());
+        assert!(
+            DataModel::try_from(Ipld::List(vec![Ipld::Bool(true), Ipld::Float(1.5)])).is_err(),
+            "list with float value should fail"
+        );
+        assert!(DataModel::try_from(Ipld::Map(BTreeMap::from_iter([(
+            String::from("k"),
+            Ipld::Bool(true)
+        )])))
+        .is_ok());
+        assert!(
+            DataModel::try_from(Ipld::Map(BTreeMap::from_iter([(
+                String::from("k"),
+                Ipld::Float(1.5)
+            )])))
+            .is_err(),
+            "map with float value should fail"
+        );
+        assert!(DataModel::try_from(Ipld::Link(
+            Cid::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
+                .expect("failed to create cid")
+        ))
+        .is_ok());
     }
 
     #[test]
@@ -398,7 +470,7 @@ mod tests {
                 }
             );
         }
-        // valid(?): object with no $type
+        // valid(?): object with no `$type`
         {
             let json = r#"{
                 "foo": {
@@ -437,7 +509,7 @@ mod tests {
                 }
             );
         }
-        // invalid: unsupported type
+        // invalid: float (not allowed)
         {
             let json = r#"{
                 "foo": 42.195
