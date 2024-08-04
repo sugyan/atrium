@@ -535,8 +535,12 @@ mod tests {
     #[test]
     fn unknown_try_from() {
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-        struct Foo {
-            foo: Unknown,
+        #[serde(tag = "$type")]
+        enum Foo {
+            #[serde(rename = "example.com#bar")]
+            Bar(Box<Bar>),
+            #[serde(rename = "example.com#baz")]
+            Baz(Box<Baz>),
         }
 
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -550,38 +554,43 @@ mod tests {
         }
 
         {
-            let foo = Foo {
-                foo: Unknown::Object(BTreeMap::from_iter([
-                    (
-                        String::from("$type"),
-                        DataModel(Ipld::String(String::from("example.com#bar"))),
-                    ),
-                    (
-                        String::from("bar"),
-                        DataModel(Ipld::String(String::from("barbar"))),
-                    ),
-                ])),
-            };
-            let bar = Bar::try_from_unknown(foo.foo).expect("failed to convert to Bar");
+            let unknown = Unknown::Object(BTreeMap::from_iter([
+                (
+                    String::from("$type"),
+                    DataModel(Ipld::String(String::from("example.com#bar"))),
+                ),
+                (
+                    String::from("bar"),
+                    DataModel(Ipld::String(String::from("barbar"))),
+                ),
+            ]));
+            let bar = Bar::try_from_unknown(unknown.clone()).expect("failed to convert to Bar");
             assert_eq!(
                 bar,
                 Bar {
                     bar: String::from("barbar")
                 }
             );
+            let barbaz = Foo::try_from_unknown(unknown).expect("failed to convert to Bar");
+            assert_eq!(
+                barbaz,
+                Foo::Bar(Box::new(Bar {
+                    bar: String::from("barbar")
+                }))
+            );
         }
         {
-            let foo = Foo {
-                foo: Unknown::Object(BTreeMap::from_iter([
-                    (
-                        String::from("$type"),
-                        DataModel(Ipld::String(String::from("example.com#baz"))),
-                    ),
-                    (String::from("baz"), DataModel(Ipld::Integer(42))),
-                ])),
-            };
-            let baz = Baz::try_from_unknown(foo.foo).expect("failed to convert to Baz");
+            let unknown = Unknown::Object(BTreeMap::from_iter([
+                (
+                    String::from("$type"),
+                    DataModel(Ipld::String(String::from("example.com#baz"))),
+                ),
+                (String::from("baz"), DataModel(Ipld::Integer(42))),
+            ]));
+            let baz = Baz::try_from_unknown(unknown.clone()).expect("failed to convert to Baz");
             assert_eq!(baz, Baz { baz: 42 });
+            let barbaz = Foo::try_from_unknown(unknown).expect("failed to convert to Bar");
+            assert_eq!(barbaz, Foo::Baz(Box::new(Baz { baz: 42 })));
         }
     }
 }
