@@ -1,6 +1,8 @@
 use crate::fs::find_dirs;
 use crate::schema::find_ref_unions;
-use crate::token_stream::{client, collection, modules, record_enum, ref_unions, user_type};
+use crate::token_stream::{
+    client, collection, enum_common, impl_into_record, modules, ref_unions, user_type,
+};
 use atrium_lex::lexicon::LexUserType;
 use atrium_lex::LexiconDoc;
 use heck::ToSnakeCase;
@@ -94,18 +96,14 @@ pub(crate) fn generate_records(
         })
         .sorted()
         .collect_vec();
-    let tokens = record_enum(&records, "KnownRecord", None, namespaces)?;
+    let known_record = enum_common(&records, "KnownRecord", None, namespaces)?;
+    let impl_into = impl_into_record(&records, namespaces)?;
     let content = quote! {
-        #![doc = "A collection of ATP repository record types."]
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-        #[serde(untagged)]
-        pub enum Record {
-            Known(KnownRecord),
-            Unknown(crate::types::UnknownData),
-        }
-        #tokens
+        #![doc = "A collection of known record types."]
+        #known_record
+        #impl_into
     };
-    let path = outdir.join("records.rs");
+    let path = outdir.join("record.rs");
     write_to_file(File::create(&path)?, content)?;
     Ok(path)
 }

@@ -320,7 +320,7 @@ fn lex_object_property(
         LexObjectProperty::Boolean(boolean) => boolean_type(boolean)?,
         LexObjectProperty::Integer(integer) => integer_type(integer)?,
         LexObjectProperty::String(string) => string_type(string)?,
-        LexObjectProperty::Unknown(unknown) => unknown_type(unknown, Some(name))?,
+        LexObjectProperty::Unknown(unknown) => unknown_type(unknown)?,
     };
     let field_name = format_ident!(
         "{}",
@@ -401,7 +401,7 @@ fn array_type(
     let (_, item_type) = match &array.items {
         LexArrayItem::Integer(integer) => integer_type(integer)?,
         LexArrayItem::String(string) => string_type(string)?,
-        LexArrayItem::Unknown(unknown) => unknown_type(unknown, None)?,
+        LexArrayItem::Unknown(unknown) => unknown_type(unknown)?,
         LexArrayItem::CidLink(cid_link) => cid_link_type(cid_link)?,
         LexArrayItem::Ref(r#ref) => ref_type(r#ref)?,
         LexArrayItem::Union(union) => union_type(
@@ -562,13 +562,10 @@ fn string_type(string: &LexString) -> Result<(TokenStream, TokenStream)> {
     Ok((description, typ))
 }
 
-fn unknown_type(unknown: &LexUnknown, name: Option<&str>) -> Result<(TokenStream, TokenStream)> {
+fn unknown_type(unknown: &LexUnknown) -> Result<(TokenStream, TokenStream)> {
     let description = description(&unknown.description);
-    if name == Some("didDoc") {
-        Ok((description, quote!(crate::did_doc::DidDocument)))
-    } else {
-        Ok((description, quote!(crate::records::Record)))
-    }
+    let typ = quote!(crate::types::Unknown);
+    Ok((description, typ))
 }
 
 fn description(description: &Option<String>) -> TokenStream {
@@ -580,10 +577,10 @@ fn description(description: &Option<String>) -> TokenStream {
 }
 
 fn refs_enum(refs: &[String], name: &str, schema_id: Option<&str>) -> Result<TokenStream> {
-    record_enum(refs, name, schema_id, &[])
+    enum_common(refs, name, schema_id, &[])
 }
 
-pub fn record_enum(
+pub fn enum_common(
     refs: &[String],
     name: &str,
     schema_id: Option<&str>,
@@ -640,6 +637,52 @@ pub fn record_enum(
             #(#variants),*
         }
     })
+}
+
+pub fn impl_into_record(
+    refs: &[String],
+    namespaces: &[(&str, Option<&str>)],
+) -> Result<TokenStream> {
+    let mut impls = Vec::new();
+    for r#ref in refs {
+        let record_path = resolve_path(r#ref, "record")?;
+        let record_data_path = resolve_path(r#ref, "record_data")?;
+        let s = record_path.to_string().replace(' ', "");
+        let mut parts = s
+            .strip_prefix("crate::")
+            .unwrap_or(&s)
+            .split("::")
+            .map(str::to_pascal_case)
+            .collect_vec();
+        parts.pop();
+        let name = format_ident!("{}", parts.join(""));
+        let mut feature = quote!();
+        if let Some((_, Some(feature_name))) = namespaces
+            .iter()
+            .find(|(prefix, _)| r#ref.starts_with(prefix))
+        {
+            feature = quote! {
+                #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
+                #[cfg(feature = #feature_name)]
+            };
+        }
+        impls.push(quote! {
+            #feature
+            impl From<#record_path> for KnownRecord {
+                fn from(record: #record_path) -> Self {
+                    KnownRecord::#name(Box::new(record))
+                }
+            }
+
+            #feature
+            impl From<#record_data_path> for KnownRecord {
+                fn from(record_data: #record_data_path) -> Self {
+                    KnownRecord::#name(Box::new(record_data.into()))
+                }
+            }
+        });
+    }
+    Ok(quote!(#(#impls)*))
 }
 
 pub fn modules(

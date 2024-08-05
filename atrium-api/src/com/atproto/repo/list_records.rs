@@ -45,6 +45,6 @@ impl std::fmt::Display for Error {
 pub struct RecordData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type Record = crate::types::Object<RecordData>;

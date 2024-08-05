@@ -9,9 +9,8 @@ use atrium_api::app::bsky::actor::defs::ProfileViewBasic;
 use atrium_api::app::bsky::embed::record::{ViewData, ViewRecordData, ViewRecordRefs};
 use atrium_api::app::bsky::feed::defs::{PostView, PostViewEmbedRefs};
 use atrium_api::com::atproto::label::defs::{Label, LabelValueDefinitionData};
-use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
-use atrium_api::types::Union;
+use atrium_api::types::{TryIntoUnknown, Union};
 use std::collections::HashMap;
 
 fn embed_record_view(
@@ -32,7 +31,9 @@ fn embed_record_view(
                     reply_count: None,
                     repost_count: None,
                     uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
-                    value: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(record.clone()))),
+                    value: record
+                        .try_into_unknown()
+                        .expect("failed to convert record to unknown"),
                 }
                 .into(),
             ))),

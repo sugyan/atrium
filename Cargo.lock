@@ -146,6 +146,7 @@ dependencies = [
  "serde_bytes",
  "serde_ipld_dagcbor",
  "serde_json",
+ "thiserror",
  "tokio",
  "wasm-bindgen-test",
 ]

@@ -43,7 +43,7 @@ pub struct NotificationData {
     pub reason: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason_subject: Option<String>,
-    pub record: crate::records::Record,
+    pub record: crate::types::Unknown,
     pub uri: String,
 }
 pub type Notification = crate::types::Object<NotificationData>;

@@ -7,7 +7,7 @@ pub struct InputData {
     ///The NSID of the record collection.
     pub collection: crate::types::string::Nsid,
     ///The record to write.
-    pub record: crate::records::Record,
+    pub record: crate::types::Unknown,
     ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
     ///The Record Key.

@@ -5,8 +5,7 @@ use super::super::Moderator;
 use atrium_api::app::bsky::actor::defs::MutedWord;
 use atrium_api::app::bsky::embed::record::{ViewBlocked, ViewRecord, ViewRecordRefs};
 use atrium_api::app::bsky::feed::defs::PostViewEmbedRefs;
-use atrium_api::records::{KnownRecord, Record};
-use atrium_api::types::Union;
+use atrium_api::types::{TryFromUnknown, Union};
 
 impl Moderator {
     pub(crate) fn decide_post(&self, subject: &SubjectPost) -> ModerationDecision {
@@ -133,11 +132,14 @@ fn check_hidden_post(subject: &SubjectPost, hidden_posts: &[String]) -> bool {
     }
     false
 }
+
 fn check_muted_words(subject: &SubjectPost, muted_words: &[MutedWord]) -> bool {
     if muted_words.is_empty() {
         return false;
     }
-    let Record::Known(KnownRecord::AppBskyFeedPost(post)) = &subject.record else {
+    let Ok(post) =
+        atrium_api::app::bsky::feed::post::Record::try_from_unknown(subject.data.record.clone())
+    else {
         return false;
     };
     if has_muted_word(

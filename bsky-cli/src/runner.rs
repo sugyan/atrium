@@ -1,7 +1,6 @@
 use crate::commands::Command;
 use anyhow::{Context, Result};
 use api::agent::bluesky::{AtprotoServiceType, BSKY_CHAT_DID};
-use api::records::{KnownRecord, Record};
 use api::types::string::{AtIdentifier, Datetime, Handle};
 use api::types::LimitedNonZeroU8;
 use bsky_sdk::agent::config::{Config, FileStore};
@@ -424,34 +423,17 @@ impl Runner {
                 self.print(
                     &self
                         .agent
-                        .api
-                        .com
-                        .atproto
-                        .repo
-                        .create_record(
-                            api::com::atproto::repo::create_record::InputData {
-                                collection: "app.bsky.feed.post".parse().expect("valid"),
-                                record: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(
-                                    api::app::bsky::feed::post::RecordData {
-                                        created_at: Datetime::now(),
-                                        embed,
-                                        entities: None,
-                                        facets: None,
-                                        labels: None,
-                                        langs: None,
-                                        reply: None,
-                                        tags: None,
-                                        text: args.text,
-                                    }
-                                    .into(),
-                                ))),
-                                repo: self.handle().await?.into(),
-                                rkey: None,
-                                swap_commit: None,
-                                validate: None,
-                            }
-                            .into(),
-                        )
+                        .create_record(api::app::bsky::feed::post::RecordData {
+                            created_at: Datetime::now(),
+                            embed,
+                            entities: None,
+                            facets: None,
+                            labels: None,
+                            langs: None,
+                            reply: None,
+                            tags: None,
+                            text: args.text,
+                        })
                         .await?,
                 )
             }

@@ -1,6 +1,7 @@
 use super::{Session, SessionStore};
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
+use crate::types::TryFromUnknown;
 use async_trait::async_trait;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
@@ -186,8 +187,13 @@ where
                 session.refresh_jwt = output.data.refresh_jwt;
                 self.store.set_session(session).await;
             }
-            if let Some(did_doc) = &output.data.did_doc {
-                self.store.update_endpoint(did_doc);
+            if let Some(did_doc) = output
+                .data
+                .did_doc
+                .as_ref()
+                .and_then(|value| DidDocument::try_from_unknown(value.clone()).ok())
+            {
+                self.store.update_endpoint(&did_doc);
             }
         } else {
             self.store.clear_session().await;

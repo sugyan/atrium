@@ -9,7 +9,7 @@ pub struct OutputData {
     pub active: Option<bool>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub did_doc: Option<crate::did_doc::DidDocument>,
+    pub did_doc: Option<crate::types::Unknown>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
     ///Hosting status of the account. If not specified, then assume 'active'.

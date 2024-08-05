@@ -21,7 +21,7 @@ pub struct AccountViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invites_disabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub related_records: Option<Vec<crate::records::Record>>,
+    pub related_records: Option<Vec<crate::types::Unknown>>,
 }
 pub type AccountView = crate::types::Object<AccountViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

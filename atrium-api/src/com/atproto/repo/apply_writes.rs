@@ -41,7 +41,7 @@ pub struct CreateData {
     pub collection: crate::types::string::Nsid,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rkey: Option<String>,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type Create = crate::types::Object<CreateData>;
 ///Operation which deletes an existing record.
@@ -58,7 +58,7 @@ pub type Delete = crate::types::Object<DeleteData>;
 pub struct UpdateData {
     pub collection: crate::types::string::Nsid,
     pub rkey: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type Update = crate::types::Object<UpdateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

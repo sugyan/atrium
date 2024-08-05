@@ -217,7 +217,7 @@ pub struct RecordViewData {
     pub moderation: Moderation,
     pub repo: RepoView,
     pub uri: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type RecordView = crate::types::Object<RecordViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -231,7 +231,7 @@ pub struct RecordViewDetailData {
     pub moderation: ModerationDetail,
     pub repo: RepoView,
     pub uri: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type RecordViewDetail = crate::types::Object<RecordViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -257,7 +257,7 @@ pub struct RepoViewData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub invites_disabled: Option<bool>,
     pub moderation: Moderation,
-    pub related_records: Vec<crate::records::Record>,
+    pub related_records: Vec<crate::types::Unknown>,
 }
 pub type RepoView = crate::types::Object<RepoViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -283,7 +283,7 @@ pub struct RepoViewDetailData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
-    pub related_records: Vec<crate::records::Record>,
+    pub related_records: Vec<crate::types::Unknown>,
 }
 pub type RepoViewDetail = crate::types::Object<RepoViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

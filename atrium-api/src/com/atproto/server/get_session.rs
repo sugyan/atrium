@@ -8,7 +8,7 @@ pub struct OutputData {
     pub active: Option<bool>,
     pub did: crate::types::string::Did,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub did_doc: Option<crate::did_doc::DidDocument>,
+    pub did_doc: Option<crate::types::Unknown>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub email: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

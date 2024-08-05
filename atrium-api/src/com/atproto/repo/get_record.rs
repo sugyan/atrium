@@ -21,7 +21,7 @@ pub struct OutputData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cid: Option<crate::types::string::Cid>,
     pub uri: String,
-    pub value: crate::records::Record,
+    pub value: crate::types::Unknown,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

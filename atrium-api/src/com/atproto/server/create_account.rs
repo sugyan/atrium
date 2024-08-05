@@ -18,7 +18,7 @@ pub struct InputData {
     pub password: Option<String>,
     ///A signed DID PLC operation to be submitted as part of importing an existing account to this instance. NOTE: this optional field may be updated when full account migration is implemented.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub plc_op: Option<crate::records::Record>,
+    pub plc_op: Option<crate::types::Unknown>,
     ///DID PLC rotation key (aka, recovery key) to be included in PLC creation operation.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub recovery_key: Option<String>,
@@ -37,7 +37,7 @@ pub struct OutputData {
     pub did: crate::types::string::Did,
     ///Complete DID document.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub did_doc: Option<crate::did_doc::DidDocument>,
+    pub did_doc: Option<crate::types::Unknown>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
 }
