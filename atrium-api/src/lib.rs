@@ -10,5 +10,6 @@ pub mod client;
 pub mod com;
 pub mod did_doc;
 pub mod error;
+pub mod record;
 pub mod tools;
 pub mod types;
