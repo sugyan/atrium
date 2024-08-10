@@ -214,13 +214,23 @@ where
     type Error = Error;
 
     fn try_from_unknown(value: Unknown) -> Result<Self, Self::Error> {
-        Ok(match value {
-            Unknown::Object(map) => {
-                T::deserialize(Ipld::Map(map.into_iter().map(|(k, v)| (k, v.0)).collect()))?
-            }
-            Unknown::Null => T::deserialize(Ipld::Null)?,
-            Unknown::Other(data) => T::deserialize(data.0)?,
-        })
+        // TODO: Fix this
+        // In the current latest `ipld-core` 0.4.1, deserialize to structs containing untagged/internal tagged does not work correctly when `Ipld::Integer` is included.
+        // https://github.com/ipld/rust-ipld-core/issues/19
+        // (It should be possible to convert as follows)
+        // ```
+        // Ok(match value {
+        //     Unknown::Object(map) => {
+        //         T::deserialize(Ipld::Map(map.into_iter().map(|(k, v)| (k, v.0)).collect()))?
+        //     }
+        //     Unknown::Null => T::deserialize(Ipld::Null)?,
+        //     Unknown::Other(data) => T::deserialize(data.0)?,
+        // })
+        // ```
+        //
+        // For the time being, until this problem is resolved, use the workaround of serializing once to a json string and then deserializing it.
+        let json = serde_json::to_vec(&value).unwrap();
+        Ok(serde_json::from_slice(&json).unwrap())
     }
 }
 
