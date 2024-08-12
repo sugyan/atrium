@@ -4,7 +4,7 @@ pub const NSID: &str = "com.atproto.identity.submitPlcOperation";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
-    pub operation: crate::records::Record,
+    pub operation: crate::types::Unknown,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

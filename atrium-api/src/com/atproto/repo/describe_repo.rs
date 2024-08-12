@@ -15,7 +15,7 @@ pub struct OutputData {
     pub collections: Vec<crate::types::string::Nsid>,
     pub did: crate::types::string::Did,
     ///The complete DID document for this account.
-    pub did_doc: crate::did_doc::DidDocument,
+    pub did_doc: crate::types::Unknown,
     pub handle: crate::types::string::Handle,
     ///Indicates if handle is currently valid (resolves bi-directionally)
     pub handle_is_correct: bool,

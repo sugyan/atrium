@@ -104,7 +104,7 @@ pub struct StarterPackViewData {
     pub list: Option<ListViewBasic>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub list_items_sample: Option<Vec<ListItemView>>,
-    pub record: crate::records::Record,
+    pub record: crate::types::Unknown,
     pub uri: String,
 }
 pub type StarterPackView = crate::types::Object<StarterPackViewData>;
@@ -122,7 +122,7 @@ pub struct StarterPackViewBasicData {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub list_item_count: Option<usize>,
-    pub record: crate::records::Record,
+    pub record: crate::types::Unknown,
     pub uri: String,
 }
 pub type StarterPackViewBasic = crate::types::Object<StarterPackViewBasicData>;

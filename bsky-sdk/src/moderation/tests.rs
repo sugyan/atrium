@@ -11,8 +11,8 @@ use crate::tests::FAKE_CID;
 use atrium_api::app::bsky::actor::defs::{ProfileViewBasic, ProfileViewBasicData};
 use atrium_api::app::bsky::feed::defs::{PostView, PostViewData};
 use atrium_api::com::atproto::label::defs::{Label, LabelData, LabelValueDefinitionData};
-use atrium_api::records::{KnownRecord, Record};
 use atrium_api::types::string::Datetime;
+use atrium_api::types::TryIntoUnknown;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -77,7 +77,7 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
         indexed_at: Datetime::now(),
         labels,
         like_count: None,
-        record: Record::Known(KnownRecord::AppBskyFeedPost(Box::new(
+        record: atrium_api::app::bsky::feed::post::Record::from(
             atrium_api::app::bsky::feed::post::RecordData {
                 created_at: Datetime::now(),
                 embed: None,
@@ -88,9 +88,10 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
                 reply: None,
                 tags: None,
                 text: text.into(),
-            }
-            .into(),
-        ))),
+            },
+        )
+        .try_into_unknown()
+        .expect("failed to convert record to unknown"),
         reply_count: None,
         repost_count: None,
         threadgate: None,

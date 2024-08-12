@@ -586,7 +586,8 @@ fn does_not_mute_own_post() {
 #[tokio::test]
 async fn does_not_mute_own_tags() -> crate::error::Result<()> {
     use crate::rich_text::tests::rich_text_with_detect_facets;
-    use atrium_api::records::{KnownRecord, Record};
+    use atrium_api::types::Unknown;
+    use std::ops::DerefMut;
 
     let prefs = ModerationPrefs {
         adult_content_enabled: false,
@@ -601,8 +602,15 @@ async fn does_not_mute_own_tags() -> crate::error::Result<()> {
         &rt.text,
         None,
     );
-    if let Record::Known(KnownRecord::AppBskyFeedPost(ref mut post)) = post.record {
-        post.facets = rt.facets;
+    if let Unknown::Other(data) = &mut post.record {
+        if let Ipld::Map(m) = data.deref_mut() {
+            if let Some(facets) = rt.facets {
+                m.insert(
+                    "facets".to_string(),
+                    ipld_core::serde::to_ipld(facets).expect("failed to serialize facets"),
+                );
+            }
+        }
     }
     let moderator = Moderator::new(
         Some("did:web:bob.test".parse().expect("invalid did")),

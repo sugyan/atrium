@@ -1,7 +1,10 @@
 //! Definitions for AT Protocol's data models.
 //! <https://atproto.com/specs/data-model>
 
+use crate::error::Error;
 use ipld_core::ipld::Ipld;
+use ipld_core::serde::to_ipld;
+use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
@@ -128,6 +131,8 @@ pub enum Union<T> {
     Unknown(UnknownData),
 }
 
+/// Data with an unknown schema in an open [`Union`].
+///
 /// The data of variants represented by a map and include a `$type` field indicating the variant type.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UnknownData {
@@ -137,17 +142,127 @@ pub struct UnknownData {
     pub data: Ipld,
 }
 
+/// Arbitrary data with no specific validation and no type-specific fields.
+///
+/// Corresponds to [the `unknown` field type].
+///
+/// [the `unknown` field type]: https://atproto.com/specs/lexicon#unknown
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum Unknown {
+    Object(BTreeMap<String, DataModel>),
+    Null,
+    Other(DataModel),
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(try_from = "Ipld")]
+pub struct DataModel(Ipld);
+
+impl Deref for DataModel {
+    type Target = Ipld;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for DataModel {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl TryFrom<Ipld> for DataModel {
+    type Error = Error;
+
+    fn try_from(value: Ipld) -> Result<Self, Self::Error> {
+        // Enforce the ATProto data model.
+        // https://atproto.com/specs/data-model
+        match value {
+            Ipld::Float(_) => Err(Error::NotAllowed),
+            Ipld::List(list) => {
+                if list.iter().any(|value| matches!(value, Ipld::Float(_))) {
+                    Err(Error::NotAllowed)
+                } else {
+                    Ok(DataModel(Ipld::List(list)))
+                }
+            }
+            Ipld::Map(map) => {
+                if map.values().any(|value| matches!(value, Ipld::Float(_))) {
+                    Err(Error::NotAllowed)
+                } else {
+                    Ok(DataModel(Ipld::Map(map)))
+                }
+            }
+            data => Ok(DataModel(data)),
+        }
+    }
+}
+
+/// Trait for types that can be deserialized from an [`Unknown`] value.
+pub trait TryFromUnknown: Sized {
+    type Error;
+
+    fn try_from_unknown(value: Unknown) -> Result<Self, Self::Error>;
+}
+
+impl<T> TryFromUnknown for T
+where
+    T: serde::de::DeserializeOwned,
+{
+    type Error = Error;
+
+    fn try_from_unknown(value: Unknown) -> Result<Self, Self::Error> {
+        // TODO: Fix this
+        // In the current latest `ipld-core` 0.4.1, deserialize to structs containing untagged/internal tagged does not work correctly when `Ipld::Integer` is included.
+        // https://github.com/ipld/rust-ipld-core/issues/19
+        // (It should be possible to convert as follows)
+        // ```
+        // Ok(match value {
+        //     Unknown::Object(map) => {
+        //         T::deserialize(Ipld::Map(map.into_iter().map(|(k, v)| (k, v.0)).collect()))?
+        //     }
+        //     Unknown::Null => T::deserialize(Ipld::Null)?,
+        //     Unknown::Other(data) => T::deserialize(data.0)?,
+        // })
+        // ```
+        //
+        // For the time being, until this problem is resolved, use the workaround of serializing once to a json string and then deserializing it.
+        let json = serde_json::to_vec(&value).unwrap();
+        Ok(serde_json::from_slice(&json).unwrap())
+    }
+}
+
+/// Trait for types that can be serialized into an [`Unknown`] value.
+pub trait TryIntoUnknown {
+    type Error;
+
+    fn try_into_unknown(self) -> Result<Unknown, Self::Error>;
+}
+
+impl<T> TryIntoUnknown for T
+where
+    T: serde::Serialize,
+{
+    type Error = Error;
+
+    fn try_into_unknown(self) -> Result<Unknown, Self::Error> {
+        Ok(Unknown::Other(to_ipld(self)?.try_into()?))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ipld_core::cid::Cid;
     use serde_json::{from_str, to_string};
-    use std::collections::BTreeMap;
 
     const CID_LINK_JSON: &str =
         r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#;
 
     #[test]
-    fn test_cid_link_serde_json() {
+    fn cid_link_serde_json() {
         let deserialized =
             from_str::<CidLink>(CID_LINK_JSON).expect("failed to deserialize cid-link");
         let serialized = to_string(&deserialized).expect("failed to serialize cid-link");
@@ -155,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_typed_deserialize_json() {
+    fn blob_ref_typed_deserialize_json() {
         let json = format!(
             r#"{{"$type":"blob","ref":{},"mimeType":"text/plain","size":0}}"#,
             CID_LINK_JSON
@@ -175,7 +290,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_untyped_deserialize_json() {
+    fn blob_ref_untyped_deserialize_json() {
         let json = r#"{"cid":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy","mimeType":"text/plain"}"#;
         let deserialized = from_str::<BlobRef>(json).expect("failed to deserialize blob-ref");
         assert_eq!(
@@ -188,7 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_serialize_json() {
+    fn blob_ref_serialize_json() {
         let blob_ref = BlobRef::Typed(TypedBlobRef::Blob(Blob {
             r#ref: CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
                 .expect("failed to create cid-link"),
@@ -206,7 +321,7 @@ mod tests {
     }
 
     #[test]
-    fn test_blob_ref_deserialize_dag_cbor() {
+    fn blob_ref_deserialize_dag_cbor() {
         // {"$type": "blob", "mimeType": "text/plain", "ref": bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy, "size": 0}
         let dag_cbor = [
             0xa4, 0x65, 0x24, 0x74, 0x79, 0x70, 0x65, 0x64, 0x62, 0x6c, 0x6f, 0x62, 0x63, 0x72,
@@ -232,7 +347,43 @@ mod tests {
     }
 
     #[test]
-    fn test_union() {
+    fn data_model() {
+        assert!(DataModel::try_from(Ipld::Null).is_ok());
+        assert!(DataModel::try_from(Ipld::Bool(true)).is_ok());
+        assert!(DataModel::try_from(Ipld::Integer(1)).is_ok());
+        assert!(
+            DataModel::try_from(Ipld::Float(1.5)).is_err(),
+            "float value should fail"
+        );
+        assert!(DataModel::try_from(Ipld::String("s".into())).is_ok());
+        assert!(DataModel::try_from(Ipld::Bytes(vec![0x01])).is_ok());
+        assert!(DataModel::try_from(Ipld::List(vec![Ipld::Bool(true)])).is_ok());
+        assert!(
+            DataModel::try_from(Ipld::List(vec![Ipld::Bool(true), Ipld::Float(1.5)])).is_err(),
+            "list with float value should fail"
+        );
+        assert!(DataModel::try_from(Ipld::Map(BTreeMap::from_iter([(
+            String::from("k"),
+            Ipld::Bool(true)
+        )])))
+        .is_ok());
+        assert!(
+            DataModel::try_from(Ipld::Map(BTreeMap::from_iter([(
+                String::from("k"),
+                Ipld::Float(1.5)
+            )])))
+            .is_err(),
+            "map with float value should fail"
+        );
+        assert!(DataModel::try_from(Ipld::Link(
+            Cid::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
+                .expect("failed to create cid")
+        ))
+        .is_ok());
+    }
+
+    #[test]
+    fn union() {
         #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
         #[serde(tag = "$type")]
         enum FooRefs {
@@ -279,5 +430,177 @@ mod tests {
                 )]))
             })
         );
+    }
+
+    #[test]
+    fn unknown_serialize() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Foo {
+            foo: Unknown,
+        }
+
+        let foo = Foo {
+            foo: Unknown::Object(BTreeMap::from_iter([(
+                String::from("bar"),
+                DataModel(Ipld::String(String::from("bar"))),
+            )])),
+        };
+        let serialized = to_string(&foo).expect("failed to serialize foo");
+        assert_eq!(serialized, r#"{"foo":{"bar":"bar"}}"#);
+    }
+
+    #[test]
+    fn unknown_deserialize() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Foo {
+            foo: Unknown,
+        }
+
+        // valid: data object
+        {
+            let json = r#"{
+                "foo": {
+                    "$type": "example.com#foo",
+                    "bar": "bar"
+                }
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Object(BTreeMap::from_iter([
+                        (
+                            String::from("bar"),
+                            DataModel(Ipld::String(String::from("bar")))
+                        ),
+                        (
+                            String::from("$type"),
+                            DataModel(Ipld::String(String::from("example.com#foo")))
+                        )
+                    ]))
+                }
+            );
+        }
+        // valid(?): empty object
+        {
+            let json = r#"{
+                "foo": {}
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Object(BTreeMap::default())
+                }
+            );
+        }
+        // valid(?): object with no `$type`
+        {
+            let json = r#"{
+                "foo": {
+                    "bar": "bar"
+                }
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Object(BTreeMap::from_iter([(
+                        String::from("bar"),
+                        DataModel(Ipld::String(String::from("bar")))
+                    )]))
+                }
+            );
+        }
+        // valid(?): null
+        {
+            let json = r#"{
+                "foo": null
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(deserialized, Foo { foo: Unknown::Null });
+        }
+        // valid(?): primitive types
+        {
+            let json = r#"{
+                "foo": 42
+            }"#;
+            let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
+            assert_eq!(
+                deserialized,
+                Foo {
+                    foo: Unknown::Other(DataModel(Ipld::Integer(42)))
+                }
+            );
+        }
+        // invalid: float (not allowed)
+        {
+            let json = r#"{
+                "foo": 42.195
+            }"#;
+            assert!(from_str::<Foo>(json).is_err());
+        }
+    }
+
+    #[test]
+    fn unknown_try_from() {
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[serde(tag = "$type")]
+        enum Foo {
+            #[serde(rename = "example.com#bar")]
+            Bar(Box<Bar>),
+            #[serde(rename = "example.com#baz")]
+            Baz(Box<Baz>),
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Bar {
+            bar: String,
+        }
+
+        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        struct Baz {
+            baz: i32,
+        }
+
+        {
+            let unknown = Unknown::Object(BTreeMap::from_iter([
+                (
+                    String::from("$type"),
+                    DataModel(Ipld::String(String::from("example.com#bar"))),
+                ),
+                (
+                    String::from("bar"),
+                    DataModel(Ipld::String(String::from("barbar"))),
+                ),
+            ]));
+            let bar = Bar::try_from_unknown(unknown.clone()).expect("failed to convert to Bar");
+            assert_eq!(
+                bar,
+                Bar {
+                    bar: String::from("barbar")
+                }
+            );
+            let barbaz = Foo::try_from_unknown(unknown).expect("failed to convert to Bar");
+            assert_eq!(
+                barbaz,
+                Foo::Bar(Box::new(Bar {
+                    bar: String::from("barbar")
+                }))
+            );
+        }
+        {
+            let unknown = Unknown::Object(BTreeMap::from_iter([
+                (
+                    String::from("$type"),
+                    DataModel(Ipld::String(String::from("example.com#baz"))),
+                ),
+                (String::from("baz"), DataModel(Ipld::Integer(42))),
+            ]));
+            let baz = Baz::try_from_unknown(unknown.clone()).expect("failed to convert to Baz");
+            assert_eq!(baz, Baz { baz: 42 });
+            let barbaz = Foo::try_from_unknown(unknown).expect("failed to convert to Bar");
+            assert_eq!(barbaz, Foo::Baz(Box::new(Baz { baz: 42 })));
+        }
     }
 }
