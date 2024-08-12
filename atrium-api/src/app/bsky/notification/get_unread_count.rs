@@ -5,6 +5,8 @@ pub const NSID: &str = "app.bsky.notification.getUnreadCount";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub seen_at: Option<crate::types::string::Datetime>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;

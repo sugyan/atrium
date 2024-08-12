@@ -6,6 +6,12 @@ pub const NSID: &str = "com.atproto.server.getServiceAuth";
 pub struct ParametersData {
     ///The DID of the service that the token will be used to authenticate with
     pub aud: crate::types::string::Did,
+    ///The time in Unix Epoch seconds that the JWT expires. Defaults to 60 seconds in the future. The service may enforce certain time bounds on tokens depending on the requested scope.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub exp: Option<i64>,
+    ///Lexicon (XRPC) method to bind the requested token to
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lxm: Option<crate::types::string::Nsid>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -16,9 +22,20 @@ pub struct OutputData {
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {}
+pub enum Error {
+    ///Indicates that the requested expiration date is not a valid. May be in the past or may be reliant on the requested scopes.
+    BadExpiration(Option<String>),
+}
 impl std::fmt::Display for Error {
     fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::BadExpiration(msg) => {
+                write!(_f, "BadExpiration")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
         Ok(())
     }
 }

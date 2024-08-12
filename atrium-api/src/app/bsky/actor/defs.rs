@@ -94,6 +94,14 @@ pub type LabelersPref = crate::types::Object<LabelersPrefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MutedWordData {
+    ///Groups of users to apply the muted word to. If undefined, applies to all users.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub actor_target: Option<String>,
+    ///The date and time at which the muted word will expire and no longer be applied.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     ///The intended targets of the muted word.
     pub targets: Vec<crate::app::bsky::actor::defs::MutedWordTarget>,
     ///The muted word itself.
