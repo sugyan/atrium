@@ -305,6 +305,7 @@ impl Runner {
                         api::app::bsky::notification::list_notifications::ParametersData {
                             cursor: None,
                             limit: Some(limit),
+                            priority: None,
                             seen_at: None,
                         }
                         .into(),
