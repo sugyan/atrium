@@ -18,6 +18,8 @@ pub enum Error {
     #[error("saving config error: {0}")]
     ConfigSave(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error(transparent)]
+    ApiType(#[from] atrium_api::error::Error),
+    #[error(transparent)]
     Moderation(#[from] crate::moderation::Error),
 }
 

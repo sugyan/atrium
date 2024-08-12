@@ -7,4 +7,4 @@ atrium-api/src/com/** linguist-generated=true
 atrium-api/src/tools.rs linguist-generated=true
 atrium-api/src/tools/** linguist-generated=true
 atrium-api/src/client.rs linguist-generated=true
-atrium-api/src/records.rs linguist-generated=true
+atrium-api/src/record.rs linguist-generated=true
