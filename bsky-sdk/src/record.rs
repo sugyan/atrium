@@ -9,7 +9,8 @@ use atrium_api::com::atproto::repo::{create_record, get_record, list_records, pu
 use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait Record<T, S>
 where
     T: XrpcClient + Send + Sync,
@@ -28,7 +29,8 @@ where
 
 macro_rules! record_impl {
     ($collection:path, $record:path, $record_data:path) => {
-        #[async_trait]
+        #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+        #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
         impl<T, S> Record<T, S> for $record
         where
             T: XrpcClient + Send + Sync,
@@ -143,7 +145,8 @@ macro_rules! record_impl {
             }
         }
 
-        #[async_trait]
+        #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+        #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
         impl<T, S> Record<T, S> for $record_data
         where
             T: XrpcClient + Send + Sync,
