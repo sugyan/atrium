@@ -1,6 +1,7 @@
 //! Muteword checking logic.
-use atrium_api::app::bsky::{actor::defs::MutedWord, richtext::facet::MainFeaturesItem};
-use atrium_api::types::Union;
+use atrium_api::app::bsky::actor::defs::{MutedWord, ProfileViewBasic};
+use atrium_api::app::bsky::richtext::facet;
+use atrium_api::types::{string::Language, Union};
 use regex::Regex;
 use std::sync::OnceLock;
 
@@ -27,9 +28,10 @@ const LANGUAGE_EXCEPTIONS: [&str; 5] = [
 pub fn has_muted_word(
     muted_words: &[MutedWord],
     text: &str,
-    facets: &Option<Vec<atrium_api::app::bsky::richtext::facet::Main>>,
-    outline_tags: &Option<Vec<String>>,
-    langs: &Option<Vec<atrium_api::types::string::Language>>,
+    facets: Option<&Vec<facet::Main>>,
+    outline_tags: Option<&Vec<String>>,
+    langs: Option<&Vec<Language>>,
+    actor: Option<&ProfileViewBasic>,
 ) -> bool {
     let exception = langs
         .as_ref()
@@ -47,7 +49,7 @@ pub fn has_muted_word(
                 .iter()
                 .flat_map(|facet| {
                     facet.features.iter().filter_map(|feature| {
-                        if let Union::Refs(MainFeaturesItem::Tag(tag)) = feature {
+                        if let Union::Refs(facet::MainFeaturesItem::Tag(tag)) = feature {
                             Some(&tag.tag)
                         } else {
                             None
@@ -61,6 +63,29 @@ pub fn has_muted_word(
     for mute in muted_words {
         let muted_word = mute.value.to_lowercase();
         let post_text = text.to_lowercase();
+
+        // check if expired
+        if let Some(expires_at) = &mute.expires_at {
+            if expires_at.as_ref() < &chrono::Utc::now().fixed_offset() {
+                continue;
+            }
+        }
+        // check if actor target
+        if let Some(actor_target) = &mute.actor_target {
+            if actor_target == "exclude-following"
+                && actor
+                    .and_then(|actor| {
+                        actor
+                            .viewer
+                            .as_ref()
+                            .and_then(|viewer| viewer.following.as_ref())
+                    })
+                    .is_some()
+            {
+                continue;
+            }
+        }
+
         // `content` applies to tags as well
         if tags.contains(&muted_word) {
             return true;
