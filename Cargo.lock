@@ -1114,8 +1114,7 @@ dependencies = [
 [[package]]
 name = "ipld-core"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4ede82a79e134f179f4b29b5fdb1eb92bd1b38c4dfea394c539051150a21b9b"
+source = "git+https://github.com/ipld/rust-ipld-core?branch=primitives-as-trait#4ef5d7344881d0c6c0824f40922bd3f5163320b6"
 dependencies = [
  "cid",
  "serde",
