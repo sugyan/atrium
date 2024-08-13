@@ -2,7 +2,6 @@ use super::{post_view, profile_view_basic};
 use crate::moderation::decision::DecisionContext;
 use crate::moderation::mutewords::has_muted_word;
 use crate::moderation::{ModerationPrefs, Moderator};
-use crate::rich_text::tests::rich_text_with_detect_facets;
 use atrium_api::app::bsky::actor::defs::{MutedWord, MutedWordData, ViewerState, ViewerStateData};
 use atrium_api::app::bsky::richtext::facet::{ByteSliceData, MainData, MainFeaturesItem, TagData};
 use atrium_api::types::string::Datetime;
@@ -13,6 +12,7 @@ use std::time::Duration;
 
 enum MutedWordTarget {
     Content,
+    #[cfg(feature = "rich-text")]
     Tag,
 }
 
@@ -31,6 +31,7 @@ fn muted_word(value: &str, word_target: MutedWordTarget, actor_target: ActorTarg
         id: None,
         targets: vec![match word_target {
             MutedWordTarget::Content => String::from("content"),
+            #[cfg(feature = "rich-text")]
             MutedWordTarget::Tag => String::from("tag"),
         }],
         value: String::from(value),
@@ -72,6 +73,7 @@ fn viewer_state(following: Option<String>) -> ViewerState {
 #[cfg(feature = "rich-text")]
 #[tokio::test]
 async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
+    use crate::rich_text::tests::rich_text_with_detect_facets;
     // match: outline tag
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
