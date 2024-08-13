@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.3](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.11.2...atrium-xrpc-v0.11.3) - 2024-08-13
+
+### Added
+- Add `atrium-crypto` ([#169](https://github.com/sugyan/atrium/pull/169))
+
 ## [0.11.2](https://github.com/sugyan/atrium/compare/atrium-xrpc-v0.11.1...atrium-xrpc-v0.11.2) - 2024-06-26
 
 ### Added
