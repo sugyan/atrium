@@ -389,6 +389,8 @@ pub enum ModEventViewDetailEventRefs {
     ModEventResolveAppeal(Box<ModEventResolveAppeal>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventDivert")]
     ModEventDivert(Box<ModEventDivert>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventTag")]
+    ModEventTag(Box<ModEventTag>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
@@ -433,6 +435,8 @@ pub enum ModEventViewEventRefs {
     ModEventResolveAppeal(Box<ModEventResolveAppeal>),
     #[serde(rename = "tools.ozone.moderation.defs#modEventDivert")]
     ModEventDivert(Box<ModEventDivert>),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventTag")]
+    ModEventTag(Box<ModEventTag>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

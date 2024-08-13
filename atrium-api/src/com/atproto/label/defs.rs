@@ -32,7 +32,7 @@ pub struct LabelData {
 }
 pub type Label = crate::types::Object<LabelData>;
 pub type LabelValue = String;
-///Declares a label value and its expected interpertations and behaviors.
+///Declares a label value and its expected interpretations and behaviors.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelValueDefinitionData {

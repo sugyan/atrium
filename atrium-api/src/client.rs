@@ -1819,6 +1819,36 @@ where
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
+    ///Set notification-related preferences for an account. Requires auth.
+    pub async fn put_preferences(
+        &self,
+        input: crate::app::bsky::notification::put_preferences::Input,
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::app::bsky::notification::put_preferences::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::notification::put_preferences::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
     ///Register to receive push notifications, via a specified service, for the requesting account. Requires auth.
     pub async fn register_push(
         &self,

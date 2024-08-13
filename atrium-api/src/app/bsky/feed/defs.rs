@@ -74,7 +74,7 @@ pub type GeneratorViewerState = crate::types::Object<GeneratorViewerStateData>;
 pub struct InteractionData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub event: Option<String>,
-    ///Context on a feed item that was orginally supplied by the feed generator on getFeedSkeleton.
+    ///Context on a feed item that was originally supplied by the feed generator on getFeedSkeleton.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feed_context: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
