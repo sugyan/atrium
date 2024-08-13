@@ -23,7 +23,7 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.23.3", path = "atrium-api" }
+atrium-api = { version = "0.24.0", path = "atrium-api" }
 atrium-xrpc = { version = "0.11.3", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.6", path = "atrium-xrpc-client" }
 bsky-sdk = { version = "0.1.7", path = "bsky-sdk" }
