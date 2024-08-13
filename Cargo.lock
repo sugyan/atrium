@@ -286,6 +286,7 @@ dependencies = [
  "async-trait",
  "atrium-api",
  "atrium-xrpc-client",
+ "chrono",
  "ipld-core",
  "psl",
  "regex",

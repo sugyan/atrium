@@ -4,7 +4,9 @@ use super::super::types::{LabelTarget, SubjectPost};
 use super::super::Moderator;
 use atrium_api::app::bsky::actor::defs::MutedWord;
 use atrium_api::app::bsky::embed::record::{ViewBlocked, ViewRecord, ViewRecordRefs};
+use atrium_api::app::bsky::embed::record_with_media::{MainMediaRefs, ViewMediaRefs};
 use atrium_api::app::bsky::feed::defs::PostViewEmbedRefs;
+use atrium_api::app::bsky::feed::post::{self, RecordEmbedRefs};
 use atrium_api::types::{TryFromUnknown, Union};
 
 impl Moderator {
@@ -137,20 +139,195 @@ fn check_muted_words(subject: &SubjectPost, muted_words: &[MutedWord]) -> bool {
     if muted_words.is_empty() {
         return false;
     }
-    let Ok(post) =
-        atrium_api::app::bsky::feed::post::Record::try_from_unknown(subject.data.record.clone())
-    else {
-        return false;
-    };
-    if has_muted_word(
-        muted_words,
-        &post.text,
-        &post.facets,
-        &post.tags,
-        &post.langs,
-    ) {
-        return true;
+
+    let post_author = &subject.author;
+
+    if let Ok(post) =
+        atrium_api::app::bsky::feed::post::Record::try_from_unknown(subject.record.clone())
+    {
+        // post text
+        if has_muted_word(
+            muted_words,
+            &post.text,
+            post.facets.as_ref(),
+            post.tags.as_ref(),
+            post.langs.as_ref(),
+            Some(post_author),
+        ) {
+            return true;
+        }
+
+        if let Some(Union::Refs(RecordEmbedRefs::AppBskyEmbedImagesMain(images))) = &post.embed {
+            // post images
+            for image in &images.images {
+                if has_muted_word(
+                    muted_words,
+                    &image.alt,
+                    None,
+                    None,
+                    post.langs.as_ref(),
+                    Some(post_author),
+                ) {
+                    return true;
+                }
+            }
+        }
     }
 
+    match &subject.embed {
+        // quote post
+        Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordView(view))) => {
+            if let Union::Refs(ViewRecordRefs::ViewRecord(view_record)) = &view.record {
+                if let Ok(record) = post::Record::try_from_unknown(view_record.value.clone()) {
+                    let embedded_post = record;
+                    let embed_author = &view_record.author;
+                    // quoted post text
+                    if has_muted_word(
+                        muted_words,
+                        &embedded_post.text,
+                        embedded_post.facets.as_ref(),
+                        embedded_post.tags.as_ref(),
+                        embedded_post.langs.as_ref(),
+                        Some(embed_author),
+                    ) {
+                        return true;
+                    }
+                    match &embedded_post.embed {
+                        // quoted post's images
+                        Some(Union::Refs(RecordEmbedRefs::AppBskyEmbedImagesMain(main))) => {
+                            for image in &main.images {
+                                if has_muted_word(
+                                    muted_words,
+                                    &image.alt,
+                                    None,
+                                    None,
+                                    embedded_post.langs.as_ref(),
+                                    Some(embed_author),
+                                ) {
+                                    return true;
+                                }
+                            }
+                        }
+                        // quoted post's link card
+                        Some(Union::Refs(RecordEmbedRefs::AppBskyEmbedExternalMain(main))) => {
+                            let external = &main.external;
+                            if has_muted_word(
+                                muted_words,
+                                &format!("{} {}", external.title, external.description),
+                                None,
+                                None,
+                                None,
+                                Some(embed_author),
+                            ) {
+                                return true;
+                            }
+                        }
+                        Some(Union::Refs(RecordEmbedRefs::AppBskyEmbedRecordWithMediaMain(
+                            main,
+                        ))) => match &main.media {
+                            Union::Refs(MainMediaRefs::AppBskyEmbedExternalMain(main)) => {
+                                let external = &main.external;
+                                if has_muted_word(
+                                    muted_words,
+                                    &format!("{} {}", external.title, external.description),
+                                    None,
+                                    None,
+                                    None,
+                                    Some(embed_author),
+                                ) {
+                                    return true;
+                                }
+                            }
+                            Union::Refs(MainMediaRefs::AppBskyEmbedImagesMain(main)) => {
+                                for image in &main.images {
+                                    if has_muted_word(
+                                        muted_words,
+                                        &image.alt,
+                                        None,
+                                        None,
+                                        embedded_post.langs.as_ref(),
+                                        Some(embed_author),
+                                    ) {
+                                        return true;
+                                    }
+                                }
+                            }
+                            _ => {}
+                        },
+                        _ => {}
+                    }
+                }
+            }
+        }
+        // link card
+        Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedExternalView(view))) => {
+            let external = &view.external;
+            if has_muted_word(
+                muted_words,
+                &format!("{} {}", external.title, external.description),
+                None,
+                None,
+                None,
+                Some(post_author),
+            ) {
+                return true;
+            }
+        }
+        // quote post with media
+        Some(Union::Refs(PostViewEmbedRefs::AppBskyEmbedRecordWithMediaView(view))) => {
+            if let Union::Refs(ViewRecordRefs::ViewRecord(view_record)) = &view.record.record {
+                let embed_author = &view_record.author;
+                // quoted post text
+                if let Ok(record) = post::Record::try_from_unknown(view_record.value.clone()) {
+                    let post = record;
+                    if has_muted_word(
+                        muted_words,
+                        &post.text,
+                        post.facets.as_ref(),
+                        post.tags.as_ref(),
+                        post.langs.as_ref(),
+                        Some(embed_author),
+                    ) {
+                        return true;
+                    }
+                }
+                // quoted post media
+                match &view.media {
+                    Union::Refs(ViewMediaRefs::AppBskyEmbedExternalView(view)) => {
+                        let external = &view.external;
+                        if has_muted_word(
+                            muted_words,
+                            &format!("{} {}", external.title, external.description),
+                            None,
+                            None,
+                            None,
+                            Some(embed_author),
+                        ) {
+                            return true;
+                        }
+                    }
+                    Union::Refs(ViewMediaRefs::AppBskyEmbedImagesView(view)) => {
+                        let langs = post::Record::try_from_unknown(view_record.value.clone())
+                            .ok()
+                            .and_then(|record| record.data.langs);
+                        for image in &view.images {
+                            if has_muted_word(
+                                muted_words,
+                                &image.alt,
+                                None,
+                                None,
+                                langs.as_ref(),
+                                Some(embed_author),
+                            ) {
+                                return true;
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        _ => {}
+    }
     false
 }
