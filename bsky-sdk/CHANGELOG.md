@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.6...bsky-sdk-v0.1.7) - 2024-08-13
+
+### Added
+- Add expired/actor_target check to has_muted_word ([#211](https://github.com/sugyan/atrium/pull/211))
+- Introduce atrium_api::types::Unknown for unknown fields  ([#209](https://github.com/sugyan/atrium/pull/209))
+
+### Fixed
+- Fix async_trait for SDK records ([#208](https://github.com/sugyan/atrium/pull/208))
+
 ## [0.1.6](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.5...bsky-sdk-v0.1.6) - 2024-07-19
 
 ### Added

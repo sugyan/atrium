@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.6](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.5...atrium-xrpc-client-v0.5.6) - 2024-08-13
+
+### Added
+- Add `atrium-crypto` ([#169](https://github.com/sugyan/atrium/pull/169))
+
+### Fixed
+- Remove Arc from xrpc-clients ([#206](https://github.com/sugyan/atrium/pull/206))
+
 ## [0.5.5](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.4...atrium-xrpc-client-v0.5.5) - 2024-06-13
 
 ### Added

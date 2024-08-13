@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.23.3](https://github.com/sugyan/atrium/compare/atrium-api-v0.23.2...atrium-api-v0.23.3) - 2024-08-13
+
+### Added
+- Update API, based on the latest lexicon schemas ([#210](https://github.com/sugyan/atrium/pull/210))
+- Introduce atrium_api::types::Unknown for unknown fields  ([#209](https://github.com/sugyan/atrium/pull/209))
+- Add `atrium-crypto` ([#169](https://github.com/sugyan/atrium/pull/169))
+
 ### Added
 - `atrium_api::types::Unknown`
 
