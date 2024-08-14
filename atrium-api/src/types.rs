@@ -166,7 +166,34 @@ where
     S: ser::Serializer,
 {
     match ipld {
-        Ipld::Float(_) => Err(serde::ser::Error::custom("float values are not allowed")),
+        Ipld::Float(_) => Err(ser::Error::custom(
+            "float values are not allowed in ATProtocol",
+        )),
+        Ipld::List(list) => {
+            if list.iter().any(|value| matches!(value, Ipld::Float(_))) {
+                Err(ser::Error::custom(
+                    "float values are not allowed in ATProtocol",
+                ))
+            } else {
+                list.iter()
+                    .cloned()
+                    .map(DataModel)
+                    .collect::<Vec<_>>()
+                    .serialize(serializer)
+            }
+        }
+        Ipld::Map(map) => {
+            if map.values().any(|value| matches!(value, Ipld::Float(_))) {
+                Err(ser::Error::custom(
+                    "float values are not allowed in ATProtocol",
+                ))
+            } else {
+                map.iter()
+                    .map(|(k, v)| (k, DataModel(v.clone())))
+                    .collect::<BTreeMap<_, _>>()
+                    .serialize(serializer)
+            }
+        }
         Ipld::Link(link) => CidLink(*link).serialize(serializer),
         _ => ipld.serialize(serializer),
     }
@@ -619,15 +646,37 @@ mod tests {
 
     #[test]
     fn serialize_unknown_from_cid_link() {
-        let cid_link =
-            CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
-                .expect("failed to create cid-link");
-        let unknown = cid_link
-            .try_into_unknown()
-            .expect("failed to convert to unknown");
-        assert_eq!(
-            serde_json::to_string(&unknown).expect("failed to serialize unknown"),
-            r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#
-        );
+        // cid link
+        {
+            let cid_link =
+                CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
+                    .expect("failed to create cid-link");
+            let unknown = cid_link
+                .try_into_unknown()
+                .expect("failed to convert to unknown");
+            assert_eq!(
+                serde_json::to_string(&unknown).expect("failed to serialize unknown"),
+                r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#
+            );
+        }
+        // blob ref (includes cid link)
+        {
+            let cid_link =
+                CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
+                    .expect("failed to create cid-link");
+            let blob_ref = BlobRef::Typed(TypedBlobRef::Blob(Blob {
+                r#ref: cid_link,
+                mime_type: "text/plain".into(),
+                size: 0,
+            }));
+            let unknown = blob_ref
+                .try_into_unknown()
+                .expect("failed to convert to unknown");
+            let serialized = serde_json::to_string(&unknown).expect("failed to serialize unknown");
+            assert!(
+                serialized.contains("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"),
+                "serialized unknown should contain cid string: {serialized}"
+            );
+        }
     }
 }
