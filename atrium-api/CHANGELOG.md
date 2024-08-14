@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.0...atrium-api-v0.24.1) - 2024-08-14
+
+### Fixed
+- Fix serialization of Unknown(DataModel) ([#214](https://github.com/sugyan/atrium/pull/214))
+
 ## [0.24.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.23.2...atrium-api-v0.24.0) - 2024-08-14
 
 ### Added
