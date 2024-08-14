@@ -17,6 +17,8 @@ async-trait.workspace = true
 atrium-api.workspace = true
 atrium-xrpc-client = { workspace = true, optional = true }
 chrono.workspace = true
+futures.workspace = true
+http.workspace = true
 psl = { version = "2.1.42", optional = true }
 regex.workspace = true
 serde = { workspace = true, features = ["derive"] }

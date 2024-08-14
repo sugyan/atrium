@@ -287,6 +287,8 @@ dependencies = [
  "atrium-api",
  "atrium-xrpc-client",
  "chrono",
+ "futures",
+ "http 1.1.0",
  "ipld-core",
  "psl",
  "regex",
