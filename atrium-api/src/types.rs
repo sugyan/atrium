@@ -603,4 +603,18 @@ mod tests {
             assert_eq!(barbaz, Foo::Baz(Box::new(Baz { baz: 42 })));
         }
     }
+
+    #[test]
+    fn serialize_unknown_from_cid_link() {
+        let cid_link =
+            CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
+                .expect("failed to create cid-link");
+        let unknown = cid_link
+            .try_into_unknown()
+            .expect("failed to convert to unknown");
+        assert_eq!(
+            serde_json::to_string(&unknown).expect("failed to serialize unknown"),
+            r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#
+        );
+    }
 }
