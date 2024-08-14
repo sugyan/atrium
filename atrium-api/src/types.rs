@@ -4,6 +4,8 @@
 use crate::error::Error;
 use ipld_core::ipld::Ipld;
 use ipld_core::serde::to_ipld;
+use serde::{de, ser};
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
@@ -25,7 +27,7 @@ pub trait Collection: fmt::Debug {
     const NSID: &'static str;
 
     /// This collection's record type.
-    type Record: fmt::Debug + serde::de::DeserializeOwned + serde::Serialize;
+    type Record: fmt::Debug + de::DeserializeOwned + Serialize;
 
     /// Returns the [`Nsid`] for the Lexicon that defines the schema of records in this
     /// collection.
@@ -60,7 +62,7 @@ pub trait Collection: fmt::Debug {
 /// Definitions for Blob types.
 /// Usually a map with `$type` is used, but deprecated legacy formats are also supported for parsing.
 /// <https://atproto.com/specs/data-model#blob-type>
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum BlobRef {
     Typed(TypedBlobRef),
@@ -68,7 +70,7 @@ pub enum BlobRef {
 }
 
 /// Current, typed blob reference.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type", rename_all = "lowercase")]
 pub enum TypedBlobRef {
     Blob(Blob),
@@ -76,14 +78,14 @@ pub enum TypedBlobRef {
 
 /// An untyped blob reference.
 /// Some records in the wild still contain this format, but should never write them.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct UnTypedBlobRef {
     pub cid: String,
     pub mime_type: String,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Blob {
     pub r#ref: CidLink,
@@ -92,7 +94,7 @@ pub struct Blob {
 }
 
 /// A generic object type.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Object<T> {
     #[serde(flatten)]
     pub data: T,
@@ -124,7 +126,7 @@ impl<T> DerefMut for Object<T> {
 }
 
 /// An "open" union type.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum Union<T> {
     Refs(T),
@@ -134,7 +136,7 @@ pub enum Union<T> {
 /// Data with an unknown schema in an open [`Union`].
 ///
 /// The data of variants represented by a map and include a `$type` field indicating the variant type.
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct UnknownData {
     #[serde(rename = "$type")]
     pub r#type: String,
@@ -147,7 +149,7 @@ pub struct UnknownData {
 /// Corresponds to [the `unknown` field type].
 ///
 /// [the `unknown` field type]: https://atproto.com/specs/lexicon#unknown
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum Unknown {
     Object(BTreeMap<String, DataModel>),
@@ -155,9 +157,20 @@ pub enum Unknown {
     Other(DataModel),
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(try_from = "Ipld")]
-pub struct DataModel(Ipld);
+pub struct DataModel(#[serde(serialize_with = "serialize_data_model")] Ipld);
+
+fn serialize_data_model<S>(ipld: &Ipld, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: ser::Serializer,
+{
+    match ipld {
+        Ipld::Float(_) => Err(serde::ser::Error::custom("float values are not allowed")),
+        Ipld::Link(link) => CidLink(*link).serialize(serializer),
+        _ => ipld.serialize(serializer),
+    }
+}
 
 impl Deref for DataModel {
     type Target = Ipld;
@@ -209,7 +222,7 @@ pub trait TryFromUnknown: Sized {
 
 impl<T> TryFromUnknown for T
 where
-    T: serde::de::DeserializeOwned,
+    T: de::DeserializeOwned,
 {
     type Error = Error;
 
@@ -243,7 +256,7 @@ pub trait TryIntoUnknown {
 
 impl<T> TryIntoUnknown for T
 where
-    T: serde::Serialize,
+    T: Serialize,
 {
     type Error = Error;
 
@@ -384,7 +397,7 @@ mod tests {
 
     #[test]
     fn union() {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         #[serde(tag = "$type")]
         enum FooRefs {
             #[serde(rename = "example.com#bar")]
@@ -393,12 +406,12 @@ mod tests {
             Baz(Box<Baz>),
         }
 
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         struct Bar {
             bar: String,
         }
 
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         struct Baz {
             baz: i32,
         }
@@ -434,7 +447,7 @@ mod tests {
 
     #[test]
     fn unknown_serialize() {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         struct Foo {
             foo: Unknown,
         }
@@ -451,7 +464,7 @@ mod tests {
 
     #[test]
     fn unknown_deserialize() {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         struct Foo {
             foo: Unknown,
         }
@@ -544,7 +557,7 @@ mod tests {
 
     #[test]
     fn unknown_try_from() {
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         #[serde(tag = "$type")]
         enum Foo {
             #[serde(rename = "example.com#bar")]
@@ -553,12 +566,12 @@ mod tests {
             Baz(Box<Baz>),
         }
 
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         struct Bar {
             bar: String,
         }
 
-        #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+        #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
         struct Baz {
             baz: i32,
         }
