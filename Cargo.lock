@@ -290,6 +290,7 @@ dependencies = [
  "futures",
  "http 1.1.0",
  "ipld-core",
+ "langtag",
  "psl",
  "regex",
  "serde",

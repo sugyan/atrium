@@ -22,6 +22,8 @@ pub enum BuilderError {
     Sdk(#[from] crate::error::Error),
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error("failed to parse lang: {0}")]
+    Lang(langtag::Error),
 }
 
 pub type Result<T> = core::result::Result<T, BuilderError>;
@@ -124,6 +126,7 @@ pub struct Builder {
     inner: RecordBuilder,
     auto_detect_facets: bool,
     embed: Option<Embed>,
+    langs: Option<Vec<String>>,
 }
 
 impl Builder {
@@ -132,6 +135,7 @@ impl Builder {
             inner: RecordBuilder::new(text),
             auto_detect_facets: true,
             embed: None,
+            langs: None,
         }
     }
     pub fn auto_detect_facets(mut self, value: bool) -> Self {
@@ -166,10 +170,10 @@ impl Builder {
         self.inner = self.inner.labels(labels);
         self
     }
-    // pub fn langs(mut self, langs: Vec<atrium_api::types::string::Language>) -> Self {
-    //     self.langs = Some(langs);
-    //     self
-    // }
+    pub fn langs(mut self, langs: Vec<impl AsRef<str>>) -> Self {
+        self.langs = Some(langs.into_iter().map(|s| s.as_ref().into()).collect());
+        self
+    }
     // pub fn reply(mut self, reply: ReplyRef) -> Self {
     //     self.reply = Some(reply);
     //     self
@@ -225,11 +229,16 @@ impl Builder {
                         images::MainData { images }.into(),
                     ))
                 }
-                // _ => {
-                //     todo!()
-                // }
             };
             self.inner = self.inner.embed(Union::Refs(refs));
+        }
+        if let Some(langs) = &self.langs {
+            self.inner = self.inner.langs(
+                langs
+                    .iter()
+                    .map(|s| s.parse().map_err(BuilderError::Lang))
+                    .collect::<Result<_>>()?,
+            );
         }
         if self.auto_detect_facets {
             if let Some(facets) = RichText::new_with_detect_facets(&self.inner.text)
