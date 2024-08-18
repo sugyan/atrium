@@ -5,7 +5,7 @@ use crate::types::TryFromUnknown;
 use async_trait::async_trait;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
-use http::{Method, Request, Response, Uri};
+use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
 use std::sync::{Arc, RwLock};
@@ -318,34 +318,9 @@ impl<S> Store<S> {
             .clone()
     }
     pub fn update_endpoint(&self, did_doc: &DidDocument) {
-        if let Some(endpoint) = Self::get_pds_endpoint(did_doc) {
+        if let Some(endpoint) = did_doc.get_pds_endpoint() {
             *self.endpoint.write().expect("failed to write endpoint") = endpoint;
         }
-    }
-    fn get_pds_endpoint(did_doc: &DidDocument) -> Option<String> {
-        Self::get_service_endpoint(did_doc, ("#atproto_pds", "AtprotoPersonalDataServer"))
-    }
-    fn get_service_endpoint(did_doc: &DidDocument, (id, r#type): (&str, &str)) -> Option<String> {
-        let full_id = did_doc.id.clone() + id;
-        if let Some(services) = &did_doc.service {
-            let service = services
-                .iter()
-                .find(|service| service.id == id || service.id == full_id)?;
-            if service.r#type == r#type && Self::validate_url(&service.service_endpoint) {
-                return Some(service.service_endpoint.clone());
-            }
-        }
-        None
-    }
-    fn validate_url(url: &str) -> bool {
-        if let Ok(uri) = url.parse::<Uri>() {
-            if let Some(scheme) = uri.scheme() {
-                if (scheme == "https" || scheme == "http") && uri.host().is_some() {
-                    return true;
-                }
-            }
-        }
-        false
     }
 }
 
