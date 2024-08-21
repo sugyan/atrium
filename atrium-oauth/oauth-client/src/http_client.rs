@@ -1,3 +1,5 @@
+pub mod dpop;
+
 use atrium_xrpc::HttpClient;
 #[cfg(feature = "default-client")]
 use reqwest::Client;
@@ -5,6 +7,7 @@ use std::sync::{Arc, OnceLock};
 
 static HTTP_CLIENT: OnceLock<Arc<dyn HttpClient + Send + Sync + 'static>> = OnceLock::new();
 
+#[allow(dead_code)]
 pub fn set_http_client(
     client: impl HttpClient + Send + Sync + 'static,
 ) -> Result<(), Arc<dyn HttpClient + Send + Sync + 'static>> {

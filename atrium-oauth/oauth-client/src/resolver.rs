@@ -7,15 +7,15 @@ mod oauth_protected_resource_resolver;
 
 pub use self::did_resolver::{CommonResolver, CommonResolverConfig};
 pub use self::error::{Error, Result};
-pub use self::handle_resolver::{AppViewResolver, HandleResolverConfig};
+pub use self::handle_resolver::{AppViewResolver, HandleResolver, HandleResolverConfig};
 pub use self::identity_resolver::IdentityResolver;
 use self::oauth_protected_resource_resolver::{
     DefaultOAuthProtectedResourceResolver, OAuthProtectedResourceResolver,
 };
+use crate::types::OAuthAuthorizationServerMetadata;
 use identity_resolver::ResolvedIdentity;
 use oauth_authorization_server_resolver::{
-    DefaultOAuthAuthorizationServerResolver, OAuthAuthorizationServerMetadata,
-    OAuthAuthorizationServerResolver,
+    DefaultOAuthAuthorizationServerResolver, OAuthAuthorizationServerResolver,
 };
 
 pub struct OAuthResolver<
@@ -45,6 +45,14 @@ impl OAuthResolver {
     ) -> Result<(OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>)> {
         // TODO: entryway, or PDS url
         self.resolve_from_identity(input.as_ref()).await
+    }
+    pub async fn get_authorization_server_metadata(
+        &self,
+        issuer: impl AsRef<str>,
+    ) -> Result<OAuthAuthorizationServerMetadata> {
+        self.authorization_server_resolver
+            .get(issuer.as_ref())
+            .await
     }
     async fn resolve_from_identity(
         &self,
@@ -77,14 +85,7 @@ impl OAuthResolver {
                 )))
             }
         };
-        let as_metadata = self.authorization_server_resolver.get(issuer).await?;
-        // ATPROTO requires client_id_metadata_document
-        // https://drafts.aaronpk.com/draft-parecki-oauth-client-id-metadata-document/draft-parecki-oauth-client-id-metadata-document.html
-        if as_metadata.client_id_metadata_document_supported != Some(true) {
-            return Err(Error::AuthorizationServerMetadata(format!(
-                "authorization server does not support client_id_metadata_document: {issuer}"
-            )));
-        }
+        let as_metadata = self.get_authorization_server_metadata(issuer).await?;
         // https://datatracker.ietf.org/doc/html/draft-ietf-oauth-resource-metadata-08#name-authorization-server-metada
         if let Some(protected_resources) = &as_metadata.protected_resources {
             if !protected_resources.contains(&rs_metadata.resource) {
@@ -93,6 +94,18 @@ impl OAuthResolver {
                 )));
             }
         }
+
+        // TODO: atproot specific validation?
+        // https://github.com/bluesky-social/proposals/tree/main/0004-oauth#server-metadata
+        //
+        // eg.
+        // https://drafts.aaronpk.com/draft-parecki-oauth-client-id-metadata-document/draft-parecki-oauth-client-id-metadata-document.html
+        // if as_metadata.client_id_metadata_document_supported != Some(true) {
+        //     return Err(Error::AuthorizationServerMetadata(format!(
+        //         "authorization server does not support client_id_metadata_document: {issuer}"
+        //     )));
+        // }
+
         Ok(as_metadata)
     }
 }
