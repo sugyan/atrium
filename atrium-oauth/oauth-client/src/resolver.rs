@@ -44,7 +44,8 @@ impl OAuthResolver {
         input: impl AsRef<str>,
     ) -> Result<(OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>)> {
         // TODO: entryway, or PDS url
-        self.resolve_from_identity(input.as_ref()).await
+        let (metadata, identity) = self.resolve_from_identity(input.as_ref()).await?;
+        Ok((metadata, Some(identity)))
     }
     pub async fn get_authorization_server_metadata(
         &self,
@@ -54,13 +55,13 @@ impl OAuthResolver {
             .get(issuer.as_ref())
             .await
     }
-    async fn resolve_from_identity(
+    pub async fn resolve_from_identity(
         &self,
         input: &str,
-    ) -> Result<(OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>)> {
+    ) -> Result<(OAuthAuthorizationServerMetadata, ResolvedIdentity)> {
         let identity = self.identity_resolver.resolve(input).await?;
         let metadata = self.get_resource_server_metadata(&identity.pds).await?;
-        Ok((metadata, Some(identity)))
+        Ok((metadata, identity))
     }
     async fn get_resource_server_metadata(
         &self,

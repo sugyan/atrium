@@ -122,7 +122,7 @@ impl DpopClient {
         let payload = JwtClaims {
             iss: self.iss.clone(),
             iat,
-            jti: URL_SAFE_NO_PAD.encode(get_random_values(&mut ThreadRng::default())),
+            jti: URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default())),
             htm,
             htu,
             nonce,
@@ -168,7 +168,6 @@ impl HttpClient for DpopClient {
 
         let init_nonce = self.nonces.get(&nonce_key).await?;
         let init_proof = self.build_proof(htm.clone(), htu.clone(), init_nonce.clone())?;
-        println!("init proof: {init_proof}");
         request.headers_mut().insert("DPoP", init_proof.parse()?);
         let response = get_http_client().send_http(request.clone()).await?;
 
@@ -193,7 +192,6 @@ impl HttpClient for DpopClient {
             return Ok(response);
         }
         let next_proof = self.build_proof(htm, htu, next_nonce)?;
-        println!("next proof: {next_proof}");
         request.headers_mut().insert("DPoP", next_proof.parse()?);
         let response = get_http_client().send_http(request).await?;
         Ok(response)

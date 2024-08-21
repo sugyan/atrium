@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct InternalStateData {
     pub iss: String,
     pub dpop_key: JwkEcKey,
+    pub verifier: String,
 }
 
 pub trait StateStore: SimpleStore<String, InternalStateData> {}

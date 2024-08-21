@@ -3,16 +3,19 @@ use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
 use crate::jose_key::generate;
 use crate::resolver::*;
-use crate::server_agent::{OAuthEndpointName, OAuthServerAgent};
+use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::state::{InternalStateData, StateStore};
-use crate::types::{OAuthClientMetadata, OAuthParResponse};
+use crate::types::{
+    AuthorizationCodeChallengeMethod, AuthorizationResponseType, OAuthClientMetadata,
+    OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters,
+};
 use crate::utils::get_random_values;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use elliptic_curve::JwkEcKey;
 use rand::rngs::ThreadRng;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 pub struct OAuthClientConfig<S>
@@ -32,7 +35,7 @@ pub struct OAuthClient<S>
 where
     S: StateStore,
 {
-    resolver: OAuthResolver,
+    resolver: Arc<OAuthResolver>,
     client_metadata: OAuthClientMetadata,
     state_store: S,
 }
@@ -45,7 +48,7 @@ where
         // TODO: validate client metadata
         let client_metadata = config.client_metadata.validate()?;
         Ok(Self {
-            resolver: OAuthResolver::new(IdentityResolver::new(
+            resolver: Arc::new(OAuthResolver::new(IdentityResolver::new(
                 Arc::new(
                     CommonResolver::new(CommonResolverConfig {
                         plc_directory_url: config.plc_directory_url,
@@ -53,7 +56,7 @@ where
                     .map_err(|e| Error::Resolver(crate::resolver::Error::DidResolver(e)))?,
                 ),
                 Self::handle_resolver(config.handle_resolver),
-            )),
+            ))),
             client_metadata,
             state_store: config.state_store,
         })
@@ -78,53 +81,52 @@ where
         ) else {
             return Err(Error::Authorize("none of the algorithms worked".into()));
         };
-        let nonce = Self::generate_nonce();
+        let (code_challenge, verifier) = Self::generate_pkce();
         let state = Self::generate_nonce();
         let state_data = InternalStateData {
             iss: metadata.issuer.clone(),
             dpop_key: dpop_key.clone(),
+            verifier,
         };
         self.state_store
             .set(state.clone(), state_data)
             .await
             .map_err(|e| Error::StateStore(Box::new(e)))?;
-
-        // TODO: schema?
-        let mut payload = HashMap::from_iter([
-            (
-                String::from("client_id"),
-                self.client_metadata.client_id.clone(),
-            ),
-            (String::from("redirect_uri"), redirect_uri),
-            (String::from("code_challenge"), String::from("dummy")),
-            (String::from("code_challenge_method"), String::from("S256")),
-            (String::from("response_type"), String::from("code")),
-            (String::from("response_mode"), String::from("query")),
-            // (String::from("nonce"), nonce),
-            (String::from("state"), state),
-        ]);
-        if identity.is_some() {
-            payload.insert(String::from("login_hint"), input.as_ref().into());
-        }
-
+        let login_hint = if identity.is_some() {
+            Some(input.as_ref().into())
+        } else {
+            None
+        };
+        let parameters = PushedAuthorizationRequestParameters {
+            response_type: AuthorizationResponseType::Code,
+            redirect_uri,
+            state,
+            response_mode: None,
+            code_challenge,
+            code_challenge_method: AuthorizationCodeChallengeMethod::S256,
+            login_hint,
+        };
         if metadata.pushed_authorization_request_endpoint.is_some() {
-            let server =
-                OAuthServerAgent::new(dpop_key, metadata.clone(), self.client_metadata.clone())?;
+            let server = OAuthServerAgent::new(
+                dpop_key,
+                metadata.clone(),
+                self.client_metadata.clone(),
+                self.resolver.clone(),
+            )?;
             let par_response = server
-                .request::<HashMap<String, String>, OAuthParResponse>(
-                    OAuthEndpointName::PushedAuthorizationRequest,
-                    payload,
+                .request::<OAuthPusehedAuthorizationRequestResponse>(
+                    OAuthRequest::PushedAuthorizationRequest(parameters),
                 )
                 .await?;
 
             #[derive(Serialize)]
-            struct AuthorizationParams {
+            struct Parameters {
                 client_id: String,
                 request_uri: String,
             }
             Ok(metadata.authorization_endpoint
                 + "?"
-                + &serde_html_form::to_string(AuthorizationParams {
+                + &serde_html_form::to_string(Parameters {
                     client_id: self.client_metadata.client_id.clone(),
                     request_uri: par_response.request_uri,
                 })
@@ -149,8 +151,6 @@ where
 
         let params = serde_html_form::from_str::<CallbackParams>(input.as_ref())
             .map_err(|e| Error::Callback(e.to_string()))?;
-
-        println!("params: {:?}", &params);
         let Some(state) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -185,9 +185,11 @@ where
             state.dpop_key.clone(),
             metadata.clone(),
             self.client_metadata.clone(),
+            self.resolver.clone(),
         )?;
-        println!("{:?}", server.exchange_code(&params.code).await?);
-
+        let token_set = server.exchange_code(&params.code, &state.verifier).await?;
+        // TODO: verify id_token?
+        println!("{token_set:?}",);
         Ok(())
     }
     fn handle_resolver(handle_resolver_config: HandleResolverConfig) -> Arc<dyn HandleResolver> {
@@ -225,7 +227,18 @@ where
         algs.sort_by(compare_algos);
         generate(&algs)
     }
+    fn generate_pkce() -> (String, String) {
+        // https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
+        let verifier =
+            URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
+        let mut hasher = Sha256::new();
+        hasher.update(verifier.as_bytes());
+        (
+            URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())),
+            verifier,
+        )
+    }
     fn generate_nonce() -> String {
-        URL_SAFE_NO_PAD.encode(get_random_values(&mut ThreadRng::default()))
+        URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default()))
     }
 }
