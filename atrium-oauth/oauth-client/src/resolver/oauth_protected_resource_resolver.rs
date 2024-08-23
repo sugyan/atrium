@@ -1,9 +1,10 @@
 use super::error::{Error, Result};
-use crate::http_client;
 use async_trait::async_trait;
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
+use atrium_xrpc::HttpClient;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
 // https://datatracker.ietf.org/doc/draft-ietf-oauth-resource-metadata/
 // https://datatracker.ietf.org/doc/html/draft-ietf-oauth-resource-metadata-08#section-2
@@ -21,20 +22,31 @@ pub struct OAuthProtectedResourceMetadata {
 }
 
 #[async_trait]
-pub trait OAuthProtectedResourceResolver: Send + Sync + 'static {
+pub trait OAuthProtectedResourceResolver {
     async fn get(&self, resource: &str) -> Result<OAuthProtectedResourceMetadata>;
 }
 
-pub struct DefaultOAuthProtectedResourceResolver;
+pub struct DefaultOAuthProtectedResourceResolver<T> {
+    http_client: Arc<T>,
+}
+
+impl<T> DefaultOAuthProtectedResourceResolver<T> {
+    pub fn new(http_client: Arc<T>) -> Self {
+        Self { http_client }
+    }
+}
 
 #[async_trait]
-impl OAuthProtectedResourceResolver for DefaultOAuthProtectedResourceResolver {
+impl<T> OAuthProtectedResourceResolver for DefaultOAuthProtectedResourceResolver<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     async fn get(&self, resource: &str) -> Result<OAuthProtectedResourceMetadata> {
         let uri = Builder::from(resource.parse::<Uri>()?)
             .path_and_query("/.well-known/oauth-protected-resource")
             .build()?;
-        let client = http_client::get_http_client();
-        let res = client
+        let res = self
+            .http_client
             .send_http(Request::builder().uri(uri).body(Vec::new())?)
             .await
             .map_err(Error::HttpClient)?;

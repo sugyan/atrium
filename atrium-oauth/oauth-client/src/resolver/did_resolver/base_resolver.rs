@@ -9,14 +9,14 @@ pub enum Method {
     Web,
 }
 
-pub trait BaseResolver: Send + Sync + 'static {
-    fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver + Send + Sync + 'static>;
+pub trait BaseResolver {
+    fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver>;
 }
 
 #[async_trait]
 impl<T> DidResolver for T
 where
-    T: BaseResolver,
+    T: BaseResolver + Send + Sync + 'static,
 {
     async fn resolve(&self, did: &Did) -> Result<DidDocument> {
         match did.strip_prefix("did:").and_then(|s| {

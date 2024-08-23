@@ -10,6 +10,7 @@ use crate::types::{
     OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters,
 };
 use crate::utils::get_random_values;
+use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use elliptic_curve::JwkEcKey;
@@ -18,6 +19,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
+#[cfg(feature = "default-client")]
 pub struct OAuthClientConfig<S>
 where
     S: StateStore,
@@ -31,36 +33,100 @@ where
     pub plc_directory_url: Option<String>,
 }
 
-pub struct OAuthClient<S>
+#[cfg(not(feature = "default-client"))]
+pub struct OAuthClientConfig<S, T>
 where
     S: StateStore,
+    T: HttpClient + Send + Sync + 'static,
 {
-    resolver: Arc<OAuthResolver>,
-    client_metadata: OAuthClientMetadata,
-    state_store: S,
+    // Config
+    pub client_metadata: ClientMetadata,
+    // Stores
+    pub state_store: S,
+    // Services
+    pub handle_resolver: HandleResolverConfig,
+    pub plc_directory_url: Option<String>,
+    // Others
+    pub http_client: T,
 }
 
-impl<S> OAuthClient<S>
+pub struct OAuthClient<S, T>
+where
+    S: StateStore,
+    T: HttpClient + Send + Sync + 'static,
+{
+    resolver: Arc<OAuthResolver<T>>,
+    client_metadata: OAuthClientMetadata,
+    state_store: S,
+    http_client: Arc<T>,
+}
+
+#[cfg(feature = "default-client")]
+impl<S> OAuthClient<S, crate::http_client::default::DefaultHttpClient>
 where
     S: StateStore,
 {
     pub fn new(config: OAuthClientConfig<S>) -> Result<Self> {
         // TODO: validate client metadata
         let client_metadata = config.client_metadata.validate()?;
+        let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
         Ok(Self {
-            resolver: Arc::new(OAuthResolver::new(IdentityResolver::new(
-                Arc::new(
-                    CommonResolver::new(CommonResolverConfig {
-                        plc_directory_url: config.plc_directory_url,
-                    })
-                    .map_err(|e| Error::Resolver(crate::resolver::Error::DidResolver(e)))?,
+            resolver: Arc::new(OAuthResolver::new(
+                IdentityResolver::new(
+                    Arc::new(
+                        CommonResolver::new(CommonResolverConfig {
+                            plc_directory_url: config.plc_directory_url,
+                            http_client: http_client.clone(),
+                        })
+                        .map_err(|e| Error::Resolver(crate::resolver::Error::DidResolver(e)))?,
+                    ),
+                    handle_resolver(config.handle_resolver, http_client.clone()),
                 ),
-                Self::handle_resolver(config.handle_resolver),
-            ))),
+                http_client.clone(),
+            )),
             client_metadata,
             state_store: config.state_store,
+            http_client,
         })
     }
+}
+
+#[cfg(not(feature = "default-client"))]
+impl<S, T> OAuthClient<S, T>
+where
+    S: StateStore,
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub fn new(config: OAuthClientConfig<S, T>) -> Result<Self> {
+        // TODO: validate client metadata
+        let client_metadata = config.client_metadata.validate()?;
+        let http_client = Arc::new(config.http_client);
+        Ok(Self {
+            resolver: Arc::new(OAuthResolver::new(
+                IdentityResolver::new(
+                    Arc::new(
+                        CommonResolver::new(CommonResolverConfig {
+                            plc_directory_url: config.plc_directory_url,
+                            http_client: http_client.clone(),
+                        })
+                        .map_err(|e| Error::Resolver(crate::resolver::Error::DidResolver(e)))?,
+                    ),
+                    handle_resolver(config.handle_resolver, http_client.clone()),
+                ),
+                http_client.clone(),
+            )),
+            client_metadata,
+            state_store: config.state_store,
+            http_client,
+        })
+    }
+}
+
+impl<S, T> OAuthClient<S, T>
+where
+    S: StateStore,
+    T: HttpClient + Send + Sync + 'static,
+{
     pub async fn authorize(&mut self, input: impl AsRef<str>) -> Result<String> {
         let redirect_uri = {
             // TODO: use options.redirect_uri
@@ -112,6 +178,7 @@ where
                 metadata.clone(),
                 self.client_metadata.clone(),
                 self.resolver.clone(),
+                self.http_client.clone(),
             )?;
             let par_response = server
                 .request::<OAuthPusehedAuthorizationRequestResponse>(
@@ -186,17 +253,12 @@ where
             metadata.clone(),
             self.client_metadata.clone(),
             self.resolver.clone(),
+            self.http_client.clone(),
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
         // TODO: verify id_token?
         println!("{token_set:?}",);
         Ok(())
-    }
-    fn handle_resolver(handle_resolver_config: HandleResolverConfig) -> Arc<dyn HandleResolver> {
-        match handle_resolver_config {
-            HandleResolverConfig::AppView(uri) => Arc::new(AppViewResolver::new(uri)),
-            HandleResolverConfig::Service(service) => service,
-        }
     }
     fn generate_key(mut algs: Vec<String>) -> Option<JwkEcKey> {
         // 256K > ES (256 > 384 > 512) > PS (256 > 384 > 512) > RS (256 > 384 > 512) > other (in original order)
@@ -240,5 +302,20 @@ where
     }
     fn generate_nonce() -> String {
         URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default()))
+    }
+}
+
+fn handle_resolver<T>(
+    handle_resolver_config: HandleResolverConfig,
+    http_client: Arc<T>,
+) -> Arc<dyn HandleResolver>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    match handle_resolver_config {
+        HandleResolverConfig::AppView(uri) => {
+            Arc::new(AppViewResolver::new(uri, http_client.clone()))
+        }
+        HandleResolverConfig::Service(service) => service,
     }
 }

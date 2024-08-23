@@ -55,7 +55,6 @@ pub struct TokenRequestParameters {
     pub grant_type: TokenGrantType,
     pub code: String,
     pub redirect_uri: String,
-    pub client_id: String,
     // https://datatracker.ietf.org/doc/html/rfc7636#section-4.5
     pub code_verifier: String,
 }

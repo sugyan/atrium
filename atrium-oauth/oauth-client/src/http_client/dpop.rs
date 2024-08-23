@@ -1,4 +1,3 @@
-use super::get_http_client;
 use crate::store::memory::MemorySimpleStore;
 use crate::store::SimpleStore;
 use crate::utils::get_random_values;
@@ -18,6 +17,7 @@ use elliptic_curve::{
 };
 use rand::rngs::ThreadRng;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -61,17 +61,23 @@ struct JwtClaims {
     nonce: Option<String>,
 }
 
-pub struct DpopClient<S = MemorySimpleStore<String, String>>
+pub struct DpopClient<T, S = MemorySimpleStore<String, String>>
 where
     S: SimpleStore<String, String>,
 {
+    inner: Arc<T>,
     key: JwkEcKey,
     iss: String,
     nonces: S,
 }
 
-impl DpopClient {
-    pub fn new(key: JwkEcKey, iss: String, supported_algs: Option<Vec<String>>) -> Result<Self> {
+impl<T> DpopClient<T> {
+    pub fn new(
+        key: JwkEcKey,
+        iss: String,
+        supported_algs: Option<Vec<String>>,
+        http_client: Arc<T>,
+    ) -> Result<Self> {
         if let Some(algs) = supported_algs {
             let alg = String::from(match key.crv() {
                 k256::Secp256k1::CRV => "ES256K",
@@ -83,7 +89,12 @@ impl DpopClient {
             }
         }
         let nonces = MemorySimpleStore::<String, String>::default();
-        Ok(Self { key, iss, nonces })
+        Ok(Self {
+            inner: http_client,
+            key,
+            iss,
+            nonces,
+        })
     }
     fn build_proof(&self, htm: String, htu: String, nonce: Option<String>) -> Result<String> {
         Ok(match self.key.crv() {
@@ -155,7 +166,10 @@ impl DpopClient {
 
 #[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
-impl HttpClient for DpopClient {
+impl<T> HttpClient for DpopClient<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     async fn send_http(
         &self,
         mut request: Request<Vec<u8>>,
@@ -169,7 +183,7 @@ impl HttpClient for DpopClient {
         let init_nonce = self.nonces.get(&nonce_key).await?;
         let init_proof = self.build_proof(htm.clone(), htu.clone(), init_nonce.clone())?;
         request.headers_mut().insert("DPoP", init_proof.parse()?);
-        let response = get_http_client().send_http(request.clone()).await?;
+        let response = self.inner.send_http(request.clone()).await?;
 
         let next_nonce = response
             .headers()
@@ -193,7 +207,7 @@ impl HttpClient for DpopClient {
         }
         let next_proof = self.build_proof(htm, htu, next_nonce)?;
         request.headers_mut().insert("DPoP", next_proof.parse()?);
-        let response = get_http_client().send_http(request).await?;
+        let response = self.inner.send_http(request).await?;
         Ok(response)
     }
 }

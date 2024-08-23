@@ -5,26 +5,34 @@ use super::{DidResolver, Result};
 use std::sync::Arc;
 
 #[derive(Default)]
-pub struct CommonResolverConfig {
+pub struct CommonResolverConfig<T> {
     pub plc_directory_url: Option<String>,
+    pub http_client: Arc<T>,
 }
 
-pub struct CommonResolver {
-    plc_resolver: Arc<PlcResolver>,
-    web_resolver: Arc<WebResolver>,
+pub struct CommonResolver<T> {
+    plc_resolver: Arc<PlcResolver<T>>,
+    web_resolver: Arc<WebResolver<T>>,
 }
 
-impl CommonResolver {
-    pub fn new(config: CommonResolverConfig) -> Result<Self> {
+impl<T> CommonResolver<T> {
+    pub fn new(config: CommonResolverConfig<T>) -> Result<Self> {
         Ok(Self {
-            plc_resolver: Arc::new(PlcResolver::new(config.plc_directory_url)?),
-            web_resolver: Arc::new(WebResolver::new()),
+            plc_resolver: Arc::new(PlcResolver::new(
+                config.plc_directory_url,
+                config.http_client.clone(),
+            )?),
+            web_resolver: Arc::new(WebResolver::new(config.http_client.clone())),
         })
     }
 }
 
-impl BaseResolver for CommonResolver {
-    fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver + Send + Sync + 'static> {
+impl<T> BaseResolver for CommonResolver<T>
+where
+    PlcResolver<T>: DidResolver,
+    WebResolver<T>: DidResolver,
+{
+    fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver> {
         match method {
             Method::Plc => self.plc_resolver.clone(),
             Method::Web => self.web_resolver.clone(),

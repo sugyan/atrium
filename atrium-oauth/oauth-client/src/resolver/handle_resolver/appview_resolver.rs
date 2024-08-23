@@ -1,24 +1,32 @@
 use super::{Error, HandleResolver, Result};
-use crate::http_client;
 use async_trait::async_trait;
 use atrium_api::com::atproto::identity::resolve_handle;
 use atrium_api::types::string::{Did, Handle};
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, Uri};
+use atrium_xrpc::HttpClient;
+use std::sync::Arc;
 
 #[derive(Debug)]
-pub struct AppViewResolver {
+pub struct AppViewResolver<T> {
     service: Uri,
+    http_client: Arc<T>,
 }
 
-impl AppViewResolver {
-    pub fn new(service: Uri) -> Self {
-        Self { service }
+impl<T> AppViewResolver<T> {
+    pub fn new(service: Uri, http_client: Arc<T>) -> Self {
+        Self {
+            service,
+            http_client,
+        }
     }
 }
 
 #[async_trait]
-impl HandleResolver for AppViewResolver {
+impl<T> HandleResolver for AppViewResolver<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     async fn resolve(&self, handle: &Handle) -> Result<Did> {
         let uri = Builder::from(self.service.clone())
             .path_and_query(format!(
@@ -29,8 +37,8 @@ impl HandleResolver for AppViewResolver {
             ))
             .build()?;
         // TODO: no-cache?
-        let client = http_client::get_http_client();
-        let res = client
+        let res = self
+            .http_client
             .send_http(Request::builder().uri(uri).body(Vec::new())?)
             .await
             .map_err(Error::HttpClient)?;

@@ -1,25 +1,37 @@
 use super::error::{Error, Result};
-use crate::http_client;
 use crate::types::OAuthAuthorizationServerMetadata;
 use async_trait::async_trait;
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
+use atrium_xrpc::HttpClient;
+use std::sync::Arc;
 
 #[async_trait]
-pub trait OAuthAuthorizationServerResolver: Send + Sync + 'static {
+pub trait OAuthAuthorizationServerResolver {
     async fn get(&self, resource: &str) -> Result<OAuthAuthorizationServerMetadata>;
 }
 
-pub struct DefaultOAuthAuthorizationServerResolver;
+pub struct DefaultOAuthAuthorizationServerResolver<T> {
+    http_client: Arc<T>,
+}
+
+impl<T> DefaultOAuthAuthorizationServerResolver<T> {
+    pub fn new(http_client: Arc<T>) -> Self {
+        Self { http_client }
+    }
+}
 
 #[async_trait]
-impl OAuthAuthorizationServerResolver for DefaultOAuthAuthorizationServerResolver {
+impl<T> OAuthAuthorizationServerResolver for DefaultOAuthAuthorizationServerResolver<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     async fn get(&self, issuer: &str) -> Result<OAuthAuthorizationServerMetadata> {
         let uri = Builder::from(issuer.parse::<Uri>()?)
             .path_and_query("/.well-known/oauth-authorization-server")
             .build()?;
-        let client = http_client::get_http_client();
-        let res = client
+        let res = self
+            .http_client
             .send_http(Request::builder().uri(uri).body(Vec::new())?)
             .await
             .map_err(Error::HttpClient)?;

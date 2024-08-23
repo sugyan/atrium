@@ -5,7 +5,7 @@ mod identity_resolver;
 mod oauth_authorization_server_resolver;
 mod oauth_protected_resource_resolver;
 
-pub use self::did_resolver::{CommonResolver, CommonResolverConfig};
+pub use self::did_resolver::{CommonResolver, CommonResolverConfig, DidResolver};
 pub use self::error::{Error, Result};
 pub use self::handle_resolver::{AppViewResolver, HandleResolver, HandleResolverConfig};
 pub use self::identity_resolver::IdentityResolver;
@@ -13,14 +13,18 @@ use self::oauth_protected_resource_resolver::{
     DefaultOAuthProtectedResourceResolver, OAuthProtectedResourceResolver,
 };
 use crate::types::OAuthAuthorizationServerMetadata;
+use atrium_xrpc::HttpClient;
 use identity_resolver::ResolvedIdentity;
 use oauth_authorization_server_resolver::{
     DefaultOAuthAuthorizationServerResolver, OAuthAuthorizationServerResolver,
 };
+use std::marker::PhantomData;
+use std::sync::Arc;
 
 pub struct OAuthResolver<
-    PRR = DefaultOAuthProtectedResourceResolver,
-    ASR = DefaultOAuthAuthorizationServerResolver,
+    T,
+    PRR = DefaultOAuthProtectedResourceResolver<T>,
+    ASR = DefaultOAuthAuthorizationServerResolver<T>,
 > where
     PRR: OAuthProtectedResourceResolver,
     ASR: OAuthAuthorizationServerResolver,
@@ -28,15 +32,24 @@ pub struct OAuthResolver<
     identity_resolver: IdentityResolver,
     protected_resource_resolver: PRR,
     authorization_server_resolver: ASR,
+    _phantom: PhantomData<T>,
 }
 
-impl OAuthResolver {
-    pub fn new(identity_resolver: IdentityResolver) -> Self {
+impl<T> OAuthResolver<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub fn new(identity_resolver: IdentityResolver, http_client: Arc<T>) -> Self {
         // TODO: cached resolver?
         Self {
             identity_resolver,
-            protected_resource_resolver: DefaultOAuthProtectedResourceResolver,
-            authorization_server_resolver: DefaultOAuthAuthorizationServerResolver,
+            protected_resource_resolver: DefaultOAuthProtectedResourceResolver::new(
+                http_client.clone(),
+            ),
+            authorization_server_resolver: DefaultOAuthAuthorizationServerResolver::new(
+                http_client.clone(),
+            ),
+            _phantom: PhantomData,
         }
     }
     pub async fn resolve(
@@ -55,7 +68,7 @@ impl OAuthResolver {
             .get(issuer.as_ref())
             .await
     }
-    pub async fn resolve_from_identity(
+    pub(crate) async fn resolve_from_identity(
         &self,
         input: &str,
     ) -> Result<(OAuthAuthorizationServerMetadata, ResolvedIdentity)> {

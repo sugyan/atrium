@@ -17,8 +17,6 @@ use thiserror::Error;
 pub enum Error {
     #[error("no {0} endpoint available")]
     NoEndpoint(String),
-    #[error("unsupported {0:?} authentication method")]
-    UnsupportedAuthMethod(OAuthEndpointName),
     #[error("token response verification failed")]
     Token(String),
     #[error(transparent)]
@@ -75,29 +73,26 @@ where
     parameters: T,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub enum OAuthEndpointName {
-    Token,
-    Revocation,
-    Introspection,
-    PushedAuthorizationRequest,
-}
-
-impl OAuthEndpointName {}
-
-pub struct OAuthServerAgent {
+pub struct OAuthServerAgent<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     server_metadata: OAuthAuthorizationServerMetadata,
     client_metadata: OAuthClientMetadata,
-    dpop_client: DpopClient,
-    resolver: Arc<OAuthResolver>,
+    dpop_client: DpopClient<T>,
+    resolver: Arc<OAuthResolver<T>>,
 }
 
-impl OAuthServerAgent {
+impl<T> OAuthServerAgent<T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     pub fn new(
         dpop_key: JwkEcKey,
         server_metadata: OAuthAuthorizationServerMetadata,
         client_metadata: OAuthClientMetadata,
-        resolver: Arc<OAuthResolver>,
+        resolver: Arc<OAuthResolver<T>>,
+        http_client: Arc<T>,
     ) -> Result<Self> {
         let dpop_client = DpopClient::new(
             dpop_key,
@@ -105,6 +100,7 @@ impl OAuthServerAgent {
             server_metadata
                 .token_endpoint_auth_signing_alg_values_supported
                 .clone(),
+            http_client,
         )?;
         Ok(Self {
             server_metadata,
@@ -112,50 +108,6 @@ impl OAuthServerAgent {
             dpop_client,
             resolver,
         })
-    }
-    // pub async fn request<I, O>(&self, endpoint: OAuthEndpointName, payload: I) -> Result<O>
-    pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
-    where
-        O: serde::de::DeserializeOwned,
-    {
-        let Some(url) = self.endpoint(&request) else {
-            return Err(Error::NoEndpoint(request.name()));
-        };
-        let body = match &request {
-            OAuthRequest::Token(params) => self.build_body(params)?,
-            OAuthRequest::PushedAuthorizationRequest(params) => self.build_body(params)?,
-            _ => unimplemented!(),
-        };
-        println!("body: {body}");
-        let req = Request::builder()
-            .uri(url)
-            .method(Method::POST)
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(body.into_bytes())?;
-        let res = self
-            .dpop_client
-            .send_http(req)
-            .await
-            .map_err(Error::HttpClient)?;
-        if res.status() == request.expected_status() {
-            Ok(serde_json::from_slice(res.body())?)
-        } else {
-            println!("{}: {}", res.status(), String::from_utf8_lossy(res.body()));
-            Err(Error::HttpStatus(res.status().canonical_reason()))
-        }
-    }
-    pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
-        self.verify_token_response(
-            self.request(OAuthRequest::Token(TokenRequestParameters {
-                grant_type: TokenGrantType::AuthorizationCode,
-                code: code.into(),
-                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
-                client_id: self.client_metadata.client_id.clone(),
-                code_verifier: verifier.into(),
-            }))
-            .await?,
-        )
-        .await
     }
     /**
      * VERY IMPORTANT ! Always call this to process token responses.
@@ -192,14 +144,67 @@ impl OAuthServerAgent {
             expires_at,
         })
     }
-    fn build_body<T>(&self, parameters: T) -> Result<String>
+    fn build_body<S>(&self, parameters: S) -> Result<String>
     where
-        T: Serialize,
+        S: Serialize,
     {
         Ok(serde_html_form::to_string(RequestPayload {
             client_id: self.client_metadata.client_id.clone(),
             parameters,
         })?)
+    }
+    fn endpoint(&self, request: &OAuthRequest) -> Option<&String> {
+        match request {
+            OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
+            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
+            OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
+            OAuthRequest::PushedAuthorizationRequest(_) => self
+                .server_metadata
+                .pushed_authorization_request_endpoint
+                .as_ref(),
+        }
+    }
+    pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
+        self.verify_token_response(
+            self.request(OAuthRequest::Token(TokenRequestParameters {
+                grant_type: TokenGrantType::AuthorizationCode,
+                code: code.into(),
+                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
+                code_verifier: verifier.into(),
+            }))
+            .await?,
+        )
+        .await
+    }
+    pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
+    where
+        O: serde::de::DeserializeOwned,
+    {
+        let Some(url) = self.endpoint(&request) else {
+            return Err(Error::NoEndpoint(request.name()));
+        };
+        let body = match &request {
+            OAuthRequest::Token(params) => self.build_body(params)?,
+            OAuthRequest::PushedAuthorizationRequest(params) => self.build_body(params)?,
+            _ => unimplemented!(),
+        };
+        println!("body: {body}");
+        let req = Request::builder()
+            .uri(url)
+            .method(Method::POST)
+            .header("Content-Type", "application/x-www-form-urlencoded")
+            .body(body.into_bytes())?;
+        let res = self
+            .dpop_client
+            .send_http(req)
+            .await
+            .map_err(Error::HttpClient)?;
+        if res.status() == request.expected_status() {
+            Ok(serde_json::from_slice(res.body())?)
+        } else {
+            println!("{}: {}", res.status(), String::from_utf8_lossy(res.body()));
+            Err(Error::HttpStatus(res.status().canonical_reason()))
+        }
     }
     // fn build_auth(&self, endpoint: OAuthEndpointName) -> Result<String> {
     //     if let Some(methods_supported) = self.methods_supported(endpoint) {
@@ -218,17 +223,6 @@ impl OAuthServerAgent {
     //         _ => Err(Error::UnsupportedAuthMethod(endpoint)),
     //     }
     // }
-    fn endpoint(&self, request: &OAuthRequest) -> Option<&String> {
-        match request {
-            OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
-            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
-            OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
-            OAuthRequest::PushedAuthorizationRequest(_) => self
-                .server_metadata
-                .pushed_authorization_request_endpoint
-                .as_ref(),
-        }
-    }
     // fn methods_supported(&self, endpoint: OAuthEndpointName) -> Option<&Vec<String>> {
     //     match endpoint {
     //         OAuthEndpointName::Token | OAuthEndpointName::PushedAuthorizationRequest => self
