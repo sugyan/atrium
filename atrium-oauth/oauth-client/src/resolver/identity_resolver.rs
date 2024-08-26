@@ -1,6 +1,6 @@
 use super::did_resolver::DidResolver;
 use super::error::{Error, Result};
-use super::handle_resolver::HandleResolver;
+use super::HandleResolver;
 use atrium_api::types::string::AtIdentifier;
 use std::sync::Arc;
 

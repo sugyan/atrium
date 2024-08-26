@@ -1,3 +1,4 @@
+use atrium_api::types::string::Did;
 use atrium_xrpc::http::uri::InvalidUri;
 use thiserror::Error;
 
@@ -11,10 +12,8 @@ pub enum Error {
     ProtectedResourceMetadata(String),
     #[error("authorization server metadata is invalid: {0}")]
     AuthorizationServerMetadata(String),
-    #[error(transparent)]
-    DidResolver(#[from] super::did_resolver::Error),
-    #[error(transparent)]
-    HandleResolver(#[from] super::handle_resolver::Error),
+    #[error("unsupported did method: {0:?}")]
+    UnsupportedDidMethod(Did),
     #[error(transparent)]
     Http(#[from] atrium_xrpc::http::Error),
     #[error("http client error: {0}")]
@@ -23,6 +22,8 @@ pub enum Error {
     HttpStatus(Option<&'static str>),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+    #[error(transparent)]
+    SerdeHtmlForm(#[from] serde_html_form::ser::Error),
     #[error(transparent)]
     Uri(#[from] InvalidUri),
 }

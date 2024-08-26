@@ -1,15 +1,11 @@
 use super::error::{Error, Result};
+use super::Resolver;
 use crate::types::OAuthAuthorizationServerMetadata;
 use async_trait::async_trait;
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
-
-#[async_trait]
-pub trait OAuthAuthorizationServerResolver {
-    async fn get(&self, resource: &str) -> Result<OAuthAuthorizationServerMetadata>;
-}
 
 pub struct DefaultOAuthAuthorizationServerResolver<T> {
     http_client: Arc<T>,
@@ -22,11 +18,14 @@ impl<T> DefaultOAuthAuthorizationServerResolver<T> {
 }
 
 #[async_trait]
-impl<T> OAuthAuthorizationServerResolver for DefaultOAuthAuthorizationServerResolver<T>
+impl<T> Resolver for DefaultOAuthAuthorizationServerResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    async fn get(&self, issuer: &str) -> Result<OAuthAuthorizationServerMetadata> {
+    type Input = String;
+    type Output = OAuthAuthorizationServerMetadata;
+
+    async fn resolve(&self, issuer: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(issuer.parse::<Uri>()?)
             .path_and_query("/.well-known/oauth-authorization-server")
             .build()?;
@@ -39,7 +38,7 @@ where
         if res.status() == StatusCode::OK {
             let metadata = serde_json::from_slice::<OAuthAuthorizationServerMetadata>(res.body())?;
             // https://datatracker.ietf.org/doc/html/rfc8414#section-3.3
-            if metadata.issuer == issuer {
+            if &metadata.issuer == issuer {
                 Ok(metadata)
             } else {
                 Err(Error::AuthorizationServerMetadata(format!(

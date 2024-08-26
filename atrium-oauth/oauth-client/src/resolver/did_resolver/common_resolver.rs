@@ -1,7 +1,8 @@
+use super::super::Result;
 use super::base_resolver::{BaseResolver, Method};
 use super::plc_resolver::PlcResolver;
 use super::web_resolver::WebResolver;
-use super::{DidResolver, Result};
+use super::DidResolver;
 use std::sync::Arc;
 
 #[derive(Default)]
@@ -29,10 +30,10 @@ impl<T> CommonResolver<T> {
 
 impl<T> BaseResolver for CommonResolver<T>
 where
-    PlcResolver<T>: DidResolver,
-    WebResolver<T>: DidResolver,
+    PlcResolver<T>: DidResolver + Send + Sync + 'static,
+    WebResolver<T>: DidResolver + Send + Sync + 'static,
 {
-    fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver> {
+    fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver + Send + Sync + 'static> {
         match method {
             Method::Plc => self.plc_resolver.clone(),
             Method::Web => self.web_resolver.clone(),

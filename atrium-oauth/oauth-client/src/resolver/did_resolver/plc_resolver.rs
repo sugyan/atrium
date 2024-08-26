@@ -1,4 +1,5 @@
-use super::{DidResolver, Error, Result};
+use super::super::{Error, Resolver, Result};
+use super::DidResolver;
 use async_trait::async_trait;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
@@ -26,11 +27,14 @@ impl<T> PlcResolver<T> {
 }
 
 #[async_trait]
-impl<T> DidResolver for PlcResolver<T>
+impl<T> Resolver for PlcResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    async fn resolve(&self, did: &Did) -> Result<DidDocument> {
+    type Input = Did;
+    type Output = DidDocument;
+
+    async fn resolve(&self, did: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(self.plc_directory_url.clone())
             .path_and_query(format!("/{}", did.as_str()))
             .build()?;
@@ -42,7 +46,9 @@ where
         if res.status().is_success() {
             Ok(serde_json::from_slice(res.body())?)
         } else {
-            Err(Error::Status(res.status().canonical_reason()))
+            Err(Error::HttpStatus(res.status().canonical_reason()))
         }
     }
 }
+
+impl<T> DidResolver for PlcResolver<T> where T: HttpClient + Send + Sync + 'static {}

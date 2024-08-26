@@ -1,4 +1,5 @@
-use super::{Error, HandleResolver, Result};
+use super::super::{Error, Resolver, Result};
+use super::HandleResolver;
 use async_trait::async_trait;
 use atrium_api::com::atproto::identity::resolve_handle;
 use atrium_api::types::string::{Did, Handle};
@@ -23,11 +24,14 @@ impl<T> AppViewResolver<T> {
 }
 
 #[async_trait]
-impl<T> HandleResolver for AppViewResolver<T>
+impl<T> Resolver for AppViewResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    async fn resolve(&self, handle: &Handle) -> Result<Did> {
+    type Input = Handle;
+    type Output = Did;
+
+    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(self.service.clone())
             .path_and_query(format!(
                 "/xrpc/com.atproto.identity.resolveHandle?{}",
@@ -45,7 +49,9 @@ where
         if res.status().is_success() {
             Ok(serde_json::from_slice::<resolve_handle::OutputData>(res.body())?.did)
         } else {
-            Err(Error::Status(res.status().canonical_reason()))
+            Err(Error::HttpStatus(res.status().canonical_reason()))
         }
     }
 }
+
+impl<T> HandleResolver for AppViewResolver<T> where T: HttpClient + Send + Sync + 'static {}

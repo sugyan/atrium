@@ -1,4 +1,5 @@
 use super::error::{Error, Result};
+use super::Resolver;
 use async_trait::async_trait;
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
@@ -21,11 +22,6 @@ pub struct OAuthProtectedResourceMetadata {
     pub resource_tos_uri: Option<String>,
 }
 
-#[async_trait]
-pub trait OAuthProtectedResourceResolver {
-    async fn get(&self, resource: &str) -> Result<OAuthProtectedResourceMetadata>;
-}
-
 pub struct DefaultOAuthProtectedResourceResolver<T> {
     http_client: Arc<T>,
 }
@@ -37,11 +33,14 @@ impl<T> DefaultOAuthProtectedResourceResolver<T> {
 }
 
 #[async_trait]
-impl<T> OAuthProtectedResourceResolver for DefaultOAuthProtectedResourceResolver<T>
+impl<T> Resolver for DefaultOAuthProtectedResourceResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    async fn get(&self, resource: &str) -> Result<OAuthProtectedResourceMetadata> {
+    type Input = String;
+    type Output = OAuthProtectedResourceMetadata;
+
+    async fn resolve(&self, resource: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(resource.parse::<Uri>()?)
             .path_and_query("/.well-known/oauth-protected-resource")
             .build()?;
@@ -54,7 +53,7 @@ where
         if res.status() == StatusCode::OK {
             let metadata = serde_json::from_slice::<OAuthProtectedResourceMetadata>(res.body())?;
             // https://datatracker.ietf.org/doc/html/draft-ietf-oauth-resource-metadata-08#section-3.3
-            if metadata.resource == resource {
+            if &metadata.resource == resource {
                 Ok(metadata)
             } else {
                 Err(Error::ProtectedResourceMetadata(format!(

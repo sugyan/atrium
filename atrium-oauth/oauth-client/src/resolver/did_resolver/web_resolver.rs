@@ -1,7 +1,9 @@
-use super::{DidResolver, Result};
+use super::super::{Resolver, Result};
+use super::DidResolver;
 use async_trait::async_trait;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
+use atrium_xrpc::HttpClient;
 use std::sync::Arc;
 
 pub struct WebResolver<T> {
@@ -16,11 +18,16 @@ impl<T> WebResolver<T> {
 }
 
 #[async_trait]
-impl<T> DidResolver for WebResolver<T>
+impl<T> Resolver for WebResolver<T>
 where
-    T: Send + Sync + 'static,
+    T: HttpClient + Send + Sync + 'static,
 {
-    async fn resolve(&self, _: &Did) -> Result<DidDocument> {
+    type Input = Did;
+    type Output = DidDocument;
+
+    async fn resolve(&self, _: &Self::Input) -> Result<Self::Output> {
         unimplemented!()
     }
 }
+
+impl<T> DidResolver for WebResolver<T> where T: HttpClient + Send + Sync + 'static {}

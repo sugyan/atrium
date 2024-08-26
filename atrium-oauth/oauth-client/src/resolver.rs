@@ -5,21 +5,27 @@ mod identity_resolver;
 mod oauth_authorization_server_resolver;
 mod oauth_protected_resource_resolver;
 
-pub use self::did_resolver::{CommonResolver, CommonResolverConfig, DidResolver};
+pub use self::did_resolver::{CommonResolver, CommonResolverConfig};
 pub use self::error::{Error, Result};
 pub use self::handle_resolver::{AppViewResolver, HandleResolver, HandleResolverConfig};
 pub use self::identity_resolver::IdentityResolver;
-use self::oauth_protected_resource_resolver::{
-    DefaultOAuthProtectedResourceResolver, OAuthProtectedResourceResolver,
-};
+use self::oauth_protected_resource_resolver::DefaultOAuthProtectedResourceResolver;
 use crate::types::OAuthAuthorizationServerMetadata;
+use async_trait::async_trait;
 use atrium_xrpc::HttpClient;
 use identity_resolver::ResolvedIdentity;
-use oauth_authorization_server_resolver::{
-    DefaultOAuthAuthorizationServerResolver, OAuthAuthorizationServerResolver,
-};
+use oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
+use oauth_protected_resource_resolver::OAuthProtectedResourceMetadata;
 use std::marker::PhantomData;
 use std::sync::Arc;
+
+#[async_trait]
+pub trait Resolver {
+    type Input;
+    type Output;
+
+    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output>;
+}
 
 pub struct OAuthResolverConfig {
     pub plc_directory_url: Option<String>,
@@ -31,8 +37,8 @@ pub struct OAuthResolver<
     PRR = DefaultOAuthProtectedResourceResolver<T>,
     ASR = DefaultOAuthAuthorizationServerResolver<T>,
 > where
-    PRR: OAuthProtectedResourceResolver,
-    ASR: OAuthAuthorizationServerResolver,
+    PRR: Resolver<Input = String, Output = OAuthProtectedResourceMetadata>,
+    ASR: Resolver<Input = String, Output = OAuthAuthorizationServerMetadata>,
 {
     identity_resolver: IdentityResolver,
     protected_resource_resolver: PRR,
@@ -76,7 +82,7 @@ where
         issuer: impl AsRef<str>,
     ) -> Result<OAuthAuthorizationServerMetadata> {
         self.authorization_server_resolver
-            .get(issuer.as_ref())
+            .resolve(&issuer.as_ref().to_string())
             .await
     }
     pub(crate) async fn resolve_from_identity(
@@ -91,7 +97,10 @@ where
         &self,
         pds: &str,
     ) -> Result<OAuthAuthorizationServerMetadata> {
-        let rs_metadata = self.protected_resource_resolver.get(pds).await?;
+        let rs_metadata = self
+            .protected_resource_resolver
+            .resolve(&pds.to_string())
+            .await?;
         // ATPROTO requires one, and only one, authorization server entry
         // > That document MUST contain a single item in the authorization_servers array.
         // https://github.com/bluesky-social/proposals/tree/main/0004-oauth#server-metadata
