@@ -10,8 +10,10 @@ pub mod store;
 mod types;
 mod utils;
 
-pub use atproto::{AuthMethod, ClientMetadata};
+pub use atproto::{
+    AtprotoClientMetadata, AtprotoLocalhostClientMetadata, AuthMethod, GrantType, Scope,
+};
 pub use error::{Error, Result};
 pub use oauth_client::{OAuthClient, OAuthClientConfig};
 pub use resolver::{OAuthResolver, OAuthResolverConfig};
-pub use types::OAuthClientMetadata;
+pub use types::{OAuthClientMetadata, CallbackParams, TokenSet};

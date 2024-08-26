@@ -73,9 +73,15 @@ where
         &self,
         input: impl AsRef<str>,
     ) -> Result<(OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>)> {
-        // TODO: entryway, or PDS url
-        let (metadata, identity) = self.resolve_from_identity(input.as_ref()).await?;
-        Ok((metadata, Some(identity)))
+        // Allow using an entryway, or PDS url, directly as login input (e.g.
+        // when the user forgot their handle, or when the handle does not
+        // resolve to a DID)
+        Ok(if input.as_ref().starts_with("https://") {
+            (self.resolve_from_service(input.as_ref()).await?, None)
+        } else {
+            let (metadata, identity) = self.resolve_from_identity(input.as_ref()).await?;
+            (metadata, Some(identity))
+        })
     }
     pub async fn get_authorization_server_metadata(
         &self,
@@ -84,6 +90,14 @@ where
         self.authorization_server_resolver
             .resolve(&issuer.as_ref().to_string())
             .await
+    }
+    async fn resolve_from_service(&self, input: &str) -> Result<OAuthAuthorizationServerMetadata> {
+        // Assume first that input is a PDS URL (as required by ATPROTO)
+        if let Ok(metadata) = self.get_resource_server_metadata(input).await {
+            return Ok(metadata);
+        }
+        // Fallback to trying to fetch as an issuer (Entryway)
+        self.get_authorization_server_metadata(input).await
     }
     pub(crate) async fn resolve_from_identity(
         &self,
@@ -147,7 +161,7 @@ where
 fn handle_resolver<T>(
     handle_resolver_config: HandleResolverConfig,
     http_client: Arc<T>,
-) -> Arc<dyn HandleResolver>
+) -> Arc<dyn HandleResolver + Send + Sync + 'static>
 where
     T: HttpClient + Send + Sync + 'static,
 {

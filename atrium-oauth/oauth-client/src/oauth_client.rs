@@ -1,4 +1,3 @@
-use crate::atproto::ClientMetadata;
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
 use crate::jose_key::generate;
@@ -6,8 +5,9 @@ use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
-    AuthorizationCodeChallengeMethod, AuthorizationResponseType, OAuthClientMetadata,
-    OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters,
+    AuthorizationCodeChallengeMethod, AuthorizationResponseType, CallbackParams,
+    OAuthClientMetadata, OAuthPusehedAuthorizationRequestResponse,
+    PushedAuthorizationRequestParameters, TokenSet,
 };
 use crate::utils::get_random_values;
 use atrium_xrpc::HttpClient;
@@ -15,14 +15,17 @@ use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use elliptic_curve::JwkEcKey;
 use rand::rngs::ThreadRng;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
-pub struct OAuthClientConfig<S> {
+pub struct OAuthClientConfig<S, M>
+where
+    M: TryInto<OAuthClientMetadata>,
+{
     // Config
-    pub client_metadata: ClientMetadata,
+    pub client_metadata: M,
     // Stores
     pub state_store: S,
     // Services
@@ -30,9 +33,12 @@ pub struct OAuthClientConfig<S> {
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct OAuthClientConfig<S, T> {
+pub struct OAuthClientConfig<S, T, M>
+where
+    M: TryInto<OAuthClientMetadata>,
+{
     // Config
-    pub client_metadata: ClientMetadata,
+    pub client_metadata: M,
     // Stores
     pub state_store: S,
     // Services
@@ -70,8 +76,12 @@ impl<S> OAuthClient<S, crate::http_client::default::DefaultHttpClient>
 where
     S: StateStore,
 {
-    pub fn new(config: OAuthClientConfig<S>) -> Result<Self> {
-        let client_metadata = config.client_metadata.validate()?;
+    pub fn new<M>(config: OAuthClientConfig<S, M>) -> Result<Self>
+    where
+        M: TryInto<OAuthClientMetadata, Error = crate::atproto::Error>,
+    {
+        // let client_metadata = config.client_metadata.validate()?;
+        let client_metadata = config.client_metadata.try_into()?;
         let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
         Ok(Self {
             client_metadata,
@@ -88,8 +98,11 @@ where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
-    pub fn new(config: OAuthClientConfig<S, T>) -> Result<Self> {
-        let client_metadata = config.client_metadata.validate()?;
+    pub fn new<M>(config: OAuthClientConfig<S, T, M>) -> Result<Self>
+    where
+        M: TryInto<OAuthClientMetadata, Error = crate::atproto::Error>,
+    {
+        let client_metadata = config.client_metadata.try_into()?;
         let http_client = Arc::new(config.http_client);
         Ok(Self {
             client_metadata,
@@ -186,16 +199,7 @@ where
             todo!()
         }
     }
-    pub async fn callback(&self, input: impl AsRef<str>) -> Result<()> {
-        #[derive(Debug, Deserialize)]
-        struct CallbackParams {
-            code: String,
-            state: Option<String>,
-            iss: Option<String>,
-        }
-
-        let params = serde_html_form::from_str::<CallbackParams>(input.as_ref())
-            .map_err(|e| Error::Callback(e.to_string()))?;
+    pub async fn callback(&self, params: CallbackParams) -> Result<TokenSet> {
         let Some(state) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -235,8 +239,8 @@ where
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
         // TODO: verify id_token?
-        println!("{token_set:?}",);
-        Ok(())
+
+        Ok(token_set)
     }
     fn generate_key(mut algs: Vec<String>) -> Option<JwkEcKey> {
         // 256K > ES (256 > 384 > 512) > PS (256 > 384 > 512) > RS (256 > 384 > 512) > other (in original order)

@@ -12,7 +12,7 @@ pub trait HandleResolver: Resolver<Input = Handle, Output = Did> {}
 
 pub enum HandleResolverConfig {
     AppView(Uri),
-    Service(Arc<dyn HandleResolver>),
+    Service(Arc<dyn HandleResolver + Send + Sync + 'static>),
 }
 
 impl Debug for HandleResolverConfig {

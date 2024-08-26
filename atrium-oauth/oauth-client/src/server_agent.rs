@@ -188,7 +188,6 @@ where
             OAuthRequest::PushedAuthorizationRequest(params) => self.build_body(params)?,
             _ => unimplemented!(),
         };
-        println!("body: {body}");
         let req = Request::builder()
             .uri(url)
             .method(Method::POST)
@@ -202,7 +201,7 @@ where
         if res.status() == request.expected_status() {
             Ok(serde_json::from_slice(res.body())?)
         } else {
-            println!("{}: {}", res.status(), String::from_utf8_lossy(res.body()));
+            eprintln!("{}: {}", res.status(), String::from_utf8_lossy(res.body()));
             Err(Error::HttpStatus(res.status().canonical_reason()))
         }
     }

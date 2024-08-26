@@ -11,14 +11,14 @@ pub struct ResolvedIdentity {
 }
 
 pub struct IdentityResolver {
-    did_resolver: Arc<dyn DidResolver>,
-    handle_resolver: Arc<dyn HandleResolver>,
+    did_resolver: Arc<dyn DidResolver + Send + Sync + 'static>,
+    handle_resolver: Arc<dyn HandleResolver + Send + Sync + 'static>,
 }
 
 impl IdentityResolver {
     pub fn new(
-        did_resolver: Arc<dyn DidResolver>,
-        handle_resolver: Arc<dyn HandleResolver>,
+        did_resolver: Arc<dyn DidResolver + Send + Sync + 'static>,
+        handle_resolver: Arc<dyn HandleResolver + Send + Sync + 'static>,
     ) -> Self {
         // TODO: cached resolver?
         Self {
