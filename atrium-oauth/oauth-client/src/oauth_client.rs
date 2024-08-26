@@ -2,7 +2,7 @@ use crate::atproto::ClientMetadata;
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
 use crate::jose_key::generate;
-use crate::resolver::*;
+use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
@@ -20,43 +20,47 @@ use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
-pub struct OAuthClientConfig<S>
-where
-    S: StateStore,
-{
+pub struct OAuthClientConfig<S> {
     // Config
     pub client_metadata: ClientMetadata,
     // Stores
     pub state_store: S,
     // Services
-    pub handle_resolver: HandleResolverConfig,
-    pub plc_directory_url: Option<String>,
+    pub resolver: OAuthResolverConfig,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct OAuthClientConfig<S, T>
-where
-    S: StateStore,
-    T: HttpClient + Send + Sync + 'static,
-{
+pub struct OAuthClientConfig<S, T> {
     // Config
     pub client_metadata: ClientMetadata,
     // Stores
     pub state_store: S,
     // Services
-    pub handle_resolver: HandleResolverConfig,
-    pub plc_directory_url: Option<String>,
+    pub resolver: OAuthResolverConfig,
     // Others
     pub http_client: T,
 }
 
+#[cfg(feature = "default-client")]
+pub struct OAuthClient<S, T = crate::http_client::default::DefaultHttpClient>
+where
+    S: StateStore,
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub client_metadata: OAuthClientMetadata,
+    resolver: Arc<OAuthResolver<T>>,
+    state_store: S,
+    http_client: Arc<T>,
+}
+
+#[cfg(not(feature = "default-client"))]
 pub struct OAuthClient<S, T>
 where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
+    pub client_metadata: OAuthClientMetadata,
     resolver: Arc<OAuthResolver<T>>,
-    client_metadata: OAuthClientMetadata,
     state_store: S,
     http_client: Arc<T>,
 }
@@ -67,24 +71,11 @@ where
     S: StateStore,
 {
     pub fn new(config: OAuthClientConfig<S>) -> Result<Self> {
-        // TODO: validate client metadata
         let client_metadata = config.client_metadata.validate()?;
         let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
         Ok(Self {
-            resolver: Arc::new(OAuthResolver::new(
-                IdentityResolver::new(
-                    Arc::new(
-                        CommonResolver::new(CommonResolverConfig {
-                            plc_directory_url: config.plc_directory_url,
-                            http_client: http_client.clone(),
-                        })
-                        .map_err(|e| Error::Resolver(crate::resolver::Error::DidResolver(e)))?,
-                    ),
-                    handle_resolver(config.handle_resolver, http_client.clone()),
-                ),
-                http_client.clone(),
-            )),
             client_metadata,
+            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())?),
             state_store: config.state_store,
             http_client,
         })
@@ -98,24 +89,11 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn new(config: OAuthClientConfig<S, T>) -> Result<Self> {
-        // TODO: validate client metadata
         let client_metadata = config.client_metadata.validate()?;
         let http_client = Arc::new(config.http_client);
         Ok(Self {
-            resolver: Arc::new(OAuthResolver::new(
-                IdentityResolver::new(
-                    Arc::new(
-                        CommonResolver::new(CommonResolverConfig {
-                            plc_directory_url: config.plc_directory_url,
-                            http_client: http_client.clone(),
-                        })
-                        .map_err(|e| Error::Resolver(crate::resolver::Error::DidResolver(e)))?,
-                    ),
-                    handle_resolver(config.handle_resolver, http_client.clone()),
-                ),
-                http_client.clone(),
-            )),
             client_metadata,
+            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())?),
             state_store: config.state_store,
             http_client,
         })
@@ -127,7 +105,7 @@ where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
-    pub async fn authorize(&mut self, input: impl AsRef<str>) -> Result<String> {
+    pub async fn authorize(&self, input: impl AsRef<str>) -> Result<String> {
         let redirect_uri = {
             // TODO: use options.redirect_uri
             self.client_metadata.redirect_uris[0].clone()
@@ -302,20 +280,5 @@ where
     }
     fn generate_nonce() -> String {
         URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default()))
-    }
-}
-
-fn handle_resolver<T>(
-    handle_resolver_config: HandleResolverConfig,
-    http_client: Arc<T>,
-) -> Arc<dyn HandleResolver>
-where
-    T: HttpClient + Send + Sync + 'static,
-{
-    match handle_resolver_config {
-        HandleResolverConfig::AppView(uri) => {
-            Arc::new(AppViewResolver::new(uri, http_client.clone()))
-        }
-        HandleResolverConfig::Service(service) => service,
     }
 }

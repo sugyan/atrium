@@ -13,3 +13,5 @@ mod utils;
 pub use atproto::{AuthMethod, ClientMetadata};
 pub use error::{Error, Result};
 pub use oauth_client::{OAuthClient, OAuthClientConfig};
+pub use resolver::{OAuthResolver, OAuthResolverConfig};
+pub use types::OAuthClientMetadata;

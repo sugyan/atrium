@@ -21,6 +21,11 @@ use oauth_authorization_server_resolver::{
 use std::marker::PhantomData;
 use std::sync::Arc;
 
+pub struct OAuthResolverConfig {
+    pub plc_directory_url: Option<String>,
+    pub handle_resolver: HandleResolverConfig,
+}
+
 pub struct OAuthResolver<
     T,
     PRR = DefaultOAuthProtectedResourceResolver<T>,
@@ -39,10 +44,16 @@ impl<T> OAuthResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    pub fn new(identity_resolver: IdentityResolver, http_client: Arc<T>) -> Self {
+    pub fn new(config: OAuthResolverConfig, http_client: Arc<T>) -> Result<Self> {
         // TODO: cached resolver?
-        Self {
-            identity_resolver,
+        Ok(Self {
+            identity_resolver: IdentityResolver::new(
+                Arc::new(CommonResolver::new(CommonResolverConfig {
+                    plc_directory_url: config.plc_directory_url,
+                    http_client: http_client.clone(),
+                })?),
+                handle_resolver(config.handle_resolver, http_client.clone()),
+            ),
             protected_resource_resolver: DefaultOAuthProtectedResourceResolver::new(
                 http_client.clone(),
             ),
@@ -50,7 +61,7 @@ where
                 http_client.clone(),
             ),
             _phantom: PhantomData,
-        }
+        })
     }
     pub async fn resolve(
         &self,
@@ -121,5 +132,20 @@ where
         // }
 
         Ok(as_metadata)
+    }
+}
+
+fn handle_resolver<T>(
+    handle_resolver_config: HandleResolverConfig,
+    http_client: Arc<T>,
+) -> Arc<dyn HandleResolver>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    match handle_resolver_config {
+        HandleResolverConfig::AppView(uri) => {
+            Arc::new(AppViewResolver::new(uri, http_client.clone()))
+        }
+        HandleResolverConfig::Service(service) => service,
     }
 }

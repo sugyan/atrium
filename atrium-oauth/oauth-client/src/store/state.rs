@@ -12,4 +12,6 @@ pub struct InternalStateData {
 
 pub trait StateStore: SimpleStore<String, InternalStateData> {}
 
-impl StateStore for MemorySimpleStore<String, InternalStateData> {}
+pub type MemoryStateStore = MemorySimpleStore<String, InternalStateData>;
+
+impl StateStore for MemoryStateStore {}
