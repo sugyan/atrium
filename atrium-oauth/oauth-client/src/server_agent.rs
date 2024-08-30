@@ -1,9 +1,13 @@
+use crate::constants::FALLBACK_ALG;
 use crate::http_client::dpop::DpopClient;
+use crate::jose::jwt::{RegisteredClaims, RegisteredClaimsAud};
+use crate::keyset::Keyset;
 use crate::resolver::OAuthResolver;
 use crate::types::{
     OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
     PushedAuthorizationRequestParameters, TokenGrantType, TokenRequestParameters, TokenSet,
 };
+use crate::utils::{compare_algos, generate_nonce};
 use atrium_api::types::string::Datetime;
 use atrium_xrpc::http::{Method, Request, StatusCode};
 use atrium_xrpc::HttpClient;
@@ -11,7 +15,12 @@ use chrono::TimeDelta;
 use elliptic_curve::JwkEcKey;
 use serde::Serialize;
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 use thiserror::Error;
+
+// https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
+const CLIENT_ASSERTION_TYPE_JWT_BEARER: &str =
+    "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -19,6 +28,8 @@ pub enum Error {
     NoEndpoint(String),
     #[error("token response verification failed")]
     Token(String),
+    #[error("unsupported authentication method")]
+    UnsupportedAuthMethod,
     #[error(transparent)]
     DpopClient(#[from] crate::http_client::dpop::Error),
     #[error(transparent)]
@@ -28,11 +39,15 @@ pub enum Error {
     #[error("http status: {0:?}")]
     HttpStatus(Option<&'static str>),
     #[error(transparent)]
+    Keyset(#[from] crate::keyset::Error),
+    #[error(transparent)]
     Resolver(#[from] crate::resolver::Error),
     #[error(transparent)]
     SerdeHtmlForm(#[from] serde_html_form::ser::Error),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
+    #[error(transparent)]
+    SystemTime(#[from] std::time::SystemTimeError),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -69,6 +84,10 @@ where
     T: Serialize,
 {
     client_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    client_assertion_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    client_assertion: Option<String>,
     #[serde(flatten)]
     parameters: T,
 }
@@ -81,6 +100,7 @@ where
     client_metadata: OAuthClientMetadata,
     dpop_client: DpopClient<T>,
     resolver: Arc<OAuthResolver<T>>,
+    keyset: Option<Keyset>,
 }
 
 impl<T> OAuthServerAgent<T>
@@ -93,6 +113,7 @@ where
         client_metadata: OAuthClientMetadata,
         resolver: Arc<OAuthResolver<T>>,
         http_client: Arc<T>,
+        keyset: Option<Keyset>,
     ) -> Result<Self> {
         let dpop_client = DpopClient::new(
             dpop_key,
@@ -107,6 +128,7 @@ where
             client_metadata,
             dpop_client,
             resolver,
+            keyset,
         })
     }
     /**
@@ -143,26 +165,6 @@ where
             token_type: token_response.token_type,
             expires_at,
         })
-    }
-    fn build_body<S>(&self, parameters: S) -> Result<String>
-    where
-        S: Serialize,
-    {
-        Ok(serde_html_form::to_string(RequestPayload {
-            client_id: self.client_metadata.client_id.clone(),
-            parameters,
-        })?)
-    }
-    fn endpoint(&self, request: &OAuthRequest) -> Option<&String> {
-        match request {
-            OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
-            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
-            OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
-            OAuthRequest::PushedAuthorizationRequest(_) => self
-                .server_metadata
-                .pushed_authorization_request_endpoint
-                .as_ref(),
-        }
     }
     pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
         self.verify_token_response(
@@ -201,49 +203,84 @@ where
         if res.status() == request.expected_status() {
             Ok(serde_json::from_slice(res.body())?)
         } else {
-            eprintln!("{}: {}", res.status(), String::from_utf8_lossy(res.body()));
             Err(Error::HttpStatus(res.status().canonical_reason()))
         }
     }
-    // fn build_auth(&self, endpoint: OAuthEndpointName) -> Result<String> {
-    //     if let Some(methods_supported) = self.methods_supported(endpoint) {
-    //         if let Some(method) = self.client_metadata.token_endpoint_auth_method.as_deref() {
-    //             if !methods_supported.contains(&method.into()) {
-    //                 return Err(Error::UnsupportedAuthMethod(endpoint));
-    //             }
-    //         }
-    //     }
-    //     match self.client_metadata.token_endpoint_auth_method.as_deref() {
-    //         Some("none") => Ok(self.client_metadata.client_id.clone()),
-    //         Some("private_key_jwt") => {
-    //             // TODO
-    //             todo!()
-    //         }
-    //         _ => Err(Error::UnsupportedAuthMethod(endpoint)),
-    //     }
-    // }
-    // fn methods_supported(&self, endpoint: OAuthEndpointName) -> Option<&Vec<String>> {
-    //     match endpoint {
-    //         OAuthEndpointName::Token | OAuthEndpointName::PushedAuthorizationRequest => self
-    //             .server_metadata
-    //             .token_endpoint_auth_methods_supported
-    //             .as_ref(),
-    //         OAuthEndpointName::Revocation => self
-    //             .server_metadata
-    //             .revocation_endpoint_auth_methods_supported
-    //             .as_ref()
-    //             .or(self
-    //                 .server_metadata
-    //                 .token_endpoint_auth_methods_supported
-    //                 .as_ref()),
-    //         OAuthEndpointName::Introspection => self
-    //             .server_metadata
-    //             .introspection_endpoint_auth_methods_supported
-    //             .as_ref()
-    //             .or(self
-    //                 .server_metadata
-    //                 .token_endpoint_auth_methods_supported
-    //                 .as_ref()),
-    //     }
-    // }
+    fn build_body<S>(&self, parameters: S) -> Result<String>
+    where
+        S: Serialize,
+    {
+        let (client_assertion_type, client_assertion) = self.build_auth()?;
+        Ok(serde_html_form::to_string(RequestPayload {
+            client_id: self.client_metadata.client_id.clone(),
+            client_assertion_type,
+            client_assertion,
+            parameters,
+        })?)
+    }
+    fn build_auth(&self) -> Result<(Option<String>, Option<String>)> {
+        let method_supported = &self.server_metadata.token_endpoint_auth_methods_supported;
+        let method = &self.client_metadata.token_endpoint_auth_method;
+        match method.as_deref() {
+            Some("private_key_jwt")
+                if method_supported
+                    .as_ref()
+                    .map_or(false, |v| v.contains(&String::from("private_key_jwt"))) =>
+            {
+                if let Some(keyset) = &self.keyset {
+                    let mut algs = self
+                        .server_metadata
+                        .token_endpoint_auth_signing_alg_values_supported
+                        .clone()
+                        .unwrap_or(vec![FALLBACK_ALG.into()]);
+                    algs.sort_by(compare_algos);
+                    let iat = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+                    return Ok((
+                        Some(String::from(CLIENT_ASSERTION_TYPE_JWT_BEARER)),
+                        Some(
+                            keyset.create_jwt(
+                                &algs,
+                                // https://datatracker.ietf.org/doc/html/rfc7523#section-3
+                                RegisteredClaims {
+                                    iss: Some(self.client_metadata.client_id.clone()),
+                                    sub: Some(self.client_metadata.client_id.clone()),
+                                    aud: Some(RegisteredClaimsAud::Single(
+                                        self.server_metadata.issuer.clone(),
+                                    )),
+                                    exp: Some(iat + 60),
+                                    // "iat" is required and **MUST** be less than one minute
+                                    // https://datatracker.ietf.org/doc/html/rfc9101
+                                    iat: Some(iat),
+                                    // atproto oauth-provider requires "jti" to be present
+                                    jti: Some(generate_nonce()),
+                                    ..Default::default()
+                                }
+                                .into(),
+                            )?,
+                        ),
+                    ));
+                }
+            }
+            Some("none")
+                if method_supported
+                    .as_ref()
+                    .map_or(false, |v| v.contains(&String::from("none"))) =>
+            {
+                return Ok((None, None))
+            }
+            _ => {}
+        }
+        Err(Error::UnsupportedAuthMethod)
+    }
+    fn endpoint(&self, request: &OAuthRequest) -> Option<&String> {
+        match request {
+            OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
+            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
+            OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
+            OAuthRequest::PushedAuthorizationRequest(_) => self
+                .server_metadata
+                .pushed_authorization_request_endpoint
+                .as_ref(),
+        }
+    }
 }

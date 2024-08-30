@@ -5,6 +5,8 @@ pub enum Error {
     #[error(transparent)]
     ClientMetadata(#[from] crate::atproto::Error),
     #[error(transparent)]
+    Keyset(#[from] crate::keyset::Error),
+    #[error(transparent)]
     Resolver(#[from] crate::resolver::Error),
     #[error(transparent)]
     ServerAgent(#[from] crate::server_agent::Error),

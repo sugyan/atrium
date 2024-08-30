@@ -34,6 +34,7 @@ pub struct PushedAuthorizationRequestParameters {
     pub response_type: AuthorizationResponseType,
     pub redirect_uri: String,
     pub state: String,
+    pub scope: Option<String>,
     // https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html#ResponseModes
     pub response_mode: Option<AuthorizationResponseMode>,
     // https://datatracker.ietf.org/doc/html/rfc7636#section-4.3
@@ -41,6 +42,7 @@ pub struct PushedAuthorizationRequestParameters {
     pub code_challenge_method: AuthorizationCodeChallengeMethod,
     // https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
     pub login_hint: Option<String>,
+    pub prompt: Option<String>,
 }
 
 #[derive(Serialize)]

@@ -17,10 +17,12 @@ keywords = ["atproto", "bluesky", "oauth"]
 async-trait.workspace = true
 atrium-api = { workspace = true, default-features = false }
 atrium-xrpc.workspace = true
+base64.workspace = true
 chrono.workspace = true
 ecdsa = { workspace = true, features = ["std", "signing", "verifying"] }
 elliptic-curve = { workspace = true, features = ["jwk", "serde"] }
-base64.workspace = true
+jose-jwa.workspace = true
+jose-jwk = { workspace = true, features = ["p256"] }
 k256 = { workspace = true, features = ["ecdsa", "jwk", "serde"] }
 p256 = { workspace = true, features = ["ecdsa", "jwk", "serde"] }
 rand.workspace = true

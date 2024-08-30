@@ -2,7 +2,9 @@ mod atproto;
 mod constants;
 mod error;
 mod http_client;
+mod jose;
 mod jose_key;
+mod keyset;
 mod oauth_client;
 mod resolver;
 mod server_agent;
@@ -16,4 +18,6 @@ pub use atproto::{
 pub use error::{Error, Result};
 pub use oauth_client::{OAuthClient, OAuthClientConfig};
 pub use resolver::{OAuthResolver, OAuthResolverConfig};
-pub use types::{OAuthClientMetadata, CallbackParams, TokenSet};
+pub use types::{
+    AuthorizeOptionPrompt, AuthorizeOptions, CallbackParams, OAuthClientMetadata, TokenSet,
+};

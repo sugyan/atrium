@@ -1,19 +1,21 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
 use crate::jose_key::generate;
+use crate::keyset::Keyset;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
-    AuthorizationCodeChallengeMethod, AuthorizationResponseType, CallbackParams,
+    AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
     OAuthClientMetadata, OAuthPusehedAuthorizationRequestResponse,
-    PushedAuthorizationRequestParameters, TokenSet,
+    PushedAuthorizationRequestParameters, TokenSet, TryIntoOAuthClientMetadata,
 };
-use crate::utils::get_random_values;
+use crate::utils::{compare_algos, generate_nonce, get_random_values};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
 use elliptic_curve::JwkEcKey;
+use jose_jwk::{Jwk, JwkSet};
 use rand::rngs::ThreadRng;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -22,10 +24,11 @@ use std::sync::Arc;
 #[cfg(feature = "default-client")]
 pub struct OAuthClientConfig<S, M>
 where
-    M: TryInto<OAuthClientMetadata>,
+    M: TryIntoOAuthClientMetadata,
 {
     // Config
     pub client_metadata: M,
+    pub keys: Option<Vec<Jwk>>,
     // Stores
     pub state_store: S,
     // Services
@@ -35,10 +38,11 @@ where
 #[cfg(not(feature = "default-client"))]
 pub struct OAuthClientConfig<S, T, M>
 where
-    M: TryInto<OAuthClientMetadata>,
+    M: TryIntoOAuthClientMetadata,
 {
     // Config
     pub client_metadata: M,
+    pub keys: Option<Vec<Jwk>>,
     // Stores
     pub state_store: S,
     // Services
@@ -54,6 +58,7 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
+    keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T>>,
     state_store: S,
     http_client: Arc<T>,
@@ -66,6 +71,7 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
+    keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T>>,
     state_store: S,
     http_client: Arc<T>,
@@ -78,13 +84,18 @@ where
 {
     pub fn new<M>(config: OAuthClientConfig<S, M>) -> Result<Self>
     where
-        M: TryInto<OAuthClientMetadata, Error = crate::atproto::Error>,
+        M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
     {
-        // let client_metadata = config.client_metadata.validate()?;
-        let client_metadata = config.client_metadata.try_into()?;
+        let keyset = if let Some(keys) = config.keys {
+            Some(keys.try_into()?)
+        } else {
+            None
+        };
+        let client_metadata = config.client_metadata.try_into_client_metadata(&keyset)?;
         let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
         Ok(Self {
             client_metadata,
+            keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())?),
             state_store: config.state_store,
             http_client,
@@ -100,12 +111,18 @@ where
 {
     pub fn new<M>(config: OAuthClientConfig<S, T, M>) -> Result<Self>
     where
-        M: TryInto<OAuthClientMetadata, Error = crate::atproto::Error>,
+        M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
     {
-        let client_metadata = config.client_metadata.try_into()?;
+        let keyset = if let Some(keys) = config.keys {
+            Some(keys.try_into()?)
+        } else {
+            None
+        };
+        let client_metadata = config.client_metadata.try_into_client_metadata(&keyset)?;
         let http_client = Arc::new(config.http_client);
         Ok(Self {
             client_metadata,
+            keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())?),
             state_store: config.state_store,
             http_client,
@@ -118,18 +135,26 @@ where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
-    pub async fn authorize(&self, input: impl AsRef<str>) -> Result<String> {
-        let redirect_uri = {
-            // TODO: use options.redirect_uri
+    pub fn jwks(&self) -> JwkSet {
+        self.keyset
+            .as_ref()
+            .map(|keyset| keyset.public_jwks())
+            .unwrap_or_default()
+    }
+    pub async fn authorize(
+        &self,
+        input: impl AsRef<str>,
+        options: AuthorizeOptions,
+    ) -> Result<String> {
+        let redirect_uri = if let Some(uri) = options.redirect_uri {
+            if !self.client_metadata.redirect_uris.contains(&uri) {
+                return Err(Error::Authorize("invalid redirect_uri".into()));
+            }
+            uri
+        } else {
             self.client_metadata.redirect_uris[0].clone()
         };
         let (metadata, identity) = self.resolver.resolve(input.as_ref()).await?;
-        Self::generate_key(
-            ["PS384", "RS256", "ES256K", "RS512", "ES384", "ES256"]
-                .into_iter()
-                .map(String::from)
-                .collect(),
-        );
         let Some(dpop_key) = Self::generate_key(
             metadata
                 .dpop_signing_alg_values_supported
@@ -139,7 +164,7 @@ where
             return Err(Error::Authorize("none of the algorithms worked".into()));
         };
         let (code_challenge, verifier) = Self::generate_pkce();
-        let state = Self::generate_nonce();
+        let state = generate_nonce();
         let state_data = InternalStateData {
             iss: metadata.issuer.clone(),
             dpop_key: dpop_key.clone(),
@@ -158,10 +183,12 @@ where
             response_type: AuthorizationResponseType::Code,
             redirect_uri,
             state,
+            scope: options.scopes.map(|v| v.join(" ")),
             response_mode: None,
             code_challenge,
             code_challenge_method: AuthorizationCodeChallengeMethod::S256,
             login_hint,
+            prompt: options.prompt.map(String::from),
         };
         if metadata.pushed_authorization_request_endpoint.is_some() {
             let server = OAuthServerAgent::new(
@@ -170,6 +197,7 @@ where
                 self.client_metadata.clone(),
                 self.resolver.clone(),
                 self.http_client.clone(),
+                self.keyset.clone(),
             )?;
             let par_response = server
                 .request::<OAuthPusehedAuthorizationRequestResponse>(
@@ -236,6 +264,7 @@ where
             self.client_metadata.clone(),
             self.resolver.clone(),
             self.http_client.clone(),
+            self.keyset.clone(),
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
         // TODO: verify id_token?
@@ -243,31 +272,6 @@ where
         Ok(token_set)
     }
     fn generate_key(mut algs: Vec<String>) -> Option<JwkEcKey> {
-        // 256K > ES (256 > 384 > 512) > PS (256 > 384 > 512) > RS (256 > 384 > 512) > other (in original order)
-        fn compare_algos(a: &String, b: &String) -> std::cmp::Ordering {
-            if a == "ES256K" {
-                return std::cmp::Ordering::Less;
-            }
-            if b == "ES256K" {
-                return std::cmp::Ordering::Greater;
-            }
-            for prefix in ["ES", "PS", "RS"] {
-                if let Some(stripped_a) = a.strip_prefix(prefix) {
-                    if let Some(stripped_b) = b.strip_prefix(prefix) {
-                        if let (Ok(len_a), Ok(len_b)) =
-                            (stripped_a.parse::<u32>(), stripped_b.parse::<u32>())
-                        {
-                            return len_a.cmp(&len_b);
-                        }
-                    } else {
-                        return std::cmp::Ordering::Less;
-                    }
-                } else if b.starts_with(prefix) {
-                    return std::cmp::Ordering::Greater;
-                }
-            }
-            std::cmp::Ordering::Equal
-        }
         algs.sort_by(compare_algos);
         generate(&algs)
     }
@@ -281,8 +285,5 @@ where
             URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())),
             verifier,
         )
-    }
-    fn generate_nonce() -> String {
-        URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default()))
     }
 }

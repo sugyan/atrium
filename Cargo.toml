@@ -52,6 +52,8 @@ serde_json = "1.0.125"
 # Cryptography
 ecdsa = "0.16.9"
 elliptic-curve = "0.13.6"
+jose-jwa = "0.1.2"
+jose-jwk = { version = "0.1.2", default-features = false }
 k256 = { version = "0.13.3", default-features = false }
 p256 = { version = "0.13.2", default-features = false }
 rand = "0.8.5"
@@ -60,7 +62,7 @@ sha2 = "0.10.8"
 # Networking
 futures = { version = "0.3.30", default-features = false, features = ["alloc"] }
 http = "1.1.0"
-tokio = { version = "1.37", default-features = false }
+tokio = { version = "1.39", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"

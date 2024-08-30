@@ -1,12 +1,10 @@
 mod client_metadata;
-mod parameters;
 mod request;
 mod response;
 mod server_metadata;
 mod token;
 
-pub use client_metadata::OAuthClientMetadata;
-pub use parameters::CallbackParams;
+pub use client_metadata::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
 pub use request::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType,
     PushedAuthorizationRequestParameters, TokenGrantType, TokenRequestParameters,
@@ -14,3 +12,48 @@ pub use request::{
 pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
 pub use server_metadata::OAuthAuthorizationServerMetadata;
 pub use token::TokenSet;
+
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+pub enum AuthorizeOptionPrompt {
+    Login,
+    None,
+    Consent,
+    SelectAccount,
+}
+
+impl From<AuthorizeOptionPrompt> for String {
+    fn from(value: AuthorizeOptionPrompt) -> Self {
+        match value {
+            AuthorizeOptionPrompt::Login => String::from("login"),
+            AuthorizeOptionPrompt::None => String::from("none"),
+            AuthorizeOptionPrompt::Consent => String::from("consent"),
+            AuthorizeOptionPrompt::SelectAccount => String::from("select_account"),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AuthorizeOptions {
+    pub redirect_uri: Option<String>,
+    pub scopes: Option<Vec<String>>, // TODO: enum?
+    pub prompt: Option<AuthorizeOptionPrompt>,
+}
+
+impl Default for AuthorizeOptions {
+    fn default() -> Self {
+        Self {
+            redirect_uri: None,
+            scopes: Some(vec![String::from("atproto")]),
+            prompt: None,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct CallbackParams {
+    pub code: String,
+    pub state: Option<String>,
+    pub iss: Option<String>,
+}
