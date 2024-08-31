@@ -23,7 +23,7 @@ impl<T> CommonResolver<T> {
                 config.plc_directory_url,
                 config.http_client.clone(),
             )?),
-            web_resolver: Arc::new(WebResolver::new(config.http_client.clone())),
+            web_resolver: Arc::new(WebResolver::new(config.http_client)),
         })
     }
 }

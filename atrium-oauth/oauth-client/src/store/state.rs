@@ -1,12 +1,12 @@
 use super::memory::MemorySimpleStore;
 use super::SimpleStore;
-use elliptic_curve::JwkEcKey;
+use jose_jwk::Key;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct InternalStateData {
     pub iss: String,
-    pub dpop_key: JwkEcKey,
+    pub dpop_key: Key,
     pub verifier: String,
 }
 

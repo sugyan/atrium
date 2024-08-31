@@ -52,20 +52,21 @@ where
 {
     pub fn new(config: OAuthResolverConfig, http_client: Arc<T>) -> Result<Self> {
         // TODO: cached resolver?
+        let protected_resource_resolver =
+            DefaultOAuthProtectedResourceResolver::new(http_client.clone());
+        let authorization_server_resolver =
+            DefaultOAuthAuthorizationServerResolver::new(http_client.clone());
+        let handle_resolver = handle_resolver(config.handle_resolver, http_client.clone());
         Ok(Self {
             identity_resolver: IdentityResolver::new(
                 Arc::new(CommonResolver::new(CommonResolverConfig {
                     plc_directory_url: config.plc_directory_url,
-                    http_client: http_client.clone(),
+                    http_client,
                 })?),
-                handle_resolver(config.handle_resolver, http_client.clone()),
+                handle_resolver,
             ),
-            protected_resource_resolver: DefaultOAuthProtectedResourceResolver::new(
-                http_client.clone(),
-            ),
-            authorization_server_resolver: DefaultOAuthAuthorizationServerResolver::new(
-                http_client.clone(),
-            ),
+            protected_resource_resolver,
+            authorization_server_resolver,
             _phantom: PhantomData,
         })
     }
@@ -166,9 +167,7 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     match handle_resolver_config {
-        HandleResolverConfig::AppView(uri) => {
-            Arc::new(AppViewResolver::new(uri, http_client.clone()))
-        }
+        HandleResolverConfig::AppView(uri) => Arc::new(AppViewResolver::new(uri, http_client)),
         HandleResolverConfig::Service(service) => service,
     }
 }

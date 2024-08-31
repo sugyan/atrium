@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct Claims {
     #[serde(flatten)]
     pub registered: RegisteredClaims,
+    #[serde(flatten)]
+    pub public: PublicClaims,
 }
 
 // https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
@@ -23,15 +25,28 @@ pub struct RegisteredClaims {
     pub iat: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub jti: Option<String>,
-    // htm: String,
-    // htu: String,
-    // #[serde(skip_serializing_if = "Option::is_none")]
-    // nonce: Option<String>,
+}
+
+// https://www.iana.org/assignments/jwt/jwt.xhtml
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct PublicClaims {
+    // https://datatracker.ietf.org/doc/html/rfc9449#section-4.2
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub htm: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub htu: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ath: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nonce: Option<String>,
 }
 
 impl From<RegisteredClaims> for Claims {
     fn from(registered: RegisteredClaims) -> Self {
-        Self { registered }
+        Self {
+            registered,
+            public: PublicClaims::default(),
+        }
     }
 }
 
@@ -63,6 +78,7 @@ mod tests {
                     aud: Some(RegisteredClaimsAud::Single(String::from("client"))),
                     ..Default::default()
                 },
+                public: PublicClaims::default(),
             };
             let json = serde_json::to_string(&claims).expect("failed to serialize claims");
             assert_eq!(json, r#"{"aud":"client"}"#);
@@ -77,6 +93,7 @@ mod tests {
                     ])),
                     ..Default::default()
                 },
+                public: PublicClaims::default(),
             };
             let json = serde_json::to_string(&claims).expect("failed to serialize claims");
             assert_eq!(json, r#"{"aud":["client1","client2"]}"#);

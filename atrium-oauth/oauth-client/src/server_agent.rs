@@ -12,8 +12,9 @@ use atrium_api::types::string::Datetime;
 use atrium_xrpc::http::{Method, Request, StatusCode};
 use atrium_xrpc::HttpClient;
 use chrono::TimeDelta;
-use elliptic_curve::JwkEcKey;
+use jose_jwk::Key;
 use serde::Serialize;
+use serde_json::Value;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 use thiserror::Error;
@@ -36,8 +37,10 @@ pub enum Error {
     Http(#[from] atrium_xrpc::http::Error),
     #[error("http client error: {0}")]
     HttpClient(Box<dyn std::error::Error + Send + Sync + 'static>),
-    #[error("http status: {0:?}")]
-    HttpStatus(Option<&'static str>),
+    #[error("http status: {0}")]
+    HttpStatus(StatusCode),
+    #[error("http status: {0}, body: {1:?}")]
+    HttpStatusWithBody(StatusCode, Value),
     #[error(transparent)]
     Keyset(#[from] crate::keyset::Error),
     #[error(transparent)]
@@ -108,7 +111,7 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn new(
-        dpop_key: JwkEcKey,
+        dpop_key: Key,
         server_metadata: OAuthAuthorizationServerMetadata,
         client_metadata: OAuthClientMetadata,
         resolver: Arc<OAuthResolver<T>>,
@@ -118,10 +121,8 @@ where
         let dpop_client = DpopClient::new(
             dpop_key,
             client_metadata.client_id.clone(),
-            server_metadata
-                .token_endpoint_auth_signing_alg_values_supported
-                .clone(),
             http_client,
+            &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
         Ok(Self {
             server_metadata,
@@ -202,8 +203,13 @@ where
             .map_err(Error::HttpClient)?;
         if res.status() == request.expected_status() {
             Ok(serde_json::from_slice(res.body())?)
+        } else if res.status().is_client_error() {
+            Err(Error::HttpStatusWithBody(
+                res.status(),
+                serde_json::from_slice(res.body())?,
+            ))
         } else {
-            Err(Error::HttpStatus(res.status().canonical_reason()))
+            Err(Error::HttpStatus(res.status()))
         }
     }
     fn build_body<S>(&self, parameters: S) -> Result<String>

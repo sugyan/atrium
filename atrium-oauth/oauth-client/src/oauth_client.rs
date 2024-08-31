@@ -1,21 +1,20 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
-use crate::jose_key::generate;
 use crate::keyset::Keyset;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
-    OAuthClientMetadata, OAuthPusehedAuthorizationRequestResponse,
-    PushedAuthorizationRequestParameters, TokenSet, TryIntoOAuthClientMetadata,
+    OAuthAuthorizationServerMetadata, OAuthClientMetadata,
+    OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters, TokenSet,
+    TryIntoOAuthClientMetadata,
 };
-use crate::utils::{compare_algos, generate_nonce, get_random_values};
+use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
-use elliptic_curve::JwkEcKey;
-use jose_jwk::{Jwk, JwkSet};
+use jose_jwk::{Jwk, JwkSet, Key};
 use rand::rngs::ThreadRng;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
@@ -155,12 +154,7 @@ where
             self.client_metadata.redirect_uris[0].clone()
         };
         let (metadata, identity) = self.resolver.resolve(input.as_ref()).await?;
-        let Some(dpop_key) = Self::generate_key(
-            metadata
-                .dpop_signing_alg_values_supported
-                .clone()
-                .unwrap_or(vec![FALLBACK_ALG.into()]),
-        ) else {
+        let Some(dpop_key) = Self::generate_dpop_key(&metadata) else {
             return Err(Error::Authorize("none of the algorithms worked".into()));
         };
         let (code_challenge, verifier) = Self::generate_pkce();
@@ -241,8 +235,6 @@ where
                 "unknown authorization state: {state}"
             )));
         };
-        println!("state: {:?}", &state);
-
         let metadata = self
             .resolver
             .get_authorization_server_metadata(&state.iss)
@@ -271,9 +263,13 @@ where
 
         Ok(token_set)
     }
-    fn generate_key(mut algs: Vec<String>) -> Option<JwkEcKey> {
+    fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
+        let mut algs = metadata
+            .dpop_signing_alg_values_supported
+            .clone()
+            .unwrap_or(vec![FALLBACK_ALG.into()]);
         algs.sort_by(compare_algos);
-        generate(&algs)
+        generate_key(&algs)
     }
     fn generate_pkce() -> (String, String) {
         // https://datatracker.ietf.org/doc/html/rfc7636#section-4.1

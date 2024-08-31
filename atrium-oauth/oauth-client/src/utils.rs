@@ -1,7 +1,25 @@
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
+use elliptic_curve::SecretKey;
+use jose_jwk::{crypto, Key};
 use rand::{rngs::ThreadRng, CryptoRng, RngCore};
 use std::cmp::Ordering;
+
+pub fn generate_key(allowed_algos: &[String]) -> Option<Key> {
+    for alg in allowed_algos {
+        match alg.as_str() {
+            "ES256" => {
+                return Some(Key::from(&crypto::Key::from(
+                    SecretKey::<p256::NistP256>::random(&mut ThreadRng::default()),
+                )));
+            }
+            _ => {
+                // TODO: Implement other algorithms?
+            }
+        }
+    }
+    None
+}
 
 pub fn generate_nonce() -> String {
     URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default()))

@@ -1,34 +1,33 @@
+use crate::jose::create_signed_jwt;
+use crate::jose::jws::RegisteredHeader;
+use crate::jose::jwt::{Claims, PublicClaims, RegisteredClaims};
 use crate::store::memory::MemorySimpleStore;
 use crate::store::SimpleStore;
-use crate::utils::get_random_values;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
-use ecdsa::hazmat::{DigestPrimitive, SignPrimitive};
-use ecdsa::{signature::SignerMut, Signature, SigningKey};
-use ecdsa::{PrimeCurve, SignatureSize};
-use elliptic_curve::generic_array::ArrayLength;
-use elliptic_curve::ops::Invert;
-use elliptic_curve::sec1::{FromEncodedPoint, ModulusSize, ToEncodedPoint};
-use elliptic_curve::subtle::CtOption;
-use elliptic_curve::{
-    AffinePoint, Curve, CurveArithmetic, FieldBytesSize, JwkEcKey, JwkParameters, Scalar, SecretKey,
-};
-use rand::rngs::ThreadRng;
-use serde::{Deserialize, Serialize};
+use jose_jwa::{Algorithm, Signing};
+use jose_jwk::{crypto, EcCurves, Jwk, Key};
+use rand::rngs::SmallRng;
+use rand::{RngCore, SeedableRng};
+use serde::Deserialize;
 use std::sync::Arc;
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+const JWT_HEADER_TYP_DPOP: &str = "dpop+jwt";
 
+#[derive(Deserialize)]
+struct ErrorResponse {
+    error: String,
+}
+
+#[derive(Error, Debug)]
 pub enum Error {
-    #[error("unsupported curve: {0}")]
-    UnsupportedCurve(String),
+    #[error("crypto error: {0:?}")]
+    JwkCrypto(crypto::Error),
     #[error("key does not match any alg supported by the server")]
     UnsupportedKey,
-    #[error(transparent)]
-    EC(#[from] elliptic_curve::Error),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
     #[error(transparent)]
@@ -37,52 +36,31 @@ pub enum Error {
 
 type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Serialize)]
-enum JwtHeaderType {
-    #[serde(rename = "dpop+jwt")]
-    DpopJwt,
-}
-
-#[derive(Serialize)]
-struct JwtHeader {
-    alg: String,
-    typ: JwtHeaderType,
-    jwk: JwkEcKey,
-}
-
-#[derive(Serialize)]
-struct JwtClaims {
-    iss: String,
-    iat: u64,
-    jti: String,
-    htm: String,
-    htu: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    nonce: Option<String>,
-}
-
 pub struct DpopClient<T, S = MemorySimpleStore<String, String>>
 where
     S: SimpleStore<String, String>,
 {
     inner: Arc<T>,
-    key: JwkEcKey,
+    key: Key,
+    #[allow(dead_code)]
     iss: String,
     nonces: S,
 }
 
 impl<T> DpopClient<T> {
     pub fn new(
-        key: JwkEcKey,
+        key: Key,
         iss: String,
-        supported_algs: Option<Vec<String>>,
         http_client: Arc<T>,
+        supported_algs: &Option<Vec<String>>,
     ) -> Result<Self> {
         if let Some(algs) = supported_algs {
-            let alg = String::from(match key.crv() {
-                k256::Secp256k1::CRV => "ES256K",
-                p256::NistP256::CRV => "ES256",
-                _ => return Err(Error::UnsupportedCurve(key.crv().to_string())),
+            let alg = String::from(match &key {
+                Key::Ec(ec) => match &ec.crv {
+                    EcCurves::P256 => "ES256",
+                    _ => unimplemented!(),
+                },
+                _ => unimplemented!(),
             });
             if !algs.contains(&alg) {
                 return Err(Error::UnsupportedKey);
@@ -97,63 +75,39 @@ impl<T> DpopClient<T> {
         })
     }
     fn build_proof(&self, htm: String, htu: String, nonce: Option<String>) -> Result<String> {
-        Ok(match self.key.crv() {
-            k256::Secp256k1::CRV => {
-                self.create_jwk::<k256::Secp256k1>(htm, htu, String::from("ES256K"), nonce)?
+        match crypto::Key::try_from(&self.key).map_err(Error::JwkCrypto)? {
+            crypto::Key::P256(crypto::Kind::Secret(secret_key)) => {
+                let mut header = RegisteredHeader::from(Algorithm::Signing(Signing::Es256));
+                header.typ = Some(JWT_HEADER_TYP_DPOP.into());
+                header.jwk = Some(Jwk {
+                    key: Key::from(&crypto::Key::from(secret_key.public_key())),
+                    prm: Default::default(),
+                });
+                let claims = Claims {
+                    registered: RegisteredClaims {
+                        jti: Some(Self::generate_jti()),
+                        iat: Some(
+                            std::time::SystemTime::now()
+                                .duration_since(std::time::UNIX_EPOCH)?
+                                .as_secs(),
+                        ),
+                        ..Default::default()
+                    },
+                    public: PublicClaims {
+                        htm: Some(htm),
+                        htu: Some(htu),
+                        nonce,
+                        ..Default::default()
+                    },
+                };
+                Ok(create_signed_jwt(secret_key.into(), header.into(), claims)?)
             }
-            p256::NistP256::CRV => {
-                self.create_jwk::<p256::NistP256>(htm, htu, String::from("ES256K"), nonce)?
-            }
-            _ => return Err(Error::UnsupportedCurve(self.key.crv().to_string())),
-        })
-    }
-    fn create_jwk<C>(
-        &self,
-        htm: String,
-        htu: String,
-        alg: String,
-        nonce: Option<String>,
-    ) -> Result<String>
-    where
-        C: Curve + JwkParameters + PrimeCurve + CurveArithmetic + DigestPrimitive,
-        AffinePoint<C>: FromEncodedPoint<C> + ToEncodedPoint<C>,
-        FieldBytesSize<C>: ModulusSize,
-        Scalar<C>: Invert<Output = CtOption<Scalar<C>>> + SignPrimitive<C>,
-        SignatureSize<C>: ArrayLength<u8>,
-    {
-        let key = SecretKey::<C>::from_jwk(&self.key)?;
-        let iat = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)?
-            .as_secs();
-        let header = JwtHeader {
-            alg,
-            typ: JwtHeaderType::DpopJwt,
-            jwk: key.public_key().to_jwk(),
-        };
-        let payload = JwtClaims {
-            iss: self.iss.clone(),
-            iat,
-            jti: URL_SAFE_NO_PAD.encode(get_random_values::<_, 16>(&mut ThreadRng::default())),
-            htm,
-            htu,
-            nonce,
-        };
-        let header = URL_SAFE_NO_PAD.encode(serde_json::to_vec(&header)?);
-        let payload = URL_SAFE_NO_PAD.encode(serde_json::to_vec(&payload)?);
-        let mut signing_key = SigningKey::<C>::from(key);
-        let signature: Signature<_> = signing_key.sign(format!("{header}.{payload}").as_bytes());
-        Ok(format!(
-            "{header}.{payload}.{}",
-            URL_SAFE_NO_PAD.encode(signature.to_bytes())
-        ))
+            _ => unimplemented!(),
+        }
     }
     fn is_use_dpop_nonce_error(&self, response: &Response<Vec<u8>>) -> bool {
         // is auth server?
         if response.status() == 400 {
-            #[derive(Deserialize)]
-            struct ErrorResponse {
-                error: String,
-            }
             if let Ok(res) = serde_json::from_slice::<ErrorResponse>(response.body()) {
                 return res.error == "use_dpop_nonce";
             };
@@ -161,6 +115,13 @@ impl<T> DpopClient<T> {
         // is resource server?
 
         false
+    }
+    // https://datatracker.ietf.org/doc/html/rfc9449#section-4.2
+    fn generate_jti() -> String {
+        let mut rng = SmallRng::from_entropy();
+        let mut bytes = [0u8; 12];
+        rng.fill_bytes(&mut bytes);
+        URL_SAFE_NO_PAD.encode(bytes)
     }
 }
 

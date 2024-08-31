@@ -3,7 +3,6 @@ mod constants;
 mod error;
 mod http_client;
 mod jose;
-mod jose_key;
 mod keyset;
 mod oauth_client;
 mod resolver;
