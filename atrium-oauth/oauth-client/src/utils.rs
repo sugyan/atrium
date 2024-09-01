@@ -7,6 +7,7 @@ use std::cmp::Ordering;
 
 pub fn generate_key(allowed_algos: &[String]) -> Option<Key> {
     for alg in allowed_algos {
+        #[allow(clippy::single_match)]
         match alg.as_str() {
             "ES256" => {
                 return Some(Key::from(&crypto::Key::from(

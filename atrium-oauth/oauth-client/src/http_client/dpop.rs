@@ -7,6 +7,7 @@ use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
+use chrono::Utc;
 use jose_jwa::{Algorithm, Signing};
 use jose_jwk::{crypto, EcCurves, Jwk, Key};
 use rand::rngs::SmallRng;
@@ -30,8 +31,6 @@ pub enum Error {
     UnsupportedKey,
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
-    #[error(transparent)]
-    SystemTime(#[from] std::time::SystemTimeError),
 }
 
 type Result<T> = core::result::Result<T, Error>;
@@ -86,11 +85,7 @@ impl<T> DpopClient<T> {
                 let claims = Claims {
                     registered: RegisteredClaims {
                         jti: Some(Self::generate_jti()),
-                        iat: Some(
-                            std::time::SystemTime::now()
-                                .duration_since(std::time::UNIX_EPOCH)?
-                                .as_secs(),
-                        ),
+                        iat: Some(Utc::now().timestamp()),
                         ..Default::default()
                     },
                     public: PublicClaims {

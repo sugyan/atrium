@@ -1,6 +1,7 @@
 use crate::keyset::Keyset;
 use crate::types::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
 use atrium_xrpc::http::Uri;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -21,7 +22,8 @@ pub enum Error {
 
 pub type Result<T> = core::result::Result<T, Error>;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum AuthMethod {
     None,
     // https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication
@@ -37,7 +39,8 @@ impl From<AuthMethod> for String {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum GrantType {
     AuthorizationCode,
     RefreshToken,
@@ -52,7 +55,8 @@ impl From<GrantType> for String {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Scope {
     Atproto,
 }
@@ -65,19 +69,19 @@ impl From<Scope> for String {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AtprotoLocalhostClientMetadata {
     pub redirect_uris: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AtprotoClientMetadata {
     pub client_id: String,
     pub client_uri: String,
     pub redirect_uris: Vec<String>,
     pub token_endpoint_auth_method: AuthMethod,
     pub grant_types: Vec<GrantType>,
-    pub scope: Vec<Scope>,
+    pub scopes: Vec<Scope>,
     pub jwks_uri: Option<String>,
     pub token_endpoint_auth_signing_alg: Option<String>,
 }
@@ -117,7 +121,7 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
         if !self.grant_types.contains(&GrantType::AuthorizationCode) {
             return Err(Error::InvalidGrantTypes);
         }
-        if !self.scope.contains(&Scope::Atproto) {
+        if !self.scopes.contains(&Scope::Atproto) {
             return Err(Error::InvalidScope);
         }
         let (jwks_uri, mut jwks) = (self.jwks_uri, None);
@@ -147,7 +151,7 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
             token_endpoint_auth_method: Some(self.token_endpoint_auth_method.into()),
             grant_types: Some(self.grant_types.into_iter().map(|v| v.into()).collect()),
             scope: Some(
-                self.scope
+                self.scopes
                     .into_iter()
                     .map(|v| v.into())
                     .collect::<Vec<String>>()

@@ -9,7 +9,6 @@ pub struct TokenSet {
     pub aud: String,
     pub scope: Option<String>,
 
-    pub id_token: Option<String>,
     pub refresh_token: Option<String>,
     pub access_token: String,
     pub token_type: OAuthTokenType,

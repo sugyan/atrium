@@ -259,8 +259,8 @@ where
             self.keyset.clone(),
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
-        // TODO: verify id_token?
 
+        // TODO: create session?
         Ok(token_set)
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {

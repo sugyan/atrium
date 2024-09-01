@@ -14,7 +14,8 @@ pub trait BaseResolver {
     fn get_resolver(&self, method: Method) -> Arc<dyn DidResolver + Send + Sync + 'static>;
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> Resolver for T
 where
     T: BaseResolver + Send + Sync + 'static,

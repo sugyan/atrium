@@ -18,11 +18,11 @@ pub struct RegisteredClaims {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub aud: Option<RegisteredClaimsAud>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub exp: Option<u64>,
+    pub exp: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub nbf: Option<u64>,
+    pub nbf: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub iat: Option<u64>,
+    pub iat: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub jti: Option<String>,
 }

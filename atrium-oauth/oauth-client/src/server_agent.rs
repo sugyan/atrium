@@ -11,12 +11,11 @@ use crate::utils::{compare_algos, generate_nonce};
 use atrium_api::types::string::Datetime;
 use atrium_xrpc::http::{Method, Request, StatusCode};
 use atrium_xrpc::HttpClient;
-use chrono::TimeDelta;
+use chrono::{TimeDelta, Utc};
 use jose_jwk::Key;
 use serde::Serialize;
 use serde_json::Value;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 use thiserror::Error;
 
 // https://datatracker.ietf.org/doc/html/rfc7523#section-2.2
@@ -49,8 +48,6 @@ pub enum Error {
     SerdeHtmlForm(#[from] serde_html_form::ser::Error),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
-    #[error(transparent)]
-    SystemTime(#[from] std::time::SystemTimeError),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -160,7 +157,6 @@ where
             aud: identity.pds,
             iss: metadata.issuer,
             scope: token_response.scope,
-            id_token: token_response.id_token,
             access_token: token_response.access_token,
             refresh_token: token_response.refresh_token,
             token_type: token_response.token_type,
@@ -240,7 +236,7 @@ where
                         .clone()
                         .unwrap_or(vec![FALLBACK_ALG.into()]);
                     algs.sort_by(compare_algos);
-                    let iat = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+                    let iat = Utc::now().timestamp();
                     return Ok((
                         Some(String::from(CLIENT_ASSERTION_TYPE_JWT_BEARER)),
                         Some(
