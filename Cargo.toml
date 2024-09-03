@@ -33,7 +33,7 @@ bsky-sdk = { version = "0.1.6", path = "bsky-sdk" }
 async-trait = "0.1.80"
 
 # DAG-CBOR codec
-ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
+ipld-core = { version = "0.4.1", default-features = false, features = ["integer-max-i64"] }
 serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }
 
 # Parsing and validation
@@ -79,4 +79,4 @@ bumpalo = "~3.14.0"
 
 
 [patch.crates-io]
-ipld-core = { git = "https://github.com/ipld/rust-ipld-core", branch = "primitives-as-trait" }
+ipld-core = { git = "https://github.com/ipld/rust-ipld-core", branch = "integer-max-i64-feature" }

@@ -1114,7 +1114,7 @@ dependencies = [
 [[package]]
 name = "ipld-core"
 version = "0.4.1"
-source = "git+https://github.com/ipld/rust-ipld-core?branch=primitives-as-trait#4ef5d7344881d0c6c0824f40922bd3f5163320b6"
+source = "git+https://github.com/ipld/rust-ipld-core?branch=integer-max-i64-feature#90adbf73b6472de56d13a7388c51da00844e8c1f"
 dependencies = [
  "cid",
  "serde",

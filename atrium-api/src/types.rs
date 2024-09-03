@@ -2,8 +2,7 @@
 //! <https://atproto.com/specs/data-model>
 
 use crate::error::Error;
-use ipld_core::cid::Cid;
-use ipld_core::ipld::{IpldGeneric, Primitives};
+use ipld_core::ipld::Ipld;
 use ipld_core::serde::to_ipld;
 use std::collections::BTreeMap;
 use std::fmt;
@@ -20,17 +19,6 @@ use string::RecordKey;
 
 #[derive(Clone)]
 pub struct PrimitivesI64;
-
-impl Primitives for PrimitivesI64 {
-    type Bool = bool;
-    type Integer = i64;
-    type Float = f64;
-    type String = String;
-    type Bytes = Vec<u8>;
-    type Link = Cid;
-}
-
-type Ipld = IpldGeneric<PrimitivesI64>;
 
 /// Trait for a collection of records that can be stored in a repository.
 ///
