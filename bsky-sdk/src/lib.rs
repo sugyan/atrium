@@ -2,6 +2,7 @@
 #![doc = include_str!("../README.md")]
 pub mod agent;
 mod error;
+pub mod feed;
 pub mod moderation;
 pub mod preference;
 pub mod record;
