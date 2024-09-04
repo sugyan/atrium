@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.7...bsky-sdk-v0.1.8) - 2024-09-04
+
+### Fixed
+- Make bsky_sdk::error public ([#221](https://github.com/sugyan/atrium/pull/221))
+
 ## [0.1.7](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.6...bsky-sdk-v0.1.7) - 2024-08-13
 
 ### Added
