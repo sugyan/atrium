@@ -1,7 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![doc = include_str!("../README.md")]
 pub mod agent;
-mod error;
+pub mod error;
 pub mod moderation;
 pub mod preference;
 pub mod record;
