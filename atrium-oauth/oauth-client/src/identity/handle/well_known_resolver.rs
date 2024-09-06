@@ -8,6 +8,7 @@ use std::sync::Arc;
 
 const WELL_KNWON_PATH: &str = "/.well-known/atproto-did";
 
+#[derive(Clone, Debug)]
 pub struct WellKnownHandleResolverConfig<T> {
     pub http_client: Arc<T>,
 }

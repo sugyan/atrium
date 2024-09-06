@@ -1,4 +1,4 @@
-use super::did::{CommonDidResolver, CommonDidResolverConfig};
+use super::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use super::error::{Error, Result};
 use super::handle::{DynamicHandleResolver, HandleResolverImpl};
 use super::Resolver;
@@ -15,15 +15,25 @@ pub struct ResolvedIdentity {
     pub pds: String,
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct DidResolverConfig {
-    pub plc_directory_url: Option<String>,
+    pub plc_directory_url: String,
 }
 
+impl Default for DidResolverConfig {
+    fn default() -> Self {
+        Self {
+            plc_directory_url: DEFAULT_PLC_DIRECTORY_URL.to_string(),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct HandleResolverConfig {
     pub r#impl: HandleResolverImpl,
 }
 
+#[derive(Clone, Debug)]
 pub struct IdentityResolverConfig<T> {
     pub did: DidResolverConfig,
     pub handle: HandleResolverConfig,

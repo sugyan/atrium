@@ -8,6 +8,7 @@ use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
 
+#[derive(Clone, Debug)]
 pub struct AppViewHandleResolverConfig<T> {
     pub service_url: String,
     pub http_client: Arc<T>,

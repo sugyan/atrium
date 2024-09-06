@@ -5,9 +5,9 @@ use super::web_resolver::{WebDidResolver, WebDidResolverConfig};
 use super::DidResolver;
 use std::sync::Arc;
 
-#[derive(Default)]
+#[derive(Clone, Debug)]
 pub struct CommonDidResolverConfig<T> {
-    pub plc_directory_url: Option<String>,
+    pub plc_directory_url: String,
     pub http_client: Arc<T>,
 }
 

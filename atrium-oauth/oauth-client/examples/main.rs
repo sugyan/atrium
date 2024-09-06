@@ -15,8 +15,8 @@ struct HickoryDnsTxtResolver {
     resolver: TokioAsyncResolver,
 }
 
-impl HickoryDnsTxtResolver {
-    pub fn new() -> Self {
+impl Default for HickoryDnsTxtResolver {
+    fn default() -> Self {
         Self {
             resolver: TokioAsyncResolver::tokio_from_system_conf()
                 .expect("failed to create resolver"),
@@ -50,7 +50,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         resolver: OAuthResolverConfig {
             did: DidResolverConfig::default(),
             handle: HandleResolverConfig {
-                r#impl: HandleResolverImpl::Atproto(Arc::new(HickoryDnsTxtResolver::new())),
+                r#impl: HandleResolverImpl::Atproto(Arc::new(HickoryDnsTxtResolver::default())),
             },
         },
         state_store: MemoryStateStore::default(),

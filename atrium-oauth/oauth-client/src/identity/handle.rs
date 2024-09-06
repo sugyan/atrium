@@ -39,11 +39,22 @@ impl Resolver for DynamicHandleResolver {
 
 impl HandleResolver for DynamicHandleResolver {}
 
+#[derive(Clone)]
 pub enum HandleResolverImpl {
     Atproto(Arc<dyn DnsTxtResolver + Send + Sync + 'static>),
     AppView(String),
 }
 
+impl std::fmt::Debug for HandleResolverImpl {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            HandleResolverImpl::Atproto(_) => write!(f, "Atproto"),
+            HandleResolverImpl::AppView(url) => write!(f, "AppView({url})"),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
 pub struct HandleResolverConfig<T> {
     pub r#impl: HandleResolverImpl,
     pub http_client: Arc<T>,

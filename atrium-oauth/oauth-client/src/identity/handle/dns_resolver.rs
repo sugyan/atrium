@@ -37,6 +37,7 @@ impl DnsTxtResolver for DynamicDnsTxtResolver {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct DnsHandleResolverConfig<T> {
     pub dns_txt_resolver: T,
 }

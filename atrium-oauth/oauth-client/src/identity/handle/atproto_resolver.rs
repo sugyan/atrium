@@ -8,6 +8,7 @@ use atrium_xrpc::HttpClient;
 use futures::future::select_ok;
 use std::sync::Arc;
 
+#[derive(Clone, Debug)]
 pub struct AtprotoHandleResolverConfig<R, T> {
     pub dns_txt_resolver: R,
     pub http_client: Arc<T>,

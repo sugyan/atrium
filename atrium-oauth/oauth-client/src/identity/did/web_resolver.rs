@@ -9,6 +9,7 @@ use std::sync::Arc;
 
 const DID_WEB_PREFIX: &str = "did:web:";
 
+#[derive(Clone, Debug)]
 pub struct WebDidResolverConfig<T> {
     pub http_client: Arc<T>,
 }

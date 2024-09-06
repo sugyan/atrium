@@ -13,6 +13,7 @@ use oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver
 use oauth_protected_resource_resolver::OAuthProtectedResourceMetadata;
 use std::sync::Arc;
 
+#[derive(Clone, Debug)]
 pub struct OAuthResolverConfig {
     pub did: DidResolverConfig,
     pub handle: HandleResolverConfig,

@@ -8,10 +8,11 @@ use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
 
-const DEFAULT_PLC_DIRECTORY_URL: &str = "https://plc.directory/";
+pub(crate) const DEFAULT_PLC_DIRECTORY_URL: &str = "https://plc.directory/";
 
+#[derive(Clone, Debug)]
 pub struct PlcDidResolverConfig<T> {
-    pub plc_directory_url: Option<String>,
+    pub plc_directory_url: String,
     pub http_client: Arc<T>,
 }
 
@@ -23,10 +24,7 @@ pub struct PlcDidResolver<T> {
 impl<T> PlcDidResolver<T> {
     pub fn new(config: PlcDidResolverConfig<T>) -> Result<Self> {
         Ok(Self {
-            plc_directory_url: config
-                .plc_directory_url
-                .unwrap_or(DEFAULT_PLC_DIRECTORY_URL.into())
-                .parse()?,
+            plc_directory_url: config.plc_directory_url.parse()?,
             http_client: config.http_client,
         })
     }
