@@ -10,10 +10,9 @@ pub use request::{
     PushedAuthorizationRequestParameters, TokenGrantType, TokenRequestParameters,
 };
 pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
+use serde::Deserialize;
 pub use server_metadata::OAuthAuthorizationServerMetadata;
 pub use token::TokenSet;
-
-use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub enum AuthorizeOptionPrompt {

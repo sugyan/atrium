@@ -41,9 +41,9 @@ pub enum Error {
     #[error("http status: {0}, body: {1:?}")]
     HttpStatusWithBody(StatusCode, Value),
     #[error(transparent)]
-    Keyset(#[from] crate::keyset::Error),
+    Identity(#[from] crate::identity::Error),
     #[error(transparent)]
-    Resolver(#[from] crate::resolver::Error),
+    Keyset(#[from] crate::keyset::Error),
     #[error(transparent)]
     SerdeHtmlForm(#[from] serde_html_form::ser::Error),
     #[error(transparent)]

@@ -21,6 +21,7 @@ base64.workspace = true
 chrono.workspace = true
 ecdsa = { workspace = true, features = ["signing"] }
 elliptic-curve = { workspace = true }
+futures.workspace = true
 jose-jwa.workspace = true
 jose-jwk = { workspace = true, features = ["p256"] }
 p256 = { workspace = true, features = ["ecdsa"] }
@@ -33,6 +34,7 @@ sha2.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+hickory-resolver.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]

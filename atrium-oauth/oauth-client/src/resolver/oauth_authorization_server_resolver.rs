@@ -1,5 +1,5 @@
-use super::error::{Error, Result};
 use super::Resolver;
+use crate::identity::{Error, Result};
 use crate::types::OAuthAuthorizationServerMetadata;
 use async_trait::async_trait;
 use atrium_xrpc::http::uri::Builder;
@@ -48,7 +48,7 @@ where
                 )))
             }
         } else {
-            Err(Error::HttpStatus(res.status().canonical_reason()))
+            Err(Error::HttpStatus(res.status()))
         }
     }
 }

@@ -2,6 +2,7 @@ mod atproto;
 mod constants;
 mod error;
 mod http_client;
+pub mod identity;
 mod jose;
 mod keyset;
 mod oauth_client;
@@ -15,8 +16,11 @@ pub use atproto::{
     AtprotoClientMetadata, AtprotoLocalhostClientMetadata, AuthMethod, GrantType, Scope,
 };
 pub use error::{Error, Result};
+#[cfg(feature = "default-client")]
+pub use http_client::default::DefaultHttpClient;
+pub use http_client::dpop::DpopClient;
 pub use oauth_client::{OAuthClient, OAuthClientConfig};
-pub use resolver::{OAuthResolver, OAuthResolverConfig};
+pub use resolver::OAuthResolverConfig;
 pub use types::{
     AuthorizeOptionPrompt, AuthorizeOptions, CallbackParams, OAuthClientMetadata, TokenSet,
 };

@@ -1,5 +1,6 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
+use crate::identity::Resolver;
 use crate::keyset::Keyset;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};

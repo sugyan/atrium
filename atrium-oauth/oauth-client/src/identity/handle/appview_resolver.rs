@@ -8,24 +8,28 @@ use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
 
-#[derive(Debug)]
-pub struct AppViewResolver<T> {
-    service: Uri,
+pub struct AppViewHandleResolverConfig<T> {
+    pub service_url: String,
+    pub http_client: Arc<T>,
+}
+
+pub struct AppViewHandleResolver<T> {
+    service_url: Uri,
     http_client: Arc<T>,
 }
 
-impl<T> AppViewResolver<T> {
-    pub fn new(service: Uri, http_client: Arc<T>) -> Self {
-        Self {
-            service,
-            http_client,
-        }
+impl<T> AppViewHandleResolver<T> {
+    pub fn new(config: AppViewHandleResolverConfig<T>) -> Result<Self> {
+        Ok(Self {
+            service_url: config.service_url.parse()?,
+            http_client: config.http_client,
+        })
     }
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<T> Resolver for AppViewResolver<T>
+impl<T> Resolver for AppViewHandleResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
@@ -33,7 +37,7 @@ where
     type Output = Did;
 
     async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
-        let uri = Builder::from(self.service.clone())
+        let uri = Builder::from(self.service_url.clone())
             .path_and_query(format!(
                 "/xrpc/com.atproto.identity.resolveHandle?{}",
                 serde_html_form::to_string(resolve_handle::ParametersData {
@@ -50,9 +54,9 @@ where
         if res.status().is_success() {
             Ok(serde_json::from_slice::<resolve_handle::OutputData>(res.body())?.did)
         } else {
-            Err(Error::HttpStatus(res.status().canonical_reason()))
+            Err(Error::HttpStatus(res.status()))
         }
     }
 }
 
-impl<T> HandleResolver for AppViewResolver<T> where T: HttpClient + Send + Sync + 'static {}
+impl<T> HandleResolver for AppViewHandleResolver<T> where T: HttpClient + Send + Sync + 'static {}

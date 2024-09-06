@@ -10,25 +10,31 @@ use std::sync::Arc;
 
 const DEFAULT_PLC_DIRECTORY_URL: &str = "https://plc.directory/";
 
-pub struct PlcResolver<T> {
+pub struct PlcDidResolverConfig<T> {
+    pub plc_directory_url: Option<String>,
+    pub http_client: Arc<T>,
+}
+
+pub struct PlcDidResolver<T> {
     plc_directory_url: Uri,
     http_client: Arc<T>,
 }
 
-impl<T> PlcResolver<T> {
-    pub fn new(plc_directory_url: Option<String>, http_client: Arc<T>) -> Result<Self> {
+impl<T> PlcDidResolver<T> {
+    pub fn new(config: PlcDidResolverConfig<T>) -> Result<Self> {
         Ok(Self {
-            plc_directory_url: plc_directory_url
+            plc_directory_url: config
+                .plc_directory_url
                 .unwrap_or(DEFAULT_PLC_DIRECTORY_URL.into())
                 .parse()?,
-            http_client,
+            http_client: config.http_client,
         })
     }
 }
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<T> Resolver for PlcResolver<T>
+impl<T> Resolver for PlcDidResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
@@ -47,9 +53,9 @@ where
         if res.status().is_success() {
             Ok(serde_json::from_slice(res.body())?)
         } else {
-            Err(Error::HttpStatus(res.status().canonical_reason()))
+            Err(Error::HttpStatus(res.status()))
         }
     }
 }
 
-impl<T> DidResolver for PlcResolver<T> where T: HttpClient + Send + Sync + 'static {}
+impl<T> DidResolver for PlcDidResolver<T> where T: HttpClient + Send + Sync + 'static {}

@@ -1,36 +1,21 @@
-mod did_resolver;
-mod error;
-mod handle_resolver;
-mod identity_resolver;
 mod oauth_authorization_server_resolver;
 mod oauth_protected_resource_resolver;
 
-pub use self::did_resolver::{CommonResolver, CommonResolverConfig};
-pub use self::error::{Error, Result};
-pub use self::handle_resolver::{AppViewResolver, HandleResolver, HandleResolverConfig};
-pub use self::identity_resolver::IdentityResolver;
 use self::oauth_protected_resource_resolver::DefaultOAuthProtectedResourceResolver;
+use crate::identity::{
+    DidResolverConfig, Error, HandleResolverConfig, IdentityResolver, IdentityResolverConfig,
+    ResolvedIdentity, Resolver, Result,
+};
 use crate::types::OAuthAuthorizationServerMetadata;
 use async_trait::async_trait;
 use atrium_xrpc::HttpClient;
-use identity_resolver::ResolvedIdentity;
 use oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
 use oauth_protected_resource_resolver::OAuthProtectedResourceMetadata;
-use std::marker::PhantomData;
 use std::sync::Arc;
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-pub trait Resolver {
-    type Input;
-    type Output;
-
-    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output>;
-}
-
 pub struct OAuthResolverConfig {
-    pub plc_directory_url: Option<String>,
-    pub handle_resolver: HandleResolverConfig,
+    pub did: DidResolverConfig,
+    pub handle: HandleResolverConfig,
 }
 
 pub struct OAuthResolver<
@@ -41,10 +26,9 @@ pub struct OAuthResolver<
     PRR: Resolver<Input = String, Output = OAuthProtectedResourceMetadata>,
     ASR: Resolver<Input = String, Output = OAuthAuthorizationServerMetadata>,
 {
-    identity_resolver: IdentityResolver,
+    identity_resolver: IdentityResolver<T>,
     protected_resource_resolver: PRR,
     authorization_server_resolver: ASR,
-    _phantom: PhantomData<T>,
 }
 
 impl<T> OAuthResolver<T>
@@ -57,32 +41,14 @@ where
             DefaultOAuthProtectedResourceResolver::new(http_client.clone());
         let authorization_server_resolver =
             DefaultOAuthAuthorizationServerResolver::new(http_client.clone());
-        let handle_resolver = handle_resolver(config.handle_resolver, http_client.clone());
         Ok(Self {
-            identity_resolver: IdentityResolver::new(
-                Arc::new(CommonResolver::new(CommonResolverConfig {
-                    plc_directory_url: config.plc_directory_url,
-                    http_client,
-                })?),
-                handle_resolver,
-            ),
+            identity_resolver: IdentityResolver::new(IdentityResolverConfig {
+                did: config.did,
+                handle: config.handle,
+                http_client,
+            })?,
             protected_resource_resolver,
             authorization_server_resolver,
-            _phantom: PhantomData,
-        })
-    }
-    pub async fn resolve(
-        &self,
-        input: impl AsRef<str>,
-    ) -> Result<(OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>)> {
-        // Allow using an entryway, or PDS url, directly as login input (e.g.
-        // when the user forgot their handle, or when the handle does not
-        // resolve to a DID)
-        Ok(if input.as_ref().starts_with("https://") {
-            (self.resolve_from_service(input.as_ref()).await?, None)
-        } else {
-            let (metadata, identity) = self.resolve_from_identity(input.as_ref()).await?;
-            (metadata, Some(identity))
         })
     }
     pub async fn get_authorization_server_metadata(
@@ -160,15 +126,24 @@ where
     }
 }
 
-fn handle_resolver<T>(
-    handle_resolver_config: HandleResolverConfig,
-    http_client: Arc<T>,
-) -> Arc<dyn HandleResolver + Send + Sync + 'static>
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+impl<T> Resolver for OAuthResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    match handle_resolver_config {
-        HandleResolverConfig::AppView(uri) => Arc::new(AppViewResolver::new(uri, http_client)),
-        HandleResolverConfig::Service(service) => service,
+    type Input = str;
+    type Output = (OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>);
+
+    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
+        // Allow using an entryway, or PDS url, directly as login input (e.g.
+        // when the user forgot their handle, or when the handle does not
+        // resolve to a DID)
+        Ok(if input.starts_with("https://") {
+            (self.resolve_from_service(input.as_ref()).await?, None)
+        } else {
+            let (metadata, identity) = self.resolve_from_identity(input).await?;
+            (metadata, Some(identity))
+        })
     }
 }
