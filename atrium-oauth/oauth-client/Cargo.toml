@@ -22,6 +22,7 @@ chrono.workspace = true
 ecdsa = { workspace = true, features = ["signing"] }
 elliptic-curve = { workspace = true }
 futures.workspace = true
+hickory-proto = { workspace = true, optional = true }
 jose-jwa.workspace = true
 jose-jwk = { workspace = true, features = ["p256"] }
 p256 = { workspace = true, features = ["ecdsa"] }
@@ -40,3 +41,4 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 [features]
 default = ["default-client"]
 default-client = ["reqwest/default-tls"]
+doh-handle-resolver = ["dep:hickory-proto"]

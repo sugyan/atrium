@@ -178,6 +178,7 @@ dependencies = [
  "ecdsa",
  "elliptic-curve",
  "futures",
+ "hickory-proto",
  "hickory-resolver",
  "jose-jwa",
  "jose-jwk",
