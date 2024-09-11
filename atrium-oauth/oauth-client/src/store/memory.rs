@@ -23,7 +23,8 @@ impl<K, V> Default for MemorySimpleStore<K, V> {
     }
 }
 
-#[async_trait]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<K, V> SimpleStore<K, V> for MemorySimpleStore<K, V>
 where
     K: Debug + Eq + Hash + Send + Sync + 'static,
@@ -34,11 +35,13 @@ where
     async fn get(&self, key: &K) -> Result<Option<V>, Self::Error> {
         Ok(self.store.lock().unwrap().get(key).cloned())
     }
-    async fn set(&self, key: K, value: V) -> Result<Option<V>, Self::Error> {
-        Ok(self.store.lock().unwrap().insert(key, value))
+    async fn set(&self, key: K, value: V) -> Result<(), Self::Error> {
+        self.store.lock().unwrap().insert(key, value);
+        Ok(())
     }
-    async fn del(&self, key: &K) -> Result<Option<V>, Self::Error> {
-        Ok(self.store.lock().unwrap().remove(key))
+    async fn del(&self, key: &K) -> Result<(), Self::Error> {
+        self.store.lock().unwrap().remove(key);
+        Ok(())
     }
     async fn clear(&self) -> Result<(), Self::Error> {
         self.store.lock().unwrap().clear();

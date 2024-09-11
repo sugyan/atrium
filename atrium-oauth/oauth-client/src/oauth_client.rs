@@ -223,19 +223,25 @@ where
         }
     }
     pub async fn callback(&self, params: CallbackParams) -> Result<TokenSet> {
-        let Some(state) = params.state else {
+        let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
         let Some(state) = self
             .state_store
-            .get(&state)
+            .get(&state_key)
             .await
             .map_err(|e| Error::StateStore(Box::new(e)))?
         else {
             return Err(Error::Callback(format!(
-                "unknown authorization state: {state}"
+                "unknown authorization state: {state_key}"
             )));
         };
+        // Prevent any kind of replay
+        self.state_store
+            .del(&state_key)
+            .await
+            .map_err(|e| Error::StateStore(Box::new(e)))?;
+
         let metadata = self
             .resolver
             .get_authorization_server_metadata(&state.iss)
