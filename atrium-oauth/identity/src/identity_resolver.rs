@@ -1,7 +1,8 @@
-use super::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
-use super::error::{Error, Result};
-use super::handle::{DynamicHandleResolver, HandleResolverImpl};
-use super::Resolver;
+use crate::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
+use crate::error::{Error, Result};
+use crate::handle::{DynamicHandleResolver, HandleResolverImpl};
+use crate::resolver::CachedResolverConfig;
+use crate::Resolver;
 use async_trait::async_trait;
 use atrium_api::types::string::AtIdentifier;
 use atrium_xrpc::HttpClient;
@@ -18,12 +19,14 @@ pub struct ResolvedIdentity {
 #[derive(Clone, Debug)]
 pub struct DidResolverConfig {
     pub plc_directory_url: String,
+    pub cache: CachedResolverConfig,
 }
 
 impl Default for DidResolverConfig {
     fn default() -> Self {
         Self {
             plc_directory_url: DEFAULT_PLC_DIRECTORY_URL.to_string(),
+            cache: CachedResolverConfig::default(),
         }
     }
 }
@@ -31,6 +34,7 @@ impl Default for DidResolverConfig {
 #[derive(Clone, Debug)]
 pub struct HandleResolverConfig {
     pub r#impl: HandleResolverImpl,
+    pub cache: CachedResolverConfig,
 }
 
 #[derive(Clone, Debug)]

@@ -47,3 +47,18 @@ pub struct OAuthAuthorizationServerMetadata {
     // https://datatracker.ietf.org/doc/html/draft-ietf-oauth-resource-metadata-08#name-authorization-server-metada
     pub protected_resources: Option<Vec<String>>,
 }
+
+// https://datatracker.ietf.org/doc/draft-ietf-oauth-resource-metadata/
+// https://datatracker.ietf.org/doc/html/draft-ietf-oauth-resource-metadata-08#section-2
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct OAuthProtectedResourceMetadata {
+    pub resource: String,
+    pub authorization_servers: Option<Vec<String>>,
+    pub jwks_uri: Option<String>,
+    pub scopes_supported: Vec<String>,
+    pub bearer_methods_supported: Option<Vec<String>>,
+    pub resource_signing_alg_values_supported: Option<Vec<String>>,
+    pub resource_documentation: Option<String>,
+    pub resource_policy_uri: Option<String>,
+    pub resource_tos_uri: Option<String>,
+}

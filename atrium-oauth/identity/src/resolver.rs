@@ -1,14 +1,8 @@
-pub mod did;
-mod error;
-pub mod handle;
-mod identity_resolver;
+mod cached_resolver;
 
-pub use self::error::{Error, Result};
+pub use self::cached_resolver::{CachedResolverConfig, MaybeCachedResolver};
+pub use crate::error::Result;
 use async_trait::async_trait;
-pub use identity_resolver::{
-    DidResolverConfig, HandleResolverConfig, IdentityResolver, IdentityResolverConfig,
-    ResolvedIdentity,
-};
 
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]

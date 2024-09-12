@@ -1,8 +1,8 @@
-use super::super::Result;
 use super::base_resolver::{BaseResolver, Method};
 use super::plc_resolver::{PlcDidResolver, PlcDidResolverConfig};
 use super::web_resolver::{WebDidResolver, WebDidResolverConfig};
 use super::DidResolver;
+use crate::error::Result;
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]

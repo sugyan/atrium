@@ -2,7 +2,6 @@ mod atproto;
 mod constants;
 mod error;
 mod http_client;
-pub mod identity;
 mod jose;
 mod keyset;
 mod oauth_client;

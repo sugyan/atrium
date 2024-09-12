@@ -1,5 +1,6 @@
-use super::super::{Error, Resolver, Result};
 use super::DidResolver;
+use crate::error::{Error, Result};
+use crate::Resolver;
 use async_trait::async_trait;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;

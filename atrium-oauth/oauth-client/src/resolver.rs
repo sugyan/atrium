@@ -1,22 +1,58 @@
 mod oauth_authorization_server_resolver;
 mod oauth_protected_resource_resolver;
 
+use self::oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
 use self::oauth_protected_resource_resolver::DefaultOAuthProtectedResourceResolver;
-use crate::identity::{
-    DidResolverConfig, Error, HandleResolverConfig, IdentityResolver, IdentityResolverConfig,
-    ResolvedIdentity, Resolver, Result,
-};
-use crate::types::OAuthAuthorizationServerMetadata;
+use crate::types::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
 use async_trait::async_trait;
+use atrium_identity::identity_resolver::{
+    DidResolverConfig, HandleResolverConfig, IdentityResolver, IdentityResolverConfig,
+    ResolvedIdentity,
+};
+use atrium_identity::resolver::{CachedResolverConfig, MaybeCachedResolver};
+use atrium_identity::{Error, Resolver, Result};
 use atrium_xrpc::HttpClient;
-use oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
-use oauth_protected_resource_resolver::OAuthProtectedResourceMetadata;
 use std::sync::Arc;
+use std::time::Duration;
+
+#[derive(Clone, Debug)]
+pub struct OAuthAuthorizationServerMetadataResolverConfig {
+    pub cache: Option<CachedResolverConfig>,
+}
+
+impl Default for OAuthAuthorizationServerMetadataResolverConfig {
+    fn default() -> Self {
+        Self {
+            cache: Some(CachedResolverConfig {
+                max_capacity: Some(100),
+                time_to_live: Some(Duration::from_secs(60)),
+            }),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct OAuthProtectedResourceMetadataResolverConfig {
+    pub cache: Option<CachedResolverConfig>,
+}
+
+impl Default for OAuthProtectedResourceMetadataResolverConfig {
+    fn default() -> Self {
+        Self {
+            cache: Some(CachedResolverConfig {
+                max_capacity: Some(100),
+                time_to_live: Some(Duration::from_secs(60)),
+            }),
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct OAuthResolverConfig {
     pub did: DidResolverConfig,
     pub handle: HandleResolverConfig,
+    pub authorization_server_metadata: OAuthAuthorizationServerMetadataResolverConfig,
+    pub protected_resource_metadata: OAuthProtectedResourceMetadataResolverConfig,
 }
 
 pub struct OAuthResolver<
@@ -28,8 +64,9 @@ pub struct OAuthResolver<
     ASR: Resolver<Input = String, Output = OAuthAuthorizationServerMetadata>,
 {
     identity_resolver: IdentityResolver<T>,
-    protected_resource_resolver: PRR,
-    authorization_server_resolver: ASR,
+    protected_resource_resolver: MaybeCachedResolver<PRR, String, OAuthProtectedResourceMetadata>,
+    authorization_server_resolver:
+        MaybeCachedResolver<ASR, String, OAuthAuthorizationServerMetadata>,
 }
 
 impl<T> OAuthResolver<T>
@@ -37,11 +74,14 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn new(config: OAuthResolverConfig, http_client: Arc<T>) -> Result<Self> {
-        // TODO: cached resolver?
-        let protected_resource_resolver =
-            DefaultOAuthProtectedResourceResolver::new(http_client.clone());
-        let authorization_server_resolver =
-            DefaultOAuthAuthorizationServerResolver::new(http_client.clone());
+        let protected_resource_resolver = MaybeCachedResolver::new(
+            DefaultOAuthProtectedResourceResolver::new(http_client.clone()),
+            config.authorization_server_metadata.cache,
+        );
+        let authorization_server_resolver = MaybeCachedResolver::new(
+            DefaultOAuthAuthorizationServerResolver::new(http_client.clone()),
+            config.protected_resource_metadata.cache,
+        );
         Ok(Self {
             identity_resolver: IdentityResolver::new(IdentityResolverConfig {
                 did: config.did,

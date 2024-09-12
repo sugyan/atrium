@@ -1,5 +1,6 @@
-use super::super::{Error, Resolver, Result};
 use super::HandleResolver;
+use crate::error::{Error, Result};
+use crate::Resolver;
 use async_trait::async_trait;
 use atrium_api::com::atproto::identity::resolve_handle;
 use atrium_api::types::string::{Did, Handle};

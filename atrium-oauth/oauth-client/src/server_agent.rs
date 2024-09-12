@@ -41,7 +41,7 @@ pub enum Error {
     #[error("http status: {0}, body: {1:?}")]
     HttpStatusWithBody(StatusCode, Value),
     #[error(transparent)]
-    Identity(#[from] crate::identity::Error),
+    Identity(#[from] atrium_identity::Error),
     #[error(transparent)]
     Keyset(#[from] crate::keyset::Error),
     #[error(transparent)]

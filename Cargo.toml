@@ -4,6 +4,7 @@ members = [
     "atrium-crypto",
     "atrium-xrpc",
     "atrium-xrpc-client",
+    "atrium-oauth/identity",
     "atrium-oauth/oauth-client",
     "bsky-cli",
     "bsky-sdk",
@@ -25,6 +26,7 @@ keywords = ["atproto", "bluesky"]
 [workspace.dependencies]
 # Intra-workspace dependencies
 atrium-api = { version = "0.24.2", path = "atrium-api", default-features = false }
+atrium-identity = { version = "0.1.0", path = "atrium-oauth/identity" }
 atrium-xrpc = { version = "0.11.3", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.6", path = "atrium-xrpc-client" }
 bsky-sdk = { version = "0.1.7", path = "bsky-sdk" }
@@ -64,6 +66,7 @@ futures = { version = "0.3.30", default-features = false, features = ["alloc"] }
 hickory-proto = { version = "0.24.1", default-features = false }
 hickory-resolver = "0.24.1"
 http = "1.1.0"
+moka = "0.12.8"
 tokio = { version = "1.39", default-features = false }
 
 # HTTP client integrations

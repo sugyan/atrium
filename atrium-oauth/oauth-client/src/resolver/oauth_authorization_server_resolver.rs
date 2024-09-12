@@ -1,7 +1,6 @@
-use super::Resolver;
-use crate::identity::{Error, Result};
 use crate::types::OAuthAuthorizationServerMetadata;
 use async_trait::async_trait;
+use atrium_identity::{Error, Resolver, Result};
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
 use atrium_xrpc::HttpClient;

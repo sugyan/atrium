@@ -1,0 +1,34 @@
+[package]
+name = "atrium-identity"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "Resolver library for decentralized identities in atproto using DIDs and handles"
+documentation = "https://docs.rs/atrium-identity"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords = ["atproto", "bluesky", "identity"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait.workspace = true
+atrium-api = { workspace = true, default-features = false }
+atrium-xrpc.workspace = true
+futures.workspace = true
+hickory-proto = { workspace = true, optional = true }
+moka = { workspace = true, features = ["future"] }
+serde = { workspace = true, features = ["derive"] }
+serde_html_form.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, default-features = false, features = ["sync"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+
+[features]
+default = []
+doh-handle-resolver = ["dep:hickory-proto"]

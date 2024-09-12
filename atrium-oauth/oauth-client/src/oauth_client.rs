@@ -1,6 +1,5 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
-use crate::identity::Resolver;
 use crate::keyset::Keyset;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
@@ -12,6 +11,7 @@ use crate::types::{
     TryIntoOAuthClientMetadata,
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
+use atrium_identity::Resolver;
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -226,6 +226,7 @@ where
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
+
         let Some(state) = self
             .state_store
             .get(&state_key)

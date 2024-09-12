@@ -1,6 +1,5 @@
-use atrium_oauth_client::identity::handle::{DnsTxtResolver, HandleResolverImpl};
-use atrium_oauth_client::identity::DidResolverConfig;
-use atrium_oauth_client::identity::HandleResolverConfig;
+use atrium_identity::handle::{DnsTxtResolver, HandleResolverImpl};
+use atrium_identity::identity_resolver::{DidResolverConfig, HandleResolverConfig};
 use atrium_oauth_client::store::state::MemoryStateStore;
 use atrium_oauth_client::{
     AtprotoLocalhostClientMetadata, AuthorizeOptions, OAuthClient, OAuthClientConfig,
@@ -51,7 +50,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             did: DidResolverConfig::default(),
             handle: HandleResolverConfig {
                 r#impl: HandleResolverImpl::Atproto(Arc::new(HickoryDnsTxtResolver::default())),
+                cache: Default::default(),
             },
+            authorization_server_metadata: Default::default(),
+            protected_resource_metadata: Default::default(),
         },
         state_store: MemoryStateStore::default(),
     };

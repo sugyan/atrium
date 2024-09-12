@@ -1,7 +1,8 @@
-use super::super::{Resolver, Result};
 use super::dns_resolver::{DnsHandleResolver, DnsHandleResolverConfig, DnsTxtResolver};
 use super::well_known_resolver::{WellKnownHandleResolver, WellKnownHandleResolverConfig};
 use super::HandleResolver;
+use crate::error::Result;
+use crate::Resolver;
 use async_trait::async_trait;
 use atrium_api::types::string::{Did, Handle};
 use atrium_xrpc::HttpClient;

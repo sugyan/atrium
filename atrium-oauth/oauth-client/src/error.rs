@@ -7,7 +7,7 @@ pub enum Error {
     #[error(transparent)]
     Keyset(#[from] crate::keyset::Error),
     #[error(transparent)]
-    Identity(#[from] crate::identity::Error),
+    Identity(#[from] atrium_identity::Error),
     #[error(transparent)]
     ServerAgent(#[from] crate::server_agent::Error),
     #[error("authorize error: {0}")]
