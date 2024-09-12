@@ -1,0 +1,27 @@
+[package]
+name = "atrium-xrpc-wss-client"
+version = "0.1.0"
+authors = ["Elaina <17bestradiol@proton.me>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "XRPC Websocket Client library for AT Protocol (Bluesky)"
+documentation = "https://docs.rs/atrium-xrpc-wss-client"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+atrium-xrpc.workspace = true
+atrium-xrpc-wss.workspace = true
+futures.workspace = true
+ipld-core.workspace = true
+async-stream.workspace = true
+tokio-tungstenite.workspace = true
+serde_ipld_dagcbor.workspace = true
+rs-car.workspace = true
+tokio.workspace = true
+bon.workspace = true
+serde_html_form.workspace = true
+serde.workspace = true
+thiserror.workspace = true
