@@ -1,5 +1,5 @@
 mod client;
-pub use client::{Error, XrpcWssClient};
+pub use client::{DefaultClient, Error};
 
 pub mod subscriptions;
 
