@@ -1,11 +1,11 @@
 [package]
-name = "atrium-xrpc-wss"
+name = "atrium-streams"
 version = "0.1.0"
 authors = ["Elaina <17bestradiol@proton.me>"]
 edition.workspace = true
 rust-version.workspace = true
-description = "XRPC Websocket library for AT Protocol (Bluesky)"
-documentation = "https://docs.rs/atrium-xrpc-wss"
+description = "Event Streams library for AT Protocol (Bluesky)"
+documentation = "https://docs.rs/atrium-streams"
 readme = "README.md"
 repository.workspace = true
 license.workspace = true

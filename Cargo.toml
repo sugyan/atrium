@@ -4,8 +4,8 @@ members = [
     "atrium-crypto",
     "atrium-xrpc",
     "atrium-xrpc-client",
-    "atrium-xrpc-wss",
-    "atrium-xrpc-wss-client",
+    "atrium-streams",
+    "atrium-streams-client",
     "bsky-cli",
     "bsky-sdk",
 ]
@@ -28,8 +28,8 @@ keywords = ["atproto", "bluesky"]
 atrium-api = { version = "0.24.2", path = "atrium-api" }
 atrium-xrpc = { version = "0.11.3", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.6", path = "atrium-xrpc-client" }
-atrium-xrpc-wss = { version = "0.1.0", path = "atrium-xrpc-wss" }
-atrium-xrpc-wss-client = { version = "0.1.0", path = "atrium-xrpc-wss-client" }
+atrium-streams = { version = "0.1.0", path = "atrium-streams" }
+atrium-streams-client = { version = "0.1.0", path = "atrium-streams-client" }
 bsky-sdk = { version = "0.1.8", path = "bsky-sdk" }
 
 # async in traits

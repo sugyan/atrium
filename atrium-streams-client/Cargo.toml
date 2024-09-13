@@ -1,11 +1,11 @@
 [package]
-name = "atrium-xrpc-wss-client"
+name = "atrium-streams-client"
 version = "0.1.0"
 authors = ["Elaina <17bestradiol@proton.me>"]
 edition.workspace = true
 rust-version.workspace = true
-description = "XRPC Websocket Client library for AT Protocol (Bluesky)"
-documentation = "https://docs.rs/atrium-xrpc-wss-client"
+description = "Event Streams Client library for AT Protocol (Bluesky)"
+documentation = "https://docs.rs/atrium-streams-client"
 readme = "README.md"
 repository.workspace = true
 license.workspace = true
@@ -13,7 +13,7 @@ keywords.workspace = true
 
 [dependencies]
 atrium-xrpc.workspace = true
-atrium-xrpc-wss.workspace = true
+atrium-streams.workspace = true
 futures.workspace = true
 ipld-core.workspace = true
 async-stream.workspace = true

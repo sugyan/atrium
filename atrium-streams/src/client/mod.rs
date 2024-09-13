@@ -6,7 +6,7 @@ use futures::Stream;
 pub use xprc_uri::XrpcUri;
 
 /// An abstract WSS client.
-pub trait XrpcWssClient<ConnectionPayload, ConnectionError> {
+pub trait EventStreamClient<ConnectionPayload, ConnectionError> {
     /// Send an XRPC request.
     ///
     /// # Returns

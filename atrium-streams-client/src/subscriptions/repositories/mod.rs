@@ -8,7 +8,7 @@ use bon::bon;
 use futures::{Stream, StreamExt};
 use tokio_tungstenite::tungstenite::Message;
 
-use atrium_xrpc_wss::{
+use atrium_streams::{
     atrium_api::com::atproto::sync::subscribe_repos,
     subscriptions::{
         frames::{self, Frame},

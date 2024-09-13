@@ -201,6 +201,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "atrium-streams"
+version = "0.1.0"
+dependencies = [
+ "atrium-api",
+ "cbor4ii",
+ "futures",
+ "ipld-core",
+ "serde",
+ "serde_ipld_dagcbor",
+ "thiserror",
+]
+
+[[package]]
+name = "atrium-streams-client"
+version = "0.1.0"
+dependencies = [
+ "async-stream",
+ "atrium-streams",
+ "atrium-xrpc",
+ "bon",
+ "futures",
+ "ipld-core",
+ "rs-car",
+ "serde",
+ "serde_html_form",
+ "serde_ipld_dagcbor",
+ "thiserror",
+ "tokio",
+ "tokio-tungstenite",
+]
+
+[[package]]
 name = "atrium-xrpc"
 version = "0.11.3"
 dependencies = [
@@ -229,38 +261,6 @@ dependencies = [
  "serde",
  "tokio",
  "wasm-bindgen-test",
-]
-
-[[package]]
-name = "atrium-xrpc-wss"
-version = "0.1.0"
-dependencies = [
- "atrium-api",
- "cbor4ii",
- "futures",
- "ipld-core",
- "serde",
- "serde_ipld_dagcbor",
- "thiserror",
-]
-
-[[package]]
-name = "atrium-xrpc-wss-client"
-version = "0.1.0"
-dependencies = [
- "async-stream",
- "atrium-xrpc",
- "atrium-xrpc-wss",
- "bon",
- "futures",
- "ipld-core",
- "rs-car",
- "serde",
- "serde_html_form",
- "serde_ipld_dagcbor",
- "thiserror",
- "tokio",
- "tokio-tungstenite",
 ]
 
 [[package]]
