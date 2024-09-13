@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `atrium_api::types::string::Datetime::as_str`
+
 ## [0.24.3](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.2...atrium-api-v0.24.3) - 2024-09-13
 
 ### Added
