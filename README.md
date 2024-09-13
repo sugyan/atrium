@@ -31,13 +31,13 @@ Definitions for XRPC request/response, and their associated errors.
 
 A library provides clients that implement the `XrpcClient` defined in [atrium-xrpc](./atrium-xrpc/)
 
-### [`atrium-xrpc-wss`](./atrium-xrpc-wss/)
+### [`atrium-streams`](./atrium-streams/)
 
-Definitions for traits, types and utilities for dealing with WebSocket XRPC subscriptions. (WIP)
+Definitions for traits, types and utilities for dealing with event stream subscriptions. (WIP)
 
-### [`atrium-xrpc-wss-client`](./atrium-xrpc-wss-client/)
+### [`atrium-streams-client`](./atrium-streams-client/)
 
-A library that provides default implementations of the `XrpcWssClient`, `Handlers` and `Subscription` defined in [atrium-xrpc-wss](./atrium-xrpc-wss/) for interacting with the variety of subscriptions in ATProto (WIP)
+A library that provides default implementations of the `EventStreamClient`, `Handlers` and `Subscription` defined in [atrium-streams](./atrium-streams/) for interacting with the variety of subscriptions in ATProto (WIP)
 
 ### [`bsky-sdk`](./bsky-sdk/)
 

@@ -1,5 +1,5 @@
 //! This file provides a client for the `ATProto` XRPC over WSS protocol.
-//! It implements the [`WssClient`] trait for the [`XrpcWssClient`] struct.
+//! It implements the [`EventStreamClient`] trait for the [`WssClient`] struct.
 
 use std::str::FromStr;
 
@@ -18,7 +18,7 @@ use tokio_tungstenite::{
     MaybeTlsStream, WebSocketStream,
 };
 
-use atrium_xrpc_wss::client::{XrpcUri, XrpcWssClient};
+use atrium_streams::client::{EventStreamClient, XrpcUri};
 
 /// An enum of possible error kinds for this crate.
 #[derive(thiserror::Error, Debug)]
@@ -32,14 +32,14 @@ pub enum Error {
 }
 
 #[derive(Builder)]
-pub struct DefaultClient<'a, P: Serialize> {
+pub struct WssClient<'a, P: Serialize> {
     xrpc_uri: XrpcUri<'a>,
     params: Option<P>,
 }
 
 type StreamKind = WebSocketStream<MaybeTlsStream<TcpStream>>;
-impl<P: Serialize + Send + Sync> XrpcWssClient<<StreamKind as Stream>::Item, Error>
-    for DefaultClient<'_, P>
+impl<P: Serialize + Send + Sync> EventStreamClient<<StreamKind as Stream>::Item, Error>
+    for WssClient<'_, P>
 {
     async fn connect(&self) -> Result<impl Stream<Item = <StreamKind as Stream>::Item>, Error> {
         let Self { xrpc_uri, params } = self;

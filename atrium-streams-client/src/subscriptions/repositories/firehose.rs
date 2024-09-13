@@ -4,7 +4,7 @@ use futures::io::Cursor as FutCursor;
 use ipld_core::cid::Cid;
 
 use super::type_defs::{self, Operation};
-use atrium_xrpc_wss::{
+use atrium_streams::{
     atrium_api::{
         com::atproto::sync::subscribe_repos::{self, CommitData, InfoData, RepoOpData},
         record::KnownRecord,

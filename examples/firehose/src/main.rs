@@ -1,8 +1,8 @@
 use anyhow::bail;
-use atrium_xrpc_wss_client::{
-    atrium_xrpc_wss::{
+use atrium_streams_client::{
+    atrium_streams::{
         atrium_api::com::atproto::sync::subscribe_repos::{self, InfoData},
-        client::{XrpcUri, XrpcWssClient},
+        client::{XrpcUri, EventStreamClient},
         subscriptions::{
             handlers::repositories::ProcessedData, ProcessedPayload, SubscriptionError,
         },
@@ -12,7 +12,7 @@ use atrium_xrpc_wss_client::{
         type_defs::{Operation, ProcessedCommitData},
         Repositories,
     },
-    DefaultClient, Error,
+    WssClient, Error,
 };
 use futures::StreamExt;
 use tokio_tungstenite::tungstenite;
@@ -40,7 +40,7 @@ async fn connect(
     };
 
     // Build a new XRPC WSS Client.
-    let client = DefaultClient::builder()
+    let client = WssClient::builder()
         .xrpc_uri(xrpc_uri.clone())
         .params(params)
         .build();
@@ -63,7 +63,7 @@ async fn connect(
     };
 
     // Builds a new subscription from the connection, using handler provided
-    // by atrium-xrpc-wss-client, the `Firehose`.
+    // by atrium-streams-client, the `Firehose`.
     let mut subscription = Repositories::builder()
         .connection(connection)
         .handler(Firehose)

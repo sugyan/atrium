@@ -1,6 +1,6 @@
 //! This file defines the types used in the Firehose handler.
 
-use atrium_xrpc_wss::atrium_api::{
+use atrium_streams::atrium_api::{
     record::KnownRecord,
     types::{
         string::{Datetime, Did},
