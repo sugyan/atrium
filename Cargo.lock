@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-api"
-version = "0.24.2"
+version = "0.24.3"
 dependencies = [
  "async-trait",
  "atrium-xrpc",
@@ -280,7 +280,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "async-trait",
