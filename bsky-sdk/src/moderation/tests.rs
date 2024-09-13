@@ -77,6 +77,7 @@ fn post_view(author: &ProfileViewBasic, text: &str, labels: Option<Vec<Label>>) 
         indexed_at: Datetime::now(),
         labels,
         like_count: None,
+        quote_count: None,
         record: atrium_api::app::bsky::feed::post::Record::from(
             atrium_api::app::bsky::feed::post::RecordData {
                 created_at: Datetime::now(),

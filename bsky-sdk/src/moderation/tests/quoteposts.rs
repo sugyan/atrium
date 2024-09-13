@@ -28,6 +28,7 @@ fn embed_record_view(
                     indexed_at: Datetime::now(),
                     labels,
                     like_count: None,
+                    quote_count: None,
                     reply_count: None,
                     repost_count: None,
                     uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
