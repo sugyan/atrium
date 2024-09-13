@@ -1,0 +1,23 @@
+name: Identity
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: |
+          cargo build -p atrium-identity --verbose
+      - name: Run tests
+        run: |
+          cargo test -p atrium-identity --lib
+          cargo test -p atrium-identity --lib --no-default-features --features doh-handle-resolver

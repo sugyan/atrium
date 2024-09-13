@@ -1,10 +1,9 @@
 use super::DnsTxtResolver;
 use async_trait::async_trait;
-use atrium_xrpc::http::{uri::InvalidUri, Uri};
+use atrium_xrpc::http::{uri::InvalidUri, StatusCode, Uri};
 use atrium_xrpc::HttpClient;
 use hickory_proto::op::{Message, Query};
 use hickory_proto::rr::{RData, RecordType};
-use reqwest::StatusCode;
 use std::sync::Arc;
 use thiserror::Error;
 
