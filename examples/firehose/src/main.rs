@@ -62,11 +62,20 @@ async fn connect(
         Err(e) => bail!(e),
     };
 
+    // Builds the subscription handler
+    let firehose = Firehose::builder()
+        // You can enable or disable specific events, and every event is disabled by default.
+        // That way they don't get unnecessarily processed and you save up resources.
+        // Enable only the ones you plan to use.
+        .enable_commit(true)
+        .enable_info(true)
+        .build();
+
     // Builds a new subscription from the connection, using handler provided
     // by atrium-streams-client, the `Firehose`.
     let mut subscription = Repositories::builder()
         .connection(connection)
-        .handler(Firehose)
+        .handler(firehose)
         .build();
 
     // Receive payloads by calling `StreamExt::next()`.
