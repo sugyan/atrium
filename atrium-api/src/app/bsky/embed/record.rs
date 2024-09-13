@@ -23,6 +23,13 @@ pub struct ViewBlockedData {
 pub type ViewBlocked = crate::types::Object<ViewBlockedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct ViewDetachedData {
+    pub detached: bool,
+    pub uri: String,
+}
+pub type ViewDetached = crate::types::Object<ViewDetachedData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct ViewNotFoundData {
     pub not_found: bool,
     pub uri: String,
@@ -41,6 +48,8 @@ pub struct ViewRecordData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub quote_count: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repost_count: Option<i64>,
@@ -54,6 +63,8 @@ pub type ViewRecord = crate::types::Object<ViewRecordData>;
 pub enum ViewRecordEmbedsItem {
     #[serde(rename = "app.bsky.embed.images#view")]
     AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
+    #[serde(rename = "app.bsky.embed.video#view")]
+    AppBskyEmbedVideoView(Box<crate::app::bsky::embed::video::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
     AppBskyEmbedExternalView(Box<crate::app::bsky::embed::external::View>),
     #[serde(rename = "app.bsky.embed.record#view")]
@@ -72,6 +83,8 @@ pub enum ViewRecordRefs {
     ViewNotFound(Box<ViewNotFound>),
     #[serde(rename = "app.bsky.embed.record#viewBlocked")]
     ViewBlocked(Box<ViewBlocked>),
+    #[serde(rename = "app.bsky.embed.record#viewDetached")]
+    ViewDetached(Box<ViewDetached>),
     #[serde(rename = "app.bsky.feed.defs#generatorView")]
     AppBskyFeedDefsGeneratorView(Box<crate::app::bsky::feed::defs::GeneratorView>),
     #[serde(rename = "app.bsky.graph.defs#listView")]

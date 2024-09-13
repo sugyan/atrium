@@ -6,6 +6,9 @@ pub struct RecordData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allow: Option<Vec<crate::types::Union<RecordAllowItem>>>,
     pub created_at: crate::types::string::Datetime,
+    ///List of hidden reply URIs.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hidden_replies: Option<Vec<String>>,
     ///Reference (AT-URI) to the post record.
     pub post: String,
 }

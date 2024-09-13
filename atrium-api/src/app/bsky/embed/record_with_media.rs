@@ -20,6 +20,8 @@ pub type View = crate::types::Object<ViewData>;
 pub enum MainMediaRefs {
     #[serde(rename = "app.bsky.embed.images")]
     AppBskyEmbedImagesMain(Box<crate::app::bsky::embed::images::Main>),
+    #[serde(rename = "app.bsky.embed.video")]
+    AppBskyEmbedVideoMain(Box<crate::app::bsky::embed::video::Main>),
     #[serde(rename = "app.bsky.embed.external")]
     AppBskyEmbedExternalMain(Box<crate::app::bsky::embed::external::Main>),
 }
@@ -28,6 +30,8 @@ pub enum MainMediaRefs {
 pub enum ViewMediaRefs {
     #[serde(rename = "app.bsky.embed.images#view")]
     AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
+    #[serde(rename = "app.bsky.embed.video#view")]
+    AppBskyEmbedVideoView(Box<crate::app::bsky::embed::video::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
     AppBskyEmbedExternalView(Box<crate::app::bsky::embed::external::View>),
 }

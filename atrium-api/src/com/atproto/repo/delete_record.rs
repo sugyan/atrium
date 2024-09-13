@@ -19,6 +19,13 @@ pub struct InputData {
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct OutputData {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commit: Option<crate::com::atproto::repo::defs::CommitMeta>,
+}
+pub type Output = crate::types::Object<OutputData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
 pub enum Error {
     InvalidSwap(Option<String>),

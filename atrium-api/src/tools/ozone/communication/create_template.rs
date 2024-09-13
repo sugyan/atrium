@@ -9,6 +9,9 @@ pub struct InputData {
     ///DID of the user who is creating the template.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_by: Option<crate::types::string::Did>,
+    ///Message language.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lang: Option<crate::types::string::Language>,
     ///Name of the template.
     pub name: String,
     ///Subject of the message, used in emails.
@@ -18,9 +21,19 @@ pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::communication::defs::TemplateView;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {}
+pub enum Error {
+    DuplicateTemplateName(Option<String>),
+}
 impl std::fmt::Display for Error {
     fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::DuplicateTemplateName(msg) => {
+                write!(_f, "DuplicateTemplateName")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
         Ok(())
     }
 }
