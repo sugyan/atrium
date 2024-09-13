@@ -77,6 +77,10 @@ pub enum InputEventRefs {
     ToolsOzoneModerationDefsModEventReverseTakedown(
         Box<crate::tools::ozone::moderation::defs::ModEventReverseTakedown>,
     ),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventResolveAppeal")]
+    ToolsOzoneModerationDefsModEventResolveAppeal(
+        Box<crate::tools::ozone::moderation::defs::ModEventResolveAppeal>,
+    ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventEmail")]
     ToolsOzoneModerationDefsModEventEmail(
         Box<crate::tools::ozone::moderation::defs::ModEventEmail>,

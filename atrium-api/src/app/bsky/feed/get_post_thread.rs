@@ -18,6 +18,8 @@ pub type Parameters = crate::types::Object<ParametersData>;
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub thread: crate::types::Union<OutputThreadRefs>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub threadgate: Option<crate::app::bsky::feed::defs::ThreadgateView>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

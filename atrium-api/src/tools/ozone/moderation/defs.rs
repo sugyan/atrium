@@ -143,6 +143,9 @@ pub type ModEventTag = crate::types::Object<ModEventTagData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventTakedownData {
+    ///If true, all other reports on content authored by this account will be resolved (acknowledged).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub acknowledge_account_subjects: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
     ///Indicates how long the takedown should be in effect before automatically expiring.

@@ -1,3 +1,4 @@
+//! Error types for the Bsky SDK.
 use atrium_api::xrpc::error::XrpcErrorKind;
 use atrium_api::xrpc::http::StatusCode;
 use atrium_api::xrpc::Error as XrpcError;
@@ -23,6 +24,7 @@ pub enum Error {
     Moderation(#[from] crate::moderation::Error),
 }
 
+/// Generic error type for XRPC errors.
 #[derive(Error, Debug)]
 pub enum GenericXrpcError {
     Response {

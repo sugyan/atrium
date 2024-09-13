@@ -14,11 +14,13 @@ pub mod get_likes;
 pub mod get_list_feed;
 pub mod get_post_thread;
 pub mod get_posts;
+pub mod get_quotes;
 pub mod get_reposted_by;
 pub mod get_suggested_feeds;
 pub mod get_timeline;
 pub mod like;
 pub mod post;
+pub mod postgate;
 pub mod repost;
 pub mod search_posts;
 pub mod send_interactions;
@@ -40,6 +42,12 @@ pub struct Post;
 impl crate::types::Collection for Post {
     const NSID: &'static str = "app.bsky.feed.post";
     type Record = post::Record;
+}
+#[derive(Debug)]
+pub struct Postgate;
+impl crate::types::Collection for Postgate {
+    const NSID: &'static str = "app.bsky.feed.postgate";
+    type Record = postgate::Record;
 }
 #[derive(Debug)]
 pub struct Repost;

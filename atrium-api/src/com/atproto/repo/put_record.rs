@@ -18,7 +18,7 @@ pub struct InputData {
     ///Compare and swap with the previous record by CID. WARNING: nullable and optional field; may cause problems with golang implementation
     #[serde(skip_serializing_if = "Option::is_none")]
     pub swap_record: Option<crate::types::string::Cid>,
-    ///Can be set to 'false' to skip Lexicon schema validation of record data.
+    ///Can be set to 'false' to skip Lexicon schema validation of record data, 'true' to require it, or leave unset to validate only for known Lexicons.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub validate: Option<bool>,
 }
@@ -27,7 +27,11 @@ pub type Input = crate::types::Object<InputData>;
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub cid: crate::types::string::Cid,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commit: Option<crate::com::atproto::repo::defs::CommitMeta>,
     pub uri: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub validation_status: Option<String>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

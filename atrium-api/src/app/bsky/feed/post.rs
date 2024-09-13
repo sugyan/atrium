@@ -58,6 +58,8 @@ pub type TextSlice = crate::types::Object<TextSliceData>;
 pub enum RecordEmbedRefs {
     #[serde(rename = "app.bsky.embed.images")]
     AppBskyEmbedImagesMain(Box<crate::app::bsky::embed::images::Main>),
+    #[serde(rename = "app.bsky.embed.video")]
+    AppBskyEmbedVideoMain(Box<crate::app::bsky::embed::video::Main>),
     #[serde(rename = "app.bsky.embed.external")]
     AppBskyEmbedExternalMain(Box<crate::app::bsky::embed::external::Main>),
     #[serde(rename = "app.bsky.embed.record")]
