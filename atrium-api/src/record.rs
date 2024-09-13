@@ -21,6 +21,10 @@ pub enum KnownRecord {
     AppBskyFeedPost(Box<crate::app::bsky::feed::post::Record>),
     #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
     #[cfg(feature = "namespace-appbsky")]
+    #[serde(rename = "app.bsky.feed.postgate")]
+    AppBskyFeedPostgate(Box<crate::app::bsky::feed::postgate::Record>),
+    #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+    #[cfg(feature = "namespace-appbsky")]
     #[serde(rename = "app.bsky.feed.repost")]
     AppBskyFeedRepost(Box<crate::app::bsky::feed::repost::Record>),
     #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
@@ -114,6 +118,20 @@ impl From<crate::app::bsky::feed::post::Record> for KnownRecord {
 impl From<crate::app::bsky::feed::post::RecordData> for KnownRecord {
     fn from(record_data: crate::app::bsky::feed::post::RecordData) -> Self {
         KnownRecord::AppBskyFeedPost(Box::new(record_data.into()))
+    }
+}
+#[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+#[cfg(feature = "namespace-appbsky")]
+impl From<crate::app::bsky::feed::postgate::Record> for KnownRecord {
+    fn from(record: crate::app::bsky::feed::postgate::Record) -> Self {
+        KnownRecord::AppBskyFeedPostgate(Box::new(record))
+    }
+}
+#[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
+#[cfg(feature = "namespace-appbsky")]
+impl From<crate::app::bsky::feed::postgate::RecordData> for KnownRecord {
+    fn from(record_data: crate::app::bsky::feed::postgate::RecordData) -> Self {
+        KnownRecord::AppBskyFeedPostgate(Box::new(record_data.into()))
     }
 }
 #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]

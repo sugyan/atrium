@@ -16,6 +16,9 @@ pub struct ParametersData {
     pub exclude_tags: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ignore_subjects: Option<Vec<String>>,
+    ///All subjects belonging to the account specified in the 'subject' param will be returned.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub include_all_user_records: Option<bool>,
     ///By default, we don't include muted subjects in the results. Set this to true to include them.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_muted: Option<bool>,
@@ -46,6 +49,7 @@ pub struct ParametersData {
     pub sort_direction: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sort_field: Option<String>,
+    ///The subject to get the status for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

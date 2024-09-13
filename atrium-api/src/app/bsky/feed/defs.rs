@@ -112,6 +112,8 @@ pub struct PostViewData {
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like_count: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quote_count: Option<i64>,
     pub record: crate::types::Unknown,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_count: Option<i64>,
@@ -190,6 +192,8 @@ pub type ThreadgateView = crate::types::Object<ThreadgateViewData>;
 #[serde(rename_all = "camelCase")]
 pub struct ViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub embedding_disabled: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_disabled: Option<bool>,
@@ -210,6 +214,8 @@ pub enum FeedViewPostReasonRefs {
 pub enum PostViewEmbedRefs {
     #[serde(rename = "app.bsky.embed.images#view")]
     AppBskyEmbedImagesView(Box<crate::app::bsky::embed::images::View>),
+    #[serde(rename = "app.bsky.embed.video#view")]
+    AppBskyEmbedVideoView(Box<crate::app::bsky::embed::video::View>),
     #[serde(rename = "app.bsky.embed.external#view")]
     AppBskyEmbedExternalView(Box<crate::app::bsky::embed::external::View>),
     #[serde(rename = "app.bsky.embed.record#view")]
