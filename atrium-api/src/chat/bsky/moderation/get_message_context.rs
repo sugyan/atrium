@@ -34,7 +34,5 @@ pub enum OutputMessagesItem {
     #[serde(rename = "chat.bsky.convo.defs#messageView")]
     ChatBskyConvoDefsMessageView(Box<crate::chat::bsky::convo::defs::MessageView>),
     #[serde(rename = "chat.bsky.convo.defs#deletedMessageView")]
-    ChatBskyConvoDefsDeletedMessageView(
-        Box<crate::chat::bsky::convo::defs::DeletedMessageView>,
-    ),
+    ChatBskyConvoDefsDeletedMessageView(Box<crate::chat::bsky::convo::defs::DeletedMessageView>),
 }

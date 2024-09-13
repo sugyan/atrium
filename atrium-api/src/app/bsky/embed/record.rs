@@ -70,9 +70,7 @@ pub enum ViewRecordEmbedsItem {
     #[serde(rename = "app.bsky.embed.record#view")]
     AppBskyEmbedRecordView(Box<crate::app::bsky::embed::record::View>),
     #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
-    AppBskyEmbedRecordWithMediaView(
-        Box<crate::app::bsky::embed::record_with_media::View>,
-    ),
+    AppBskyEmbedRecordWithMediaView(Box<crate::app::bsky::embed::record_with_media::View>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
@@ -92,7 +90,5 @@ pub enum ViewRecordRefs {
     #[serde(rename = "app.bsky.labeler.defs#labelerView")]
     AppBskyLabelerDefsLabelerView(Box<crate::app::bsky::labeler::defs::LabelerView>),
     #[serde(rename = "app.bsky.graph.defs#starterPackViewBasic")]
-    AppBskyGraphDefsStarterPackViewBasic(
-        Box<crate::app::bsky::graph::defs::StarterPackViewBasic>,
-    ),
+    AppBskyGraphDefsStarterPackViewBasic(Box<crate::app::bsky::graph::defs::StarterPackViewBasic>),
 }

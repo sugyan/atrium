@@ -62,9 +62,7 @@ pub struct LabelValueDefinitionStringsData {
     ///A short human-readable name for the label.
     pub name: String,
 }
-pub type LabelValueDefinitionStrings = crate::types::Object<
-    LabelValueDefinitionStringsData,
->;
+pub type LabelValueDefinitionStrings = crate::types::Object<LabelValueDefinitionStringsData>;
 ///Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

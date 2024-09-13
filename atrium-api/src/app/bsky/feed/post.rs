@@ -65,9 +65,7 @@ pub enum RecordEmbedRefs {
     #[serde(rename = "app.bsky.embed.record")]
     AppBskyEmbedRecordMain(Box<crate::app::bsky::embed::record::Main>),
     #[serde(rename = "app.bsky.embed.recordWithMedia")]
-    AppBskyEmbedRecordWithMediaMain(
-        Box<crate::app::bsky::embed::record_with_media::Main>,
-    ),
+    AppBskyEmbedRecordWithMediaMain(Box<crate::app::bsky::embed::record_with_media::Main>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
