@@ -19,6 +19,9 @@ pub type BskyAppProgressGuide = crate::types::Object<BskyAppProgressGuideData>;
 pub struct BskyAppStatePrefData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub active_progress_guide: Option<BskyAppProgressGuide>,
+    ///Storage for NUXs the user has encountered.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nuxs: Option<Vec<crate::app::bsky::actor::defs::Nux>>,
     ///An array of tokens which identify nudges (modals, popups, tours, highlight dots) that should be shown to the user.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub queued_nudges: Option<Vec<String>>,
@@ -116,6 +119,20 @@ pub struct MutedWordsPrefData {
     pub items: Vec<crate::app::bsky::actor::defs::MutedWord>,
 }
 pub type MutedWordsPref = crate::types::Object<MutedWordsPrefData>;
+///A new user experiences (NUX) storage object
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct NuxData {
+    pub completed: bool,
+    ///Arbitrary data for the NUX. The structure is defined by the NUX itself. Limited to 300 characters.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data: Option<String>,
+    ///The date and time at which the NUX will expire and should be considered completed.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<crate::types::string::Datetime>,
+    pub id: String,
+}
+pub type Nux = crate::types::Object<NuxData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct PersonalDetailsPrefData {

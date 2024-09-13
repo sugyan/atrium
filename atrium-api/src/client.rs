@@ -50,6 +50,7 @@ pub mod app {
             pub labeler: labeler::Service<T>,
             pub notification: notification::Service<T>,
             pub unspecced: unspecced::Service<T>,
+            pub video: video::Service<T>,
             pub(crate) _phantom: core::marker::PhantomData<T>,
         }
         pub mod actor {
@@ -98,6 +99,15 @@ pub mod app {
             }
         }
         pub mod unspecced {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
+            }
+        }
+        pub mod video {
             pub struct Service<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -361,6 +371,7 @@ where
                 std::sync::Arc::clone(&xrpc),
             ),
             unspecced: app::bsky::unspecced::Service::new(std::sync::Arc::clone(&xrpc)),
+            video: app::bsky::video::Service::new(std::sync::Arc::clone(&xrpc)),
             _phantom: core::marker::PhantomData,
         }
     }
@@ -656,7 +667,7 @@ where
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
-    ///Get a list of posts liked by an actor. Does not require auth.
+    ///Get a list of posts liked by an actor. Requires auth, actor must be the requesting account.
     pub async fn get_actor_likes(
         &self,
         params: crate::app::bsky::feed::get_actor_likes::Parameters,
@@ -945,6 +956,36 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
                     nsid: crate::app::bsky::feed::get_posts::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get a list of quotes for a given post.
+    pub async fn get_quotes(
+        &self,
+        params: crate::app::bsky::feed::get_quotes::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::feed::get_quotes::Output,
+        crate::app::bsky::feed::get_quotes::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_quotes::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -2063,6 +2104,108 @@ where
                     parameters: Some(params),
                     input: None,
                     encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+#[cfg(feature = "namespace-appbsky")]
+impl<T> app::bsky::video::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    #[allow(unused_variables)]
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
+    }
+    ///Get status details for a video processing job.
+    pub async fn get_job_status(
+        &self,
+        params: crate::app::bsky::video::get_job_status::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::video::get_job_status::Output,
+        crate::app::bsky::video::get_job_status::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::video::get_job_status::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get video upload limits for the authenticated user.
+    pub async fn get_upload_limits(
+        &self,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::video::get_upload_limits::Output,
+        crate::app::bsky::video::get_upload_limits::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::video::get_upload_limits::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Upload a video to be processed then stored on the PDS.
+    pub async fn upload_video(
+        &self,
+        input: Vec<u8>,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::video::upload_video::Output,
+        crate::app::bsky::video::upload_video::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                Vec<u8>,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::video::upload_video::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
+                    encoding: Some(String::from("video/mp4")),
                 },
             )
             .await?;
@@ -3388,13 +3531,16 @@ where
     pub async fn apply_writes(
         &self,
         input: crate::com::atproto::repo::apply_writes::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::repo::apply_writes::Error> {
+    ) -> atrium_xrpc::Result<
+        crate::com::atproto::repo::apply_writes::Output,
+        crate::com::atproto::repo::apply_writes::Error,
+    > {
         let response = self
             .xrpc
             .send_xrpc::<
                 (),
                 _,
-                (),
+                _,
                 _,
             >(
                 &atrium_xrpc::XrpcRequest {
@@ -3407,7 +3553,7 @@ where
             )
             .await?;
         match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
@@ -3445,13 +3591,16 @@ where
     pub async fn delete_record(
         &self,
         input: crate::com::atproto::repo::delete_record::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::repo::delete_record::Error> {
+    ) -> atrium_xrpc::Result<
+        crate::com::atproto::repo::delete_record::Output,
+        crate::com::atproto::repo::delete_record::Error,
+    > {
         let response = self
             .xrpc
             .send_xrpc::<
                 (),
                 _,
-                (),
+                _,
                 _,
             >(
                 &atrium_xrpc::XrpcRequest {
@@ -3464,7 +3613,7 @@ where
             )
             .await?;
         match response {
-            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }

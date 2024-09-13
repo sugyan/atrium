@@ -2,7 +2,7 @@ use super::Record;
 use crate::error::{Error, Result};
 use crate::BskyAgent;
 use atrium_api::agent::store::SessionStore;
-use atrium_api::com::atproto::repo::create_record;
+use atrium_api::com::atproto::repo::{create_record, delete_record};
 use atrium_api::record::KnownRecord;
 use atrium_api::types::string::RecordKey;
 use atrium_api::xrpc::XrpcClient;
@@ -39,6 +39,7 @@ where
             KnownRecord::AppBskyFeedGenerator(record) => record.data.create(self).await,
             KnownRecord::AppBskyFeedLike(record) => record.data.create(self).await,
             KnownRecord::AppBskyFeedPost(record) => record.data.create(self).await,
+            KnownRecord::AppBskyFeedPostgate(record) => record.data.create(self).await,
             KnownRecord::AppBskyFeedRepost(record) => record.data.create(self).await,
             KnownRecord::AppBskyFeedThreadgate(record) => record.data.create(self).await,
             KnownRecord::AppBskyGraphBlock(record) => record.data.create(self).await,
@@ -69,7 +70,7 @@ where
     ///     Ok(())
     /// }
     /// ```
-    pub async fn delete_record(&self, at_uri: impl AsRef<str>) -> Result<()> {
+    pub async fn delete_record(&self, at_uri: impl AsRef<str>) -> Result<delete_record::Output> {
         let parts = at_uri
             .as_ref()
             .strip_prefix("at://")

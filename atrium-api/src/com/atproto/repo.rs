@@ -2,6 +2,7 @@
 //!Definitions for the `com.atproto.repo` namespace.
 pub mod apply_writes;
 pub mod create_record;
+pub mod defs;
 pub mod delete_record;
 pub mod describe_repo;
 pub mod get_record;

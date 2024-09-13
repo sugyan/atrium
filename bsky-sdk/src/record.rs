@@ -5,7 +5,9 @@ use crate::error::{Error, Result};
 use crate::BskyAgent;
 use async_trait::async_trait;
 use atrium_api::agent::store::SessionStore;
-use atrium_api::com::atproto::repo::{create_record, get_record, list_records, put_record};
+use atrium_api::com::atproto::repo::{
+    create_record, delete_record, get_record, list_records, put_record,
+};
 use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
 
@@ -24,7 +26,7 @@ where
     async fn get(agent: &BskyAgent<T, S>, rkey: String) -> Result<get_record::Output>;
     async fn put(self, agent: &BskyAgent<T, S>, rkey: String) -> Result<put_record::Output>;
     async fn create(self, agent: &BskyAgent<T, S>) -> Result<create_record::Output>;
-    async fn delete(agent: &BskyAgent<T, S>, rkey: String) -> Result<()>;
+    async fn delete(agent: &BskyAgent<T, S>, rkey: String) -> Result<delete_record::Output>;
 }
 
 macro_rules! record_impl {
@@ -124,7 +126,10 @@ macro_rules! record_impl {
                     )
                     .await?)
             }
-            async fn delete(agent: &BskyAgent<T, S>, rkey: String) -> Result<()> {
+            async fn delete(
+                agent: &BskyAgent<T, S>,
+                rkey: String,
+            ) -> Result<delete_record::Output> {
                 let session = agent.get_session().await.ok_or(Error::NotLoggedIn)?;
                 Ok(agent
                     .api
@@ -172,7 +177,10 @@ macro_rules! record_impl {
             async fn create(self, agent: &BskyAgent<T, S>) -> Result<create_record::Output> {
                 <$record>::from(self).create(agent).await
             }
-            async fn delete(agent: &BskyAgent<T, S>, rkey: String) -> Result<()> {
+            async fn delete(
+                agent: &BskyAgent<T, S>,
+                rkey: String,
+            ) -> Result<delete_record::Output> {
                 <$record>::delete(agent, rkey).await
             }
         }
@@ -198,6 +206,11 @@ record_impl!(
     atrium_api::app::bsky::feed::Post,
     atrium_api::app::bsky::feed::post::Record,
     atrium_api::app::bsky::feed::post::RecordData
+);
+record_impl!(
+    atrium_api::app::bsky::feed::Postgate,
+    atrium_api::app::bsky::feed::postgate::Record,
+    atrium_api::app::bsky::feed::postgate::RecordData
 );
 record_impl!(
     atrium_api::app::bsky::feed::Repost,
@@ -273,22 +286,24 @@ mod tests {
             Response<Vec<u8>>,
             Box<dyn std::error::Error + Send + Sync + 'static>,
         > {
-            match request.uri().path() {
+            let body = match request.uri().path() {
                 "/xrpc/com.atproto.repo.createRecord" => {
-                    let output = create_record::Output::from(create_record::OutputData {
+                    serde_json::to_vec(&create_record::OutputData {
                         cid: FAKE_CID.parse().expect("invalid cid"),
+                        commit: None,
                         uri: String::from("at://did:fake:handle.test/app.bsky.feed.post/somerkey"),
-                    });
-                    Ok(Response::builder()
-                        .header(Header::ContentType, "application/json")
-                        .status(200)
-                        .body(serde_json::to_vec(&output)?)?)
+                        validation_status: None,
+                    })?
                 }
                 "/xrpc/com.atproto.repo.deleteRecord" => {
-                    Ok(Response::builder().status(200).body(Vec::new())?)
+                    serde_json::to_vec(&delete_record::OutputData { commit: None })?
                 }
                 _ => unreachable!(),
-            }
+            };
+            Ok(Response::builder()
+                .header(Header::ContentType, "application/json")
+                .status(200)
+                .body(body)?)
         }
     }
 
@@ -346,7 +361,9 @@ mod tests {
             output,
             create_record::OutputData {
                 cid: FAKE_CID.parse().expect("invalid cid"),
+                commit: None,
                 uri: String::from("at://did:fake:handle.test/app.bsky.feed.post/somerkey"),
+                validation_status: None,
             }
             .into()
         );
@@ -380,7 +397,9 @@ mod tests {
             output,
             create_record::OutputData {
                 cid: FAKE_CID.parse().expect("invalid cid"),
+                commit: None,
                 uri: String::from("at://did:fake:handle.test/app.bsky.feed.post/somerkey"),
+                validation_status: None,
             }
             .into()
         );
@@ -406,7 +425,9 @@ mod tests {
             output,
             create_record::OutputData {
                 cid: FAKE_CID.parse().expect("invalid cid"),
+                commit: None,
                 uri: String::from("at://did:fake:handle.test/app.bsky.feed.post/somerkey"),
+                validation_status: None,
             }
             .into()
         );

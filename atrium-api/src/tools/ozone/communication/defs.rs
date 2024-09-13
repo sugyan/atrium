@@ -8,6 +8,9 @@ pub struct TemplateViewData {
     pub created_at: crate::types::string::Datetime,
     pub disabled: bool,
     pub id: String,
+    ///Message language.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lang: Option<crate::types::string::Language>,
     ///DID of the user who last updated the template.
     pub last_updated_by: crate::types::string::Did,
     ///Name of the template.
