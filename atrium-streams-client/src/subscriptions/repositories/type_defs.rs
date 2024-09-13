@@ -3,7 +3,7 @@
 use atrium_streams::atrium_api::{
     record::KnownRecord,
     types::{
-        string::{Datetime, Did},
+        string::{Datetime, Did, Handle},
         CidLink,
     },
 };
@@ -30,25 +30,45 @@ pub struct Operation {
 
 // region: Identity
 #[derive(Debug)]
-pub struct ProcessedIdentityData {}
+pub struct ProcessedIdentityData {
+    pub did: Did,
+    pub handle: Option<Handle>,
+    pub time: Datetime,
+}
 // endregion: Identity
 
 // region: Account
 #[derive(Debug)]
-pub struct ProcessedAccountData {}
+pub struct ProcessedAccountData {
+    pub did: Did,
+    pub active: bool,
+    pub status: Option<String>,
+    pub time: Datetime,
+}
 // endregion: Account
 
 // region: Handle
 #[derive(Debug)]
-pub struct ProcessedHandleData {}
+pub struct ProcessedHandleData {
+    pub did: Did,
+    pub handle: Handle,
+    pub time: Datetime,
+}
 // endregion: Handle
 
 // region: Migrate
 #[derive(Debug)]
-pub struct ProcessedMigrateData {}
+pub struct ProcessedMigrateData {
+    pub did: Did,
+    pub migrate_to: Option<String>,
+    pub time: Datetime,
+}
 // endregion: Migrate
 
 // region: Tombstone
 #[derive(Debug)]
-pub struct ProcessedTombstoneData {}
+pub struct ProcessedTombstoneData {
+    pub did: Did,
+    pub time: Datetime,
+}
 // endregion: Tombstone
