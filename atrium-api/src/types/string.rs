@@ -195,6 +195,13 @@ impl Datetime {
         let serialized = dt.to_rfc3339_opts(chrono::SecondsFormat::Micros, true);
         Self { serialized, dt }
     }
+
+    /// Extracts a string slice containing the entire `Datetime`.
+    #[inline]
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        self.serialized.as_str()
+    }
 }
 
 impl FromStr for Datetime {
