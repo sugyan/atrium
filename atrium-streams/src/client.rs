@@ -1,9 +1,6 @@
-mod xprc_uri;
-
 use std::future::Future;
 
 use futures::Stream;
-pub use xprc_uri::XrpcUri;
 
 /// An abstract WSS client.
 pub trait EventStreamClient<ConnectionPayload, ConnectionError> {
@@ -13,6 +10,7 @@ pub trait EventStreamClient<ConnectionPayload, ConnectionError> {
     /// [`Result<M, E>`]
     fn connect(
         &self,
+        uri: String
     ) -> impl Future<Output = Result<impl Stream<Item = ConnectionPayload>, ConnectionError>> + Send;
 
     /// Get the `atproto-proxy` header.

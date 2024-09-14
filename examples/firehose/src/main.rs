@@ -2,7 +2,7 @@ use anyhow::bail;
 use atrium_streams_client::{
     atrium_streams::{
         atrium_api::com::atproto::sync::subscribe_repos::{self, InfoData},
-        client::{XrpcUri, EventStreamClient},
+        client::EventStreamClient,
         subscriptions::{
             handlers::repositories::ProcessedData, ProcessedPayload, SubscriptionError,
         },
@@ -20,19 +20,19 @@ use tokio_tungstenite::tungstenite;
 /// This example demonstrates how to connect to the ATProto Firehose.
 #[tokio::main]
 async fn main() {
-    // Define the XrpcUri for the subscription.
-    let xrpc_uri = XrpcUri::new("bsky.network", subscribe_repos::NSID);
+    // Define the Uri for the subscription.
+    let uri = format!("wss://bsky.network/xrpc/{}", subscribe_repos::NSID);
 
     // Caching the last cursor is important.
     // The API has a backfilling mechanism that allows you to resume from where you stopped.
     let mut last_cursor = None;
-    drop(connect(&mut last_cursor, &xrpc_uri).await);
+    drop(connect(&mut last_cursor, uri).await);
 }
 
 /// Connects to `ATProto` to receive real-time data.
 async fn connect(
     last_cursor: &mut Option<i64>,
-    xrpc_uri: &XrpcUri<'_>,
+    uri: String,
 ) -> Result<(), anyhow::Error> {
     // Define the query parameters. In this case, just the cursor.
     let params = subscribe_repos::ParametersData {
@@ -41,12 +41,11 @@ async fn connect(
 
     // Build a new XRPC WSS Client.
     let client = WssClient::builder()
-        .xrpc_uri(xrpc_uri.clone())
         .params(params)
         .build();
 
     // And then we connect to the API.
-    let connection = match client.connect().await {
+    let connection = match client.connect(uri).await {
         Ok(connection) => connection,
         Err(Error::Connection(tungstenite::Error::Http(response))) => {
             // According to the API documentation, the following status codes are expected and should be treated accordingly:
