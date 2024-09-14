@@ -1,6 +1,9 @@
 pub mod firehose;
 pub mod type_defs;
 
+#[cfg(test)]
+mod tests;
+
 use std::marker::PhantomData;
 
 use async_stream::stream;
@@ -56,7 +59,7 @@ impl Subscription<WssResult, subscribe_repos::Error> for Repositories<WssResult>
                 // "Invalid framing or invalid DAG-CBOR encoding are hard errors,
                 //  and the client should drop the entire connection instead of skipping the frame."
                 // https://atproto.com/specs/event-stream
-                yield Err(SubscriptionError::Abort(format!("Received invalid frame. Error: {e:?}")));
+                yield Err(SubscriptionError::Abort(format!("Received invalid packet. Error: {e:?}")));
                 break;
               }
               Some(Ok(Message::Binary(data))) => {

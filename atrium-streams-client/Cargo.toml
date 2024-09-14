@@ -25,3 +25,7 @@ bon.workspace = true
 serde_html_form.workspace = true
 serde.workspace = true
 thiserror.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+serde_json.workspace = true
