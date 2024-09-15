@@ -32,7 +32,11 @@ pub enum OutputLogsItem {
     #[serde(rename = "chat.bsky.convo.defs#logLeaveConvo")]
     ChatBskyConvoDefsLogLeaveConvo(Box<crate::chat::bsky::convo::defs::LogLeaveConvo>),
     #[serde(rename = "chat.bsky.convo.defs#logCreateMessage")]
-    ChatBskyConvoDefsLogCreateMessage(Box<crate::chat::bsky::convo::defs::LogCreateMessage>),
+    ChatBskyConvoDefsLogCreateMessage(
+        Box<crate::chat::bsky::convo::defs::LogCreateMessage>,
+    ),
     #[serde(rename = "chat.bsky.convo.defs#logDeleteMessage")]
-    ChatBskyConvoDefsLogDeleteMessage(Box<crate::chat::bsky::convo::defs::LogDeleteMessage>),
+    ChatBskyConvoDefsLogDeleteMessage(
+        Box<crate::chat::bsky::convo::defs::LogDeleteMessage>,
+    ),
 }

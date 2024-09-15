@@ -367,7 +367,9 @@ where
             feed: app::bsky::feed::Service::new(std::sync::Arc::clone(&xrpc)),
             graph: app::bsky::graph::Service::new(std::sync::Arc::clone(&xrpc)),
             labeler: app::bsky::labeler::Service::new(std::sync::Arc::clone(&xrpc)),
-            notification: app::bsky::notification::Service::new(std::sync::Arc::clone(&xrpc)),
+            notification: app::bsky::notification::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
             unspecced: app::bsky::unspecced::Service::new(std::sync::Arc::clone(&xrpc)),
             video: app::bsky::video::Service::new(std::sync::Arc::clone(&xrpc)),
             _phantom: core::marker::PhantomData,
@@ -396,13 +398,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::actor::get_preferences::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::actor::get_preferences::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -419,13 +428,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::actor::get_profile::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::actor::get_profile::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -442,13 +458,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::actor::get_profiles::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::actor::get_profiles::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -465,13 +488,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::actor::get_suggestions::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::actor::get_suggestions::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -485,13 +515,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::actor::put_preferences::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::actor::put_preferences::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::actor::put_preferences::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -508,13 +545,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::actor::search_actors::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::actor::search_actors::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -531,13 +575,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::actor::search_actors_typeahead::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::actor::search_actors_typeahead::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -566,13 +617,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::describe_feed_generator::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::describe_feed_generator::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -589,13 +647,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_actor_feeds::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_actor_feeds::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -612,13 +677,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_actor_likes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_actor_likes::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -635,13 +707,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_author_feed::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_author_feed::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -658,13 +737,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_feed::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_feed::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -681,13 +767,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_feed_generator::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_feed_generator::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -704,13 +797,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_feed_generators::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_feed_generators::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -727,13 +827,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_feed_skeleton::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_feed_skeleton::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -750,13 +857,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_likes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_likes::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -773,13 +887,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_list_feed::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_list_feed::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -796,13 +917,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_post_thread::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_post_thread::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -819,13 +947,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_posts::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_posts::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -842,13 +977,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_quotes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_quotes::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -865,13 +1007,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_reposted_by::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_reposted_by::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -888,13 +1037,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_suggested_feeds::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_suggested_feeds::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -911,13 +1067,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::get_timeline::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::get_timeline::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -934,13 +1097,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::feed::search_posts::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::feed::search_posts::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -957,13 +1127,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::feed::send_interactions::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::feed::send_interactions::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -993,13 +1170,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_actor_starter_packs::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_actor_starter_packs::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1016,13 +1200,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_blocks::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_blocks::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1039,13 +1230,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_followers::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_followers::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1062,13 +1260,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_follows::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_follows::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1085,13 +1290,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_known_followers::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_known_followers::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1108,13 +1320,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_list::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_list::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1131,13 +1350,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_list_blocks::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_list_blocks::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1154,13 +1380,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_list_mutes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_list_mutes::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1177,13 +1410,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_lists::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_lists::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1200,13 +1440,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_mutes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_mutes::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1223,13 +1470,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_relationships::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_relationships::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1246,13 +1500,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_starter_pack::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_starter_pack::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1269,13 +1530,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_starter_packs::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_starter_packs::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1292,13 +1560,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::graph::get_suggested_follows_by_actor::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::graph::get_suggested_follows_by_actor::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1312,13 +1588,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::mute_actor::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::graph::mute_actor::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::graph::mute_actor::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1332,13 +1615,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::mute_actor_list::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::graph::mute_actor_list::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::graph::mute_actor_list::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1352,13 +1642,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::mute_thread::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::graph::mute_thread::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::graph::mute_thread::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1372,13 +1669,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::unmute_actor::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::graph::unmute_actor::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::graph::unmute_actor::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1392,13 +1696,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::unmute_actor_list::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::graph::unmute_actor_list::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::graph::unmute_actor_list::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1412,13 +1723,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::graph::unmute_thread::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::graph::unmute_thread::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::graph::unmute_thread::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1448,13 +1766,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::labeler::get_services::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::labeler::get_services::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1484,13 +1809,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::notification::get_unread_count::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::notification::get_unread_count::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1507,13 +1839,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::notification::list_notifications::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::notification::list_notifications::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1524,16 +1864,26 @@ where
     pub async fn put_preferences(
         &self,
         input: crate::app::bsky::notification::put_preferences::Input,
-    ) -> atrium_xrpc::Result<(), crate::app::bsky::notification::put_preferences::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::app::bsky::notification::put_preferences::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::notification::put_preferences::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::notification::put_preferences::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1547,13 +1897,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::notification::register_push::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::notification::register_push::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::notification::register_push::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1567,13 +1924,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::app::bsky::notification::update_seen::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::notification::update_seen::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::notification::update_seen::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -1603,13 +1967,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::unspecced::get_popular_feed_generators::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::unspecced::get_popular_feed_generators::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1626,13 +1998,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::unspecced::get_suggestions_skeleton::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::unspecced::get_suggestions_skeleton::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1649,13 +2029,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::unspecced::get_tagged_suggestions::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::unspecced::get_tagged_suggestions::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1672,13 +2060,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::unspecced::search_actors_skeleton::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::unspecced::search_actors_skeleton::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1695,13 +2091,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::unspecced::search_posts_skeleton::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::unspecced::search_posts_skeleton::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1731,13 +2135,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::video::get_job_status::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::video::get_job_status::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1753,13 +2164,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::app::bsky::video::get_upload_limits::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::video::get_upload_limits::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1776,13 +2194,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), Vec<u8>, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::app::bsky::video::upload_video::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
-                encoding: Some(String::from("video/mp4")),
-            })
+            .send_xrpc::<
+                (),
+                Vec<u8>,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::app::bsky::video::upload_video::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
+                    encoding: Some(String::from("video/mp4")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1813,7 +2238,9 @@ where
         Self {
             actor: chat::bsky::actor::Service::new(std::sync::Arc::clone(&xrpc)),
             convo: chat::bsky::convo::Service::new(std::sync::Arc::clone(&xrpc)),
-            moderation: chat::bsky::moderation::Service::new(std::sync::Arc::clone(&xrpc)),
+            moderation: chat::bsky::moderation::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
             _phantom: core::marker::PhantomData,
         }
     }
@@ -1838,13 +2265,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::actor::delete_account::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::actor::delete_account::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1853,16 +2287,26 @@ where
     }
     pub async fn export_account_data(
         &self,
-    ) -> atrium_xrpc::Result<Vec<u8>, crate::chat::bsky::actor::export_account_data::Error> {
+    ) -> atrium_xrpc::Result<
+        Vec<u8>,
+        crate::chat::bsky::actor::export_account_data::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::actor::export_account_data::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::actor::export_account_data::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -1891,13 +2335,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::delete_message_for_self::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::delete_message_for_self::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1913,13 +2364,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::convo::get_convo::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::convo::get_convo::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1935,13 +2393,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::convo::get_convo_for_members::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::convo::get_convo_for_members::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1957,13 +2422,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::convo::get_log::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::convo::get_log::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -1979,13 +2451,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::convo::get_messages::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::convo::get_messages::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2001,13 +2480,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::leave_convo::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::leave_convo::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2023,13 +2509,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::convo::list_convos::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::convo::list_convos::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2045,13 +2538,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::mute_convo::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::mute_convo::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2067,13 +2567,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::send_message::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::send_message::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2089,13 +2596,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::send_message_batch::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::send_message_batch::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2111,13 +2625,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::unmute_convo::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::unmute_convo::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2133,13 +2654,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::convo::update_read::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::convo::update_read::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2168,13 +2696,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::moderation::get_actor_metadata::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::moderation::get_actor_metadata::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2190,13 +2725,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::chat::bsky::moderation::get_message_context::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::chat::bsky::moderation::get_message_context::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2206,16 +2749,27 @@ where
     pub async fn update_actor_access(
         &self,
         input: crate::chat::bsky::moderation::update_actor_access::Input,
-    ) -> atrium_xrpc::Result<(), crate::chat::bsky::moderation::update_actor_access::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::chat::bsky::moderation::update_actor_access::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::chat::bsky::moderation::update_actor_access::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::chat::bsky::moderation::update_actor_access::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2245,7 +2799,9 @@ where
             admin: com::atproto::admin::Service::new(std::sync::Arc::clone(&xrpc)),
             identity: com::atproto::identity::Service::new(std::sync::Arc::clone(&xrpc)),
             label: com::atproto::label::Service::new(std::sync::Arc::clone(&xrpc)),
-            moderation: com::atproto::moderation::Service::new(std::sync::Arc::clone(&xrpc)),
+            moderation: com::atproto::moderation::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
             repo: com::atproto::repo::Service::new(std::sync::Arc::clone(&xrpc)),
             server: com::atproto::server::Service::new(std::sync::Arc::clone(&xrpc)),
             sync: com::atproto::sync::Service::new(std::sync::Arc::clone(&xrpc)),
@@ -2272,13 +2828,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::delete_account::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::delete_account::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::delete_account::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2289,16 +2852,27 @@ where
     pub async fn disable_account_invites(
         &self,
         input: crate::com::atproto::admin::disable_account_invites::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::disable_account_invites::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::admin::disable_account_invites::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::disable_account_invites::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::disable_account_invites::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2309,16 +2883,26 @@ where
     pub async fn disable_invite_codes(
         &self,
         input: crate::com::atproto::admin::disable_invite_codes::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::disable_invite_codes::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::admin::disable_invite_codes::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::disable_invite_codes::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::disable_invite_codes::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2329,16 +2913,27 @@ where
     pub async fn enable_account_invites(
         &self,
         input: crate::com::atproto::admin::enable_account_invites::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::enable_account_invites::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::admin::enable_account_invites::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::enable_account_invites::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::enable_account_invites::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2355,13 +2950,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::admin::get_account_info::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::admin::get_account_info::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2378,13 +2980,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::admin::get_account_infos::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::admin::get_account_infos::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2401,13 +3010,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::admin::get_invite_codes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::admin::get_invite_codes::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2424,13 +3040,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::admin::get_subject_status::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::admin::get_subject_status::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2447,13 +3070,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::admin::search_accounts::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::admin::search_accounts::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2470,13 +3100,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::send_email::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::send_email::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2487,16 +3124,26 @@ where
     pub async fn update_account_email(
         &self,
         input: crate::com::atproto::admin::update_account_email::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::update_account_email::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::admin::update_account_email::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::update_account_email::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::update_account_email::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2507,16 +3154,26 @@ where
     pub async fn update_account_handle(
         &self,
         input: crate::com::atproto::admin::update_account_handle::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::update_account_handle::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::admin::update_account_handle::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::update_account_handle::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::update_account_handle::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2527,16 +3184,27 @@ where
     pub async fn update_account_password(
         &self,
         input: crate::com::atproto::admin::update_account_password::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::admin::update_account_password::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::admin::update_account_password::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::update_account_password::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::update_account_password::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2553,13 +3221,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::admin::update_subject_status::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::admin::update_subject_status::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2587,13 +3262,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::identity::get_recommended_did_credentials::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::identity::get_recommended_did_credentials::NSID
+                        .into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2609,13 +3292,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::identity::request_plc_operation_signature::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::identity::request_plc_operation_signature::NSID
+                        .into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2632,13 +3323,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::identity::resolve_handle::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::identity::resolve_handle::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2655,13 +3353,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::identity::sign_plc_operation::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::identity::sign_plc_operation::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2672,16 +3377,27 @@ where
     pub async fn submit_plc_operation(
         &self,
         input: crate::com::atproto::identity::submit_plc_operation::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::identity::submit_plc_operation::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::identity::submit_plc_operation::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::identity::submit_plc_operation::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::identity::submit_plc_operation::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2695,13 +3411,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::identity::update_handle::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::identity::update_handle::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::identity::update_handle::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2730,13 +3453,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::label::query_labels::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::label::query_labels::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2765,13 +3495,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::moderation::create_report::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::moderation::create_report::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2800,13 +3537,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::repo::apply_writes::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::repo::apply_writes::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2823,13 +3567,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::repo::create_record::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::repo::create_record::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2846,13 +3597,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::repo::delete_record::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::repo::delete_record::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2869,13 +3627,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::repo::describe_repo::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::repo::describe_repo::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2892,13 +3657,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::repo::get_record::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::repo::get_record::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2912,13 +3684,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::repo::import_repo::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), Vec<u8>, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::repo::import_repo::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
-                encoding: Some(String::from("application/vnd.ipld.car")),
-            })
+            .send_xrpc::<
+                (),
+                Vec<u8>,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::repo::import_repo::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
+                    encoding: Some(String::from("application/vnd.ipld.car")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -2935,13 +3714,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::repo::list_missing_blobs::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::repo::list_missing_blobs::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2958,13 +3744,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::repo::list_records::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::repo::list_records::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -2981,13 +3774,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::repo::put_record::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::repo::put_record::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3004,13 +3804,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), Vec<u8>, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::repo::upload_blob::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
-                encoding: Some(String::from("*/*")),
-            })
+            .send_xrpc::<
+                (),
+                Vec<u8>,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::repo::upload_blob::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Bytes(input)),
+                    encoding: Some(String::from("*/*")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3035,13 +3842,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::server::activate_account::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::activate_account::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::activate_account::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3057,13 +3871,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::server::check_account_status::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::server::check_account_status::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3077,13 +3898,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::server::confirm_email::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::confirm_email::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::confirm_email::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3100,13 +3928,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::create_account::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::create_account::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3123,13 +3958,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::create_app_password::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::create_app_password::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3146,13 +3988,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::create_invite_code::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::create_invite_code::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3169,13 +4018,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::create_invite_codes::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::create_invite_codes::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3192,13 +4048,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::create_session::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::create_session::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3209,16 +4072,26 @@ where
     pub async fn deactivate_account(
         &self,
         input: crate::com::atproto::server::deactivate_account::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::deactivate_account::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::server::deactivate_account::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::deactivate_account::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::deactivate_account::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3232,13 +4105,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::server::delete_account::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::delete_account::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::delete_account::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3251,13 +4131,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::server::delete_session::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::delete_session::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::delete_session::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3273,13 +4160,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::server::describe_server::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::server::describe_server::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3296,13 +4190,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::server::get_account_invite_codes::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::server::get_account_invite_codes::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3319,13 +4221,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::server::get_service_auth::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::server::get_service_auth::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3341,13 +4250,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::server::get_session::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::server::get_session::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3363,13 +4279,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::server::list_app_passwords::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::server::list_app_passwords::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3385,13 +4308,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::refresh_session::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::refresh_session::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3401,16 +4331,27 @@ where
     ///Initiate a user account deletion via email.
     pub async fn request_account_delete(
         &self,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::request_account_delete::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::server::request_account_delete::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::request_account_delete::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::request_account_delete::NSID
+                        .into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3420,17 +4361,27 @@ where
     ///Request an email with a code to confirm ownership of email.
     pub async fn request_email_confirmation(
         &self,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::request_email_confirmation::Error>
-    {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::server::request_email_confirmation::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::request_email_confirmation::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::request_email_confirmation::NSID
+                        .into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3446,13 +4397,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::request_email_update::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::request_email_update::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3463,16 +4421,27 @@ where
     pub async fn request_password_reset(
         &self,
         input: crate::com::atproto::server::request_password_reset::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::request_password_reset::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::server::request_password_reset::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::request_password_reset::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::request_password_reset::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3489,13 +4458,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::reserve_signing_key::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::reserve_signing_key::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3509,13 +4485,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::server::reset_password::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::reset_password::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::reset_password::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3526,16 +4509,26 @@ where
     pub async fn revoke_app_password(
         &self,
         input: crate::com::atproto::server::revoke_app_password::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::server::revoke_app_password::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::server::revoke_app_password::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::revoke_app_password::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::revoke_app_password::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3549,13 +4542,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::server::update_email::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::server::update_email::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::server::update_email::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3581,13 +4581,20 @@ where
     ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_blob::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_blob::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_blob::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -3601,13 +4608,20 @@ where
     ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_blocks::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_blocks::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_blocks::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -3621,13 +4635,20 @@ where
     ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_checkout::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_checkout::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_checkout::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -3644,13 +4665,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_head::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_head::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3667,13 +4695,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_latest_commit::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_latest_commit::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3687,13 +4722,20 @@ where
     ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_record::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_record::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_record::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -3707,13 +4749,20 @@ where
     ) -> atrium_xrpc::Result<Vec<u8>, crate::com::atproto::sync::get_repo::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_repo::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_repo::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(bytes) => Ok(bytes),
@@ -3730,13 +4779,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::get_repo_status::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::get_repo_status::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3753,13 +4809,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::list_blobs::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::list_blobs::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3776,13 +4839,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::sync::list_repos::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::sync::list_repos::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3796,13 +4866,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::sync::notify_of_update::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::sync::notify_of_update::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::sync::notify_of_update::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3816,13 +4893,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::com::atproto::sync::request_crawl::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::sync::request_crawl::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::sync::request_crawl::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3850,13 +4934,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::temp::check_signup_queue::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::temp::check_signup_queue::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3873,13 +4964,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::com::atproto::temp::fetch_labels::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::com::atproto::temp::fetch_labels::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3890,16 +4988,27 @@ where
     pub async fn request_phone_verification(
         &self,
         input: crate::com::atproto::temp::request_phone_verification::Input,
-    ) -> atrium_xrpc::Result<(), crate::com::atproto::temp::request_phone_verification::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::com::atproto::temp::request_phone_verification::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::com::atproto::temp::request_phone_verification::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::temp::request_phone_verification::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -3928,8 +5037,12 @@ where
     #[allow(unused_variables)]
     pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
         Self {
-            communication: tools::ozone::communication::Service::new(std::sync::Arc::clone(&xrpc)),
-            moderation: tools::ozone::moderation::Service::new(std::sync::Arc::clone(&xrpc)),
+            communication: tools::ozone::communication::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
+            moderation: tools::ozone::moderation::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
             server: tools::ozone::server::Service::new(std::sync::Arc::clone(&xrpc)),
             team: tools::ozone::team::Service::new(std::sync::Arc::clone(&xrpc)),
             _phantom: core::marker::PhantomData,
@@ -3958,13 +5071,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::communication::create_template::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::communication::create_template::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -3975,16 +5096,27 @@ where
     pub async fn delete_template(
         &self,
         input: crate::tools::ozone::communication::delete_template::Input,
-    ) -> atrium_xrpc::Result<(), crate::tools::ozone::communication::delete_template::Error> {
+    ) -> atrium_xrpc::Result<
+        (),
+        crate::tools::ozone::communication::delete_template::Error,
+    > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::communication::delete_template::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::communication::delete_template::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -4000,13 +5132,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::communication::list_templates::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::communication::list_templates::NSID
+                        .into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4023,13 +5163,21 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::communication::update_template::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::communication::update_template::NSID
+                        .into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4059,13 +5207,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::moderation::emit_event::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::moderation::emit_event::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4082,13 +5237,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::moderation::get_event::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::get_event::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4105,13 +5267,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::moderation::get_record::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::get_record::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4128,13 +5297,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::moderation::get_repo::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::get_repo::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4151,13 +5327,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::moderation::query_events::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::query_events::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4174,13 +5357,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::moderation::query_statuses::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::query_statuses::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4197,13 +5387,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::moderation::search_repos::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::search_repos::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4232,13 +5429,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::server::get_config::NSID.into(),
-                parameters: None,
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                (),
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::server::get_config::NSID.into(),
+                    parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4268,13 +5472,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::team::add_member::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::team::add_member::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4288,13 +5499,20 @@ where
     ) -> atrium_xrpc::Result<(), crate::tools::ozone::team::delete_member::Error> {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, (), _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::team::delete_member::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::team::delete_member::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
@@ -4311,13 +5529,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<_, (), _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::GET,
-                nsid: crate::tools::ozone::team::list_members::NSID.into(),
-                parameters: Some(params),
-                input: None,
-                encoding: None,
-            })
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::team::list_members::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
@@ -4334,13 +5559,20 @@ where
     > {
         let response = self
             .xrpc
-            .send_xrpc::<(), _, _, _>(&atrium_xrpc::XrpcRequest {
-                method: http::Method::POST,
-                nsid: crate::tools::ozone::team::update_member::NSID.into(),
-                parameters: None,
-                input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
-                encoding: Some(String::from("application/json")),
-            })
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::team::update_member::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
             .await?;
         match response {
             atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),

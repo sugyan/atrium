@@ -5,8 +5,9 @@
 pub struct LabelerPoliciesData {
     ///Label values created by this labeler and scoped exclusively to it. Labels defined here will override global label definitions for this labeler.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub label_value_definitions:
-        Option<Vec<crate::com::atproto::label::defs::LabelValueDefinition>>,
+    pub label_value_definitions: Option<
+        Vec<crate::com::atproto::label::defs::LabelValueDefinition>,
+    >,
     ///The label values which this labeler publishes. May include global or custom labels.
     pub label_values: Vec<crate::com::atproto::label::defs::LabelValue>,
 }

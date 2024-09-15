@@ -58,7 +58,9 @@ pub enum InputEventRefs {
         Box<crate::tools::ozone::moderation::defs::ModEventReport>,
     ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventMute")]
-    ToolsOzoneModerationDefsModEventMute(Box<crate::tools::ozone::moderation::defs::ModEventMute>),
+    ToolsOzoneModerationDefsModEventMute(
+        Box<crate::tools::ozone::moderation::defs::ModEventMute>,
+    ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventUnmute")]
     ToolsOzoneModerationDefsModEventUnmute(
         Box<crate::tools::ozone::moderation::defs::ModEventUnmute>,
@@ -84,7 +86,9 @@ pub enum InputEventRefs {
         Box<crate::tools::ozone::moderation::defs::ModEventEmail>,
     ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventTag")]
-    ToolsOzoneModerationDefsModEventTag(Box<crate::tools::ozone::moderation::defs::ModEventTag>),
+    ToolsOzoneModerationDefsModEventTag(
+        Box<crate::tools::ozone::moderation::defs::ModEventTag>,
+    ),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

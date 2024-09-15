@@ -221,7 +221,9 @@ pub enum PostViewEmbedRefs {
     #[serde(rename = "app.bsky.embed.record#view")]
     AppBskyEmbedRecordView(Box<crate::app::bsky::embed::record::View>),
     #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
-    AppBskyEmbedRecordWithMediaView(Box<crate::app::bsky::embed::record_with_media::View>),
+    AppBskyEmbedRecordWithMediaView(
+        Box<crate::app::bsky::embed::record_with_media::View>,
+    ),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

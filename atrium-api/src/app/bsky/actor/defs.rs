@@ -229,7 +229,9 @@ pub struct ProfileViewDetailedData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub indexed_at: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_via_starter_pack: Option<crate::app::bsky::graph::defs::StarterPackViewBasic>,
+    pub joined_via_starter_pack: Option<
+        crate::app::bsky::graph::defs::StarterPackViewBasic,
+    >,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
