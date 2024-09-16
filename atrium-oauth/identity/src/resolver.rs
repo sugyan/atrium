@@ -1,3 +1,4 @@
+mod cache_impl;
 mod cached_resolver;
 
 pub use self::cached_resolver::{CachedResolverConfig, MaybeCachedResolver};

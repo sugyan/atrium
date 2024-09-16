@@ -1,12 +1,21 @@
+use super::cache_impl::CacheImpl;
 use crate::error::Result;
 use crate::Resolver;
 use async_trait::async_trait;
-use moka::future::Cache;
-use moka::policy::EvictionPolicy;
-use std::collections::hash_map::RandomState;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::time::Duration;
+
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+pub(crate) trait Cache {
+    type Input: Hash + Eq + Sync + 'static;
+    type Output: Clone + Sync + 'static;
+
+    fn new(config: CachedResolverConfig) -> Self;
+    async fn get(&self, key: &Self::Input) -> Option<Self::Output>;
+    async fn set(&self, key: Self::Input, value: Self::Output);
+}
 
 #[derive(Clone, Debug, Default)]
 pub struct CachedResolverConfig {
@@ -19,7 +28,7 @@ where
     R: Resolver<Input = I, Output = O>,
 {
     resolver: R,
-    cache: Option<Cache<I, O, RandomState>>,
+    cache: Option<CacheImpl<I, O>>,
 }
 
 impl<R, I, O> MaybeCachedResolver<R, I, O>
@@ -29,16 +38,7 @@ where
     O: Clone + Send + Sync + 'static,
 {
     pub fn new(resolver: R, config: Option<CachedResolverConfig>) -> Self {
-        let cache = config.map(|config| {
-            let mut builder = Cache::<I, O, _>::builder().eviction_policy(EvictionPolicy::lru());
-            if let Some(max_capacity) = config.max_capacity {
-                builder = builder.max_capacity(max_capacity);
-            }
-            if let Some(time_to_live) = config.time_to_live {
-                builder = builder.time_to_live(time_to_live);
-            }
-            builder.build()
-        });
+        let cache = config.map(CacheImpl::new);
         Self { resolver, cache }
     }
 }
@@ -56,14 +56,13 @@ where
 
     async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
         if let Some(cache) = &self.cache {
-            cache.run_pending_tasks().await;
             if let Some(output) = cache.get(input).await {
                 return Ok(output);
             }
         }
         let output = self.resolver.resolve(input).await?;
         if let Some(cache) = &self.cache {
-            cache.insert(input.clone(), output.clone()).await;
+            cache.set(input.clone(), output.clone()).await;
         }
         Ok(output)
     }
@@ -76,13 +75,16 @@ mod tests {
     use std::collections::HashMap;
     use std::sync::Arc;
     use tokio::sync::RwLock;
+    #[cfg(target_arch = "wasm32")]
+    use wasm_bindgen_test::wasm_bindgen_test;
 
     struct MockResolver {
         data: HashMap<String, String>,
         counts: Arc<RwLock<HashMap<String, usize>>>,
     }
 
-    #[async_trait]
+    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
+    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl Resolver for MockResolver {
         type Input = String;
         type Output = String;
@@ -109,7 +111,18 @@ mod tests {
         }
     }
 
-    #[tokio::test]
+    #[cfg(not(target_arch = "wasm32"))]
+    async fn sleep(duration: Duration) {
+        tokio::time::sleep(duration).await;
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    async fn sleep(duration: Duration) {
+        gloo_timers::future::sleep(duration).await;
+    }
+
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
     async fn test_no_cached() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
         let resolver = MaybeCachedResolver::new(mock_resolver(counts.clone()), None);
@@ -140,7 +153,8 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
+    #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
     async fn test_cached() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
         let resolver =
@@ -172,7 +186,8 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_cached_with_max_capacity() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
         let resolver = MaybeCachedResolver::new(
@@ -209,7 +224,8 @@ mod tests {
         );
     }
 
-    #[tokio::test]
+    #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
+    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_cached_with_time_to_live() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
         let resolver = MaybeCachedResolver::new(
@@ -223,14 +239,14 @@ mod tests {
             let result = resolver.resolve(&String::from("k1")).await;
             assert_eq!(result.expect("failed to resolve"), "v1");
         }
-        tokio::time::sleep(Duration::from_millis(10)).await;
+        sleep(Duration::from_millis(10)).await;
         for _ in 0..10 {
             let result = resolver.resolve(&String::from("k1")).await;
             assert_eq!(result.expect("failed to resolve"), "v1");
         }
         assert_eq!(
             *counts.read().await,
-            [(String::from("k1"), 2),].into_iter().collect()
+            [(String::from("k1"), 2)].into_iter().collect()
         );
     }
 }
