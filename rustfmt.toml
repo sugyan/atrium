@@ -1,14 +1,6 @@
 # Rustfmt configuration file
-
-# Set the maximum line width
-max_width = 100
-
-# Use 4 spaces for indentation
-tab_spaces = 4
-
-# Use the default set of rules
-# Uncomment the following line to enable custom rules
-# custom_rules = true
+reorder_modules = true
+use_small_heuristics = "Max"
 
 ## Nightly only, but preferrable
 # brace_style = "PreferSameLine"
