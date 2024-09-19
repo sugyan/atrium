@@ -7,10 +7,7 @@ fn serialized_data(s: &str) -> Vec<u8> {
         b'a'..=b'f' => b - b'a' + 10,
         _ => unreachable!(),
     };
-    s.as_bytes()
-        .chunks(2)
-        .map(|b| (b2u(b[0]) << 4) + b2u(b[1]))
-        .collect()
+    s.as_bytes().chunks(2).map(|b| (b2u(b[0]) << 4) + b2u(b[1])).collect()
 }
 
 #[test]
@@ -21,9 +18,7 @@ fn deserialize_message_frame_header() {
     let result = FrameHeader::try_from(ipld);
     assert_eq!(
         result.expect("failed to deserialize"),
-        FrameHeader::Message {
-            t: String::from("#commit")
-        }
+        FrameHeader::Message { t: String::from("#commit") }
     );
 }
 

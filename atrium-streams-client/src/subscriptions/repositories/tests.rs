@@ -69,11 +69,7 @@ fn test_packet(
     packet: Option<(&str, &str)>,
 ) -> Option<Result<(Option<i64>, HandledData<Firehose>), SubscriptionError<subscribe_repos::Error>>>
 {
-    let connection = mock_connection(if let Some(packet) = packet {
-        vec![packet]
-    } else {
-        vec![]
-    });
+    let connection = mock_connection(if let Some(packet) = packet { vec![packet] } else { vec![] });
 
     let subscription = gen_default_subscription(connection);
 
@@ -99,10 +95,7 @@ fn gen_default_subscription(
         .enable_tombstone(true)
         .enable_info(true)
         .build();
-    let subscription = Repositories::builder()
-        .connection(connection)
-        .handler(firehose)
-        .build();
+    let subscription = Repositories::builder().connection(connection).handler(firehose).build();
     subscription
 }
 
@@ -117,9 +110,7 @@ fn disconnect() {
 #[test]
 fn invalid_packet() {
     if let SubscriptionError::Abort(msg) =
-        test_packet(Some(("{ not-a-header }", "{ not-a-payload }")))
-            .unwrap()
-            .unwrap_err()
+        test_packet(Some(("{ not-a-header }", "{ not-a-payload }"))).unwrap().unwrap_err()
     {
         assert_eq!(msg, "Received invalid packet. Error: Utf8");
         return;
@@ -135,10 +126,7 @@ fn commit() {
         data: Some(CommitData {
             blobs: vec![],
             blocks: vec![],
-            commit: CidLink(Cid::new_v1(
-                0x70,
-                Multihash::<64>::wrap(0x12, &[0; 64]).unwrap(),
-            )),
+            commit: CidLink(Cid::new_v1(0x70, Multihash::<64>::wrap(0x12, &[0; 64]).unwrap())),
             ops: vec![],
             prev: None,
             rebase: false,
@@ -152,9 +140,8 @@ fn commit() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#commit" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#commit" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, Some(99));
     assert_eq!(
         format!("{:?}", data),
@@ -187,9 +174,8 @@ fn identity() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#identity" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#identity" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, Some(99));
     assert_eq!(
         format!("{:?}", data),
@@ -218,9 +204,8 @@ fn account() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#account" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#account" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, Some(99));
     assert_eq!(
         format!("{:?}", data),
@@ -249,9 +234,8 @@ fn handle() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#handle" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#handle" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, Some(99));
     assert_eq!(
         format!("{:?}", data),
@@ -279,9 +263,8 @@ fn migrate() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#migrate" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#migrate" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, Some(99));
     assert_eq!(
         format!("{:?}", data),
@@ -308,9 +291,8 @@ fn tombstone() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#tombstone" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#tombstone" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, Some(99));
     assert_eq!(
         format!("{:?}", data),
@@ -333,9 +315,8 @@ fn info() {
         extra_data: Ipld::Null,
     };
     let body = serde_json::to_string(&body).unwrap();
-    let (seq, data) = test_packet(Some((r##"{ "op": 1, "t": "#info" }"##, &body)))
-        .unwrap()
-        .unwrap();
+    let (seq, data) =
+        test_packet(Some((r##"{ "op": 1, "t": "#info" }"##, &body))).unwrap().unwrap();
     assert_eq!(seq, None);
     assert_eq!(
         format!("{:?}", data),
@@ -349,11 +330,8 @@ fn info() {
 
 #[test]
 fn ignored_frame() {
-    if test_packet(Some((
-        r##"{ "op": 1, "t": "#non-existent" }"##,
-        r#"{ "foo": "bar" }"#,
-    )))
-    .is_none()
+    if test_packet(Some((r##"{ "op": 1, "t": "#non-existent" }"##, r#"{ "foo": "bar" }"#)))
+        .is_none()
     {
         return;
     }
@@ -366,10 +344,7 @@ fn invalid_body() {
         data: Some(CommitData {
             blobs: vec![],
             blocks: vec![1], // Invalid CAR file
-            commit: CidLink(Cid::new_v1(
-                0x70,
-                Multihash::<64>::wrap(0x12, &[0; 64]).unwrap(),
-            )),
+            commit: CidLink(Cid::new_v1(0x70, Multihash::<64>::wrap(0x12, &[0; 64]).unwrap())),
             ops: vec![],
             prev: None,
             rebase: false,
@@ -384,9 +359,7 @@ fn invalid_body() {
     };
     let body = serde_json::to_string(&body).unwrap();
     if let SubscriptionError::Abort(msg) =
-        test_packet(Some((r##"{ "op": 1, "t": "#commit" }"##, &body)))
-            .unwrap()
-            .unwrap_err()
+        test_packet(Some((r##"{ "op": 1, "t": "#commit" }"##, &body))).unwrap().unwrap_err()
     {
         assert_eq!(
             msg,
@@ -447,10 +420,7 @@ fn unknown_error() {
 fn empty_payload() {
     let res = test_packet(Some((r##"{ "op": 1, "t": "#commit" }"##, r#""#)));
     if let SubscriptionError::Abort(msg) = res.unwrap().unwrap_err() {
-        assert_eq!(
-            "Received empty payload for header: {\"op\": 1, \"t\": \"#commit\"}",
-            &msg
-        );
+        assert_eq!("Received empty payload for header: {\"op\": 1, \"t\": \"#commit\"}", &msg);
         return;
     }
     panic!("Expected Empty Payload")

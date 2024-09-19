@@ -136,19 +136,8 @@ impl Handler for Firehose {
         &self,
         payload: subscribe_repos::Commit,
     ) -> Result<Option<ProcessedPayload<Self::ProcessedCommitData>>, Self::HandlingError> {
-        let CommitData {
-            blobs,
-            blocks,
-            commit,
-            ops,
-            repo,
-            rev,
-            seq,
-            since,
-            time,
-            too_big,
-            ..
-        } = payload.data;
+        let CommitData { blobs, blocks, commit, ops, repo, rev, seq, since, time, too_big, .. } =
+            payload.data;
 
         // If it is too big, the blocks and ops are not sent, so we skip the processing.
         let ops_opt = if too_big {
@@ -172,15 +161,7 @@ impl Handler for Firehose {
 
         Ok(Some(ProcessedPayload {
             seq: Some(seq),
-            data: Self::ProcessedCommitData {
-                ops: ops_opt,
-                blobs,
-                commit,
-                repo,
-                rev,
-                since,
-                time,
-            },
+            data: Self::ProcessedCommitData { ops: ops_opt, blobs, commit, repo, rev, since, time },
         }))
     }
 
@@ -189,12 +170,7 @@ impl Handler for Firehose {
         &self,
         payload: subscribe_repos::Identity,
     ) -> Result<Option<ProcessedPayload<Self::ProcessedIdentityData>>, Self::HandlingError> {
-        let IdentityData {
-            did,
-            handle,
-            seq,
-            time,
-        } = payload.data;
+        let IdentityData { did, handle, seq, time } = payload.data;
         Ok(Some(ProcessedPayload {
             seq: Some(seq),
             data: Self::ProcessedIdentityData { did, handle, time },
@@ -206,21 +182,10 @@ impl Handler for Firehose {
         &self,
         payload: subscribe_repos::Account,
     ) -> Result<Option<ProcessedPayload<Self::ProcessedAccountData>>, Self::HandlingError> {
-        let AccountData {
-            did,
-            seq,
-            time,
-            active,
-            status,
-        } = payload.data;
+        let AccountData { did, seq, time, active, status } = payload.data;
         Ok(Some(ProcessedPayload {
             seq: Some(seq),
-            data: Self::ProcessedAccountData {
-                did,
-                active,
-                status,
-                time,
-            },
+            data: Self::ProcessedAccountData { did, active, status, time },
         }))
     }
 
@@ -229,12 +194,7 @@ impl Handler for Firehose {
         &self,
         payload: subscribe_repos::Handle,
     ) -> Result<Option<ProcessedPayload<Self::ProcessedHandleData>>, Self::HandlingError> {
-        let HandleData {
-            did,
-            handle,
-            seq,
-            time,
-        } = payload.data;
+        let HandleData { did, handle, seq, time } = payload.data;
         Ok(Some(ProcessedPayload {
             seq: Some(seq),
             data: Self::ProcessedHandleData { did, handle, time },
@@ -246,19 +206,10 @@ impl Handler for Firehose {
         &self,
         payload: subscribe_repos::Migrate,
     ) -> Result<Option<ProcessedPayload<Self::ProcessedMigrateData>>, Self::HandlingError> {
-        let MigrateData {
-            did,
-            migrate_to,
-            seq,
-            time,
-        } = payload.data;
+        let MigrateData { did, migrate_to, seq, time } = payload.data;
         Ok(Some(ProcessedPayload {
             seq: Some(seq),
-            data: Self::ProcessedMigrateData {
-                did,
-                migrate_to,
-                time,
-            },
+            data: Self::ProcessedMigrateData { did, migrate_to, time },
         }))
     }
 
@@ -279,10 +230,7 @@ impl Handler for Firehose {
         &self,
         payload: subscribe_repos::Info,
     ) -> Result<Option<ProcessedPayload<Self::ProcessedInfoData>>, Self::HandlingError> {
-        Ok(Some(ProcessedPayload {
-            seq: None,
-            data: payload.data,
-        }))
+        Ok(Some(ProcessedPayload { seq: None, data: payload.data }))
     }
 }
 
@@ -315,15 +263,9 @@ fn process_op(
     // Finds in the map the `Record` with the operation's CID and deserializes it.
     // If the item is not found, returns `None`.
     let record = match cid.as_ref().and_then(|c| map.get_mut(&c.0)) {
-        Some(item) => Some(serde_ipld_dagcbor::from_reader::<KnownRecord, _>(
-            Cursor::new(item),
-        )?),
+        Some(item) => Some(serde_ipld_dagcbor::from_reader::<KnownRecord, _>(Cursor::new(item))?),
         None => None,
     };
 
-    Ok(Operation {
-        action,
-        path,
-        record,
-    })
+    Ok(Operation { action, path, record })
 }

@@ -53,10 +53,7 @@ pub struct ProcessedPayload<Kind> {
 /// Helper function to convert between payload kinds.
 impl<Kind> ProcessedPayload<Kind> {
     pub fn map<NewKind, F: FnOnce(Kind) -> NewKind>(self, f: F) -> ProcessedPayload<NewKind> {
-        ProcessedPayload {
-            seq: self.seq,
-            data: f(self.data),
-        }
+        ProcessedPayload { seq: self.seq, data: f(self.data) }
     }
 }
 

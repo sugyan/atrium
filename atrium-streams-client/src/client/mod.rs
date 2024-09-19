@@ -43,7 +43,10 @@ type StreamKind = WebSocketStream<MaybeTlsStream<TcpStream>>;
 impl<P: Serialize + Send + Sync> EventStreamClient<<StreamKind as Stream>::Item, Error>
     for WssClient<P>
 {
-    async fn connect(&self, mut uri: String) -> Result<impl Stream<Item = <StreamKind as Stream>::Item>, Error> {
+    async fn connect(
+        &self,
+        mut uri: String,
+    ) -> Result<impl Stream<Item = <StreamKind as Stream>::Item>, Error> {
         let Self { params } = self;
 
         // Query parameters
@@ -66,9 +69,7 @@ impl<P: Serialize + Send + Sync> EventStreamClient<<StreamKind as Stream>::Item,
 fn get_host(uri: &str) -> Result<(Uri, Box<str>), Error> {
     let uri = Uri::from_str(uri).map_err(|_| Error::InvalidUri)?;
     let authority = uri.authority().ok_or_else(|| Error::InvalidUri)?.as_str();
-    let host = authority
-        .find('@')
-        .map_or_else(|| authority, |idx| authority.split_at(idx + 1).1);
+    let host = authority.find('@').map_or_else(|| authority, |idx| authority.split_at(idx + 1).1);
     let host = Box::from(host);
     Ok((uri, host))
 }
@@ -76,7 +77,11 @@ fn get_host(uri: &str) -> Result<(Uri, Box<str>), Error> {
 /// Generate a request for the given URI and host.
 /// It sets the necessary headers for a WebSocket connection,
 /// plus the client's `AtprotoProxy` and `AtprotoAcceptLabelers` headers.
-async fn gen_request<P: Serialize + Send + Sync>(client: &WssClient<P>, uri: &Uri, host: &str) -> Result<Request<()>, Error> {
+async fn gen_request<P: Serialize + Send + Sync>(
+    client: &WssClient<P>,
+    uri: &Uri,
+    host: &str,
+) -> Result<Request<()>, Error> {
     let mut request = Request::builder()
         .uri(uri)
         .method("GET")

@@ -10,7 +10,7 @@ pub trait EventStreamClient<ConnectionPayload, ConnectionError> {
     /// [`Result<M, E>`]
     fn connect(
         &self,
-        uri: String
+        uri: String,
     ) -> impl Future<Output = Result<impl Stream<Item = ConnectionPayload>, ConnectionError>> + Send;
 
     /// Get the `atproto-proxy` header.
