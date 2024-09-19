@@ -12,7 +12,6 @@ keywords = ["atproto", "bluesky", "atrium", "cli"]
 
 [dependencies]
 anyhow.workspace = true
-async-trait.workspace = true
 bsky-sdk.workspace = true
 chrono.workspace = true
 clap.workspace = true

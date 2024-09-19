@@ -118,21 +118,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-trait"
-version = "0.1.81"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e0c28dcc82d7c8ead5cb13beb15405b57b8546e93215673ff8ca0349a028107"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.71",
-]
-
-[[package]]
 name = "atrium-api"
 version = "0.24.4"
 dependencies = [
- "async-trait",
  "atrium-xrpc",
  "atrium-xrpc-client",
  "bumpalo",
@@ -170,7 +158,6 @@ dependencies = [
 name = "atrium-xrpc"
 version = "0.11.3"
 dependencies = [
- "async-trait",
  "bumpalo",
  "http 1.1.0",
  "serde",
@@ -185,7 +172,6 @@ dependencies = [
 name = "atrium-xrpc-client"
 version = "0.5.6"
 dependencies = [
- "async-trait",
  "atrium-xrpc",
  "bumpalo",
  "futures",
@@ -268,7 +254,6 @@ name = "bsky-cli"
 version = "0.1.22"
 dependencies = [
  "anyhow",
- "async-trait",
  "bsky-sdk",
  "chrono",
  "clap",
@@ -283,7 +268,6 @@ name = "bsky-sdk"
 version = "0.1.9"
 dependencies = [
  "anyhow",
- "async-trait",
  "atrium-api",
  "atrium-xrpc-client",
  "chrono",

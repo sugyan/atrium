@@ -12,7 +12,6 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
-async-trait.workspace = true
 http.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_html_form.workspace = true
