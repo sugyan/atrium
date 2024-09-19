@@ -1,85 +1,154 @@
-use anyhow::{anyhow, Result};
-use atrium_api::app::bsky::feed::post::Record;
-use atrium_api::com::atproto::sync::subscribe_repos::{Commit, NSID};
-use atrium_api::types::{CidLink, Collection};
-use chrono::Local;
-use firehose::stream::frames::Frame;
-use firehose::subscription::{CommitHandler, Subscription};
+use anyhow::bail;
+use atrium_streams_client::{
+    atrium_streams::{
+        atrium_api::com::atproto::sync::subscribe_repos::{self, InfoData},
+        client::EventStreamClient,
+        subscriptions::{
+            handlers::repositories::ProcessedData, ProcessedPayload, SubscriptionError,
+        },
+    },
+    subscriptions::repositories::{
+        firehose::Firehose,
+        type_defs::{Operation, ProcessedCommitData},
+        Repositories,
+    },
+    WssClient, Error,
+};
 use futures::StreamExt;
-use tokio::net::TcpStream;
-use tokio_tungstenite::tungstenite::Message;
-use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::tungstenite;
 
-struct RepoSubscription {
-    stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
-}
-
-impl RepoSubscription {
-    async fn new(bgs: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        let (stream, _) = connect_async(format!("wss://{bgs}/xrpc/{NSID}")).await?;
-        Ok(RepoSubscription { stream })
-    }
-    async fn run(&mut self, handler: impl CommitHandler) -> Result<(), Box<dyn std::error::Error>> {
-        while let Some(result) = self.next().await {
-            if let Ok(Frame::Message(Some(t), message)) = result {
-                if t.as_str() == "#commit" {
-                    let commit = serde_ipld_dagcbor::from_reader(message.body.as_slice())?;
-                    if let Err(err) = handler.handle_commit(&commit).await {
-                        eprintln!("FAILED: {err:?}");
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
-impl Subscription for RepoSubscription {
-    async fn next(&mut self) -> Option<Result<Frame, <Frame as TryFrom<&[u8]>>::Error>> {
-        if let Some(Ok(Message::Binary(data))) = self.stream.next().await {
-            Some(Frame::try_from(data.as_slice()))
-        } else {
-            None
-        }
-    }
-}
-
-struct Firehose;
-
-impl CommitHandler for Firehose {
-    async fn handle_commit(&self, commit: &Commit) -> Result<()> {
-        for op in &commit.ops {
-            let collection = op.path.split('/').next().expect("op.path is empty");
-            if op.action != "create" || collection != atrium_api::app::bsky::feed::Post::NSID {
-                continue;
-            }
-            let (items, _) = rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
-            if let Some((_, item)) = items.iter().find(|(cid, _)| Some(CidLink(*cid)) == op.cid) {
-                let record = serde_ipld_dagcbor::from_reader::<Record, _>(&mut item.as_slice())?;
-                println!(
-                    "{} - {}",
-                    record.created_at.as_ref().with_timezone(&Local),
-                    commit.repo.as_str()
-                );
-                for line in record.text.split('\n') {
-                    println!("  {line}");
-                }
-            } else {
-                return Err(anyhow!(
-                    "FAILED: could not find item with operation cid {:?} out of {} items",
-                    op.cid,
-                    items.len()
-                ));
-            }
-        }
-        Ok(())
-    }
-}
-
+/// This example demonstrates how to connect to the ATProto Firehose.
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    RepoSubscription::new("bsky.network")
-        .await?
-        .run(Firehose)
-        .await
+async fn main() {
+    // Define the Uri for the subscription.
+    let uri = format!("wss://bsky.network/xrpc/{}", subscribe_repos::NSID);
+
+    // Caching the last cursor is important.
+    // The API has a backfilling mechanism that allows you to resume from where you stopped.
+    let mut last_cursor = None;
+    drop(connect(&mut last_cursor, uri).await);
+}
+
+/// Connects to `ATProto` to receive real-time data.
+async fn connect(
+    last_cursor: &mut Option<i64>,
+    uri: String,
+) -> Result<(), anyhow::Error> {
+    // Define the query parameters. In this case, just the cursor.
+    let params = subscribe_repos::ParametersData {
+        cursor: *last_cursor,
+    };
+
+    // Build a new XRPC WSS Client.
+    let client = WssClient::builder()
+        .params(params)
+        .build();
+
+    // And then we connect to the API.
+    let connection = match client.connect(uri).await {
+        Ok(connection) => connection,
+        Err(Error::Connection(tungstenite::Error::Http(response))) => {
+            // According to the API documentation, the following status codes are expected and should be treated accordingly:
+            // 405 Method Not Allowed: Returned to client for non-GET HTTP requests to a stream endpoint.
+            // 426 Upgrade Required: Returned to client if Upgrade header is not included in a request to a stream endpoint.
+            // 429 Too Many Requests: Frequently used for rate-limiting. Client may try again after a delay. Support for the Retry-After header is encouraged.
+            // 500 Internal Server Error: Client may try again after a delay
+            // 501 Not Implemented: Service does not implement WebSockets or streams, at least for this endpoint. Client should not try again.
+            // 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout: Client may try again after a delay.
+            // https://atproto.com/specs/event-stream
+            bail!("Status Code was: {response:?}")
+        }
+        Err(e) => bail!(e),
+    };
+
+    // Builds the subscription handler
+    let firehose = Firehose::builder()
+        // You can enable or disable specific events, and every event is disabled by default.
+        // That way they don't get unnecessarily processed and you save up resources.
+        // Enable only the ones you plan to use.
+        .enable_commit(true)
+        .enable_info(true)
+        .build();
+
+    // Builds a new subscription from the connection, using handler provided
+    // by atrium-streams-client, the `Firehose`.
+    let mut subscription = Repositories::builder()
+        .connection(connection)
+        .handler(firehose)
+        .build();
+
+    // Receive payloads by calling `StreamExt::next()`.
+    while let Some(payload) = subscription.next().await {
+        let data = match payload {
+            Ok(ProcessedPayload { seq, data }) => {
+                if let Some(seq) = seq {
+                    *last_cursor = Some(seq);
+                }
+                data
+            }
+            Err(SubscriptionError::Abort(reason)) => {
+                // This could mean multiple things, all of which are critical errors that require
+                // immediate termination of connection.
+                eprintln!("Aborted: {reason}");
+                *last_cursor = None;
+                break;
+            }
+            Err(e) => {
+                // Errors such as `FutureCursor` and `ConsumerTooSlow` can be dealt with here.
+                eprintln!("{e:?}");
+                *last_cursor = None;
+                break;
+            }
+        };
+
+        match data {
+            ProcessedData::Commit(data) => beauty_print_commit(data),
+            ProcessedData::Info(InfoData { message, name }) => {
+                println!("Received info. Message: {message:?}; Name: {name}.");
+            }
+            _ => { /* Ignored */ }
+        };
+    }
+
+    Ok(())
+}
+
+fn beauty_print_commit(data: ProcessedCommitData) {
+    let ProcessedCommitData {
+        repo, commit, ops, ..
+    } = data;
+    if let Some(ops) = ops {
+        for r in ops {
+            let Operation {
+                action,
+                path,
+                record,
+            } = r;
+            let print = format!(
+                "\n\n\n#################################  {}  ##################################\n\
+        - Repository (User DID): {}\n\
+        - Commit CID: {}\n\
+        - Path: {path}\n\
+        - Flagged as \"too big\"? ",
+                action.to_uppercase(),
+                repo.as_str(),
+                commit.0,
+            );
+            // Record is only `None` when the commit was flagged as "too big".
+            if let Some(record) = record {
+                println!(
+                    "{}No\n\
+          //-------------------------------- Record Info -------------------------------//\n\n\
+          {:?}",
+                    print, record
+                );
+            } else {
+                println!(
+                    "{}Yes\n\
+          //---------------------------------------------------------------------------//\n\n",
+                    print
+                );
+            }
+        }
+    }
 }

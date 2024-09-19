@@ -6,13 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.80"
-atrium-api = { version = "0.18.1", features = ["dag-cbor"] }
-chrono = "0.4.34"
+anyhow = "1.0.86"
+atrium-streams-client = { path = "../../atrium-streams-client" }
 futures = "0.3.30"
-ipld-core = { version = "0.4.0", default-features = false, features = ["std"] }
-rs-car = "0.4.1"
-serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }
-tokio = { version = "1.36.0", features = ["full"] }
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
-trait-variant = "0.1.1"
+tokio = { version = "1.36.0", features = ["full"] }

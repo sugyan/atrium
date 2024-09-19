@@ -1,0 +1,21 @@
+[package]
+name = "atrium-streams"
+version = "0.1.0"
+authors = ["Elaina <17bestradiol@proton.me>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "Event Streams library for AT Protocol (Bluesky)"
+documentation = "https://docs.rs/atrium-streams"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords.workspace = true
+
+[dependencies]
+atrium-api.workspace = true
+futures.workspace = true
+cbor4ii.workspace = true
+ipld-core.workspace = true
+serde.workspace = true
+serde_ipld_dagcbor.workspace = true
+thiserror.workspace = true
