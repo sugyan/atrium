@@ -102,7 +102,7 @@ impl RichText {
     /// Get segments of the rich text.
     pub fn segments(&self) -> Vec<RichTextSegment> {
         let Some(facets) = self.facets.as_ref() else {
-            return vec![RichTextSegment::new(&self.text, None)]
+            return vec![RichTextSegment::new(&self.text, None)];
         };
         let mut segments = Vec::new();
         let (mut text_cursor, mut facet_cursor) = (0, 0);
