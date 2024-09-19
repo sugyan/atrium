@@ -1,2 +1,2 @@
 [alias]
-fmt-no-gen = "fmt --check -- --config format_generated_files=false"
+fmt-no-gen = "fmt -- --config format_generated_files=false"

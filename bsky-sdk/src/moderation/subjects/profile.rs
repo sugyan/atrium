@@ -8,10 +8,7 @@ impl Moderator {
         acc.set_did(subject.did().clone());
         acc.set_is_me(self.user_did.as_ref() == Some(subject.did()));
         if let Some(labels) = subject.labels() {
-            for label in labels
-                .iter()
-                .filter(|l| l.uri.ends_with("/app.bsky.actor.profile/self"))
-            {
+            for label in labels.iter().filter(|l| l.uri.ends_with("/app.bsky.actor.profile/self")) {
                 acc.add_label(LabelTarget::Profile, label, self);
             }
         }

@@ -47,10 +47,7 @@ impl ThreadViewPreferenceData {
 
 impl Default for ThreadViewPreferenceData {
     fn default() -> Self {
-        Self {
-            sort: Self::SORT_OLDEST.to_string(),
-            prioritize_followed_users: true,
-        }
+        Self { sort: Self::SORT_OLDEST.to_string(), prioritize_followed_users: true }
     }
 }
 

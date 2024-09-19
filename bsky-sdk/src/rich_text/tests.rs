@@ -24,15 +24,8 @@ pub async fn rich_text_with_detect_facets(text: &str) -> Result<RichText> {
 
 fn facet(byte_start: usize, byte_end: usize) -> Main {
     MainData {
-        features: vec![Union::Unknown(UnknownData {
-            r#type: String::new(),
-            data: Ipld::Null,
-        })],
-        index: ByteSliceData {
-            byte_end,
-            byte_start,
-        }
-        .into(),
+        features: vec![Union::Unknown(UnknownData { r#type: String::new(), data: Ipld::Null })],
+        index: ByteSliceData { byte_end, byte_start }.into(),
     }
     .into()
 }
@@ -68,10 +61,7 @@ fn insert() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 6);
         assert_eq!(facets[0].index.byte_end, 11);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "llo w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "llo w");
     }
     // correctly adjusts facets (scenario B - inner)
     {
@@ -82,10 +72,7 @@ fn insert() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 2);
         assert_eq!(facets[0].index.byte_end, 11);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "lltesto w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "lltesto w");
     }
     // correctly adjusts facets (scenario C - after)
     {
@@ -96,10 +83,7 @@ fn insert() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 2);
         assert_eq!(facets[0].index.byte_end, 7);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "llo w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "llo w");
     }
 }
 
@@ -191,10 +175,7 @@ fn delete() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 2);
         assert_eq!(facets[0].index.byte_end, 7);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "llo w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "llo w");
     }
     // correctly adjusts facets (scenario C - partially after)
     {
@@ -205,10 +186,7 @@ fn delete() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 2);
         assert_eq!(facets[0].index.byte_end, 4);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "ll"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "ll");
     }
     // correctly adjusts facets (scenario D - entirely inner)
     {
@@ -219,10 +197,7 @@ fn delete() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 2);
         assert_eq!(facets[0].index.byte_end, 5);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "l w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "l w");
     }
     // correctly adjusts facets (scenario E - partially before)
     {
@@ -233,10 +208,7 @@ fn delete() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 1);
         assert_eq!(facets[0].index.byte_end, 3);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            " w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], " w");
     }
     // correctly adjusts facets (scenario F - entirely before)
     {
@@ -247,19 +219,13 @@ fn delete() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 0);
         assert_eq!(facets[0].index.byte_end, 5);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "llo w"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "llo w");
     }
 }
 
 #[test]
 fn delete_with_fat_unicode() {
-    let input = &RichText::new(
-        "one👨‍👩‍👧‍👧 two👨‍👩‍👧‍👧 three👨‍👩‍👧‍👧",
-        Some(vec![facet(29, 57)]),
-    );
+    let input = &RichText::new("one👨‍👩‍👧‍👧 two👨‍👩‍👧‍👧 three👨‍👩‍👧‍👧", Some(vec![facet(29, 57)]));
     // correctly adjusts facets (scenario A - entirely outer)
     {
         let mut input = input.clone();
@@ -291,10 +257,7 @@ fn delete_with_fat_unicode() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 29);
         assert_eq!(facets[0].index.byte_end, 31);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "tw"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "tw");
     }
     // correctly adjusts facets (scenario D - entirely inner)
     {
@@ -305,10 +268,7 @@ fn delete_with_fat_unicode() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 29);
         assert_eq!(facets[0].index.byte_end, 55);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "t👨‍👩‍👧‍👧"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "t👨‍👩‍👧‍👧");
     }
     // correctly adjusts facets (scenario E - partially before)
     {
@@ -319,10 +279,7 @@ fn delete_with_fat_unicode() {
         assert_eq!(facets.len(), 1);
         assert_eq!(facets[0].index.byte_start, 28);
         assert_eq!(facets[0].index.byte_end, 54);
-        assert_eq!(
-            &input.text[facets[0].index.byte_start..facets[0].index.byte_end],
-            "o👨‍👩‍👧‍👧"
-        );
+        assert_eq!(&input.text[facets[0].index.byte_start..facets[0].index.byte_end], "o👨‍👩‍👧‍👧");
     }
     // correctly adjusts facets (scenario F - entirely before)
     {
@@ -396,10 +353,8 @@ fn segments() {
     }
     // produces 5 segments with 3 facets covering each word
     {
-        let input = RichText::new(
-            "one two three",
-            Some(vec![facet(0, 3), facet(4, 7), facet(8, 13)]),
-        );
+        let input =
+            RichText::new("one two three", Some(vec![facet(0, 3), facet(4, 7), facet(8, 13)]));
         assert_eq!(
             input.segments(),
             vec![
@@ -435,30 +390,16 @@ fn segments() {
             Some(vec![
                 MainData {
                     features: vec![Union::Refs(MainFeaturesItem::Mention(Box::new(
-                        MentionData {
-                            did: "did:plc:123".parse().expect("invalid did"),
-                        }
-                        .into(),
+                        MentionData { did: "did:plc:123".parse().expect("invalid did") }.into(),
                     )))],
-                    index: ByteSliceData {
-                        byte_end: 3,
-                        byte_start: 0,
-                    }
-                    .into(),
+                    index: ByteSliceData { byte_end: 3, byte_start: 0 }.into(),
                 }
                 .into(),
                 MainData {
                     features: vec![Union::Refs(MainFeaturesItem::Link(Box::new(
-                        LinkData {
-                            uri: String::from("https://example.com"),
-                        }
-                        .into(),
+                        LinkData { uri: String::from("https://example.com") }.into(),
                     )))],
-                    index: ByteSliceData {
-                        byte_end: 7,
-                        byte_start: 4,
-                    }
-                    .into(),
+                    index: ByteSliceData { byte_end: 7, byte_start: 4 }.into(),
                 }
                 .into(),
                 facet(8, 13),
@@ -479,10 +420,8 @@ fn segments() {
     }
     // skips facets that incorrectly overlap (left edge)
     {
-        let input = RichText::new(
-            "one two three",
-            Some(vec![facet(0, 3), facet(2, 9), facet(8, 13)]),
-        );
+        let input =
+            RichText::new("one two three", Some(vec![facet(0, 3), facet(2, 9), facet(8, 13)]));
         assert_eq!(
             input.segments(),
             vec![
@@ -494,10 +433,8 @@ fn segments() {
     }
     // skips facets that incorrectly overlap (right edge)
     {
-        let input = RichText::new(
-            "one two three",
-            Some(vec![facet(0, 3), facet(4, 9), facet(8, 13)]),
-        );
+        let input =
+            RichText::new("one two three", Some(vec![facet(0, 3), facet(4, 9), facet(8, 13)]));
         assert_eq!(
             input.segments(),
             vec![

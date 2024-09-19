@@ -124,9 +124,7 @@ mod tests {
                 json: true,
                 body: r#"{"returnValue":42}"#.as_bytes().to_vec(),
             };
-            let out = get_example(&client, Parameters {})
-                .await
-                .expect("must be ok");
+            let out = get_example(&client, Parameters {}).await.expect("must be ok");
             assert_eq!(out.return_value, 42);
         }
 
@@ -162,9 +160,7 @@ mod tests {
             let client = DummyClient {
                 status: http::StatusCode::INTERNAL_SERVER_ERROR,
                 json: true,
-                body: r#"{"error":"Unknown","message":"Something wrong"}"#
-                    .as_bytes()
-                    .to_vec(),
+                body: r#"{"error":"Unknown","message":"Something wrong"}"#.as_bytes().to_vec(),
             };
             let result = get_example(&client, Parameters {}).await;
             let error = result.expect_err("must be error");
@@ -227,19 +223,11 @@ mod tests {
             #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_ok() {
                 let body = r"data".as_bytes().to_vec();
-                let client = DummyClient {
-                    status: http::StatusCode::OK,
-                    json: false,
-                    body: body.clone(),
-                };
-                let out = get_bytes(
-                    &client,
-                    Parameters {
-                        query: "foo".into(),
-                    },
-                )
-                .await
-                .expect("must be ok");
+                let client =
+                    DummyClient { status: http::StatusCode::OK, json: false, body: body.clone() };
+                let out = get_bytes(&client, Parameters { query: "foo".into() })
+                    .await
+                    .expect("must be ok");
                 assert_eq!(out, body);
             }
 
@@ -251,13 +239,7 @@ mod tests {
                     json: true,
                     body: r"null".as_bytes().to_vec(),
                 };
-                let result = get_bytes(
-                    &client,
-                    Parameters {
-                        query: "foo".into(),
-                    },
-                )
-                .await;
+                let result = get_bytes(&client, Parameters { query: "foo".into() }).await;
                 let error = result.expect_err("must be error");
                 match &error {
                     crate::Error::UnexpectedResponseType => {}
@@ -305,14 +287,9 @@ mod tests {
             #[tokio::test]
             #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
             async fn response_ok() {
-                let client = DummyClient {
-                    status: http::StatusCode::OK,
-                    json: false,
-                    body: Vec::new(),
-                };
-                create_data(&client, Input { value: 42 })
-                    .await
-                    .expect("must be ok");
+                let client =
+                    DummyClient { status: http::StatusCode::OK, json: false, body: Vec::new() };
+                create_data(&client, Input { value: 42 }).await.expect("must be ok");
             }
 
             #[tokio::test]
@@ -372,9 +349,7 @@ mod tests {
                     json: true,
                     body: r#"{"returnValue":42}"#.as_bytes().to_vec(),
                 };
-                create_data(&client, "data".as_bytes().to_vec())
-                    .await
-                    .expect("must be ok");
+                create_data(&client, "data".as_bytes().to_vec()).await.expect("must be ok");
             }
 
             #[tokio::test]

@@ -34,9 +34,7 @@ async fn run_query(
         .send_xrpc::<_, (), _, _>(&XrpcRequest {
             method: Method::GET,
             nsid: path,
-            parameters: Some(Parameters {
-                query: "foo".into(),
-            }),
+            parameters: Some(Parameters { query: "foo".into() }),
             input: None,
             encoding: None,
         })

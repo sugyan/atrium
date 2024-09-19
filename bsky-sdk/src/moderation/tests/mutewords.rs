@@ -78,11 +78,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
-            &[muted_word(
-                "outlineTag",
-                MutedWordTarget::Tag,
-                ActorTarget::All
-            )],
+            &[muted_word("outlineTag", MutedWordTarget::Tag, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![String::from("outlineTag")]),
@@ -94,11 +90,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
-            &[muted_word(
-                "inlineTag",
-                MutedWordTarget::Tag,
-                ActorTarget::All
-            )],
+            &[muted_word("inlineTag", MutedWordTarget::Tag, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![String::from("outlineTag")]),
@@ -110,11 +102,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post #inlineTag").await?;
         assert!(has_muted_word(
-            &[muted_word(
-                "inlineTag",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("inlineTag", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![String::from("outlineTag")]),
@@ -162,11 +150,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("hey").await?;
         assert!(!has_muted_word(
-            &[muted_word(
-                "politics",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("politics", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -178,11 +162,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("javascript").await?;
         assert!(has_muted_word(
-            &[muted_word(
-                "javascript",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("javascript", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -194,11 +174,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("This is a post about javascript").await?;
         assert!(has_muted_word(
-            &[muted_word(
-                "javascript",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("javascript", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -222,11 +198,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
     {
         let rt = rich_text_with_detect_facets("Use your\n\tbrain, Eric").await?;
         assert!(has_muted_word(
-            &[muted_word(
-                "brain",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("brain", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -251,11 +223,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("We're federating, yay!").await?;
         // match: yay!
         assert!(has_muted_word(
-            &[muted_word(
-                "yay!",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("yay!", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -264,11 +232,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: yay
         assert!(has_muted_word(
-            &[muted_word(
-                "yay",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("yay", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -281,11 +245,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("We're federating, y!ppee!!").await?;
         // match: y!ppee
         assert!(has_muted_word(
-            &[muted_word(
-                "y!ppee",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("y!ppee", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -294,11 +254,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: y!ppee!
         assert!(has_muted_word(
-            &[muted_word(
-                "y!ppee!",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("y!ppee!", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -311,11 +267,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Yay, Bluesky's mutewords work").await?;
         // match: Bluesky's
         assert!(has_muted_word(
-            &[muted_word(
-                "Bluesky's",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("Bluesky's", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -324,11 +276,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: Bluesky
         assert!(has_muted_word(
-            &[muted_word(
-                "Bluesky",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("Bluesky", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -337,11 +285,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: bluesky
         assert!(has_muted_word(
-            &[muted_word(
-                "bluesky",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("bluesky", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -350,11 +294,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: blueskys
         assert!(has_muted_word(
-            &[muted_word(
-                "blueskys",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("blueskys", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -367,11 +307,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Why so S@assy?").await?;
         // match: S@assy
         assert!(has_muted_word(
-            &[muted_word(
-                "S@assy",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("S@assy", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -380,11 +316,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: s@assy
         assert!(has_muted_word(
-            &[muted_word(
-                "s@assy",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("s@assy", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -397,11 +329,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("New York Times").await?;
         // match: new york times
         assert!(has_muted_word(
-            &[muted_word(
-                "new york times",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("new york times", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -414,11 +342,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Idk maybe a bot !command").await?;
         // match: !command
         assert!(has_muted_word(
-            &[muted_word(
-                "!command",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("!command", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -427,11 +351,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: command
         assert!(has_muted_word(
-            &[muted_word(
-                "command",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("command", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -441,11 +361,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         // no match: !command
         let rt = rich_text_with_detect_facets("Idk maybe a bot command").await?;
         assert!(!has_muted_word(
-            &[muted_word(
-                "!command",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("!command", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -458,11 +374,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("I'm e/acc pilled").await?;
         // match: e/acc
         assert!(has_muted_word(
-            &[muted_word(
-                "e/acc",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("e/acc", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -471,11 +383,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: acc
         assert!(has_muted_word(
-            &[muted_word(
-                "acc",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("acc", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -488,11 +396,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("I'm super-bad").await?;
         // match: super-bad
         assert!(has_muted_word(
-            &[muted_word(
-                "super-bad",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("super-bad", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -501,11 +405,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: super
         assert!(has_muted_word(
-            &[muted_word(
-                "super",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("super", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -514,11 +414,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: bad
         assert!(has_muted_word(
-            &[muted_word(
-                "bad",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("bad", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -527,11 +423,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: super bad
         assert!(has_muted_word(
-            &[muted_word(
-                "super bad",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("super bad", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -540,11 +432,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: superbad
         assert!(has_muted_word(
-            &[muted_word(
-                "superbad",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("superbad", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -557,11 +445,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Weird post with idk_what_this_would_be").await?;
         // match: idk what this would be
         assert!(has_muted_word(
-            &[muted_word(
-                "idk what this would be",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("idk what this would be", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -570,11 +454,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // no match: idk what this would be for
         assert!(!has_muted_word(
-            &[muted_word(
-                "idk what this would be for",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("idk what this would be for", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -583,11 +463,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: idk
         assert!(has_muted_word(
-            &[muted_word(
-                "idk",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("idk", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -596,11 +472,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: idkwhatthiswouldbe
         assert!(has_muted_word(
-            &[muted_word(
-                "idkwhatthiswouldbe",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("idkwhatthiswouldbe", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -613,11 +485,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("Post with context(iykyk)").await?;
         // match: context(iykyk)
         assert!(has_muted_word(
-            &[muted_word(
-                "context(iykyk)",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("context(iykyk)", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -626,11 +494,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: context
         assert!(has_muted_word(
-            &[muted_word(
-                "context",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("context", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -639,11 +503,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: iykyk
         assert!(has_muted_word(
-            &[muted_word(
-                "iykyk",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("iykyk", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -652,11 +512,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: (iykyk)
         assert!(has_muted_word(
-            &[muted_word(
-                "(iykyk)",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("(iykyk)", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -685,11 +541,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         .await?;
         // match: stop worrying
         assert!(has_muted_word(
-            &[muted_word(
-                "stop worrying",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("stop worrying", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -698,11 +550,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         ));
         // match: turtles, or how
         assert!(has_muted_word(
-            &[muted_word(
-                "turtles, or how",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("turtles, or how", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -715,11 +563,7 @@ async fn has_muted_word_from_rich_text() -> crate::error::Result<()> {
         let rt = rich_text_with_detect_facets("私はカメが好きです、またはどのようにして心配するのをやめてインターネットを愛するようになったのか").await?;
         // match: インターネット
         assert!(has_muted_word(
-            &[muted_word(
-                "インターネット",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("インターネット", MutedWordTarget::Content, ActorTarget::All)],
             &rt.text,
             rt.facets.as_ref(),
             Some(&vec![]),
@@ -735,32 +579,18 @@ fn facet_with_multiple_features() {
     // multiple tags
     {
         assert!(has_muted_word(
-            &[muted_word(
-                "bad",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("bad", MutedWordTarget::Content, ActorTarget::All)],
             "tags",
             Some(&vec![MainData {
                 features: vec![
                     Union::Refs(MainFeaturesItem::Tag(Box::new(
-                        TagData {
-                            tag: String::from("good")
-                        }
-                        .into()
+                        TagData { tag: String::from("good") }.into()
                     ))),
                     Union::Refs(MainFeaturesItem::Tag(Box::new(
-                        TagData {
-                            tag: String::from("bad")
-                        }
-                        .into()
+                        TagData { tag: String::from("bad") }.into()
                     )))
                 ],
-                index: ByteSliceData {
-                    byte_end: 4,
-                    byte_start: 0,
-                }
-                .into()
+                index: ByteSliceData { byte_end: 4, byte_start: 0 }.into()
             }
             .into()]),
             Some(&vec![]),
@@ -771,11 +601,7 @@ fn facet_with_multiple_features() {
     // other features
     {
         assert!(has_muted_word(
-            &[muted_word(
-                "bad",
-                MutedWordTarget::Content,
-                ActorTarget::All
-            )],
+            &[muted_word("bad", MutedWordTarget::Content, ActorTarget::All)],
             "test",
             Some(&vec![MainData {
                 features: vec![
@@ -787,17 +613,10 @@ fn facet_with_multiple_features() {
                         ),]))
                     }),
                     Union::Refs(MainFeaturesItem::Tag(Box::new(
-                        TagData {
-                            tag: String::from("bad")
-                        }
-                        .into()
+                        TagData { tag: String::from("bad") }.into()
                     )))
                 ],
-                index: ByteSliceData {
-                    byte_end: 4,
-                    byte_start: 0,
-                }
-                .into()
+                index: ByteSliceData { byte_end: 4, byte_start: 0 }.into()
             }
             .into()]),
             Some(&vec![]),
@@ -810,11 +629,7 @@ fn facet_with_multiple_features() {
 #[test]
 fn does_not_mute_own_post() {
     let prefs = &moderation_prefs("words", MutedWordTarget::Content, ActorTarget::All, None);
-    let post = &post_view(
-        &profile_view_basic("bob.test", Some("Bob"), None),
-        "Mute words!",
-        None,
-    );
+    let post = &post_view(&profile_view_basic("bob.test", Some("Bob"), None), "Mute words!", None);
     // does mute if it isn't own post
     let moderator = Moderator::new(
         Some("did:web:alice.test".parse().expect("invalid did")),
@@ -822,10 +637,7 @@ fn does_not_mute_own_post() {
         HashMap::new(),
     );
     let result = moderator.moderate_post(post);
-    assert!(
-        result.ui(DecisionContext::ContentList).filter(),
-        "post should be filtered"
-    );
+    assert!(result.ui(DecisionContext::ContentList).filter(), "post should be filtered");
     // doesn't mute own post when muted word is in text
     let moderator = Moderator::new(
         Some("did:web:bob.test".parse().expect("invalid did")),
@@ -833,10 +645,7 @@ fn does_not_mute_own_post() {
         HashMap::new(),
     );
     let result = moderator.moderate_post(post);
-    assert!(
-        !result.ui(DecisionContext::ContentList).filter(),
-        "post should not be filtered"
-    );
+    assert!(!result.ui(DecisionContext::ContentList).filter(), "post should not be filtered");
 }
 
 #[cfg(feature = "rich-text")]
@@ -848,11 +657,7 @@ async fn does_not_mute_own_tags() -> crate::error::Result<()> {
 
     let prefs = moderation_prefs("words", MutedWordTarget::Tag, ActorTarget::All, None);
     let rt = rich_text_with_detect_facets("Mute #words!").await?;
-    let mut post = post_view(
-        &profile_view_basic("bob.test", Some("Bob"), None),
-        &rt.text,
-        None,
-    );
+    let mut post = post_view(&profile_view_basic("bob.test", Some("Bob"), None), &rt.text, None);
     if let Unknown::Other(data) = &mut post.record {
         if let Ipld::Map(m) = data.deref_mut() {
             if let Some(facets) = rt.facets {
@@ -869,10 +674,7 @@ async fn does_not_mute_own_tags() -> crate::error::Result<()> {
         HashMap::new(),
     );
     let result = moderator.moderate_post(&post);
-    assert!(
-        !result.ui(DecisionContext::ContentList).filter(),
-        "post should not be filtered"
-    );
+    assert!(!result.ui(DecisionContext::ContentList).filter(), "post should not be filtered");
     Ok(())
 }
 
@@ -887,21 +689,15 @@ fn timed_mute_words() {
             ActorTarget::All,
             Some(Datetime::new(now + Duration::from_secs(1))),
         );
-        let post = &post_view(
-            &profile_view_basic("bob.test", Some("Bob"), None),
-            "Mute words!",
-            None,
-        );
+        let post =
+            &post_view(&profile_view_basic("bob.test", Some("Bob"), None), "Mute words!", None);
         let moderator = Moderator::new(
             Some("did:web:alice.test".parse().expect("invalid did")),
             prefs.clone(),
             HashMap::new(),
         );
         let result = moderator.moderate_post(post);
-        assert!(
-            result.ui(DecisionContext::ContentList).filter(),
-            "post should be filtered"
-        );
+        assert!(result.ui(DecisionContext::ContentList).filter(), "post should be filtered");
     }
     // expired word
     {
@@ -912,32 +708,22 @@ fn timed_mute_words() {
             ActorTarget::All,
             Some(Datetime::new(now - Duration::from_secs(1))),
         );
-        let post = &post_view(
-            &profile_view_basic("bob.test", Some("Bob"), None),
-            "Mute words!",
-            None,
-        );
+        let post =
+            &post_view(&profile_view_basic("bob.test", Some("Bob"), None), "Mute words!", None);
         let moderator = Moderator::new(
             Some("did:web:alice.test".parse().expect("invalid did")),
             prefs.clone(),
             HashMap::new(),
         );
         let result = moderator.moderate_post(post);
-        assert!(
-            !result.ui(DecisionContext::ContentList).filter(),
-            "post should not be filtered"
-        );
+        assert!(!result.ui(DecisionContext::ContentList).filter(), "post should not be filtered");
     }
 }
 
 #[test]
 fn actor_based_mute_words() {
-    let prefs = moderation_prefs(
-        "words",
-        MutedWordTarget::Content,
-        ActorTarget::ExcludeFollowing,
-        None,
-    );
+    let prefs =
+        moderation_prefs("words", MutedWordTarget::Content, ActorTarget::ExcludeFollowing, None);
     // followed actor
     {
         let mut author = profile_view_basic("bob.test", Some("Bob"), None);
@@ -951,10 +737,7 @@ fn actor_based_mute_words() {
             HashMap::new(),
         );
         let result = moderator.moderate_post(&post_view(&author, "Mute words!", None));
-        assert!(
-            !result.ui(DecisionContext::ContentList).filter(),
-            "post should not be filtered"
-        );
+        assert!(!result.ui(DecisionContext::ContentList).filter(), "post should not be filtered");
     }
     // non-followed actor
     {
@@ -966,9 +749,6 @@ fn actor_based_mute_words() {
             HashMap::new(),
         );
         let result = moderator.moderate_post(&post_view(&author, "Mute words!", None));
-        assert!(
-            result.ui(DecisionContext::ContentList).filter(),
-            "post should be filtered"
-        );
+        assert!(result.ui(DecisionContext::ContentList).filter(), "post should be filtered");
     }
 }

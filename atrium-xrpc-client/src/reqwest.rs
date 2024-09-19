@@ -35,10 +35,7 @@ pub struct ReqwestClientBuilder {
 impl ReqwestClientBuilder {
     /// Create a new [`ReqwestClientBuilder`] for building a custom client.
     pub fn new(base_uri: impl AsRef<str>) -> Self {
-        Self {
-            base_uri: base_uri.as_ref().into(),
-            client: None,
-        }
+        Self { base_uri: base_uri.as_ref().into(), client: None }
     }
     /// Sets the [`reqwest::Client`] to use.
     pub fn client(mut self, client: Client) -> Self {
@@ -47,10 +44,7 @@ impl ReqwestClientBuilder {
     }
     /// Build an [`ReqwestClient`] using the configured options.
     pub fn build(self) -> ReqwestClient {
-        ReqwestClient {
-            base_uri: self.base_uri,
-            client: self.client.unwrap_or_default(),
-        }
+        ReqwestClient { base_uri: self.base_uri, client: self.client.unwrap_or_default() }
     }
 }
 
@@ -66,9 +60,7 @@ impl HttpClient for ReqwestClient {
         for (k, v) in response.headers() {
             builder = builder.header(k, v);
         }
-        builder
-            .body(response.bytes().await?.to_vec())
-            .map_err(Into::into)
+        builder.body(response.bytes().await?.to_vec()).map_err(Into::into)
     }
 }
 

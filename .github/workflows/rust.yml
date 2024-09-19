@@ -46,4 +46,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Format (rustfmt)
-        run: cargo fmt-no-gen
+        run: cargo fmt-no-gen --check

@@ -36,9 +36,7 @@ pub fn has_muted_word(
     let exception = langs
         .as_ref()
         .and_then(|langs| langs.first())
-        .map_or(false, |lang| {
-            LANGUAGE_EXCEPTIONS.contains(&lang.as_ref().as_str())
-        });
+        .map_or(false, |lang| LANGUAGE_EXCEPTIONS.contains(&lang.as_ref().as_str()));
     let mut tags = Vec::new();
     if let Some(outline_tags) = outline_tags {
         tags.extend(outline_tags.iter().map(|t| t.to_lowercase()));
@@ -75,10 +73,7 @@ pub fn has_muted_word(
             if actor_target == "exclude-following"
                 && actor
                     .and_then(|actor| {
-                        actor
-                            .viewer
-                            .as_ref()
-                            .and_then(|viewer| viewer.following.as_ref())
+                        actor.viewer.as_ref().and_then(|viewer| viewer.following.as_ref())
                     })
                     .is_some()
             {
@@ -151,9 +146,8 @@ pub fn has_muted_word(
                     return true;
                 }
 
-                let word_parts = re_internal_punctuation
-                    .split(&word_trimmed_punctuation)
-                    .collect::<Vec<_>>();
+                let word_parts =
+                    re_internal_punctuation.split(&word_trimmed_punctuation).collect::<Vec<_>>();
                 for word_part in word_parts {
                     if word_part == muted_word {
                         return true;
