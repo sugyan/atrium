@@ -103,7 +103,6 @@ impl Default for BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
     use atrium_api::agent::Session;
     use atrium_api::com::atproto::server::create_session::OutputData;
 
@@ -125,7 +124,6 @@ mod tests {
 
     struct MockSessionStore;
 
-    #[async_trait]
     impl SessionStore for MockSessionStore {
         async fn get_session(&self) -> Option<Session> {
             Some(session())

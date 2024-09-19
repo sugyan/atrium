@@ -1,5 +1,4 @@
 #![doc = "XrpcClient implementation for [reqwest]"]
-use async_trait::async_trait;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::{HttpClient, XrpcClient};
 use reqwest::Client;
@@ -48,8 +47,6 @@ impl ReqwestClientBuilder {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl HttpClient for ReqwestClient {
     async fn send_http(
         &self,

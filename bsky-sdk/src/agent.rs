@@ -260,13 +260,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
     use atrium_api::agent::Session;
 
     #[derive(Clone)]
     struct NoopStore;
 
-    #[async_trait]
     impl SessionStore for NoopStore {
         async fn get_session(&self) -> Option<Session> {
             unimplemented!()

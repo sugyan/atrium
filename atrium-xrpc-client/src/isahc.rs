@@ -1,5 +1,4 @@
 #![doc = "XrpcClient implementation for [isahc]"]
-use async_trait::async_trait;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::{HttpClient, XrpcClient};
 use isahc::{AsyncReadResponseExt, HttpClient as Client};
@@ -52,7 +51,6 @@ impl IsahcClientBuilder {
     }
 }
 
-#[async_trait]
 impl HttpClient for IsahcClient {
     async fn send_http(
         &self,

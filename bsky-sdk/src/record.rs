@@ -1,9 +1,10 @@
 //! Record operations.
 mod agent;
 
+use std::future::Future;
+
 use crate::error::{Error, Result};
 use crate::BskyAgent;
-use async_trait::async_trait;
 use atrium_api::agent::store::SessionStore;
 use atrium_api::com::atproto::repo::{
     create_record, delete_record, get_record, list_records, put_record,
@@ -11,28 +12,24 @@ use atrium_api::com::atproto::repo::{
 use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 pub trait Record<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: SessionStore + Send + Sync,
 {
-    async fn list(
+    fn list(
         agent: &BskyAgent<T, S>,
         cursor: Option<String>,
         limit: Option<LimitedNonZeroU8<100u8>>,
-    ) -> Result<list_records::Output>;
-    async fn get(agent: &BskyAgent<T, S>, rkey: String) -> Result<get_record::Output>;
-    async fn put(self, agent: &BskyAgent<T, S>, rkey: String) -> Result<put_record::Output>;
-    async fn create(self, agent: &BskyAgent<T, S>) -> Result<create_record::Output>;
-    async fn delete(agent: &BskyAgent<T, S>, rkey: String) -> Result<delete_record::Output>;
+    ) -> impl Future<Output = Result<list_records::Output>> + Send;
+    fn get(agent: &BskyAgent<T, S>, rkey: String) -> impl Future<Output = Result<get_record::Output>> + Send;
+    fn put(self, agent: &BskyAgent<T, S>, rkey: String) -> impl Future<Output = Result<put_record::Output>> + Send;
+    fn create(self, agent: &BskyAgent<T, S>) -> impl Future<Output = Result<create_record::Output>> + Send;
+    fn delete(agent: &BskyAgent<T, S>, rkey: String) -> impl Future<Output = Result<delete_record::Output>> + Send;
 }
 
 macro_rules! record_impl {
     ($collection:path, $record:path, $record_data:path) => {
-        #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-        #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
         impl<T, S> Record<T, S> for $record
         where
             T: XrpcClient + Send + Sync,
@@ -150,8 +147,6 @@ macro_rules! record_impl {
             }
         }
 
-        #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-        #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
         impl<T, S> Record<T, S> for $record_data
         where
             T: XrpcClient + Send + Sync,
@@ -277,7 +272,6 @@ mod tests {
 
     struct MockClient;
 
-    #[async_trait]
     impl HttpClient for MockClient {
         async fn send_http(
             &self,
@@ -307,7 +301,6 @@ mod tests {
         }
     }
 
-    #[async_trait]
     impl XrpcClient for MockClient {
         fn base_uri(&self) -> String {
             String::new()
@@ -316,7 +309,6 @@ mod tests {
 
     struct MockSessionStore;
 
-    #[async_trait]
     impl SessionStore for MockSessionStore {
         async fn get_session(&self) -> Option<Session> {
             Some(
