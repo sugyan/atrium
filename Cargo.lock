@@ -136,6 +136,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "trait-variant",
  "wasm-bindgen-test",
 ]
 
@@ -165,6 +166,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "trait-variant",
  "wasm-bindgen-test",
 ]
 
@@ -279,6 +281,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
+ "trait-variant",
  "unicode-segmentation",
 ]
 
@@ -2338,6 +2341,17 @@ checksum = "97d095ae15e245a057c8e8451bab9b3ee1e1f68e9ba2b4fbc18d0ac5237835f2"
 dependencies = [
  "pin-project",
  "tracing",
+]
+
+[[package]]
+name = "trait-variant"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70977707304198400eb4835a78f6a9f928bf41bba420deb8fdb175cd965d77a7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.71",
 ]
 
 [[package]]

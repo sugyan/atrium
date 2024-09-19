@@ -51,7 +51,9 @@ pub trait Loader {
     /// Loads the configuration data.
     fn load(
         &self,
-    ) -> impl Future<Output = core::result::Result<Config, Box<dyn std::error::Error + Send + Sync + 'static>>> + Send;
+    ) -> impl Future<
+        Output = core::result::Result<Config, Box<dyn std::error::Error + Send + Sync + 'static>>,
+    > + Send;
 }
 
 /// The trait for saving configuration data.
@@ -60,5 +62,7 @@ pub trait Saver {
     fn save(
         &self,
         config: &Config,
-    ) -> impl Future<Output = core::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>> + Send;
+    ) -> impl Future<
+        Output = core::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
+    > + Send;
 }

@@ -72,3 +72,6 @@ mockito = "1.4"
 # WebAssembly
 wasm-bindgen-test = "0.3.41"
 bumpalo = "~3.14.0"
+
+# Code generation
+trait-variant = "0.1.2"

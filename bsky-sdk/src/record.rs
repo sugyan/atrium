@@ -12,6 +12,7 @@ use atrium_api::com::atproto::repo::{
 use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
 
+#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait Record<T, S>
 where
     T: XrpcClient + Send + Sync,
@@ -21,11 +22,22 @@ where
         agent: &BskyAgent<T, S>,
         cursor: Option<String>,
         limit: Option<LimitedNonZeroU8<100u8>>,
-    ) -> impl Future<Output = Result<list_records::Output>> + Send;
-    fn get(agent: &BskyAgent<T, S>, rkey: String) -> impl Future<Output = Result<get_record::Output>> + Send;
-    fn put(self, agent: &BskyAgent<T, S>, rkey: String) -> impl Future<Output = Result<put_record::Output>> + Send;
-    fn create(self, agent: &BskyAgent<T, S>) -> impl Future<Output = Result<create_record::Output>> + Send;
-    fn delete(agent: &BskyAgent<T, S>, rkey: String) -> impl Future<Output = Result<delete_record::Output>> + Send;
+    ) -> impl Future<Output = Result<list_records::Output>>;
+    fn get(
+        agent: &BskyAgent<T, S>,
+        rkey: String,
+    ) -> impl Future<Output = Result<get_record::Output>>;
+    fn put(
+        self,
+        agent: &BskyAgent<T, S>,
+        rkey: String,
+    ) -> impl Future<Output = Result<put_record::Output>>;
+    fn create(self, agent: &BskyAgent<T, S>)
+        -> impl Future<Output = Result<create_record::Output>>;
+    fn delete(
+        agent: &BskyAgent<T, S>,
+        rkey: String,
+    ) -> impl Future<Output = Result<delete_record::Output>>;
 }
 
 macro_rules! record_impl {
