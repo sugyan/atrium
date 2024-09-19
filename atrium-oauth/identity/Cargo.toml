@@ -17,6 +17,7 @@ keywords = ["atproto", "bluesky", "identity"]
 async-trait.workspace = true
 atrium-api = { workspace = true, default-features = false }
 atrium-xrpc.workspace = true
+dashmap.workspace = true
 futures.workspace = true
 hickory-proto = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
