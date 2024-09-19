@@ -40,16 +40,10 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
                 continue;
             };
             facets.push(FacetWithoutResolution {
-                features: vec![FacetFeaturesItem::Mention(Box::new(
-                    MentionWithoutResolution {
-                        handle: m.as_str().into(),
-                    },
-                ))],
-                index: ByteSliceData {
-                    byte_end: m.end(),
-                    byte_start: m.start() - 1,
-                }
-                .into(),
+                features: vec![FacetFeaturesItem::Mention(Box::new(MentionWithoutResolution {
+                    handle: m.as_str().into(),
+                }))],
+                index: ByteSliceData { byte_end: m.end(), byte_start: m.start() - 1 }.into(),
             });
         }
     }
@@ -73,10 +67,7 @@ pub fn detect_facets(text: &str) -> Vec<FacetWithoutResolution> {
             } else {
                 m.as_str().into()
             };
-            let mut index = ByteSliceData {
-                byte_end: m.end(),
-                byte_start: m.start(),
-            };
+            let mut index = ByteSliceData { byte_end: m.end(), byte_start: m.start() };
             // strip ending puncuation
             if (RE_ENDING_PUNCTUATION
                 .get_or_init(|| Regex::new(r"[.,;:!?]$").expect("invalid regex"))

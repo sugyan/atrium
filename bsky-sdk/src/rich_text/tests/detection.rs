@@ -320,13 +320,7 @@ async fn detect_facets_mentions_and_links() -> Result<()> {
     }
     for (input, expected) in test_cases {
         let rt = rich_text_with_detect_facets(input).await?;
-        assert_eq!(
-            rt.segments()
-                .iter()
-                .map(segment_to_output)
-                .collect::<Vec<_>>(),
-            expected
-        );
+        assert_eq!(rt.segments().iter().map(segment_to_output).collect::<Vec<_>>(), expected);
     }
     Ok(())
 }
@@ -351,54 +345,30 @@ async fn detect_facets_tags() -> Result<()> {
         ("text # text", vec![]),
         (
             "body #thisisa64characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            vec![(
-                "thisisa64characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                (5, 70),
-            )],
+            vec![("thisisa64characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", (5, 70))],
         ),
-        (
-            "body #thisisa65characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab",
-            vec![],
-        ),
+        ("body #thisisa65characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", vec![]),
         (
             "body #thisisa64characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!",
-            vec![(
-                "thisisa64characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                (5, 70),
-            )],
+            vec![("thisisa64characterstring_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", (5, 70))],
         ),
         ("its a #double#rainbow", vec![("double#rainbow", (6, 21))]),
         ("##hashash", vec![("#hashash", (0, 9))]),
         ("##", vec![]),
         ("some #n0n3s@n5e!", vec![("n0n3s@n5e", (5, 15))]),
-        (
-            "works #with,punctuation",
-            vec![("with,punctuation", (6, 23))],
-        ),
+        ("works #with,punctuation", vec![("with,punctuation", (6, 23))]),
         (
             "strips trailing #punctuation, #like. #this!",
-            vec![
-                ("punctuation", (16, 28)),
-                ("like", (30, 35)),
-                ("this", (37, 42)),
-            ],
+            vec![("punctuation", (16, 28)), ("like", (30, 35)), ("this", (37, 42))],
         ),
-        (
-            "strips #multi_trailing___...",
-            vec![("multi_trailing", (7, 22))],
-        ),
+        ("strips #multi_trailing___...", vec![("multi_trailing", (7, 22))]),
         (
             "works with #🦋 emoji, and #butter🦋fly",
             vec![("🦋", (11, 16)), ("butter🦋fly", (28, 42))],
         ),
         (
             "#same #same #but #diff",
-            vec![
-                ("same", (0, 5)),
-                ("same", (6, 11)),
-                ("but", (12, 16)),
-                ("diff", (17, 22)),
-            ],
+            vec![("same", (0, 5)), ("same", (6, 11)), ("but", (12, 16)), ("diff", (17, 22))],
         ),
         ("this #️⃣tag should not be a tag", vec![]),
         ("this ##️⃣tag should be a tag", vec![("#️⃣tag", (5, 16))]),
@@ -413,23 +383,16 @@ async fn detect_facets_tags() -> Result<()> {
         ("match (ab\\u200B): #ab​", vec![("ab", (18, 21))]),
         ("no match (\\u20e2tag): #⃢tag", vec![]),
         ("no match (a\\u20e2b): #a⃢b", vec![("a", (21, 23))]),
-        (
-            "match full width number sign (tag): ＃tag",
-            vec![("tag", (36, 42))],
-        ),
-        (
-            "match full width number sign (tag): ＃#️⃣tag",
-            vec![("#️⃣tag", (36, 49))],
-        ),
+        ("match full width number sign (tag): ＃tag", vec![("tag", (36, 42))]),
+        ("match full width number sign (tag): ＃#️⃣tag", vec![("#️⃣tag", (36, 49))]),
         ("no match 1?: #1?", vec![]),
     ];
     fn segment_to_output(segment: &RichTextSegment) -> Option<(&str, (usize, usize))> {
         segment.facet.as_ref().and_then(|facet| {
             facet.features.iter().find_map(|feature| match feature {
-                Union::Refs(MainFeaturesItem::Tag(tag)) => Some((
-                    tag.tag.as_ref(),
-                    (facet.index.byte_start, facet.index.byte_end),
-                )),
+                Union::Refs(MainFeaturesItem::Tag(tag)) => {
+                    Some((tag.tag.as_ref(), (facet.index.byte_start, facet.index.byte_end)))
+                }
                 _ => None,
             })
         })
@@ -438,10 +401,7 @@ async fn detect_facets_tags() -> Result<()> {
     for (input, expected) in test_cases {
         let rt = rich_text_with_detect_facets(input).await?;
         assert_eq!(
-            rt.segments()
-                .iter()
-                .filter_map(segment_to_output)
-                .collect::<Vec<_>>(),
+            rt.segments().iter().filter_map(segment_to_output).collect::<Vec<_>>(),
             expected
         );
     }

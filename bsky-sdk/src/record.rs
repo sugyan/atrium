@@ -341,10 +341,7 @@ mod tests {
 
     #[tokio::test]
     async fn actor_profile() -> Result<()> {
-        let agent = BskyAgentBuilder::new(MockClient)
-            .store(MockSessionStore)
-            .build()
-            .await?;
+        let agent = BskyAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
         // create
         let output = atrium_api::app::bsky::actor::profile::RecordData {
             avatar: None,
@@ -375,10 +372,7 @@ mod tests {
 
     #[tokio::test]
     async fn feed_post() -> Result<()> {
-        let agent = BskyAgentBuilder::new(MockClient)
-            .store(MockSessionStore)
-            .build()
-            .await?;
+        let agent = BskyAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
         // create
         let output = atrium_api::app::bsky::feed::post::RecordData {
             created_at: Datetime::now(),
@@ -410,10 +404,7 @@ mod tests {
 
     #[tokio::test]
     async fn graph_follow() -> Result<()> {
-        let agent = BskyAgentBuilder::new(MockClient)
-            .store(MockSessionStore)
-            .build()
-            .await?;
+        let agent = BskyAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
         // create
         let output = atrium_api::app::bsky::graph::follow::RecordData {
             created_at: Datetime::now(),

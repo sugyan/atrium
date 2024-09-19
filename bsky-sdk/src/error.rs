@@ -27,10 +27,7 @@ pub enum Error {
 /// Generic error type for XRPC errors.
 #[derive(Error, Debug)]
 pub enum GenericXrpcError {
-    Response {
-        status: StatusCode,
-        error: Option<String>,
-    },
+    Response { status: StatusCode, error: Option<String> },
     Other(String),
 }
 

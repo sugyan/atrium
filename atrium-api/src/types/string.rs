@@ -207,10 +207,7 @@ impl Datetime {
 impl FromStr for Datetime {
     type Err = chrono::ParseError;
 
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
+    #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // The `chrono` crate only supports RFC 3339 parsing, but Lexicon restricts
         // datetimes to the subset that is also valid under ISO 8601. Apply a regex that
@@ -267,10 +264,7 @@ pub struct Did(String);
 string_newtype!(Did);
 
 impl Did {
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
+    #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `Did` from the given string.
     pub fn new(did: String) -> Result<Self, &'static str> {
         const RE_DID: OnceCell<Regex> = OnceCell::new();
@@ -308,10 +302,7 @@ pub struct Handle(String);
 string_newtype!(Handle);
 
 impl Handle {
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
+    #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `Handle` from the given string.
     pub fn new(handle: String) -> Result<Self, &'static str> {
         const RE_HANDLE: OnceCell<Regex> = OnceCell::new();
@@ -344,10 +335,7 @@ pub struct Nsid(String);
 string_newtype!(Nsid);
 
 impl Nsid {
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
+    #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses an NSID from the given string.
     pub fn new(nsid: String) -> Result<Self, &'static str> {
         const RE_NSID: OnceCell<Regex> = OnceCell::new();
@@ -429,10 +417,7 @@ pub struct Tid(String);
 string_newtype!(Tid);
 
 impl Tid {
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
+    #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `TID` from the given string.
     pub fn new(tid: String) -> Result<Self, &'static str> {
         const RE_TID: OnceCell<Regex> = OnceCell::new();
@@ -464,10 +449,7 @@ pub struct RecordKey(String);
 string_newtype!(RecordKey);
 
 impl RecordKey {
-    #[allow(
-        clippy::borrow_interior_mutable_const,
-        clippy::declare_interior_mutable_const
-    )]
+    #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `Record Key` from the given string.
     pub fn new(s: String) -> Result<Self, &'static str> {
         const RE_RKEY: OnceCell<Regex> = OnceCell::new();
@@ -612,10 +594,7 @@ mod tests {
             ("did:m", "did:m:v"),
             ("did:method", "did:method::::val"),
             ("did:method", "did:method:-:_:."),
-            (
-                "did:key",
-                "did:key:zQ3shZc2QzApp2oymGvQbzP8eKheVshBHbU4ZYjeXqwSKEn6N",
-            ),
+            ("did:key", "did:key:zQ3shZc2QzApp2oymGvQbzP8eKheVshBHbU4ZYjeXqwSKEn6N"),
         ] {
             assert_eq!(Did::new(did.to_string()).unwrap().method(), method);
         }
@@ -672,13 +651,9 @@ mod tests {
     #[test]
     fn valid_nsid() {
         // From https://atproto.com/specs/nsid#examples
-        for valid in [
-            "com.example.fooBar",
-            "net.users.bob.ping",
-            "a-0.b-1.c",
-            "a.b.c",
-            "cn.8.lex.stuff",
-        ] {
+        for valid in
+            ["com.example.fooBar", "net.users.bob.ping", "a-0.b-1.c", "a.b.c", "cn.8.lex.stuff"]
+        {
             assert!(
                 from_str::<Nsid>(&format!("\"{}\"", valid)).is_ok(),
                 "valid NSID `{}` parsed as invalid",

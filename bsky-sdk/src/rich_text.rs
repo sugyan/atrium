@@ -28,10 +28,7 @@ impl RichTextSegment {
         text: impl AsRef<str>,
         facets: Option<atrium_api::app::bsky::richtext::facet::Main>,
     ) -> Self {
-        Self {
-            text: text.as_ref().into(),
-            facet: facets,
-        }
+        Self { text: text.as_ref().into(), facet: facets }
     }
     /// Get the mention in the segment.
     pub fn mention(&self) -> Option<Mention> {
@@ -70,19 +67,13 @@ pub struct RichText {
 }
 
 impl RichText {
-    const BYTE_SLICE_ZERO: ByteSliceData = ByteSliceData {
-        byte_start: 0,
-        byte_end: 0,
-    };
+    const BYTE_SLICE_ZERO: ByteSliceData = ByteSliceData { byte_start: 0, byte_end: 0 };
     /// Create a new [`RichText`] with the given text and optional facets.
     pub fn new(
         text: impl AsRef<str>,
         facets: Option<Vec<atrium_api::app::bsky::richtext::facet::Main>>,
     ) -> Self {
-        RichText {
-            text: text.as_ref().into(),
-            facets,
-        }
+        RichText { text: text.as_ref().into(), facets }
     }
     /// Create a new [`RichText`] with the given text and automatically detect facets.
     #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
@@ -90,10 +81,7 @@ impl RichText {
     pub async fn new_with_detect_facets(text: impl AsRef<str>) -> Result<Self> {
         use atrium_xrpc_client::reqwest::ReqwestClient;
 
-        let mut rt = Self {
-            text: text.as_ref().into(),
-            facets: None,
-        };
+        let mut rt = Self { text: text.as_ref().into(), facets: None };
         rt.detect_facets(ReqwestClient::new(String::new())).await?;
         Ok(rt)
     }
@@ -103,10 +91,7 @@ impl RichText {
         text: impl AsRef<str>,
         client: impl XrpcClient + Send + Sync,
     ) -> Result<Self> {
-        let mut rt = Self {
-            text: text.as_ref().into(),
-            facets: None,
-        };
+        let mut rt = Self { text: text.as_ref().into(), facets: None };
         rt.detect_facets(client).await?;
         Ok(rt)
     }
@@ -220,10 +205,7 @@ impl RichText {
     /// Detect facets in the text and set them.
     pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
         let agent = BskyAgentBuilder::new(client)
-            .config(Config {
-                endpoint: PUBLIC_API_ENDPOINT.into(),
-                ..Default::default()
-            })
+            .config(Config { endpoint: PUBLIC_API_ENDPOINT.into(), ..Default::default() })
             .build()
             .await?;
         let facets_without_resolution = detect_facets(&self.text);

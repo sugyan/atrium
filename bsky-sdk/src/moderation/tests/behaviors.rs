@@ -75,39 +75,18 @@ impl TestUser {
             muted_by_list: bool,
         }
         let def = match self {
-            Self::Bob => Definition {
-                blocking: true,
-                ..Default::default()
-            },
-            Self::Carla => Definition {
-                blocked_by: true,
-                ..Default::default()
-            },
-            Self::Dan => Definition {
-                muted: true,
-                ..Default::default()
-            },
-            Self::Elise => Definition {
-                muted_by_list: true,
-                ..Default::default()
-            },
-            Self::Fern => Definition {
-                blocking: true,
-                blocked_by: true,
-                ..Default::default()
-            },
-            Self::Georgia => Definition {
-                blocking_by_list: true,
-                ..Default::default()
-            },
+            Self::Bob => Definition { blocking: true, ..Default::default() },
+            Self::Carla => Definition { blocked_by: true, ..Default::default() },
+            Self::Dan => Definition { muted: true, ..Default::default() },
+            Self::Elise => Definition { muted_by_list: true, ..Default::default() },
+            Self::Fern => Definition { blocking: true, blocked_by: true, ..Default::default() },
+            Self::Georgia => Definition { blocking_by_list: true, ..Default::default() },
             _ => Definition::default(),
         };
         ViewerStateData {
             blocked_by: if def.blocked_by { Some(true) } else { None },
             blocking: if def.blocking || def.blocking_by_list {
-                Some(String::from(
-                    "at://did:web:self.test/app.bsky.graph.block/fake",
-                ))
+                Some(String::from("at://did:web:self.test/app.bsky.graph.block/fake"))
             } else {
                 None
             },
@@ -119,11 +98,7 @@ impl TestUser {
             followed_by: None,
             following: None,
             known_followers: None,
-            muted: if def.muted || def.muted_by_list {
-                Some(true)
-            } else {
-                None
-            },
+            muted: if def.muted || def.muted_by_list { Some(true) } else { None },
             muted_by_list: if def.muted_by_list {
                 Some(list_view_basic("Fake list"))
             } else {
@@ -173,16 +148,8 @@ impl Scenario {
             TestSubject::Post => moderator.moderate_post(&self.post()),
         };
         if self.subject == TestSubject::Profile {
-            assert_ui(
-                &result,
-                &self.behaviors.profile_list,
-                DecisionContext::ProfileList,
-            );
-            assert_ui(
-                &result,
-                &self.behaviors.profile_view,
-                DecisionContext::ProfileView,
-            );
+            assert_ui(&result, &self.behaviors.profile_list, DecisionContext::ProfileList);
+            assert_ui(&result, &self.behaviors.profile_view, DecisionContext::ProfileView);
         }
         for context in [
             DecisionContext::Avatar,
@@ -229,18 +196,12 @@ impl Scenario {
         for val in &self.labels.profile {
             labels.push(label(
                 "did:plc:fake-labeler",
-                &format!(
-                    "at://did:web:{}/app.bsky.actor.profile/self",
-                    self.author.as_ref()
-                ),
+                &format!("at://did:web:{}/app.bsky.actor.profile/self", self.author.as_ref()),
                 val,
             ))
         }
-        let mut ret = profile_view_basic(
-            &format!("{}.test", self.author.as_ref()),
-            None,
-            Some(labels),
-        );
+        let mut ret =
+            profile_view_basic(&format!("{}.test", self.author.as_ref()), None, Some(labels));
         ret.viewer = Some(self.author.viewer_state());
         ret
     }
@@ -276,10 +237,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, NoOverride],
@@ -298,10 +256,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -316,10 +271,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    post: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     content_list: vec![Filter, Blur, NoOverride],
                     content_view: vec![Blur, NoOverride],
@@ -333,10 +285,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -351,10 +300,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -371,10 +317,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Blur],
                     profile_view: vec![Blur],
@@ -392,10 +335,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -410,10 +350,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    post: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     content_list: vec![Blur],
                     content_view: vec![Blur],
@@ -427,10 +364,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -445,10 +379,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -630,10 +561,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter],
                     avatar: vec![Blur],
@@ -649,10 +577,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -666,10 +591,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    post: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     content_list: vec![Filter],
                     content_media: vec![Blur],
@@ -683,10 +605,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -700,10 +619,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornHide,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter],
                     avatar: vec![Blur],
@@ -719,10 +635,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -736,10 +649,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -753,14 +663,8 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    post: vec![String::from("porn")],
-                    ..Default::default()
-                },
-                behaviors: ExpectedBehaviors {
-                    content_media: vec![Blur],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("porn")], ..Default::default() },
+                behaviors: ExpectedBehaviors { content_media: vec![Blur], ..Default::default() },
             },
         ),
         (
@@ -769,10 +673,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -786,10 +687,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornWarn,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -803,10 +701,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors::default(),
             },
         ),
@@ -816,10 +711,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors::default(),
             },
         ),
@@ -829,10 +721,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    post: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors::default(),
             },
         ),
@@ -842,10 +731,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors::default(),
             },
         ),
@@ -855,10 +741,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::PornIgnore,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors::default(),
             },
         ),
@@ -868,10 +751,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter],
                     avatar: vec![Blur, NoOverride],
@@ -887,10 +767,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Profile,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -904,10 +781,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    post: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     content_list: vec![Filter],
                     content_media: vec![Blur, NoOverride],
@@ -921,10 +795,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    profile: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -938,10 +809,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::AdultDisabled,
                 subject: TestSubject::Post,
                 author: TestUser::Alice,
-                labels: TestLabels {
-                    account: vec![String::from("porn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("porn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],
@@ -956,10 +824,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    account: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Blur],
                     profile_view: vec![Blur],
@@ -978,10 +843,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    profile: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -996,10 +858,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    post: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     content_list: vec![Blur],
                     content_view: vec![Blur],
@@ -1013,10 +872,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    profile: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -1031,10 +887,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    account: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -1051,10 +904,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    post: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     content_list: vec![Blur],
                     content_view: vec![Blur],
@@ -1068,10 +918,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    profile: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { profile: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -1086,10 +933,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::UserSelf,
-                labels: TestLabels {
-                    account: vec![String::from("!warn")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!warn")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur],
                     banner: vec![Blur],
@@ -1269,10 +1113,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Profile,
                 author: TestUser::Bob,
-                labels: TestLabels {
-                    account: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { account: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     profile_list: vec![Filter, Blur, NoOverride],
                     profile_view: vec![Blur, Alert, NoOverride],
@@ -1396,10 +1237,7 @@ fn moderation_behaviors() {
                 cfg: TestConfig::None,
                 subject: TestSubject::Post,
                 author: TestUser::Bob,
-                labels: TestLabels {
-                    post: vec![String::from("!hide")],
-                    ..Default::default()
-                },
+                labels: TestLabels { post: vec![String::from("!hide")], ..Default::default() },
                 behaviors: ExpectedBehaviors {
                     avatar: vec![Blur, NoOverride],
                     banner: vec![Blur, NoOverride],

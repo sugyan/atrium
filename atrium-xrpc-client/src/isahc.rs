@@ -36,10 +36,7 @@ pub struct IsahcClientBuilder {
 impl IsahcClientBuilder {
     /// Create a new [`IsahcClientBuilder`] for building a custom client.
     pub fn new(base_uri: impl AsRef<str>) -> Self {
-        Self {
-            base_uri: base_uri.as_ref().into(),
-            client: None,
-        }
+        Self { base_uri: base_uri.as_ref().into(), client: None }
     }
     /// Sets the [`isahc::HttpClient`] to use.
     pub fn client(mut self, client: Client) -> Self {
@@ -50,9 +47,7 @@ impl IsahcClientBuilder {
     pub fn build(self) -> IsahcClient {
         IsahcClient {
             base_uri: self.base_uri,
-            client: self
-                .client
-                .unwrap_or(Client::new().expect("failed to create isahc client")),
+            client: self.client.unwrap_or(Client::new().expect("failed to create isahc client")),
         }
     }
 }
@@ -64,9 +59,8 @@ impl HttpClient for IsahcClient {
         request: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let (head, body) = request.into_parts();
-        let mut request_builder = isahc::http::Request::builder()
-            .method(head.method.as_str())
-            .uri(head.uri.to_string());
+        let mut request_builder =
+            isahc::http::Request::builder().method(head.method.as_str()).uri(head.uri.to_string());
         for (k, v) in &head.headers {
             request_builder = request_builder.header(k.as_str(), v.as_ref());
         }
@@ -75,9 +69,7 @@ impl HttpClient for IsahcClient {
         for (k, v) in response.headers() {
             response_builder = response_builder.header(k.as_str(), v.as_ref());
         }
-        response_builder
-            .body(response.bytes().await?.to_vec())
-            .map_err(Into::into)
+        response_builder.body(response.bytes().await?.to_vec()).map_err(Into::into)
     }
 }
 

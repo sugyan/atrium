@@ -54,10 +54,8 @@ mod tests {
                 key
             })
             .collect::<Vec<_>>();
-        let compressed = keys
-            .iter()
-            .filter_map(|key| compress_pubkey(alg, &key).ok())
-            .collect::<Vec<_>>();
+        let compressed =
+            keys.iter().filter_map(|key| compress_pubkey(alg, &key).ok()).collect::<Vec<_>>();
         let decompressed = compressed
             .iter()
             .filter_map(|key| decompress_pubkey(alg, &key).ok())
@@ -87,10 +85,8 @@ mod tests {
                 key
             })
             .collect::<Vec<_>>();
-        let compressed = keys
-            .iter()
-            .filter_map(|key| compress_pubkey(alg, key).ok())
-            .collect::<Vec<_>>();
+        let compressed =
+            keys.iter().filter_map(|key| compress_pubkey(alg, key).ok()).collect::<Vec<_>>();
         let decompressed = compressed
             .iter()
             .filter_map(|key| decompress_pubkey(alg, key).ok())

@@ -40,9 +40,7 @@ pub trait Collection: fmt::Debug {
     ///
     /// [`Nsid`]: string::Nsid
     fn nsid() -> string::Nsid {
-        Self::NSID
-            .parse()
-            .expect("Self::NSID should be a valid NSID")
+        Self::NSID.parse().expect("Self::NSID should be a valid NSID")
     }
 
     /// Returns the repo path for a record in this collection with the given record key.
@@ -104,10 +102,7 @@ pub struct Object<T> {
 
 impl<T> From<T> for Object<T> {
     fn from(data: T) -> Self {
-        Self {
-            data,
-            extra_data: Ipld::Map(std::collections::BTreeMap::new()),
-        }
+        Self { data, extra_data: Ipld::Map(std::collections::BTreeMap::new()) }
     }
 }
 
@@ -166,27 +161,17 @@ where
     S: ser::Serializer,
 {
     match ipld {
-        Ipld::Float(_) => Err(ser::Error::custom(
-            "float values are not allowed in ATProtocol",
-        )),
+        Ipld::Float(_) => Err(ser::Error::custom("float values are not allowed in ATProtocol")),
         Ipld::List(list) => {
             if list.iter().any(|value| matches!(value, Ipld::Float(_))) {
-                Err(ser::Error::custom(
-                    "float values are not allowed in ATProtocol",
-                ))
+                Err(ser::Error::custom("float values are not allowed in ATProtocol"))
             } else {
-                list.iter()
-                    .cloned()
-                    .map(DataModel)
-                    .collect::<Vec<_>>()
-                    .serialize(serializer)
+                list.iter().cloned().map(DataModel).collect::<Vec<_>>().serialize(serializer)
             }
         }
         Ipld::Map(map) => {
             if map.values().any(|value| matches!(value, Ipld::Float(_))) {
-                Err(ser::Error::custom(
-                    "float values are not allowed in ATProtocol",
-                ))
+                Err(ser::Error::custom("float values are not allowed in ATProtocol"))
             } else {
                 map.iter()
                     .map(|(k, v)| (k, DataModel(v.clone())))
@@ -391,10 +376,7 @@ mod tests {
         assert!(DataModel::try_from(Ipld::Null).is_ok());
         assert!(DataModel::try_from(Ipld::Bool(true)).is_ok());
         assert!(DataModel::try_from(Ipld::Integer(1)).is_ok());
-        assert!(
-            DataModel::try_from(Ipld::Float(1.5)).is_err(),
-            "float value should fail"
-        );
+        assert!(DataModel::try_from(Ipld::Float(1.5)).is_err(), "float value should fail");
         assert!(DataModel::try_from(Ipld::String("s".into())).is_ok());
         assert!(DataModel::try_from(Ipld::Bytes(vec![0x01])).is_ok());
         assert!(DataModel::try_from(Ipld::List(vec![Ipld::Bool(true)])).is_ok());
@@ -447,12 +429,7 @@ mod tests {
 
         let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#bar","bar":"bar"}"#)
             .expect("failed to deserialize foo");
-        assert_eq!(
-            foo,
-            Union::Refs(FooRefs::Bar(Box::new(Bar {
-                bar: String::from("bar")
-            })))
-        );
+        assert_eq!(foo, Union::Refs(FooRefs::Bar(Box::new(Bar { bar: String::from("bar") }))));
 
         let foo = serde_json::from_str::<Foo>(r#"{"$type":"example.com#baz","baz":42}"#)
             .expect("failed to deserialize foo");
@@ -464,10 +441,7 @@ mod tests {
             foo,
             Union::Unknown(UnknownData {
                 r#type: String::from("example.com#foo"),
-                data: Ipld::Map(BTreeMap::from_iter([(
-                    String::from("foo"),
-                    Ipld::Bool(true)
-                )]))
+                data: Ipld::Map(BTreeMap::from_iter([(String::from("foo"), Ipld::Bool(true))]))
             })
         );
     }
@@ -509,10 +483,7 @@ mod tests {
                 deserialized,
                 Foo {
                     foo: Unknown::Object(BTreeMap::from_iter([
-                        (
-                            String::from("bar"),
-                            DataModel(Ipld::String(String::from("bar")))
-                        ),
+                        (String::from("bar"), DataModel(Ipld::String(String::from("bar")))),
                         (
                             String::from("$type"),
                             DataModel(Ipld::String(String::from("example.com#foo")))
@@ -527,12 +498,7 @@ mod tests {
                 "foo": {}
             }"#;
             let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
-            assert_eq!(
-                deserialized,
-                Foo {
-                    foo: Unknown::Object(BTreeMap::default())
-                }
-            );
+            assert_eq!(deserialized, Foo { foo: Unknown::Object(BTreeMap::default()) });
         }
         // valid(?): object with no `$type`
         {
@@ -566,12 +532,7 @@ mod tests {
                 "foo": 42
             }"#;
             let deserialized = from_str::<Foo>(json).expect("failed to deserialize foo");
-            assert_eq!(
-                deserialized,
-                Foo {
-                    foo: Unknown::Other(DataModel(Ipld::Integer(42)))
-                }
-            );
+            assert_eq!(deserialized, Foo { foo: Unknown::Other(DataModel(Ipld::Integer(42))) });
         }
         // invalid: float (not allowed)
         {
@@ -605,36 +566,17 @@ mod tests {
 
         {
             let unknown = Unknown::Object(BTreeMap::from_iter([
-                (
-                    String::from("$type"),
-                    DataModel(Ipld::String(String::from("example.com#bar"))),
-                ),
-                (
-                    String::from("bar"),
-                    DataModel(Ipld::String(String::from("barbar"))),
-                ),
+                (String::from("$type"), DataModel(Ipld::String(String::from("example.com#bar")))),
+                (String::from("bar"), DataModel(Ipld::String(String::from("barbar")))),
             ]));
             let bar = Bar::try_from_unknown(unknown.clone()).expect("failed to convert to Bar");
-            assert_eq!(
-                bar,
-                Bar {
-                    bar: String::from("barbar")
-                }
-            );
+            assert_eq!(bar, Bar { bar: String::from("barbar") });
             let barbaz = Foo::try_from_unknown(unknown).expect("failed to convert to Bar");
-            assert_eq!(
-                barbaz,
-                Foo::Bar(Box::new(Bar {
-                    bar: String::from("barbar")
-                }))
-            );
+            assert_eq!(barbaz, Foo::Bar(Box::new(Bar { bar: String::from("barbar") })));
         }
         {
             let unknown = Unknown::Object(BTreeMap::from_iter([
-                (
-                    String::from("$type"),
-                    DataModel(Ipld::String(String::from("example.com#baz"))),
-                ),
+                (String::from("$type"), DataModel(Ipld::String(String::from("example.com#baz")))),
                 (String::from("baz"), DataModel(Ipld::Integer(42))),
             ]));
             let baz = Baz::try_from_unknown(unknown.clone()).expect("failed to convert to Baz");
@@ -651,9 +593,7 @@ mod tests {
             let cid_link =
                 CidLink::try_from("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy")
                     .expect("failed to create cid-link");
-            let unknown = cid_link
-                .try_into_unknown()
-                .expect("failed to convert to unknown");
+            let unknown = cid_link.try_into_unknown().expect("failed to convert to unknown");
             assert_eq!(
                 serde_json::to_string(&unknown).expect("failed to serialize unknown"),
                 r#"{"$link":"bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"}"#
@@ -669,9 +609,7 @@ mod tests {
                 mime_type: "text/plain".into(),
                 size: 0,
             }));
-            let unknown = blob_ref
-                .try_into_unknown()
-                .expect("failed to convert to unknown");
+            let unknown = blob_ref.try_into_unknown().expect("failed to convert to unknown");
             let serialized = serde_json::to_string(&unknown).expect("failed to serialize unknown");
             assert!(
                 serialized.contains("bafkreibme22gw2h7y2h7tg2fhqotaqjucnbc24deqo72b6mkl2egezxhvy"),

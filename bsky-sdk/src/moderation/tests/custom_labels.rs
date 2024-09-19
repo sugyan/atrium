@@ -26,11 +26,7 @@ impl Scenario {
                 &profile_view_basic(
                     "bob.test",
                     Some("Bob"),
-                    Some(vec![label(
-                        "did:web:labeler.test",
-                        "did:web:bob.test",
-                        "custom",
-                    )]),
+                    Some(vec![label("did:web:labeler.test", "did:web:bob.test", "custom")]),
                 )
                 .into(),
             );
@@ -159,13 +155,8 @@ fn moderation_custom_labels() {
                 content_list: vec![Filter, Blur],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                ..Default::default()
-            },
-            post: ExpectedBehaviors {
-                content_list: vec![Filter, Blur],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors { ..Default::default() },
+            post: ExpectedBehaviors { content_list: vec![Filter, Blur], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::Media,
@@ -286,13 +277,8 @@ fn moderation_custom_labels() {
                 content_list: vec![Filter],
                 ..Default::default()
             },
-            profile: ExpectedBehaviors {
-                ..Default::default()
-            },
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            profile: ExpectedBehaviors { ..Default::default() },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
     ];
     for scenario in scenarios {

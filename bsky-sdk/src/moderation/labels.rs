@@ -42,10 +42,7 @@ impl KnownLabelValue {
                 severity: LabelValueDefinitionSeverity::Alert,
                 defined_by: None,
                 configurable: false,
-                flags: vec![
-                    LabelValueDefinitionFlag::NoOverride,
-                    LabelValueDefinitionFlag::NoSelf,
-                ],
+                flags: vec![LabelValueDefinitionFlag::NoOverride, LabelValueDefinitionFlag::NoSelf],
                 behaviors: InterpretedLabelValueDefinitionBehaviors {
                     account: ModerationBehavior {
                         profile_list: Some(ProfileListBehavior::Blur),

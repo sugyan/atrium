@@ -15,10 +15,7 @@ struct Link {
 impl Serialize for CidLink {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         if serializer.is_human_readable() {
-            Link {
-                link: crate::types::string::Cid::new(self.0),
-            }
-            .serialize(serializer)
+            Link { link: crate::types::string::Cid::new(self.0) }.serialize(serializer)
         } else {
             self.0.serialize(serializer)
         }

@@ -32,9 +32,7 @@ fn embed_record_view(
                     reply_count: None,
                     repost_count: None,
                     uri: format!("at://{}/app.bsky.feed.post/fake", author.did.as_ref()),
-                    value: record
-                        .try_into_unknown()
-                        .expect("failed to convert record to unknown"),
+                    value: record.try_into_unknown().expect("failed to convert record to unknown"),
                 }
                 .into(),
             ))),
@@ -44,11 +42,7 @@ fn embed_record_view(
 }
 
 fn quoted_post(profile_labels: Option<Vec<Label>>, post_labels: Option<Vec<Label>>) -> PostView {
-    let mut quoted = post_view(
-        &profile_view_basic("bob.test", Some("Bob"), None),
-        "Hello",
-        None,
-    );
+    let mut quoted = post_view(&profile_view_basic("bob.test", Some("Bob"), None), "Hello", None);
     quoted.embed = Some(embed_record_view(
         &profile_view_basic("carla.test", Some("Carla"), profile_labels),
         &atrium_api::app::bsky::feed::post::RecordData {
@@ -82,11 +76,7 @@ impl Scenario {
         // account
         {
             let result = moderator.moderate_post(&quoted_post(
-                Some(vec![label(
-                    "did:web:labeler.test",
-                    "did:web:carla.test",
-                    "custom",
-                )]),
+                Some(vec![label("did:web:labeler.test", "did:web:carla.test", "custom")]),
                 None,
             ));
             for context in DecisionContext::ALL {
@@ -168,10 +158,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::Content,
@@ -182,10 +169,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::Content,
@@ -196,10 +180,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::Media,
@@ -210,10 +191,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::Media,
@@ -224,10 +202,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::Media,
@@ -238,10 +213,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::None,
@@ -252,10 +224,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::None,
@@ -266,10 +235,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
         Scenario {
             blurs: LabelValueDefinitionBlurs::None,
@@ -280,10 +246,7 @@ fn moderation_quoteposts() {
                 ..Default::default()
             },
             profile: ExpectedBehaviors::default(),
-            post: ExpectedBehaviors {
-                content_list: vec![Filter],
-                ..Default::default()
-            },
+            post: ExpectedBehaviors { content_list: vec![Filter], ..Default::default() },
         },
     ];
     for scenario in scenarios {

@@ -20,26 +20,21 @@ struct WrapperClient<S, T> {
 
 impl<S, T> WrapperClient<S, T> {
     fn configure_proxy_header(&self, value: String) {
-        self.proxy_header
-            .write()
-            .expect("failed to write proxy header")
-            .replace(value);
+        self.proxy_header.write().expect("failed to write proxy header").replace(value);
     }
     fn configure_labelers_header(&self, labelers_dids: Option<Vec<(Did, bool)>>) {
-        *self
-            .labelers_header
-            .write()
-            .expect("failed to write labelers header") = labelers_dids.map(|dids| {
-            dids.iter()
-                .map(|(did, redact)| {
-                    if *redact {
-                        format!("{};redact", did.as_ref())
-                    } else {
-                        did.as_ref().into()
-                    }
-                })
-                .collect()
-        })
+        *self.labelers_header.write().expect("failed to write labelers header") =
+            labelers_dids.map(|dids| {
+                dids.iter()
+                    .map(|(did, redact)| {
+                        if *redact {
+                            format!("{};redact", did.as_ref())
+                        } else {
+                            did.as_ref().into()
+                        }
+                    })
+                    .collect()
+            })
     }
 }
 
@@ -49,10 +44,7 @@ impl<S, T> Clone for WrapperClient<S, T> {
             store: self.store.clone(),
             labelers_header: self.labelers_header.clone(),
             proxy_header: RwLock::new(
-                self.proxy_header
-                    .read()
-                    .expect("failed to read proxy header")
-                    .clone(),
+                self.proxy_header.read().expect("failed to read proxy header").clone(),
             ),
             inner: self.inner.clone(),
         }
@@ -95,16 +87,10 @@ where
         })
     }
     async fn atproto_proxy_header(&self) -> Option<String> {
-        self.proxy_header
-            .read()
-            .expect("failed to read proxy header")
-            .clone()
+        self.proxy_header.read().expect("failed to read proxy header").clone()
     }
     async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
-        self.labelers_header
-            .read()
-            .expect("failed to read labelers header")
-            .clone()
+        self.labelers_header.read().expect("failed to read labelers header").clone()
     }
 }
 
@@ -135,21 +121,14 @@ where
         }
     }
     pub fn configure_endpoint(&self, endpoint: String) {
-        *self
-            .store
-            .endpoint
-            .write()
-            .expect("failed to write endpoint") = endpoint;
+        *self.store.endpoint.write().expect("failed to write endpoint") = endpoint;
     }
     pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
-        self.inner
-            .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
+        self.inner.configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
     }
     pub fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
         let cloned = self.clone();
-        cloned
-            .inner
-            .configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
+        cloned.inner.configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
         cloned
     }
     pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
@@ -306,16 +285,10 @@ pub struct Store<S> {
 
 impl<S> Store<S> {
     pub fn new(inner: S, initial_endpoint: String) -> Self {
-        Self {
-            inner,
-            endpoint: RwLock::new(initial_endpoint),
-        }
+        Self { inner, endpoint: RwLock::new(initial_endpoint) }
     }
     pub fn get_endpoint(&self) -> String {
-        self.endpoint
-            .read()
-            .expect("failed to read endpoint")
-            .clone()
+        self.endpoint.read().expect("failed to read endpoint").clone()
     }
     pub fn update_endpoint(&self, did_doc: &DidDocument) {
         if let Some(endpoint) = Self::get_pds_endpoint(did_doc) {
@@ -328,9 +301,8 @@ impl<S> Store<S> {
     fn get_service_endpoint(did_doc: &DidDocument, (id, r#type): (&str, &str)) -> Option<String> {
         let full_id = did_doc.id.clone() + id;
         if let Some(services) = &did_doc.service {
-            let service = services
-                .iter()
-                .find(|service| service.id == id || service.id == full_id)?;
+            let service =
+                services.iter().find(|service| service.id == id || service.id == full_id)?;
             if service.r#type == r#type && Self::validate_url(&service.service_endpoint) {
                 return Some(service.service_endpoint.clone());
             }

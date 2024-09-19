@@ -28,9 +28,7 @@ use crate::{Algorithm, DID_KEY_PREFIX};
 /// # }
 /// ```
 pub fn format_did_key(alg: Algorithm, key: &[u8]) -> Result<String> {
-    Ok(prefix_did_key(
-        &alg.format_mulikey_compressed(&compress_pubkey(alg, key)?),
-    ))
+    Ok(prefix_did_key(&alg.format_mulikey_compressed(&compress_pubkey(alg, key)?)))
 }
 
 /// Parse a DID key string.
@@ -149,19 +147,14 @@ mod tests {
             let bytes = hex::decode(seed).expect("hex decoding should succeed");
             let sig_key = SigningKey::<Secp256k1>::from_slice(&bytes)
                 .expect("initializing signing key should succeed");
-            let did_key = format_did_key(
-                Algorithm::Secp256k1,
-                &sig_key.verifying_key().to_sec1_bytes(),
-            )
-            .expect("formatting DID key should succeed");
+            let did_key =
+                format_did_key(Algorithm::Secp256k1, &sig_key.verifying_key().to_sec1_bytes())
+                    .expect("formatting DID key should succeed");
             assert_eq!(did_key, id);
 
             let (alg, key) = parse_did_key(&did_key).expect("parsing DID key should succeed");
             assert_eq!(alg, Algorithm::Secp256k1);
-            assert_eq!(
-                &key,
-                sig_key.verifying_key().to_encoded_point(false).as_bytes()
-            );
+            assert_eq!(&key, sig_key.verifying_key().to_encoded_point(false).as_bytes());
         }
     }
 
@@ -179,10 +172,7 @@ mod tests {
 
             let (alg, key) = parse_did_key(&did_key).expect("parsing DID key should succeed");
             assert_eq!(alg, Algorithm::P256);
-            assert_eq!(
-                &key,
-                sig_key.verifying_key().to_encoded_point(false).as_bytes()
-            );
+            assert_eq!(&key, sig_key.verifying_key().to_encoded_point(false).as_bytes());
         }
     }
 }

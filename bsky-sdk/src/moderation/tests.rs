@@ -120,23 +120,11 @@ fn label(src: &str, uri: &str, val: &str) -> Label {
 fn assert_ui(decision: &ModerationDecision, expected: &[ResultFlag], context: DecisionContext) {
     let ui = decision.ui(context);
     if expected.is_empty() {
-        assert!(
-            !ui.inform(),
-            "inform should be a no-op for context {context:?}"
-        );
-        assert!(
-            !ui.alert(),
-            "alert should be a no-op for context {context:?}"
-        );
+        assert!(!ui.inform(), "inform should be a no-op for context {context:?}");
+        assert!(!ui.alert(), "alert should be a no-op for context {context:?}");
         assert!(!ui.blur(), "blur should be a no-op for context {context:?}");
-        assert!(
-            !ui.filter(),
-            "filter should be a no-op for context {context:?}"
-        );
-        assert!(
-            !ui.no_override,
-            "no_override should be a no-op for context {context:?}"
-        );
+        assert!(!ui.filter(), "filter should be a no-op for context {context:?}");
+        assert!(!ui.no_override, "no_override should be a no-op for context {context:?}");
     } else {
         assert_eq!(
             ui.inform(),
@@ -282,16 +270,8 @@ fn prioritize_filters_and_blurs() {
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
         Some(vec![
-            label(
-                "did:web:labeler.test",
-                "at://did:web:bob.test/app.bsky.post/fake",
-                "porn",
-            ),
-            label(
-                "did:web:labeler.test",
-                "at://did:web:bob.test/app.bsky.post/fake",
-                "!hide",
-            ),
+            label("did:web:labeler.test", "at://did:web:bob.test/app.bsky.post/fake", "porn"),
+            label("did:web:labeler.test", "at://did:web:bob.test/app.bsky.post/fake", "!hide"),
         ]),
     ));
     for (cause, expected_val) in [
@@ -463,16 +443,8 @@ fn ignore_invalid_label_value_names() {
         &profile_view_basic("bob.test", Some("Bob"), None),
         "Hello",
         Some(vec![
-            label(
-                "did:web:labeler.test",
-                "at://did:web:bob.test/app.bsky.post/fake",
-                "BadLabel",
-            ),
-            label(
-                "did:web:labeler.test",
-                "at://did:web:bob.test/app.bsky.post/fake",
-                "bad/label",
-            ),
+            label("did:web:labeler.test", "at://did:web:bob.test/app.bsky.post/fake", "BadLabel"),
+            label("did:web:labeler.test", "at://did:web:bob.test/app.bsky.post/fake", "bad/label"),
         ]),
     ));
     for context in DecisionContext::ALL {

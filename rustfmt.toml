@@ -1,0 +1,7 @@
+# Rustfmt configuration file
+reorder_modules = true
+use_small_heuristics = "Max"
+
+## Nightly only, but preferrable
+# brace_style = "PreferSameLine"
+# enum_discrim_align_threshold = 30
