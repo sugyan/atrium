@@ -149,7 +149,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-api"
-version = "0.24.4"
+version = "0.24.5"
 dependencies = [
  "async-trait",
  "atrium-xrpc",
@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-crypto"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ecdsa",
  "hex",
@@ -187,7 +187,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.11.3"
+version = "0.11.4"
 dependencies = [
  "async-trait",
  "bumpalo",
@@ -202,7 +202,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.5.6"
+version = "0.5.7"
 dependencies = [
  "async-trait",
  "atrium-xrpc",
@@ -284,7 +284,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-cli"
-version = "0.1.22"
+version = "0.1.23"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -299,7 +299,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "anyhow",
  "async-trait",

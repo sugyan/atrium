@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.5.7](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.6...atrium-xrpc-client-v0.5.7) - 2024-09-20
+
+### Other
+- Proposed fix: configuring and formatting project. ([#229](https://github.com/sugyan/atrium/pull/229)) by @Elaina
 
 ## [0.5.6](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.5...atrium-xrpc-client-v0.5.6) - 2024-08-13
 
