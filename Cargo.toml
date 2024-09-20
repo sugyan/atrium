@@ -60,7 +60,7 @@ tokio = { version = "1.37", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"
-reqwest = { version = "0.12", default-features = false }
+reqwest = { version = "0.12", default-features = false, features = ["gzip"] }
 
 # Errors
 anyhow = "1.0.86"
