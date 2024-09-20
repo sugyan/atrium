@@ -1,0 +1,2 @@
+[alias]
+fmt-no-gen = "fmt -- --config format_generated_files=false"

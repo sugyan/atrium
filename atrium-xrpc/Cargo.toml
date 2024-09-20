@@ -1,6 +1,6 @@
 [package]
 name = "atrium-xrpc"
-version = "0.11.3"
+version = "0.11.5"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
@@ -12,12 +12,12 @@ license.workspace = true
 keywords.workspace = true
 
 [dependencies]
-async-trait.workspace = true
 http.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_html_form.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
+trait-variant.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt"] }

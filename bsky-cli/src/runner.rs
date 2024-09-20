@@ -34,31 +34,19 @@ impl Runner {
 
         let agent = if is_login {
             BskyAgent::builder()
-                .config(Config {
-                    endpoint: pds_host,
-                    ..Default::default()
-                })
+                .config(Config { endpoint: pds_host, ..Default::default() })
                 .build()
                 .await?
         } else {
             let store = FileStore::new(&config_path);
             let agent = BskyAgent::builder()
-                .config(
-                    Config::load(&store)
-                        .await
-                        .with_context(|| "Not logged in")?,
-                )
+                .config(Config::load(&store).await.with_context(|| "Not logged in")?)
                 .build()
                 .await?;
             agent.to_config().await.save(&store).await?;
             agent
         };
-        Ok(Self {
-            agent,
-            limit,
-            debug,
-            config_path,
-        })
+        Ok(Self { agent, limit, debug, config_path })
     }
     pub async fn run(&self, command: Command) -> Result<()> {
         let limit = self.limit;
@@ -69,11 +57,7 @@ impl Runner {
                 let preferences = self.agent.get_preferences(true).await?;
                 self.agent.configure_labelers_from_preferences(&preferences);
                 // Save config to file
-                self.agent
-                    .to_config()
-                    .await
-                    .save(&FileStore::new(&self.config_path))
-                    .await?;
+                self.agent.to_config().await.save(&FileStore::new(&self.config_path)).await?;
                 println!("Login successful! Saved config to {:?}", self.config_path);
                 Ok(())
             }
@@ -468,12 +452,6 @@ impl Runner {
         Ok(())
     }
     async fn handle(&self) -> Result<Handle> {
-        Ok(self
-            .agent
-            .get_session()
-            .await
-            .with_context(|| "Not logged in")?
-            .data
-            .handle)
+        Ok(self.agent.get_session().await.with_context(|| "Not logged in")?.data.handle)
     }
 }

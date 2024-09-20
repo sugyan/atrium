@@ -18,22 +18,18 @@ resolver = "2"
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.75"
 repository = "https://github.com/sugyan/atrium"
 license = "MIT"
 keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.24.4", path = "atrium-api", default-features = false }
+atrium-api = { version = "0.24.6", path = "atrium-api", default-features = false }
 atrium-identity = { version = "0.1.0", path = "atrium-oauth/identity" }
-atrium-xrpc = { version = "0.11.3", path = "atrium-xrpc" }
-atrium-xrpc-client = { version = "0.5.6", path = "atrium-xrpc-client" }
-bsky-sdk = { version = "0.1.9", path = "bsky-sdk" }
-
-# async in traits
-# Can be removed once MSRV is at least 1.75.0.
-async-trait = "0.1.80"
+atrium-xrpc = { version = "0.11.5", path = "atrium-xrpc" }
+atrium-xrpc-client = { version = "0.5.8", path = "atrium-xrpc-client" }
+bsky-sdk = { version = "0.1.11", path = "bsky-sdk" }
 
 # DAG-CBOR codec
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
@@ -73,7 +69,7 @@ tokio = { version = "1.39", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"
-reqwest = { version = "0.12", default-features = false }
+reqwest = { version = "0.12", default-features = false, features = ["gzip"] }
 
 # Errors
 anyhow = "1.0.86"
@@ -91,3 +87,6 @@ mockito = "1.4"
 wasm-bindgen-test = "0.3.41"
 web-time = "1.1.0"
 bumpalo = "~3.14.0"
+
+# Code generation
+trait-variant = "0.1.2"

@@ -31,11 +31,7 @@ impl Moderator {
         prefs: ModerationPrefs,
         label_defs: HashMap<Did, Vec<InterpretedLabelValueDefinition>>,
     ) -> Self {
-        Self {
-            user_did,
-            prefs,
-            label_defs,
-        }
+        Self { user_did, prefs, label_defs }
     }
     /// Calculate the moderation decision for an account profile.
     pub fn moderate_profile(&self, profile: &SubjectProfile) -> ModerationDecision {

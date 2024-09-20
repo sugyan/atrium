@@ -79,10 +79,7 @@ where
             .collect::<Vec<_>>();
         let repo = parts[0].parse().or(Err(Error::InvalidAtUri))?;
         let collection = parts[1].parse().or(Err(Error::InvalidAtUri))?;
-        let rkey = parts[2]
-            .parse::<RecordKey>()
-            .or(Err(Error::InvalidAtUri))?
-            .into();
+        let rkey = parts[2].parse::<RecordKey>().or(Err(Error::InvalidAtUri))?.into();
         Ok(self
             .api
             .com

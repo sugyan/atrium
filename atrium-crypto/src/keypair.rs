@@ -39,15 +39,11 @@ where
     /// let keypair = Keypair::<k256::Secp256k1>::create(&mut rand::thread_rng());
     /// ```
     pub fn create(rng: &mut impl CryptoRngCore) -> Self {
-        Self {
-            signing_key: SigningKey::<C>::random(rng),
-        }
+        Self { signing_key: SigningKey::<C>::random(rng) }
     }
     /// Initialize signing key from a raw scalar serialized as a byte slice.
     pub fn import(bytes: &[u8]) -> Result<Self> {
-        Ok(Self {
-            signing_key: SigningKey::from_slice(bytes)?,
-        })
+        Ok(Self { signing_key: SigningKey::from_slice(bytes)? })
     }
 }
 
@@ -60,10 +56,7 @@ where
     FieldBytesSize<C>: ModulusSize,
 {
     fn compressed_public_key(&self) -> Box<[u8]> {
-        self.signing_key
-            .verifying_key()
-            .to_encoded_point(true)
-            .to_bytes()
+        self.signing_key.verifying_key().to_encoded_point(true).to_bytes()
     }
 }
 
@@ -81,11 +74,7 @@ where
     /// [https://atproto.com/specs/cryptography#ecdsa-signature-malleability](https://atproto.com/specs/cryptography#ecdsa-signature-malleability)
     pub fn sign(&self, msg: &[u8]) -> Result<Vec<u8>> {
         let signature: Signature<_> = self.signing_key.try_sign(msg)?;
-        Ok(signature
-            .normalize_s()
-            .unwrap_or(signature)
-            .to_bytes()
-            .to_vec())
+        Ok(signature.normalize_s().unwrap_or(signature).to_bytes().to_vec())
     }
 }
 
@@ -145,22 +134,16 @@ mod tests {
             use super::Did;
             keypair.did()
         };
-        let formatted = format_did_key(
-            Algorithm::P256,
-            &keypair.signing_key.verifying_key().to_sec1_bytes(),
-        )
-        .expect("formatting to did key should succeed");
+        let formatted =
+            format_did_key(Algorithm::P256, &keypair.signing_key.verifying_key().to_sec1_bytes())
+                .expect("formatting to did key should succeed");
         assert_eq!(did, formatted);
 
         let (alg, public_key) = parse_did_key(&did).expect("parsing did key should succeed");
         assert_eq!(alg, Algorithm::P256);
         assert_eq!(
             public_key,
-            keypair
-                .signing_key
-                .verifying_key()
-                .to_encoded_point(false)
-                .as_bytes()
+            keypair.signing_key.verifying_key().to_encoded_point(false).as_bytes()
         );
     }
 
@@ -182,11 +165,7 @@ mod tests {
         assert_eq!(alg, Algorithm::Secp256k1);
         assert_eq!(
             public_key,
-            keypair
-                .signing_key
-                .verifying_key()
-                .to_encoded_point(false)
-                .as_bytes()
+            keypair.signing_key.verifying_key().to_encoded_point(false).as_bytes()
         );
     }
 
@@ -239,21 +218,15 @@ mod tests {
             "verifying signature should succeed"
         );
         assert!(
-            verifier
-                .verify(alg, &public_key, &msg[..7], &signature)
-                .is_err(),
+            verifier.verify(alg, &public_key, &msg[..7], &signature).is_err(),
             "verifying signature should fail with incorrect message"
         );
         assert!(
-            verifier
-                .verify(alg, &public_key, &msg, &corrupted_signature)
-                .is_err(),
+            verifier.verify(alg, &public_key, &msg, &corrupted_signature).is_err(),
             "verifying signature should fail with incorrect signature"
         );
         assert!(
-            verifier
-                .verify(Algorithm::Secp256k1, &public_key, &msg, &signature)
-                .is_err(),
+            verifier.verify(Algorithm::Secp256k1, &public_key, &msg, &signature).is_err(),
             "verifying signature should fail with incorrect algorithm"
         );
     }
@@ -278,21 +251,15 @@ mod tests {
             "verifying signature should succeed"
         );
         assert!(
-            verifier
-                .verify(alg, &public_key, &msg[..7], &signature)
-                .is_err(),
+            verifier.verify(alg, &public_key, &msg[..7], &signature).is_err(),
             "verifying signature should fail with incorrect message"
         );
         assert!(
-            verifier
-                .verify(alg, &public_key, &msg, &corrupted_signature)
-                .is_err(),
+            verifier.verify(alg, &public_key, &msg, &corrupted_signature).is_err(),
             "verifying signature should fail with incorrect signature"
         );
         assert!(
-            verifier
-                .verify(Algorithm::P256, &public_key, &msg, &signature)
-                .is_err(),
+            verifier.verify(Algorithm::P256, &public_key, &msg, &signature).is_err(),
             "verifying signature should fail with incorrect algorithm"
         );
     }

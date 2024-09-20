@@ -87,10 +87,7 @@ where
     pub async fn get_preferences(&self, enable_bsky_labeler: bool) -> Result<Preferences> {
         let mut prefs = Preferences::default();
         if enable_bsky_labeler {
-            prefs
-                .moderation_prefs
-                .labelers
-                .push(ModerationPrefsLabeler::default());
+            prefs.moderation_prefs.labelers.push(ModerationPrefsLabeler::default());
         }
         let mut label_prefs = Vec::new();
         for pref in self
@@ -160,19 +157,13 @@ where
                     prefs.moderation_prefs.hidden_posts = p.data.items;
                 }
                 Union::Refs(PreferencesItem::LabelersPref(p)) => {
-                    prefs
-                        .moderation_prefs
-                        .labelers
-                        .extend(
-                            p.data
-                                .labelers
-                                .into_iter()
-                                .map(|item| ModerationPrefsLabeler {
-                                    did: item.data.did,
-                                    labels: HashMap::default(),
-                                    is_default_labeler: false,
-                                }),
-                        );
+                    prefs.moderation_prefs.labelers.extend(p.data.labelers.into_iter().map(
+                        |item| ModerationPrefsLabeler {
+                            did: item.data.did,
+                            labels: HashMap::default(),
+                            is_default_labeler: false,
+                        },
+                    ));
                 }
                 _ => {
                     // TODO
@@ -181,12 +172,7 @@ where
         }
         for pref in label_prefs {
             if let Some(did) = pref.data.labeler_did {
-                if let Some(l) = prefs
-                    .moderation_prefs
-                    .labelers
-                    .iter_mut()
-                    .find(|l| l.did == did)
-                {
+                if let Some(l) = prefs.moderation_prefs.labelers.iter_mut().find(|l| l.did == did) {
                     l.labels.insert(
                         pref.data.label,
                         pref.data.visibility.parse().expect("invalid visibility"),
@@ -274,13 +260,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use async_trait::async_trait;
     use atrium_api::agent::Session;
 
     #[derive(Clone)]
     struct NoopStore;
 
-    #[async_trait]
     impl SessionStore for NoopStore {
         async fn get_session(&self) -> Option<Session> {
             unimplemented!()
@@ -296,11 +280,8 @@ mod tests {
     #[cfg(feature = "default-client")]
     #[tokio::test]
     async fn clone_agent() {
-        let agent = BskyAgent::builder()
-            .store(NoopStore)
-            .build()
-            .await
-            .expect("failed to build agent");
+        let agent =
+            BskyAgent::builder().store(NoopStore).build().await.expect("failed to build agent");
         let cloned = agent.clone();
 
         agent.configure_endpoint(String::from("https://example.com"));

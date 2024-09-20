@@ -88,20 +88,12 @@ impl Verifier {
                 }
                 signature = normalized
             }
-            Ok(ecdsa::signature::Verifier::verify(
-                &verifying_key,
-                msg,
-                &signature,
-            )?)
+            Ok(ecdsa::signature::Verifier::verify(&verifying_key, msg, &signature)?)
         }
         // signature may be DER-encoded. If `allow_malleable` is true, try to parse and use it.
         else if self.allow_malleable {
             let signature = ecdsa::der::Signature::from_bytes(bytes)?;
-            Ok(ecdsa::signature::Verifier::verify(
-                &verifying_key,
-                msg,
-                &signature,
-            )?)
+            Ok(ecdsa::signature::Verifier::verify(&verifying_key, msg, &signature)?)
         } else {
             Err(Error::InvalidSignature)
         }
@@ -141,13 +133,7 @@ mod tests {
         let v = serde_json::from_reader::<_, Vec<TestVector>>(file)
             .expect("parsing test data should succeed");
         v.into_iter()
-            .filter(|v| {
-                if let Some(s) = cond {
-                    v.tags.contains(&s.to_string())
-                } else {
-                    true
-                }
-            })
+            .filter(|v| if let Some(s) = cond { v.tags.contains(&s.to_string()) } else { true })
             .collect()
     }
 
@@ -176,15 +162,11 @@ mod tests {
                 Algorithm::ES256K => assert_eq!(alg, crate::Algorithm::Secp256k1),
             }
             assert_eq!(
-                verifier
-                    .verify(alg, &decoded_key, &message, &signature)
-                    .is_ok(),
+                verifier.verify(alg, &decoded_key, &message, &signature).is_ok(),
                 vector.valid_signature
             );
             assert_eq!(
-                verifier
-                    .verify(alg, &parsed_key, &message, &signature)
-                    .is_ok(),
+                verifier.verify(alg, &parsed_key, &message, &signature).is_ok(),
                 vector.valid_signature
             );
         }
@@ -215,12 +197,8 @@ mod tests {
                 Algorithm::ES256K => assert_eq!(alg, crate::Algorithm::Secp256k1),
             }
             assert!(!vector.valid_signature);
-            assert!(verifier
-                .verify(alg, &decoded_key, &message, &signature)
-                .is_ok());
-            assert!(verifier
-                .verify(alg, &parsed_key, &message, &signature)
-                .is_ok());
+            assert!(verifier.verify(alg, &decoded_key, &message, &signature).is_ok());
+            assert!(verifier.verify(alg, &parsed_key, &message, &signature).is_ok());
         }
     }
 
@@ -249,12 +227,8 @@ mod tests {
                 Algorithm::ES256K => assert_eq!(alg, crate::Algorithm::Secp256k1),
             }
             assert!(!vector.valid_signature);
-            assert!(verifier
-                .verify(alg, &decoded_key, &message, &signature)
-                .is_ok());
-            assert!(verifier
-                .verify(alg, &parsed_key, &message, &signature)
-                .is_ok());
+            assert!(verifier.verify(alg, &decoded_key, &message, &signature).is_ok());
+            assert!(verifier.verify(alg, &parsed_key, &message, &signature).is_ok());
         }
     }
 }

@@ -168,7 +168,6 @@ mod tests {
     use crate::com::atproto::server::create_session::OutputData;
     use crate::did_doc::{DidDocument, Service, VerificationMethod};
     use crate::types::TryIntoUnknown;
-    use async_trait::async_trait;
     use atrium_xrpc::HttpClient;
     use http::{HeaderMap, HeaderName, HeaderValue, Request, Response};
     use std::collections::HashMap;
@@ -189,8 +188,6 @@ mod tests {
         headers: Arc<RwLock<Vec<HeaderMap<HeaderValue>>>>,
     }
 
-    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl HttpClient for MockClient {
         async fn send_http(
             &self,
@@ -262,14 +259,12 @@ mod tests {
                 }
             }
             if body.is_empty() {
-                Ok(builder
-                    .status(http::StatusCode::UNAUTHORIZED)
-                    .body(serde_json::to_vec(
-                        &atrium_xrpc::error::ErrorResponseBody {
-                            error: Some(String::from("AuthenticationRequired")),
-                            message: Some(String::from("Invalid identifier or password")),
-                        },
-                    )?)?)
+                Ok(builder.status(http::StatusCode::UNAUTHORIZED).body(serde_json::to_vec(
+                    &atrium_xrpc::error::ErrorResponseBody {
+                        error: Some(String::from("AuthenticationRequired")),
+                        message: Some(String::from("Invalid identifier or password")),
+                    },
+                )?)?)
             } else {
                 Ok(builder.status(http::StatusCode::OK).body(body)?)
             }
@@ -320,25 +315,17 @@ mod tests {
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent
-                .login("test", "pass")
-                .await
-                .expect("login should be succeeded");
+            agent.login("test", "pass").await.expect("login should be succeeded");
             assert_eq!(agent.get_session().await, Some(session_data.into()));
         }
         // failure with `createSession` error
         {
             let client = MockClient {
-                responses: MockResponses {
-                    ..Default::default()
-                },
+                responses: MockResponses { ..Default::default() },
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent
-                .login("test", "bad")
-                .await
-                .expect_err("login should be failed");
+            agent.login("test", "bad").await.expect_err("login should be failed");
             assert_eq!(agent.get_session().await, None);
         }
     }
@@ -409,11 +396,7 @@ mod tests {
             .expect("get session should be succeeded");
         assert_eq!(output.did.as_str(), "did:web:example.com");
         assert_eq!(
-            agent
-                .store
-                .get_session()
-                .await
-                .map(|session| session.data.access_jwt),
+            agent.store.get_session().await.map(|session| session.data.access_jwt),
             Some("access".into())
         );
     }
@@ -456,11 +439,7 @@ mod tests {
             assert_eq!(output.did.as_str(), "did:web:example.com");
         }
         assert_eq!(
-            agent
-                .store
-                .get_session()
-                .await
-                .map(|session| session.data.access_jwt),
+            agent.store.get_session().await.map(|session| session.data.access_jwt),
             Some("access".into())
         );
         assert_eq!(
@@ -511,9 +490,7 @@ mod tests {
         // failure with `getSession` error
         {
             let client = MockClient {
-                responses: MockResponses {
-                    ..Default::default()
-                },
+                responses: MockResponses { ..Default::default() },
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
@@ -549,11 +526,7 @@ mod tests {
         let agent = AtpAgent::new(client, MemorySessionStore::default());
         agent
             .resume_session(
-                OutputData {
-                    access_jwt: "expired".into(),
-                    ..session_data.clone()
-                }
-                .into(),
+                OutputData { access_jwt: "expired".into(), ..session_data.clone() }.into(),
             )
             .await
             .expect("resume_session should be succeeded");
@@ -600,15 +573,9 @@ mod tests {
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent
-                .login("test", "pass")
-                .await
-                .expect("login should be succeeded");
+            agent.login("test", "pass").await.expect("login should be succeeded");
             assert_eq!(agent.get_endpoint().await, "https://bsky.social");
-            assert_eq!(
-                agent.api.com.atproto.server.xrpc.base_uri(),
-                "https://bsky.social"
-            );
+            assert_eq!(agent.api.com.atproto.server.xrpc.base_uri(), "https://bsky.social");
         }
         // invalid services
         {
@@ -641,16 +608,10 @@ mod tests {
                 ..Default::default()
             };
             let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent
-                .login("test", "pass")
-                .await
-                .expect("login should be succeeded");
+            agent.login("test", "pass").await.expect("login should be succeeded");
             // not updated
             assert_eq!(agent.get_endpoint().await, "http://localhost:8080");
-            assert_eq!(
-                agent.api.com.atproto.server.xrpc.base_uri(),
-                "http://localhost:8080"
-            );
+            assert_eq!(agent.api.com.atproto.server.xrpc.base_uri(), "http://localhost:8080");
         }
     }
 
@@ -713,10 +674,7 @@ mod tests {
 
         assert_eq!(
             agent.get_labelers_header().await,
-            Some(vec![
-                String::from("did:plc:test1;redact"),
-                String::from("did:plc:test2")
-            ])
+            Some(vec![String::from("did:plc:test1;redact"), String::from("did:plc:test2")])
         );
     }
 

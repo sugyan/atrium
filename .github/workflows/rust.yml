@@ -1,4 +1,4 @@
-name: Rust
+name: Rust CI
 
 on:
   push:
@@ -8,11 +8,45 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  RUSTUP_MAX_RETRIES: 10
+  RUST_BACKTRACE: short
+  RUSTFLAGS: "-D warnings"
 
 jobs:
-  build:
+  rust:
+    name: Rust
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - 1.75.0
+          - stable
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          components: rustfmt, clippy
+
+      - name: Bump opt-level
+        run: sed -i '/\[profile.dev]/a opt-level=1' Cargo.toml
+
+      - name: Compile (rust-analyzer)
         run: cargo build --verbose
+        
+      - name: Lint (clippy)
+        uses: giraffate/clippy-action@v1
+        with:
+          reporter: "github-pr-check"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Format (rustfmt)
+        run: cargo fmt-no-gen --check
