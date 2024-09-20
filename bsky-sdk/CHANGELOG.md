@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.1.11](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.10...bsky-sdk-v0.1.11) - 2024-09-20
+
+### Removed
+- remove async_trait crate due to increased MSRV ([#234](https://github.com/sugyan/atrium/pull/234)) by @Elaina
 ## [0.1.10](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.9...bsky-sdk-v0.1.10) - 2024-09-20
 
 ### Other
