@@ -124,8 +124,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-compression"
+version = "0.4.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fec134f64e2bc57411226dfc4e52dec859ddfc7e711fc5e07b612584f000e4aa"
+dependencies = [
+ "flate2",
+ "futures-core",
+ "memchr",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
 name = "atrium-api"
-version = "0.24.5"
+version = "0.24.6"
 dependencies = [
  "atrium-xrpc",
  "atrium-xrpc-client",
@@ -163,7 +176,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.11.4"
+version = "0.11.5"
 dependencies = [
  "bumpalo",
  "http 1.1.0",
@@ -178,7 +191,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.5.7"
+version = "0.5.8"
 dependencies = [
  "atrium-xrpc",
  "bumpalo",
@@ -259,7 +272,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-cli"
-version = "0.1.23"
+version = "0.1.24"
 dependencies = [
  "anyhow",
  "bsky-sdk",
@@ -273,7 +286,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.10"
+version = "0.1.11"
 dependencies = [
  "anyhow",
  "atrium-api",
