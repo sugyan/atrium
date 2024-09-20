@@ -168,7 +168,6 @@ mod tests {
     use crate::com::atproto::server::create_session::OutputData;
     use crate::did_doc::{DidDocument, Service, VerificationMethod};
     use crate::types::TryIntoUnknown;
-    use async_trait::async_trait;
     use atrium_xrpc::HttpClient;
     use http::{HeaderMap, HeaderName, HeaderValue, Request, Response};
     use std::collections::HashMap;
@@ -189,8 +188,6 @@ mod tests {
         headers: Arc<RwLock<Vec<HeaderMap<HeaderValue>>>>,
     }
 
-    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl HttpClient for MockClient {
         async fn send_http(
             &self,

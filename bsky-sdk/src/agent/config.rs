@@ -1,8 +1,9 @@
 //! Configuration for the [`BskyAgent`](super::BskyAgent).
 mod file;
 
+use std::future::Future;
+
 use crate::error::{Error, Result};
-use async_trait::async_trait;
 use atrium_api::agent::Session;
 pub use file::FileStore;
 use serde::{Deserialize, Serialize};
@@ -46,20 +47,22 @@ impl Default for Config {
 }
 
 /// The trait for loading configuration data.
-#[async_trait]
 pub trait Loader {
     /// Loads the configuration data.
-    async fn load(
+    fn load(
         &self,
-    ) -> core::result::Result<Config, Box<dyn std::error::Error + Send + Sync + 'static>>;
+    ) -> impl Future<
+        Output = core::result::Result<Config, Box<dyn std::error::Error + Send + Sync + 'static>>,
+    > + Send;
 }
 
 /// The trait for saving configuration data.
-#[async_trait]
 pub trait Saver {
     /// Saves the configuration data.
-    async fn save(
+    fn save(
         &self,
         config: &Config,
-    ) -> core::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>;
+    ) -> impl Future<
+        Output = core::result::Result<(), Box<dyn std::error::Error + Send + Sync + 'static>>,
+    > + Send;
 }

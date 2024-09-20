@@ -124,34 +124,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-compression"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fec134f64e2bc57411226dfc4e52dec859ddfc7e711fc5e07b612584f000e4aa"
-dependencies = [
- "flate2",
- "futures-core",
- "memchr",
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
-name = "async-trait"
-version = "0.1.81"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e0c28dcc82d7c8ead5cb13beb15405b57b8546e93215673ff8ca0349a028107"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.71",
-]
-
-[[package]]
 name = "atrium-api"
 version = "0.24.5"
 dependencies = [
- "async-trait",
  "atrium-xrpc",
  "atrium-xrpc-client",
  "bumpalo",
@@ -167,6 +142,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "trait-variant",
  "wasm-bindgen-test",
 ]
 
@@ -189,7 +165,6 @@ dependencies = [
 name = "atrium-xrpc"
 version = "0.11.4"
 dependencies = [
- "async-trait",
  "bumpalo",
  "http 1.1.0",
  "serde",
@@ -197,6 +172,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "trait-variant",
  "wasm-bindgen-test",
 ]
 
@@ -204,7 +180,6 @@ dependencies = [
 name = "atrium-xrpc-client"
 version = "0.5.7"
 dependencies = [
- "async-trait",
  "atrium-xrpc",
  "bumpalo",
  "futures",
@@ -287,7 +262,6 @@ name = "bsky-cli"
 version = "0.1.23"
 dependencies = [
  "anyhow",
- "async-trait",
  "bsky-sdk",
  "chrono",
  "clap",
@@ -302,7 +276,6 @@ name = "bsky-sdk"
 version = "0.1.10"
 dependencies = [
  "anyhow",
- "async-trait",
  "atrium-api",
  "atrium-xrpc-client",
  "chrono",
@@ -314,6 +287,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "toml",
+ "trait-variant",
  "unicode-segmentation",
 ]
 
@@ -2403,6 +2377,17 @@ checksum = "97d095ae15e245a057c8e8451bab9b3ee1e1f68e9ba2b4fbc18d0ac5237835f2"
 dependencies = [
  "pin-project",
  "tracing",
+]
+
+[[package]]
+name = "trait-variant"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70977707304198400eb4835a78f6a9f928bf41bba420deb8fdb175cd965d77a7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.71",
 ]
 
 [[package]]

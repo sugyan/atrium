@@ -1,6 +1,5 @@
 use super::{Config, Loader, Saver};
 use anyhow::anyhow;
-use async_trait::async_trait;
 use std::path::{Path, PathBuf};
 
 /// An implementation of [`Loader`] and [`Saver`] that reads and writes a configuration file.
@@ -19,7 +18,6 @@ impl FileStore {
     }
 }
 
-#[async_trait]
 impl Loader for FileStore {
     async fn load(
         &self,
@@ -33,7 +31,6 @@ impl Loader for FileStore {
     }
 }
 
-#[async_trait]
 impl Saver for FileStore {
     async fn save(
         &self,

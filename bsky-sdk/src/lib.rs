@@ -15,7 +15,6 @@ pub use error::{Error, Result};
 
 #[cfg(test)]
 mod tests {
-    use async_trait::async_trait;
     use atrium_api::xrpc::http::{Request, Response};
     use atrium_api::xrpc::types::Header;
     use atrium_api::xrpc::{HttpClient, XrpcClient};
@@ -24,7 +23,6 @@ mod tests {
 
     pub struct MockClient;
 
-    #[async_trait]
     impl HttpClient for MockClient {
         async fn send_http(
             &self,
@@ -44,7 +42,6 @@ mod tests {
         }
     }
 
-    #[async_trait]
     impl XrpcClient for MockClient {
         fn base_uri(&self) -> String {
             String::new()

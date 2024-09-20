@@ -2,7 +2,6 @@ use super::{Session, SessionStore};
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
-use async_trait::async_trait;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response, Uri};
@@ -51,8 +50,6 @@ impl<S, T> Clone for WrapperClient<S, T> {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> HttpClient for WrapperClient<S, T>
 where
     S: Send + Sync,
@@ -67,8 +64,6 @@ where
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> XrpcClient for WrapperClient<S, T>
 where
     S: SessionStore + Send + Sync,
@@ -231,8 +226,6 @@ where
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> HttpClient for Client<S, T>
 where
     S: Send + Sync,
@@ -247,8 +240,6 @@ where
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S, T> XrpcClient for Client<S, T>
 where
     S: SessionStore + Send + Sync,
@@ -321,8 +312,6 @@ impl<S> Store<S> {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<S> SessionStore for Store<S>
 where
     S: SessionStore + Send + Sync,

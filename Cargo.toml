@@ -28,10 +28,6 @@ atrium-xrpc = { version = "0.11.4", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.7", path = "atrium-xrpc-client" }
 bsky-sdk = { version = "0.1.10", path = "bsky-sdk" }
 
-# async in traits
-# Can be removed once MSRV is at least 1.75.0.
-async-trait = "0.1.80"
-
 # DAG-CBOR codec
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
 serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }
@@ -76,3 +72,6 @@ mockito = "1.4"
 # WebAssembly
 wasm-bindgen-test = "0.3.41"
 bumpalo = "~3.14.0"
+
+# Code generation
+trait-variant = "0.1.2"

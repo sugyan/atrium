@@ -13,7 +13,6 @@ mod tests {
     use super::*;
     use crate::error::{XrpcError, XrpcErrorKind};
     use crate::{HttpClient, XrpcClient};
-    use async_trait::async_trait;
     use http::{Request, Response};
     #[cfg(target_arch = "wasm32")]
     use wasm_bindgen_test::*;
@@ -24,8 +23,6 @@ mod tests {
         body: Vec<u8>,
     }
 
-    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl HttpClient for DummyClient {
         async fn send_http(
             &self,
