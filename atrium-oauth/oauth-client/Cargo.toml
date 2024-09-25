@@ -31,6 +31,7 @@ serde_html_form.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
+trait-variant.workspace = true
 
 [dev-dependencies]
 hickory-resolver.workspace = true

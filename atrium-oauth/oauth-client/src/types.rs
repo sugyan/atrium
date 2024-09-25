@@ -42,11 +42,7 @@ pub struct AuthorizeOptions {
 
 impl Default for AuthorizeOptions {
     fn default() -> Self {
-        Self {
-            redirect_uri: None,
-            scopes: Some(vec![String::from("atproto")]),
-            prompt: None,
-        }
+        Self { redirect_uri: None, scopes: Some(vec![String::from("atproto")]), prompt: None }
     }
 }
 

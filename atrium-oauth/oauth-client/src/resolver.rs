@@ -4,101 +4,109 @@ mod oauth_protected_resource_resolver;
 use self::oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
 use self::oauth_protected_resource_resolver::DefaultOAuthProtectedResourceResolver;
 use crate::types::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
-use async_trait::async_trait;
 use atrium_identity::identity_resolver::{
-    DidResolverConfig, HandleResolverConfig, IdentityResolver, IdentityResolverConfig,
-    ResolvedIdentity,
+    IdentityResolver, IdentityResolverConfig, ResolvedIdentity,
 };
-use atrium_identity::resolver::{CachedResolverConfig, MaybeCachedResolver};
-use atrium_identity::{Error, Resolver, Result};
+use atrium_identity::resolver::{CachedResolver, CachedResolverConfig};
+use atrium_identity::{did::DidResolver, handle::HandleResolver, Resolver};
+use atrium_identity::{Error, Result};
 use atrium_xrpc::HttpClient;
+use std::marker::PhantomData;
 use std::sync::Arc;
 use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct OAuthAuthorizationServerMetadataResolverConfig {
-    pub cache: Option<CachedResolverConfig>,
+    pub cache: CachedResolverConfig,
 }
 
 impl Default for OAuthAuthorizationServerMetadataResolverConfig {
     fn default() -> Self {
         Self {
-            cache: Some(CachedResolverConfig {
+            cache: CachedResolverConfig {
                 max_capacity: Some(100),
                 time_to_live: Some(Duration::from_secs(60)),
-            }),
+            },
         }
     }
 }
 
 #[derive(Clone, Debug)]
 pub struct OAuthProtectedResourceMetadataResolverConfig {
-    pub cache: Option<CachedResolverConfig>,
+    pub cache: CachedResolverConfig,
 }
 
 impl Default for OAuthProtectedResourceMetadataResolverConfig {
     fn default() -> Self {
         Self {
-            cache: Some(CachedResolverConfig {
+            cache: CachedResolverConfig {
                 max_capacity: Some(100),
                 time_to_live: Some(Duration::from_secs(60)),
-            }),
+            },
         }
     }
 }
 
 #[derive(Clone, Debug)]
-pub struct OAuthResolverConfig {
-    pub did: DidResolverConfig,
-    pub handle: HandleResolverConfig,
+pub struct OAuthResolverConfig<D, H> {
+    pub did_resolver: D,
+    pub handle_resolver: H,
     pub authorization_server_metadata: OAuthAuthorizationServerMetadataResolverConfig,
     pub protected_resource_metadata: OAuthProtectedResourceMetadataResolverConfig,
 }
 
 pub struct OAuthResolver<
     T,
+    D,
+    H,
     PRR = DefaultOAuthProtectedResourceResolver<T>,
     ASR = DefaultOAuthAuthorizationServerResolver<T>,
 > where
     PRR: Resolver<Input = String, Output = OAuthProtectedResourceMetadata>,
     ASR: Resolver<Input = String, Output = OAuthAuthorizationServerMetadata>,
 {
-    identity_resolver: IdentityResolver<T>,
-    protected_resource_resolver: MaybeCachedResolver<PRR, String, OAuthProtectedResourceMetadata>,
-    authorization_server_resolver:
-        MaybeCachedResolver<ASR, String, OAuthAuthorizationServerMetadata>,
+    identity_resolver: IdentityResolver<D, H>,
+    protected_resource_resolver: CachedResolver<PRR>,
+    authorization_server_resolver: CachedResolver<ASR>,
+    _phantom: PhantomData<T>,
 }
 
-impl<T> OAuthResolver<T>
+impl<T, D, H> OAuthResolver<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    pub fn new(config: OAuthResolverConfig, http_client: Arc<T>) -> Result<Self> {
-        let protected_resource_resolver = MaybeCachedResolver::new(
+    pub fn new(config: OAuthResolverConfig<D, H>, http_client: Arc<T>) -> Self {
+        let protected_resource_resolver = CachedResolver::new(
             DefaultOAuthProtectedResourceResolver::new(http_client.clone()),
             config.authorization_server_metadata.cache,
         );
-        let authorization_server_resolver = MaybeCachedResolver::new(
+        let authorization_server_resolver = CachedResolver::new(
             DefaultOAuthAuthorizationServerResolver::new(http_client.clone()),
             config.protected_resource_metadata.cache,
         );
-        Ok(Self {
+        Self {
             identity_resolver: IdentityResolver::new(IdentityResolverConfig {
-                did: config.did,
-                handle: config.handle,
-                http_client,
-            })?,
+                did_resolver: config.did_resolver,
+                handle_resolver: config.handle_resolver,
+            }),
             protected_resource_resolver,
             authorization_server_resolver,
-        })
+            _phantom: PhantomData,
+        }
     }
+}
+
+impl<T, D, H> OAuthResolver<T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
+{
     pub async fn get_authorization_server_metadata(
         &self,
         issuer: impl AsRef<str>,
     ) -> Result<OAuthAuthorizationServerMetadata> {
-        self.authorization_server_resolver
-            .resolve(&issuer.as_ref().to_string())
-            .await
+        self.authorization_server_resolver.resolve(&issuer.as_ref().to_string()).await
     }
     async fn resolve_from_service(&self, input: &str) -> Result<OAuthAuthorizationServerMetadata> {
         // Assume first that input is a PDS URL (as required by ATPROTO)
@@ -120,10 +128,7 @@ where
         &self,
         pds: &str,
     ) -> Result<OAuthAuthorizationServerMetadata> {
-        let rs_metadata = self
-            .protected_resource_resolver
-            .resolve(&pds.to_string())
-            .await?;
+        let rs_metadata = self.protected_resource_resolver.resolve(&pds.to_string()).await?;
         // ATPROTO requires one, and only one, authorization server entry
         // > That document MUST contain a single item in the authorization_servers array.
         // https://github.com/bluesky-social/proposals/tree/main/0004-oauth#server-metadata
@@ -167,11 +172,11 @@ where
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<T> Resolver for OAuthResolver<T>
+impl<T, D, H> Resolver for OAuthResolver<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     type Input = str;
     type Output = (OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>);

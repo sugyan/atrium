@@ -31,9 +31,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub struct Keyset(Vec<Jwk>);
 
 impl Keyset {
-    const PREFERRED_SIGNING_ALGORITHMS: [&'static str; 9] = [
-        "EdDSA", "ES256K", "ES256", "PS256", "PS384", "PS512", "HS256", "HS384", "HS512",
-    ];
+    const PREFERRED_SIGNING_ALGORITHMS: [&'static str; 9] =
+        ["EdDSA", "ES256K", "ES256", "PS256", "PS384", "PS512", "HS256", "HS384", "HS512"];
     pub fn public_jwks(&self) -> JwkSet {
         let mut keys = Vec::with_capacity(self.0.len());
         for mut key in self.0.clone() {

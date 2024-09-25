@@ -11,7 +11,7 @@ use crate::types::{
     TryIntoOAuthClientMetadata,
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
-use atrium_identity::Resolver;
+use atrium_identity::{did::DidResolver, handle::HandleResolver, Resolver};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;
@@ -22,7 +22,7 @@ use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
-pub struct OAuthClientConfig<S, M>
+pub struct OAuthClientConfig<S, M, D, H>
 where
     M: TryIntoOAuthClientMetadata,
 {
@@ -32,11 +32,11 @@ where
     // Stores
     pub state_store: S,
     // Services
-    pub resolver: OAuthResolverConfig,
+    pub resolver: OAuthResolverConfig<D, H>,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct OAuthClientConfig<S, T, M>
+pub struct OAuthClientConfig<S, T, M, D, H>
 where
     M: TryIntoOAuthClientMetadata,
 {
@@ -46,57 +46,53 @@ where
     // Stores
     pub state_store: S,
     // Services
-    pub resolver: OAuthResolverConfig,
+    pub resolver: OAuthResolverConfig<D, H>,
     // Others
     pub http_client: T,
 }
 
 #[cfg(feature = "default-client")]
-pub struct OAuthClient<S, T = crate::http_client::default::DefaultHttpClient>
+pub struct OAuthClient<S, D, H, T = crate::http_client::default::DefaultHttpClient>
 where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
-    resolver: Arc<OAuthResolver<T>>,
+    resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S,
     http_client: Arc<T>,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct OAuthClient<S, T>
+pub struct OAuthClient<S, D, H, T>
 where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
-    resolver: Arc<OAuthResolver<T>>,
+    resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S,
     http_client: Arc<T>,
 }
 
 #[cfg(feature = "default-client")]
-impl<S> OAuthClient<S, crate::http_client::default::DefaultHttpClient>
+impl<S, D, H> OAuthClient<S, D, H, crate::http_client::default::DefaultHttpClient>
 where
     S: StateStore,
 {
-    pub fn new<M>(config: OAuthClientConfig<S, M>) -> Result<Self>
+    pub fn new<M>(config: OAuthClientConfig<S, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
     {
-        let keyset = if let Some(keys) = config.keys {
-            Some(keys.try_into()?)
-        } else {
-            None
-        };
+        let keyset = if let Some(keys) = config.keys { Some(keys.try_into()?) } else { None };
         let client_metadata = config.client_metadata.try_into_client_metadata(&keyset)?;
         let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
         Ok(Self {
             client_metadata,
             keyset,
-            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())?),
+            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
             http_client,
         })
@@ -104,42 +100,37 @@ where
 }
 
 #[cfg(not(feature = "default-client"))]
-impl<S, T> OAuthClient<S, T>
+impl<S, D, H, T> OAuthClient<S, D, H, T>
 where
     S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
-    pub fn new<M>(config: OAuthClientConfig<S, T, M>) -> Result<Self>
+    pub fn new<M>(config: OAuthClientConfig<S, T, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
     {
-        let keyset = if let Some(keys) = config.keys {
-            Some(keys.try_into()?)
-        } else {
-            None
-        };
+        let keyset = if let Some(keys) = config.keys { Some(keys.try_into()?) } else { None };
         let client_metadata = config.client_metadata.try_into_client_metadata(&keyset)?;
         let http_client = Arc::new(config.http_client);
         Ok(Self {
             client_metadata,
             keyset,
-            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())?),
+            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
             http_client,
         })
     }
 }
 
-impl<S, T> OAuthClient<S, T>
+impl<S, D, H, T> OAuthClient<S, D, H, T>
 where
     S: StateStore,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn jwks(&self) -> JwkSet {
-        self.keyset
-            .as_ref()
-            .map(|keyset| keyset.public_jwks())
-            .unwrap_or_default()
+        self.keyset.as_ref().map(|keyset| keyset.public_jwks()).unwrap_or_default()
     }
     pub async fn authorize(
         &self,
@@ -169,11 +160,7 @@ where
             .set(state.clone(), state_data)
             .await
             .map_err(|e| Error::StateStore(Box::new(e)))?;
-        let login_hint = if identity.is_some() {
-            Some(input.as_ref().into())
-        } else {
-            None
-        };
+        let login_hint = if identity.is_some() { Some(input.as_ref().into()) } else { None };
         let parameters = PushedAuthorizationRequestParameters {
             response_type: AuthorizationResponseType::Code,
             redirect_uri,
@@ -213,9 +200,7 @@ where
                 })
                 .unwrap())
         } else if metadata.require_pushed_authorization_requests == Some(true) {
-            Err(Error::Authorize(
-                "server requires PAR but no endpoint is available".into(),
-            ))
+            Err(Error::Authorize("server requires PAR but no endpoint is available".into()))
         } else {
             // now "the use of PAR is *mandatory* for all clients"
             // https://github.com/bluesky-social/proposals/tree/main/0004-oauth#framework
@@ -227,26 +212,15 @@ where
             return Err(Error::Callback("missing `state` parameter".into()));
         };
 
-        let Some(state) = self
-            .state_store
-            .get(&state_key)
-            .await
-            .map_err(|e| Error::StateStore(Box::new(e)))?
+        let Some(state) =
+            self.state_store.get(&state_key).await.map_err(|e| Error::StateStore(Box::new(e)))?
         else {
-            return Err(Error::Callback(format!(
-                "unknown authorization state: {state_key}"
-            )));
+            return Err(Error::Callback(format!("unknown authorization state: {state_key}")));
         };
         // Prevent any kind of replay
-        self.state_store
-            .del(&state_key)
-            .await
-            .map_err(|e| Error::StateStore(Box::new(e)))?;
+        self.state_store.del(&state_key).await.map_err(|e| Error::StateStore(Box::new(e)))?;
 
-        let metadata = self
-            .resolver
-            .get_authorization_server_metadata(&state.iss)
-            .await?;
+        let metadata = self.resolver.get_authorization_server_metadata(&state.iss).await?;
         // https://datatracker.ietf.org/doc/html/rfc9207#section-2.4
         if let Some(iss) = params.iss {
             if iss != metadata.issuer {
@@ -272,10 +246,8 @@ where
         Ok(token_set)
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
-        let mut algs = metadata
-            .dpop_signing_alg_values_supported
-            .clone()
-            .unwrap_or(vec![FALLBACK_ALG.into()]);
+        let mut algs =
+            metadata.dpop_signing_alg_values_supported.clone().unwrap_or(vec![FALLBACK_ALG.into()]);
         algs.sort_by(compare_algos);
         generate_key(&algs)
     }
@@ -285,9 +257,6 @@ where
             URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
         let mut hasher = Sha256::new();
         hasher.update(verifier.as_bytes());
-        (
-            URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())),
-            verifier,
-        )
+        (URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())), verifier)
     }
 }

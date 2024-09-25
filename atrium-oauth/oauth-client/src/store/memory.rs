@@ -1,5 +1,4 @@
 use super::SimpleStore;
-use async_trait::async_trait;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -17,14 +16,10 @@ pub struct MemorySimpleStore<K, V> {
 
 impl<K, V> Default for MemorySimpleStore<K, V> {
     fn default() -> Self {
-        Self {
-            store: Arc::new(Mutex::new(HashMap::new())),
-        }
+        Self { store: Arc::new(Mutex::new(HashMap::new())) }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<K, V> SimpleStore<K, V> for MemorySimpleStore<K, V>
 where
     K: Debug + Eq + Hash + Send + Sync + 'static,

@@ -24,8 +24,5 @@ where
     let header = URL_SAFE_NO_PAD.encode(serde_json::to_string(&header)?);
     let payload = URL_SAFE_NO_PAD.encode(serde_json::to_string(&claims)?);
     let signature: Signature<_> = key.sign(format!("{header}.{payload}").as_bytes());
-    Ok(format!(
-        "{header}.{payload}.{}",
-        URL_SAFE_NO_PAD.encode(signature.to_bytes())
-    ))
+    Ok(format!("{header}.{payload}.{}", URL_SAFE_NO_PAD.encode(signature.to_bytes())))
 }

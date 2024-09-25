@@ -9,6 +9,7 @@ use crate::types::{
 };
 use crate::utils::{compare_algos, generate_nonce};
 use atrium_api::types::string::Datetime;
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::http::{Method, Request, StatusCode};
 use atrium_xrpc::HttpClient;
 use chrono::{TimeDelta, Utc};
@@ -92,26 +93,28 @@ where
     parameters: T,
 }
 
-pub struct OAuthServerAgent<T>
+pub struct OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
     server_metadata: OAuthAuthorizationServerMetadata,
     client_metadata: OAuthClientMetadata,
     dpop_client: DpopClient<T>,
-    resolver: Arc<OAuthResolver<T>>,
+    resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
 }
 
-impl<T> OAuthServerAgent<T>
+impl<T, D, H> OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     pub fn new(
         dpop_key: Key,
         server_metadata: OAuthAuthorizationServerMetadata,
         client_metadata: OAuthClientMetadata,
-        resolver: Arc<OAuthResolver<T>>,
+        resolver: Arc<OAuthResolver<T, D, H>>,
         http_client: Arc<T>,
         keyset: Option<Keyset>,
     ) -> Result<Self> {
@@ -121,13 +124,7 @@ where
             http_client,
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
-        Ok(Self {
-            server_metadata,
-            client_metadata,
-            dpop_client,
-            resolver,
-            keyset,
-        })
+        Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
     }
     /**
      * VERY IMPORTANT ! Always call this to process token responses.
@@ -192,18 +189,11 @@ where
             .method(Method::POST)
             .header("Content-Type", "application/x-www-form-urlencoded")
             .body(body.into_bytes())?;
-        let res = self
-            .dpop_client
-            .send_http(req)
-            .await
-            .map_err(Error::HttpClient)?;
+        let res = self.dpop_client.send_http(req).await.map_err(Error::HttpClient)?;
         if res.status() == request.expected_status() {
             Ok(serde_json::from_slice(res.body())?)
         } else if res.status().is_client_error() {
-            Err(Error::HttpStatusWithBody(
-                res.status(),
-                serde_json::from_slice(res.body())?,
-            ))
+            Err(Error::HttpStatusWithBody(res.status(), serde_json::from_slice(res.body())?))
         } else {
             Err(Error::HttpStatus(res.status()))
         }
@@ -279,10 +269,9 @@ where
             OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
             OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
             OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
-            OAuthRequest::PushedAuthorizationRequest(_) => self
-                .server_metadata
-                .pushed_authorization_request_endpoint
-                .as_ref(),
+            OAuthRequest::PushedAuthorizationRequest(_) => {
+                self.server_metadata.pushed_authorization_request_endpoint.as_ref()
+            }
         }
     }
 }

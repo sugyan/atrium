@@ -66,12 +66,7 @@ impl<T> DpopClient<T> {
             }
         }
         let nonces = MemorySimpleStore::<String, String>::default();
-        Ok(Self {
-            inner: http_client,
-            key,
-            iss,
-            nonces,
-        })
+        Ok(Self { inner: http_client, key, iss, nonces })
     }
     fn build_proof(&self, htm: String, htu: String, nonce: Option<String>) -> Result<String> {
         match crypto::Key::try_from(&self.key).map_err(Error::JwkCrypto)? {
@@ -120,8 +115,6 @@ impl<T> DpopClient<T> {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 impl<T> HttpClient for DpopClient<T>
 where
     T: HttpClient + Send + Sync + 'static,
@@ -141,11 +134,8 @@ where
         request.headers_mut().insert("DPoP", init_proof.parse()?);
         let response = self.inner.send_http(request.clone()).await?;
 
-        let next_nonce = response
-            .headers()
-            .get("DPoP-Nonce")
-            .and_then(|v| v.to_str().ok())
-            .map(String::from);
+        let next_nonce =
+            response.headers().get("DPoP-Nonce").and_then(|v| v.to_str().ok()).map(String::from);
         match &next_nonce {
             Some(s) if next_nonce != init_nonce => {
                 // Store the fresh nonce for future requests

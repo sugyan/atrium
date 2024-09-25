@@ -1,12 +1,10 @@
 pub mod memory;
 pub mod state;
 
-use async_trait::async_trait;
 use std::error::Error;
 use std::hash::Hash;
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait SimpleStore<K, V>
 where
     K: Eq + Hash,

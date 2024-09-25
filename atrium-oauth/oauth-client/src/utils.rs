@@ -10,9 +10,9 @@ pub fn generate_key(allowed_algos: &[String]) -> Option<Key> {
         #[allow(clippy::single_match)]
         match alg.as_str() {
             "ES256" => {
-                return Some(Key::from(&crypto::Key::from(
-                    SecretKey::<p256::NistP256>::random(&mut ThreadRng::default()),
-                )));
+                return Some(Key::from(&crypto::Key::from(SecretKey::<p256::NistP256>::random(
+                    &mut ThreadRng::default(),
+                ))));
             }
             _ => {
                 // TODO: Implement other algorithms?

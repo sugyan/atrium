@@ -8,7 +8,6 @@ use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
 
-#[allow(dead_code)]
 pub const DEFAULT_PLC_DIRECTORY_URL: &str = "https://plc.directory/";
 
 #[derive(Clone, Debug)]

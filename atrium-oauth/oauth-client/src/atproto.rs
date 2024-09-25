@@ -151,11 +151,7 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
             token_endpoint_auth_method: Some(self.token_endpoint_auth_method.into()),
             grant_types: Some(self.grant_types.into_iter().map(|v| v.into()).collect()),
             scope: Some(
-                self.scopes
-                    .into_iter()
-                    .map(|v| v.into())
-                    .collect::<Vec<String>>()
-                    .join(" "),
+                self.scopes.into_iter().map(|v| v.into()).collect::<Vec<String>>().join(" "),
             ),
             dpop_bound_access_tokens: Some(true),
             jwks_uri,

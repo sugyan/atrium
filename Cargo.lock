@@ -259,6 +259,7 @@ dependencies = [
  "sha2",
  "thiserror",
  "tokio",
+ "trait-variant",
 ]
 
 [[package]]

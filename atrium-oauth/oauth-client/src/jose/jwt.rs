@@ -43,10 +43,7 @@ pub struct PublicClaims {
 
 impl From<RegisteredClaims> for Claims {
     fn from(registered: RegisteredClaims) -> Self {
-        Self {
-            registered,
-            public: PublicClaims::default(),
-        }
+        Self { registered, public: PublicClaims::default() }
     }
 }
 

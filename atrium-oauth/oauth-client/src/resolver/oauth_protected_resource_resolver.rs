@@ -1,5 +1,4 @@
 use crate::types::OAuthProtectedResourceMetadata;
-use async_trait::async_trait;
 use atrium_identity::{Error, Resolver, Result};
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
@@ -16,8 +15,6 @@ impl<T> DefaultOAuthProtectedResourceResolver<T> {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> Resolver for DefaultOAuthProtectedResourceResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,

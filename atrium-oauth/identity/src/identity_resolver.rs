@@ -1,7 +1,5 @@
-use crate::did::DidResolver;
 use crate::error::{Error, Result};
-use crate::handle::HandleResolver;
-use crate::Resolver;
+use crate::{did::DidResolver, handle::HandleResolver, Resolver};
 use atrium_api::types::string::AtIdentifier;
 use serde::{Deserialize, Serialize};
 

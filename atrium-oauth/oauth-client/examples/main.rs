@@ -1,9 +1,9 @@
-use atrium_identity::handle::{DnsTxtResolver, HandleResolverImpl};
-use atrium_identity::identity_resolver::{DidResolverConfig, HandleResolverConfig};
+use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
+use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
 use atrium_oauth_client::store::state::MemoryStateStore;
 use atrium_oauth_client::{
-    AtprotoLocalhostClientMetadata, AuthorizeOptions, OAuthClient, OAuthClientConfig,
-    OAuthResolverConfig,
+    AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, OAuthClient,
+    OAuthClientConfig, OAuthResolverConfig,
 };
 use atrium_xrpc::http::Uri;
 use hickory_resolver::TokioAsyncResolver;
@@ -23,35 +23,32 @@ impl Default for HickoryDnsTxtResolver {
     }
 }
 
-#[async_trait::async_trait]
 impl DnsTxtResolver for HickoryDnsTxtResolver {
     async fn resolve(
         &self,
         query: &str,
     ) -> core::result::Result<Vec<String>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        Ok(self
-            .resolver
-            .txt_lookup(query)
-            .await?
-            .iter()
-            .map(|txt| txt.to_string())
-            .collect())
+        Ok(self.resolver.txt_lookup(query).await?.iter().map(|txt| txt.to_string()).collect())
     }
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let http_client = Arc::new(DefaultHttpClient::default());
     let config = OAuthClientConfig {
         client_metadata: AtprotoLocalhostClientMetadata {
             redirect_uris: vec!["http://127.0.0.1".to_string()],
         },
         keys: None,
         resolver: OAuthResolverConfig {
-            did: DidResolverConfig::default(),
-            handle: HandleResolverConfig {
-                r#impl: HandleResolverImpl::Atproto(Arc::new(HickoryDnsTxtResolver::default())),
-                cache: Default::default(),
-            },
+            did_resolver: CommonDidResolver::new(CommonDidResolverConfig {
+                plc_directory_url: DEFAULT_PLC_DIRECTORY_URL.to_string(),
+                http_client: http_client.clone(),
+            }),
+            handle_resolver: AtprotoHandleResolver::new(AtprotoHandleResolverConfig {
+                dns_txt_resolver: HickoryDnsTxtResolver::default(),
+                http_client: http_client.clone(),
+            }),
             authorization_server_metadata: Default::default(),
             protected_resource_metadata: Default::default(),
         },
@@ -81,10 +78,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uri = url.trim().parse::<Uri>()?;
     let params = serde_html_form::from_str(uri.query().unwrap())?;
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&client.callback(params).await?)?
-    );
+    println!("{}", serde_json::to_string_pretty(&client.callback(params).await?)?);
 
     Ok(())
 }

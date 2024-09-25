@@ -5,8 +5,6 @@ pub struct DefaultHttpClient {
     client: Client,
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait::async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait::async_trait)]
 impl HttpClient for DefaultHttpClient {
     async fn send_http(
         &self,
@@ -20,16 +18,12 @@ impl HttpClient for DefaultHttpClient {
         for (k, v) in response.headers() {
             builder = builder.header(k, v);
         }
-        builder
-            .body(response.bytes().await?.to_vec())
-            .map_err(Into::into)
+        builder.body(response.bytes().await?.to_vec()).map_err(Into::into)
     }
 }
 
 impl Default for DefaultHttpClient {
     fn default() -> Self {
-        Self {
-            client: reqwest::Client::new(),
-        }
+        Self { client: reqwest::Client::new() }
     }
 }
