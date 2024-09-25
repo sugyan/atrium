@@ -1,5 +1,4 @@
 use super::super::cached_resolver::{Cache as CacheTrait, CachedResolverConfig};
-use async_trait::async_trait;
 use lru::LruCache;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -57,7 +56,6 @@ pub struct WasmCache<I, O> {
     expiration: Option<Duration>,
 }
 
-#[async_trait(?Send)]
 impl<I, O> CacheTrait for WasmCache<I, O>
 where
     I: Hash + Eq + Send + Sync + 'static,
@@ -75,10 +73,7 @@ where
         } else {
             Store::HashMap(HashMap::new())
         };
-        Self {
-            inner: Arc::new(Mutex::new(store)),
-            expiration: config.time_to_live,
-        }
+        Self { inner: Arc::new(Mutex::new(store)), expiration: config.time_to_live }
     }
     async fn get(&self, key: &Self::Input) -> Option<Self::Output> {
         let mut cache = self.inner.lock().await;
@@ -95,12 +90,6 @@ where
         }
     }
     async fn set(&self, key: Self::Input, value: Self::Output) {
-        self.inner.lock().await.set(
-            key,
-            ValueWithInstant {
-                value,
-                instant: Instant::now(),
-            },
-        );
+        self.inner.lock().await.set(key, ValueWithInstant { value, instant: Instant::now() });
     }
 }

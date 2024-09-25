@@ -1,38 +1,37 @@
 use super::Resolver;
 use crate::error::{Error, Result};
-use async_trait::async_trait;
 use dashmap::{DashMap, Entry};
 use std::hash::Hash;
-use std::{fmt::Debug, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::broadcast::{channel, Sender};
 use tokio::sync::Mutex;
 
-type SharedSender<T> = Arc<Mutex<Sender<T>>>;
+type SharedSender<T> = Arc<Mutex<Sender<Option<T>>>>;
 
-pub struct ThrottledResolver<R, I, O> {
+pub struct ThrottledResolver<R>
+where
+    R: Resolver,
+    R::Input: Sized,
+{
     resolver: R,
-    senders: Arc<DashMap<I, SharedSender<Option<O>>>>,
+    senders: Arc<DashMap<R::Input, SharedSender<R::Output>>>,
 }
 
-impl<R, I, O> ThrottledResolver<R, I, O>
+impl<R> ThrottledResolver<R>
 where
-    I: Clone + Hash + Eq + Send + Sync + 'static + Debug,
+    R: Resolver,
+    R::Input: Clone + Hash + Eq + Send + Sync + 'static,
 {
     pub fn new(resolver: R) -> Self {
-        Self {
-            resolver,
-            senders: Arc::new(DashMap::new()),
-        }
+        Self { resolver, senders: Arc::new(DashMap::new()) }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<R, I, O> Resolver for ThrottledResolver<R, I, O>
+impl<R> Resolver for ThrottledResolver<R>
 where
-    R: Resolver<Input = I, Output = O> + Send + Sync + 'static,
-    I: Clone + Hash + Eq + Send + Sync + 'static,
-    O: Clone + Send + Sync + 'static,
+    R: Resolver + Send + Sync + 'static,
+    R::Input: Clone + Hash + Eq + Send + Sync + 'static,
+    R::Output: Clone + Send + Sync + 'static,
 {
     type Input = R::Input;
     type Output = R::Output;

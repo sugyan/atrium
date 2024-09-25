@@ -1,66 +1,44 @@
 use super::HandleResolver;
 use crate::error::{Error, Result};
 use crate::Resolver;
-use async_trait::async_trait;
 use atrium_api::types::string::{Did, Handle};
-use std::sync::Arc;
+use std::future::Future;
 
 const SUBDOMAIN: &str = "_atproto";
 const PREFIX: &str = "did=";
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait DnsTxtResolver {
-    async fn resolve(
+    fn resolve(
         &self,
         query: &str,
-    ) -> core::result::Result<Vec<String>, Box<dyn std::error::Error + Send + Sync + 'static>>;
-}
-
-pub struct DynamicDnsTxtResolver {
-    resolver: Arc<dyn DnsTxtResolver + Send + Sync + 'static>,
-}
-
-impl DynamicDnsTxtResolver {
-    pub fn new(resolver: Arc<dyn DnsTxtResolver + Send + Sync + 'static>) -> Self {
-        Self { resolver }
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl DnsTxtResolver for DynamicDnsTxtResolver {
-    async fn resolve(
-        &self,
-        query: &str,
-    ) -> core::result::Result<Vec<String>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        self.resolver.resolve(query).await
-    }
+    ) -> impl Future<
+        Output = core::result::Result<
+            Vec<String>,
+            Box<dyn std::error::Error + Send + Sync + 'static>,
+        >,
+    >;
 }
 
 #[derive(Clone, Debug)]
-pub struct DnsHandleResolverConfig<T> {
-    pub dns_txt_resolver: T,
+pub struct DnsHandleResolverConfig<R> {
+    pub dns_txt_resolver: R,
 }
 
-pub struct DnsHandleResolver {
-    dns_txt_resolver: Arc<dyn DnsTxtResolver + Send + Sync + 'static>,
+pub struct DnsHandleResolver<R> {
+    dns_txt_resolver: R,
 }
 
-impl DnsHandleResolver {
-    pub fn new<T>(config: DnsHandleResolverConfig<T>) -> Result<Self>
-    where
-        T: DnsTxtResolver + Send + Sync + 'static,
-    {
-        Ok(Self {
-            dns_txt_resolver: Arc::new(config.dns_txt_resolver),
-        })
+impl<R> DnsHandleResolver<R> {
+    pub fn new(config: DnsHandleResolverConfig<R>) -> Self {
+        Self { dns_txt_resolver: config.dns_txt_resolver }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl Resolver for DnsHandleResolver {
+impl<R> Resolver for DnsHandleResolver<R>
+where
+    R: DnsTxtResolver + Send + Sync + 'static,
+{
     type Input = Handle;
     type Output = Did;
 
@@ -79,4 +57,4 @@ impl Resolver for DnsHandleResolver {
     }
 }
 
-impl HandleResolver for DnsHandleResolver {}
+impl<R> HandleResolver for DnsHandleResolver<R> where R: DnsTxtResolver + Send + Sync + 'static {}

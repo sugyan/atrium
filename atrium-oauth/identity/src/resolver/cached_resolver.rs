@@ -1,13 +1,11 @@
 use super::cache_impl::CacheImpl;
 use crate::error::Result;
 use crate::Resolver;
-use async_trait::async_trait;
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::time::Duration;
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub(crate) trait Cache {
     type Input: Hash + Eq + Sync + 'static;
     type Output: Clone + Sync + 'static;
@@ -23,47 +21,41 @@ pub struct CachedResolverConfig {
     pub time_to_live: Option<Duration>,
 }
 
-pub struct MaybeCachedResolver<R, I, O>
+pub struct CachedResolver<R>
 where
-    R: Resolver<Input = I, Output = O>,
+    R: Resolver,
+    R::Input: Sized,
 {
     resolver: R,
-    cache: Option<CacheImpl<I, O>>,
+    cache: CacheImpl<R::Input, R::Output>,
 }
 
-impl<R, I, O> MaybeCachedResolver<R, I, O>
+impl<R> CachedResolver<R>
 where
-    R: Resolver<Input = I, Output = O>,
-    I: Hash + Eq + Send + Sync + 'static,
-    O: Clone + Send + Sync + 'static,
+    R: Resolver,
+    R::Input: Sized + Hash + Eq + Send + Sync + 'static,
+    R::Output: Clone + Send + Sync + 'static,
 {
-    pub fn new(resolver: R, config: Option<CachedResolverConfig>) -> Self {
-        let cache = config.map(CacheImpl::new);
-        Self { resolver, cache }
+    pub fn new(resolver: R, config: CachedResolverConfig) -> Self {
+        Self { resolver, cache: CacheImpl::new(config) }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<R, I, O> Resolver for MaybeCachedResolver<R, I, O>
+impl<R> Resolver for CachedResolver<R>
 where
-    R: Resolver<Input = I, Output = O> + Send + Sync + 'static,
-    I: Clone + Hash + Eq + Send + Sync + 'static + Debug,
-    O: Clone + Send + Sync + 'static,
+    R: Resolver + Send + Sync + 'static,
+    R::Input: Clone + Hash + Eq + Send + Sync + 'static + Debug,
+    R::Output: Clone + Send + Sync + 'static,
 {
     type Input = R::Input;
     type Output = R::Output;
 
     async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
-        if let Some(cache) = &self.cache {
-            if let Some(output) = cache.get(input).await {
-                return Ok(output);
-            }
+        if let Some(output) = self.cache.get(input).await {
+            return Ok(output);
         }
         let output = self.resolver.resolve(input).await?;
-        if let Some(cache) = &self.cache {
-            cache.set(input.clone(), output.clone()).await;
-        }
+        self.cache.set(input.clone(), output.clone()).await;
         Ok(output)
     }
 }

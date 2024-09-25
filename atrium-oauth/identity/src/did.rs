@@ -1,10 +1,8 @@
-mod base_resolver;
 mod common_resolver;
 mod plc_resolver;
 mod web_resolver;
 
 pub use self::common_resolver::{CommonDidResolver, CommonDidResolverConfig};
-pub(crate) use self::plc_resolver::DEFAULT_PLC_DIRECTORY_URL;
 use crate::Resolver;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;

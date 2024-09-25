@@ -1,7 +1,6 @@
 use super::HandleResolver;
 use crate::error::{Error, Result};
 use crate::Resolver;
-use async_trait::async_trait;
 use atrium_api::com::atproto::identity::resolve_handle;
 use atrium_api::types::string::{Did, Handle};
 use atrium_xrpc::http::uri::Builder;
@@ -16,21 +15,16 @@ pub struct AppViewHandleResolverConfig<T> {
 }
 
 pub struct AppViewHandleResolver<T> {
-    service_url: Uri,
+    service_url: String,
     http_client: Arc<T>,
 }
 
 impl<T> AppViewHandleResolver<T> {
-    pub fn new(config: AppViewHandleResolverConfig<T>) -> Result<Self> {
-        Ok(Self {
-            service_url: config.service_url.parse()?,
-            http_client: config.http_client,
-        })
+    pub fn new(config: AppViewHandleResolverConfig<T>) -> Self {
+        Self { service_url: config.service_url, http_client: config.http_client }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> Resolver for AppViewHandleResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
@@ -39,7 +33,7 @@ where
     type Output = Did;
 
     async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
-        let uri = Builder::from(self.service_url.clone())
+        let uri = Builder::from(self.service_url.parse::<Uri>()?)
             .path_and_query(format!(
                 "/xrpc/com.atproto.identity.resolveHandle?{}",
                 serde_html_form::to_string(resolve_handle::ParametersData {

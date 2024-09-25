@@ -2,18 +2,56 @@ mod cache_impl;
 mod cached_resolver;
 mod throttled_resolver;
 
-pub use self::cached_resolver::{CachedResolverConfig, MaybeCachedResolver};
+pub use self::cached_resolver::{CachedResolver, CachedResolverConfig};
 pub use self::throttled_resolver::ThrottledResolver;
 pub use crate::error::Result;
-use async_trait::async_trait;
+use std::future::Future;
+use std::hash::Hash;
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait Resolver {
     type Input: ?Sized;
     type Output;
 
-    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output>;
+    fn resolve(&self, input: &Self::Input) -> impl Future<Output = Result<Self::Output>>;
+}
+
+pub trait Cacheable
+where
+    Self: Sized + Resolver,
+    Self::Input: Sized,
+{
+    fn cached(self, config: CachedResolverConfig) -> CachedResolver<Self>;
+}
+
+impl<R> Cacheable for R
+where
+    R: Sized + Resolver,
+    R::Input: Sized + Hash + Eq + Send + Sync + 'static,
+    R::Output: Clone + Send + Sync + 'static,
+{
+    fn cached(self, config: CachedResolverConfig) -> CachedResolver<Self> {
+        CachedResolver::new(self, config)
+    }
+}
+
+pub trait Throttleable
+where
+    Self: Sized + Resolver,
+    Self::Input: Sized,
+{
+    fn throttled(self) -> ThrottledResolver<Self>;
+}
+
+impl<R> Throttleable for R
+where
+    R: Sized + Resolver,
+    R::Input: Clone + Hash + Eq + Send + Sync + 'static,
+    R::Output: Clone + Send + Sync + 'static,
+{
+    fn throttled(self) -> ThrottledResolver<Self> {
+        ThrottledResolver::new(self)
+    }
 }
 
 #[cfg(test)]
@@ -42,8 +80,6 @@ mod tests {
         counts: Arc<RwLock<HashMap<String, usize>>>,
     }
 
-    #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-    #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
     impl Resolver for MockResolver {
         type Input = String;
         type Output = String;
@@ -75,7 +111,7 @@ mod tests {
     #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
     async fn test_no_cached() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
-        let resolver = MaybeCachedResolver::new(mock_resolver(counts.clone()), None);
+        let resolver = mock_resolver(counts.clone());
         for (input, expected) in [
             ("k1", Some("v1")),
             ("k2", Some("v2")),
@@ -93,13 +129,9 @@ mod tests {
         }
         assert_eq!(
             *counts.read().await,
-            [
-                (String::from("k1"), 3),
-                (String::from("k2"), 2),
-                (String::from("k3"), 2),
-            ]
-            .into_iter()
-            .collect()
+            [(String::from("k1"), 3), (String::from("k2"), 2), (String::from("k3"), 2),]
+                .into_iter()
+                .collect()
         );
     }
 
@@ -107,8 +139,7 @@ mod tests {
     #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
     async fn test_cached() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
-        let resolver =
-            MaybeCachedResolver::new(mock_resolver(counts.clone()), Some(Default::default()));
+        let resolver = mock_resolver(counts.clone()).cached(Default::default());
         for (input, expected) in [
             ("k1", Some("v1")),
             ("k2", Some("v2")),
@@ -126,13 +157,9 @@ mod tests {
         }
         assert_eq!(
             *counts.read().await,
-            [
-                (String::from("k1"), 1),
-                (String::from("k2"), 1),
-                (String::from("k3"), 2),
-            ]
-            .into_iter()
-            .collect()
+            [(String::from("k1"), 1), (String::from("k2"), 1), (String::from("k3"), 2),]
+                .into_iter()
+                .collect()
         );
     }
 
@@ -140,13 +167,8 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_cached_with_max_capacity() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
-        let resolver = MaybeCachedResolver::new(
-            mock_resolver(counts.clone()),
-            Some(CachedResolverConfig {
-                max_capacity: Some(1),
-                ..Default::default()
-            }),
-        );
+        let resolver = mock_resolver(counts.clone())
+            .cached(CachedResolverConfig { max_capacity: Some(1), ..Default::default() });
         for (input, expected) in [
             ("k1", Some("v1")),
             ("k2", Some("v2")),
@@ -164,13 +186,9 @@ mod tests {
         }
         assert_eq!(
             *counts.read().await,
-            [
-                (String::from("k1"), 2),
-                (String::from("k2"), 1),
-                (String::from("k3"), 2),
-            ]
-            .into_iter()
-            .collect()
+            [(String::from("k1"), 2), (String::from("k2"), 1), (String::from("k3"), 2),]
+                .into_iter()
+                .collect()
         );
     }
 
@@ -178,13 +196,10 @@ mod tests {
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_cached_with_time_to_live() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
-        let resolver = MaybeCachedResolver::new(
-            mock_resolver(counts.clone()),
-            Some(CachedResolverConfig {
-                time_to_live: Some(Duration::from_millis(10)),
-                ..Default::default()
-            }),
-        );
+        let resolver = mock_resolver(counts.clone()).cached(CachedResolverConfig {
+            time_to_live: Some(Duration::from_millis(10)),
+            ..Default::default()
+        });
         for _ in 0..10 {
             let result = resolver.resolve(&String::from("k1")).await;
             assert_eq!(result.expect("failed to resolve"), "v1");
@@ -194,17 +209,14 @@ mod tests {
             let result = resolver.resolve(&String::from("k1")).await;
             assert_eq!(result.expect("failed to resolve"), "v1");
         }
-        assert_eq!(
-            *counts.read().await,
-            [(String::from("k1"), 2)].into_iter().collect()
-        );
+        assert_eq!(*counts.read().await, [(String::from("k1"), 2)].into_iter().collect());
     }
 
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
     async fn test_throttled() {
         let counts = Arc::new(RwLock::new(HashMap::new()));
-        let resolver = Arc::new(ThrottledResolver::new(mock_resolver(counts.clone())));
+        let resolver = Arc::new(mock_resolver(counts.clone()).throttled());
 
         let mut handles = Vec::new();
         for (input, expected) in [
@@ -227,13 +239,9 @@ mod tests {
         }
         assert_eq!(
             *counts.read().await,
-            [
-                (String::from("k1"), 1),
-                (String::from("k2"), 1),
-                (String::from("k3"), 1),
-            ]
-            .into_iter()
-            .collect()
+            [(String::from("k1"), 1), (String::from("k2"), 1), (String::from("k3"), 1),]
+                .into_iter()
+                .collect()
         );
     }
 }

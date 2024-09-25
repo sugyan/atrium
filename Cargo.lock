@@ -231,6 +231,7 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+ "trait-variant",
  "wasm-bindgen-test",
  "web-time",
 ]

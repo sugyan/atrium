@@ -3,10 +3,8 @@ use super::well_known_resolver::{WellKnownHandleResolver, WellKnownHandleResolve
 use super::HandleResolver;
 use crate::error::Result;
 use crate::Resolver;
-use async_trait::async_trait;
 use atrium_api::types::string::{Did, Handle};
 use atrium_xrpc::HttpClient;
-use futures::future::select_ok;
 use std::sync::Arc;
 
 #[derive(Clone, Debug)]
@@ -15,40 +13,46 @@ pub struct AtprotoHandleResolverConfig<R, T> {
     pub http_client: Arc<T>,
 }
 
-pub struct AtprotoHandleResolver<T> {
-    dns: DnsHandleResolver,
+pub struct AtprotoHandleResolver<R, T> {
+    dns: DnsHandleResolver<R>,
     http: WellKnownHandleResolver<T>,
 }
 
-impl<T> AtprotoHandleResolver<T> {
-    pub fn new<R>(config: AtprotoHandleResolverConfig<R, T>) -> Result<Self>
-    where
-        R: DnsTxtResolver + Send + Sync + 'static,
-    {
-        Ok(Self {
+impl<R, T> AtprotoHandleResolver<R, T> {
+    pub fn new(config: AtprotoHandleResolverConfig<R, T>) -> Self {
+        Self {
             dns: DnsHandleResolver::new(DnsHandleResolverConfig {
                 dns_txt_resolver: config.dns_txt_resolver,
-            })?,
+            }),
             http: WellKnownHandleResolver::new(WellKnownHandleResolverConfig {
                 http_client: config.http_client,
-            })?,
-        })
+            }),
+        }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-impl<T> Resolver for AtprotoHandleResolver<T>
+impl<R, T> Resolver for AtprotoHandleResolver<R, T>
 where
+    R: DnsTxtResolver + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
 {
     type Input = Handle;
     type Output = Did;
 
     async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
-        let (did, _) = select_ok([self.dns.resolve(handle), self.http.resolve(handle)]).await?;
-        Ok(did)
+        let d_fut = self.dns.resolve(handle);
+        let h_fut = self.http.resolve(handle);
+        if let Ok(did) = d_fut.await {
+            Ok(did)
+        } else {
+            h_fut.await
+        }
     }
 }
 
-impl<T> HandleResolver for AtprotoHandleResolver<T> where T: HttpClient + Send + Sync + 'static {}
+impl<R, T> HandleResolver for AtprotoHandleResolver<R, T>
+where
+    R: DnsTxtResolver + Send + Sync + 'static,
+    T: HttpClient + Send + Sync + 'static,
+{
+}

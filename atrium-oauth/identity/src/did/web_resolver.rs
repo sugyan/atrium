@@ -1,7 +1,6 @@
 use super::DidResolver;
 use crate::error::{Error, Result};
 use crate::Resolver;
-use async_trait::async_trait;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
 use atrium_xrpc::http::{header::ACCEPT, Request, Uri};
@@ -21,14 +20,10 @@ pub struct WebDidResolver<T> {
 
 impl<T> WebDidResolver<T> {
     pub fn new(config: WebDidResolverConfig<T>) -> Self {
-        Self {
-            http_client: config.http_client,
-        }
+        Self { http_client: config.http_client }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> Resolver for WebDidResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,

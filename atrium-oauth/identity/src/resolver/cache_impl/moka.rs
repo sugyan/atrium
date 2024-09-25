@@ -1,5 +1,4 @@
 use super::super::cached_resolver::{Cache as CacheTrait, CachedResolverConfig};
-use async_trait::async_trait;
 use moka::{future::Cache, policy::EvictionPolicy};
 use std::collections::hash_map::RandomState;
 use std::hash::Hash;
@@ -8,7 +7,6 @@ pub struct MokaCache<I, O> {
     inner: Cache<I, O, RandomState>,
 }
 
-#[async_trait]
 impl<I, O> CacheTrait for MokaCache<I, O>
 where
     I: Hash + Eq + Send + Sync + 'static,
@@ -25,9 +23,7 @@ where
         if let Some(time_to_live) = config.time_to_live {
             builder = builder.time_to_live(time_to_live);
         }
-        Self {
-            inner: builder.build(),
-        }
+        Self { inner: builder.build() }
     }
     async fn get(&self, key: &Self::Input) -> Option<Self::Output> {
         self.inner.run_pending_tasks().await;

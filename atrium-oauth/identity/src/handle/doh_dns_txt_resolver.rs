@@ -1,6 +1,5 @@
 use super::DnsTxtResolver;
-use async_trait::async_trait;
-use atrium_xrpc::http::{uri::InvalidUri, StatusCode, Uri};
+use atrium_xrpc::http::StatusCode;
 use atrium_xrpc::HttpClient;
 use hickory_proto::op::{Message, Query};
 use hickory_proto::rr::{RData, RecordType};
@@ -22,22 +21,17 @@ pub struct DohDnsTxtResolverConfig<T> {
 }
 
 pub struct DohDnsTxtResolver<T> {
-    service_url: Uri,
+    service_url: String,
     http_client: Arc<T>,
 }
 
 impl<T> DohDnsTxtResolver<T> {
     #[allow(dead_code)]
-    pub fn new(config: DohDnsTxtResolverConfig<T>) -> core::result::Result<Self, InvalidUri> {
-        Ok(Self {
-            service_url: config.service_url.parse()?,
-            http_client: config.http_client,
-        })
+    pub fn new(config: DohDnsTxtResolverConfig<T>) -> Self {
+        Self { service_url: config.service_url, http_client: config.http_client }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> DnsTxtResolver for DohDnsTxtResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,

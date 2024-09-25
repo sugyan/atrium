@@ -1,7 +1,6 @@
 use super::HandleResolver;
 use crate::error::{Error, Result};
 use crate::Resolver;
-use async_trait::async_trait;
 use atrium_api::types::string::{Did, Handle};
 use atrium_xrpc::http::Request;
 use atrium_xrpc::HttpClient;
@@ -19,15 +18,11 @@ pub struct WellKnownHandleResolver<T> {
 }
 
 impl<T> WellKnownHandleResolver<T> {
-    pub fn new(config: WellKnownHandleResolverConfig<T>) -> Result<Self> {
-        Ok(Self {
-            http_client: config.http_client,
-        })
+    pub fn new(config: WellKnownHandleResolverConfig<T>) -> Self {
+        Self { http_client: config.http_client }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> Resolver for WellKnownHandleResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,

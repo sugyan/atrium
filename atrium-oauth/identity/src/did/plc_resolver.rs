@@ -1,7 +1,6 @@
 use super::DidResolver;
 use crate::error::{Error, Result};
 use crate::Resolver;
-use async_trait::async_trait;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
 use atrium_xrpc::http::uri::Builder;
@@ -9,7 +8,8 @@ use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
 
-pub(crate) const DEFAULT_PLC_DIRECTORY_URL: &str = "https://plc.directory/";
+#[allow(dead_code)]
+pub const DEFAULT_PLC_DIRECTORY_URL: &str = "https://plc.directory/";
 
 #[derive(Clone, Debug)]
 pub struct PlcDidResolverConfig<T> {
@@ -18,21 +18,16 @@ pub struct PlcDidResolverConfig<T> {
 }
 
 pub struct PlcDidResolver<T> {
-    plc_directory_url: Uri,
+    plc_directory_url: String,
     http_client: Arc<T>,
 }
 
 impl<T> PlcDidResolver<T> {
-    pub fn new(config: PlcDidResolverConfig<T>) -> Result<Self> {
-        Ok(Self {
-            plc_directory_url: config.plc_directory_url.parse()?,
-            http_client: config.http_client,
-        })
+    pub fn new(config: PlcDidResolverConfig<T>) -> Self {
+        Self { plc_directory_url: config.plc_directory_url, http_client: config.http_client }
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 impl<T> Resolver for PlcDidResolver<T>
 where
     T: HttpClient + Send + Sync + 'static,
@@ -41,7 +36,7 @@ where
     type Output = DidDocument;
 
     async fn resolve(&self, did: &Self::Input) -> Result<Self::Output> {
-        let uri = Builder::from(self.plc_directory_url.clone())
+        let uri = Builder::from(self.plc_directory_url.parse::<Uri>()?)
             .path_and_query(format!("/{}", did.as_str()))
             .build()?;
         let res = self
