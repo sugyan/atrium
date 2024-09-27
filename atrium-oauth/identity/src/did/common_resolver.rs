@@ -1,5 +1,6 @@
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
+use atrium_xrpc::HttpClient;
 
 use super::plc_resolver::{PlcDidResolver, PlcDidResolverConfig};
 use super::web_resolver::{WebDidResolver, WebDidResolverConfig};
@@ -50,9 +51,4 @@ where
     }
 }
 
-impl<T> DidResolver for CommonDidResolver<T>
-where
-    PlcDidResolver<T>: DidResolver + Send + Sync + 'static,
-    WebDidResolver<T>: DidResolver + Send + Sync + 'static,
-{
-}
+impl<T> DidResolver for CommonDidResolver<T> where T: HttpClient + Send + Sync + 'static {}

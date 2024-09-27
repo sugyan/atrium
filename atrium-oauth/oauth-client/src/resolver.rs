@@ -7,7 +7,9 @@ use crate::types::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetad
 use atrium_identity::identity_resolver::{
     IdentityResolver, IdentityResolverConfig, ResolvedIdentity,
 };
-use atrium_identity::resolver::{CachedResolver, CachedResolverConfig};
+use atrium_identity::resolver::{
+    Cacheable, CachedResolver, CachedResolverConfig, Throttleable, ThrottledResolver,
+};
 use atrium_identity::{did::DidResolver, handle::HandleResolver, Resolver};
 use atrium_identity::{Error, Result};
 use atrium_xrpc::HttpClient;
@@ -59,15 +61,15 @@ pub struct OAuthResolver<
     T,
     D,
     H,
-    PRR = DefaultOAuthProtectedResourceResolver<T>,
-    ASR = DefaultOAuthAuthorizationServerResolver<T>,
+    PR = DefaultOAuthProtectedResourceResolver<T>,
+    AS = DefaultOAuthAuthorizationServerResolver<T>,
 > where
-    PRR: Resolver<Input = String, Output = OAuthProtectedResourceMetadata>,
-    ASR: Resolver<Input = String, Output = OAuthAuthorizationServerMetadata>,
+    PR: Resolver<Input = String, Output = OAuthProtectedResourceMetadata> + Send + Sync + 'static,
+    AS: Resolver<Input = String, Output = OAuthAuthorizationServerMetadata> + Send + Sync + 'static,
 {
     identity_resolver: IdentityResolver<D, H>,
-    protected_resource_resolver: CachedResolver<PRR>,
-    authorization_server_resolver: CachedResolver<ASR>,
+    protected_resource_resolver: CachedResolver<ThrottledResolver<PR>>,
+    authorization_server_resolver: CachedResolver<ThrottledResolver<AS>>,
     _phantom: PhantomData<T>,
 }
 
@@ -76,14 +78,14 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn new(config: OAuthResolverConfig<D, H>, http_client: Arc<T>) -> Self {
-        let protected_resource_resolver = CachedResolver::new(
-            DefaultOAuthProtectedResourceResolver::new(http_client.clone()),
-            config.authorization_server_metadata.cache,
-        );
-        let authorization_server_resolver = CachedResolver::new(
-            DefaultOAuthAuthorizationServerResolver::new(http_client.clone()),
-            config.protected_resource_metadata.cache,
-        );
+        let protected_resource_resolver =
+            DefaultOAuthProtectedResourceResolver::new(http_client.clone())
+                .throttled()
+                .cached(config.authorization_server_metadata.cache);
+        let authorization_server_resolver =
+            DefaultOAuthAuthorizationServerResolver::new(http_client.clone())
+                .throttled()
+                .cached(config.protected_resource_metadata.cache);
         Self {
             identity_resolver: IdentityResolver::new(IdentityResolverConfig {
                 did_resolver: config.did_resolver,
