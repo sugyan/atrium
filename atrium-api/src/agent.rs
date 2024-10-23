@@ -538,6 +538,7 @@ mod tests {
     async fn test_login_with_diddoc() {
         let session_data = session_data();
         let did_doc = DidDocument {
+            context: None,
             id: "did:plc:ewvi7nxzyoun6zhxrhs64oiz".into(),
             also_known_as: Some(vec!["at://atproto.com".into()]),
             verification_method: Some(vec![VerificationMethod {

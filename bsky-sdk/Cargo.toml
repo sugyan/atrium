@@ -13,7 +13,7 @@ keywords = ["atproto", "bluesky", "atrium", "sdk"]
 
 [dependencies]
 anyhow.workspace = true
-atrium-api.workspace = true
+atrium-api = { workspace = true, features = ["agent", "bluesky"] }
 atrium-xrpc-client = { workspace = true, optional = true }
 chrono.workspace = true
 psl = { version = "2.1.42", optional = true }

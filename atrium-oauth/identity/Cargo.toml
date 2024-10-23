@@ -1,0 +1,48 @@
+[package]
+name = "atrium-identity"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "Resolver library for decentralized identities in atproto using DIDs and handles"
+documentation = "https://docs.rs/atrium-identity"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords = ["atproto", "bluesky", "identity"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+atrium-api = { workspace = true, default-features = false }
+atrium-xrpc.workspace = true
+dashmap.workspace = true
+hickory-proto = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde_html_form.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, default-features = false, features = ["sync"] }
+trait-variant.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+moka = { workspace = true, features = ["future"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+lru.workspace = true
+web-time.workspace = true
+
+[dev-dependencies]
+futures.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+gloo-timers.workspace = true
+tokio = { workspace = true, features = ["time"] }
+wasm-bindgen-test.workspace = true
+
+[features]
+default = []
+doh-handle-resolver = ["dep:hickory-proto"]
