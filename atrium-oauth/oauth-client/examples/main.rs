@@ -1,5 +1,7 @@
 use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
+use atrium_oauth_client::store::cached_store::CachedStore;
+use atrium_oauth_client::store::session::SessionStore;
 use atrium_oauth_client::store::state::MemoryStateStore;
 use atrium_oauth_client::{
     AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, OAuthClient,
@@ -53,6 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             protected_resource_metadata: Default::default(),
         },
         state_store: MemoryStateStore::default(),
+        session_cache: CachedStore::<SessionStore>::default(),
     };
     let client = OAuthClient::new(config)?;
     println!(

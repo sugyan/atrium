@@ -1,5 +1,7 @@
 pub mod memory;
 pub mod state;
+pub mod session;
+pub mod cached_store;
 
 use std::error::Error;
 use std::future::Future;

@@ -3,6 +3,8 @@ use crate::error::{Error, Result};
 use crate::keyset::Keyset;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
+use crate::session::Session;
+use crate::store::cached_store::SessionCache;
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
@@ -11,6 +13,7 @@ use crate::types::{
     TryIntoOAuthClientMetadata,
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
+use atrium_api::types::string::Did;
 use atrium_identity::{did::DidResolver, handle::HandleResolver, Resolver};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -22,7 +25,7 @@ use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
-pub struct OAuthClientConfig<S, M, D, H>
+pub struct OAuthClientConfig<S, C, M, D, H>
 where
     M: TryIntoOAuthClientMetadata,
 {
@@ -31,6 +34,7 @@ where
     pub keys: Option<Vec<Jwk>>,
     // Stores
     pub state_store: S,
+    pub session_cache: C,
     // Services
     pub resolver: OAuthResolverConfig<D, H>,
 }
@@ -45,6 +49,7 @@ where
     pub keys: Option<Vec<Jwk>>,
     // Stores
     pub state_store: S,
+    pub session_cache: C,
     // Services
     pub resolver: OAuthResolverConfig<D, H>,
     // Others
@@ -52,37 +57,40 @@ where
 }
 
 #[cfg(feature = "default-client")]
-pub struct OAuthClient<S, D, H, T = crate::http_client::default::DefaultHttpClient>
+pub struct OAuthClient<S, C, D, H, T = crate::http_client::default::DefaultHttpClient>
 where
-    S: StateStore,
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S,
+    session_cache: C,
     http_client: Arc<T>,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct OAuthClient<S, D, H, T>
+pub struct OAuthClient<S, C, D, H, T>
 where
     S: StateStore,
+    C: SessionCache,
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S,
+    session_cache: C,
     http_client: Arc<T>,
 }
 
 #[cfg(feature = "default-client")]
-impl<S, D, H> OAuthClient<S, D, H, crate::http_client::default::DefaultHttpClient>
+impl<S, C, D, H> OAuthClient<S, C, D, H, crate::http_client::default::DefaultHttpClient>
 where
     S: StateStore,
+    C: SessionCache,
 {
-    pub fn new<M>(config: OAuthClientConfig<S, M, D, H>) -> Result<Self>
+    pub fn new<M>(config: OAuthClientConfig<S, C, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
     {
@@ -94,18 +102,20 @@ where
             keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
+            session_cache: config.session_cache,
             http_client,
         })
     }
 }
 
 #[cfg(not(feature = "default-client"))]
-impl<S, D, H, T> OAuthClient<S, D, H, T>
+impl<S, C, D, H, T> OAuthClient<S, C, D, H, T>
 where
     S: StateStore,
+    C: SessionCache,
     T: HttpClient + Send + Sync + 'static,
 {
-    pub fn new<M>(config: OAuthClientConfig<S, T, M, D, H>) -> Result<Self>
+    pub fn new<M>(config: OAuthClientConfig<S, C, T, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
     {
@@ -117,14 +127,16 @@ where
             keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
+            session_cache: config.session_cache,
             http_client,
         })
     }
 }
 
-impl<S, D, H, T> OAuthClient<S, D, H, T>
+impl<S, C, D, H, T> OAuthClient<S, C, D, H, T>
 where
     S: StateStore,
+    C: SessionCache,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
@@ -242,6 +254,15 @@ where
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
 
+        let sub = Did::new(token_set.sub.clone()).expect("oops");
+
+        self.session_cache
+            .set_stored(
+                sub,
+                Session { dpop_key: state.dpop_key.clone(), token_set: token_set.clone() },
+            )
+            .await;
+
         // TODO: create session?
         Ok(token_set)
     }
@@ -258,5 +279,8 @@ where
         let mut hasher = Sha256::new();
         hasher.update(verifier.as_bytes());
         (URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())), verifier)
+    }
+    fn _create_session() -> (String, String) {
+        todo!()
     }
 }
