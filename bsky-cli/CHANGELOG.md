@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.1.25](https://github.com/sugyan/atrium/compare/bsky-cli-v0.1.24...bsky-cli-v0.1.25) - 2024-10-28
+
+### Added
+
+- Update API, based on the latest lexicon schemas ([#241](https://github.com/sugyan/atrium/pull/241))
 ## [0.1.24](https://github.com/sugyan/atrium/compare/bsky-cli-v0.1.23...bsky-cli-v0.1.24) - 2024-09-20
 
 ### Removed

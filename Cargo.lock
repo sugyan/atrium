@@ -178,7 +178,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atrium-api"
-version = "0.24.6"
+version = "0.24.7"
 dependencies = [
  "atrium-xrpc",
  "atrium-xrpc-client",
@@ -201,7 +201,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-crypto"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "ecdsa",
  "hex",
@@ -264,7 +264,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.11.5"
+version = "0.11.6"
 dependencies = [
  "bumpalo",
  "http 1.1.0",
@@ -279,7 +279,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.5.8"
+version = "0.5.9"
 dependencies = [
  "atrium-xrpc",
  "bumpalo",
@@ -360,7 +360,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-cli"
-version = "0.1.24"
+version = "0.1.25"
 dependencies = [
  "anyhow",
  "bsky-sdk",
@@ -374,7 +374,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.11"
+version = "0.1.12"
 dependencies = [
  "anyhow",
  "atrium-api",

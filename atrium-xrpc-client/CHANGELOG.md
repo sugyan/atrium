@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.5.9](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.8...atrium-xrpc-client-v0.5.9) - 2024-10-28
+
+### Other
+
+- update Cargo.toml dependencies
 ## [0.5.8](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.7...atrium-xrpc-client-v0.5.8) - 2024-09-20
 
 ### Removed
