@@ -286,6 +286,8 @@ pub mod tools {
             pub communication: communication::Service<T>,
             pub moderation: moderation::Service<T>,
             pub server: server::Service<T>,
+            pub set: set::Service<T>,
+            pub signature: signature::Service<T>,
             pub team: team::Service<T>,
             pub(crate) _phantom: core::marker::PhantomData<T>,
         }
@@ -308,6 +310,24 @@ pub mod tools {
             }
         }
         pub mod server {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
+            }
+        }
+        pub mod set {
+            pub struct Service<T>
+            where
+                T: atrium_xrpc::XrpcClient + Send + Sync,
+            {
+                pub(crate) xrpc: std::sync::Arc<T>,
+                pub(crate) _phantom: core::marker::PhantomData<T>,
+            }
+        }
+        pub mod signature {
             pub struct Service<T>
             where
                 T: atrium_xrpc::XrpcClient + Send + Sync,
@@ -5044,6 +5064,10 @@ where
                 std::sync::Arc::clone(&xrpc),
             ),
             server: tools::ozone::server::Service::new(std::sync::Arc::clone(&xrpc)),
+            set: tools::ozone::set::Service::new(std::sync::Arc::clone(&xrpc)),
+            signature: tools::ozone::signature::Service::new(
+                std::sync::Arc::clone(&xrpc),
+            ),
             team: tools::ozone::team::Service::new(std::sync::Arc::clone(&xrpc)),
             _phantom: core::marker::PhantomData,
         }
@@ -5287,6 +5311,36 @@ where
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
+    ///Get details about some records.
+    pub async fn get_records(
+        &self,
+        params: crate::tools::ozone::moderation::get_records::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::moderation::get_records::Output,
+        crate::tools::ozone::moderation::get_records::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::get_records::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
     ///Get details about a repository.
     pub async fn get_repo(
         &self,
@@ -5306,6 +5360,36 @@ where
                 &atrium_xrpc::XrpcRequest {
                     method: http::Method::GET,
                     nsid: crate::tools::ozone::moderation::get_repo::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get details about some repositories.
+    pub async fn get_repos(
+        &self,
+        params: crate::tools::ozone::moderation::get_repos::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::moderation::get_repos::Output,
+        crate::tools::ozone::moderation::get_repos::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::moderation::get_repos::NSID.into(),
                     parameters: Some(params),
                     input: None,
                     encoding: None,
@@ -5439,6 +5523,297 @@ where
                     method: http::Method::GET,
                     nsid: crate::tools::ozone::server::get_config::NSID.into(),
                     parameters: None,
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+#[cfg(feature = "namespace-toolsozone")]
+impl<T> tools::ozone::set::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    #[allow(unused_variables)]
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
+    }
+    ///Add values to a specific set. Attempting to add values to a set that does not exist will result in an error.
+    pub async fn add_values(
+        &self,
+        input: crate::tools::ozone::set::add_values::Input,
+    ) -> atrium_xrpc::Result<(), crate::tools::ozone::set::add_values::Error> {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::set::add_values::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Delete an entire set. Attempting to delete a set that does not exist will result in an error.
+    pub async fn delete_set(
+        &self,
+        input: crate::tools::ozone::set::delete_set::Input,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::set::delete_set::Output,
+        crate::tools::ozone::set::delete_set::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::set::delete_set::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Delete values from a specific set. Attempting to delete values that are not in the set will not result in an error
+    pub async fn delete_values(
+        &self,
+        input: crate::tools::ozone::set::delete_values::Input,
+    ) -> atrium_xrpc::Result<(), crate::tools::ozone::set::delete_values::Error> {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                (),
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::set::delete_values::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Bytes(_) => Ok(()),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get a specific set and its values
+    pub async fn get_values(
+        &self,
+        params: crate::tools::ozone::set::get_values::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::set::get_values::Output,
+        crate::tools::ozone::set::get_values::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::set::get_values::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Query available sets
+    pub async fn query_sets(
+        &self,
+        params: crate::tools::ozone::set::query_sets::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::set::query_sets::Output,
+        crate::tools::ozone::set::query_sets::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::set::query_sets::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Create or update set metadata
+    pub async fn upsert_set(
+        &self,
+        input: crate::tools::ozone::set::upsert_set::Input,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::set::upsert_set::Output,
+        crate::tools::ozone::set::upsert_set::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::tools::ozone::set::upsert_set::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+}
+#[cfg(feature = "namespace-toolsozone")]
+impl<T> tools::ozone::signature::Service<T>
+where
+    T: atrium_xrpc::XrpcClient + Send + Sync,
+{
+    #[allow(unused_variables)]
+    pub(crate) fn new(xrpc: std::sync::Arc<T>) -> Self {
+        Self {
+            xrpc,
+            _phantom: core::marker::PhantomData,
+        }
+    }
+    ///Find all correlated threat signatures between 2 or more accounts.
+    pub async fn find_correlation(
+        &self,
+        params: crate::tools::ozone::signature::find_correlation::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::signature::find_correlation::Output,
+        crate::tools::ozone::signature::find_correlation::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::signature::find_correlation::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Get accounts that share some matching threat signatures with the root account.
+    pub async fn find_related_accounts(
+        &self,
+        params: crate::tools::ozone::signature::find_related_accounts::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::signature::find_related_accounts::Output,
+        crate::tools::ozone::signature::find_related_accounts::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::signature::find_related_accounts::NSID
+                        .into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
+    ///Search for accounts that match one or more threat signature values.
+    pub async fn search_accounts(
+        &self,
+        params: crate::tools::ozone::signature::search_accounts::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::tools::ozone::signature::search_accounts::Output,
+        crate::tools::ozone::signature::search_accounts::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::tools::ozone::signature::search_accounts::NSID.into(),
+                    parameters: Some(params),
                     input: None,
                     encoding: None,
                 },
