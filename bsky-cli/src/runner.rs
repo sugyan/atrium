@@ -90,6 +90,7 @@ impl Runner {
                             actor: args.actor.unwrap_or(self.handle().await?.into()),
                             cursor: None,
                             filter: None,
+                            include_pins: None,
                             limit: Some(limit),
                         }
                         .into(),

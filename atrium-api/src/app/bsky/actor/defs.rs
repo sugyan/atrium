@@ -235,6 +235,8 @@ pub struct ProfileViewDetailedData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub pinned_post: Option<crate::com::atproto::repo::strong_ref::Main>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub posts_count: Option<i64>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub viewer: Option<ViewerState>,

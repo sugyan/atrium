@@ -26,9 +26,19 @@ pub struct OutputData {
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "error", content = "message")]
-pub enum Error {}
+pub enum Error {
+    RecordNotFound(Option<String>),
+}
 impl std::fmt::Display for Error {
     fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Error::RecordNotFound(msg) => {
+                write!(_f, "RecordNotFound")?;
+                if let Some(msg) = msg {
+                    write!(_f, ": {msg}")?;
+                }
+            }
+        }
         Ok(())
     }
 }

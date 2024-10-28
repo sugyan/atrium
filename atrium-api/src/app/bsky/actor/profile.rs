@@ -21,6 +21,8 @@ pub struct RecordData {
     ///Self-label values, specific to the Bluesky application, on the overall account.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pinned_post: Option<crate::com::atproto::repo::strong_ref::Main>,
 }
 pub type Record = crate::types::Object<RecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

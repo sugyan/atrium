@@ -355,6 +355,7 @@ mod tests {
             display_name: None,
             joined_via_starter_pack: None,
             labels: None,
+            pinned_post: None,
         }
         .create(&agent)
         .await?;

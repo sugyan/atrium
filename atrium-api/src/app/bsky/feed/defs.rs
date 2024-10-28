@@ -128,6 +128,10 @@ pub struct PostViewData {
 pub type PostView = crate::types::Object<PostViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct ReasonPinData {}
+pub type ReasonPin = crate::types::Object<ReasonPinData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct ReasonRepostData {
     pub by: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub indexed_at: crate::types::string::Datetime,
@@ -158,6 +162,10 @@ pub struct SkeletonFeedPostData {
     pub reason: Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
 }
 pub type SkeletonFeedPost = crate::types::Object<SkeletonFeedPostData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SkeletonReasonPinData {}
+pub type SkeletonReasonPin = crate::types::Object<SkeletonReasonPinData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SkeletonReasonRepostData {
@@ -196,6 +204,8 @@ pub struct ViewerStateData {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub like: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub pinned: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub reply_disabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub repost: Option<String>,
@@ -208,6 +218,8 @@ pub type ViewerState = crate::types::Object<ViewerStateData>;
 pub enum FeedViewPostReasonRefs {
     #[serde(rename = "app.bsky.feed.defs#reasonRepost")]
     ReasonRepost(Box<ReasonRepost>),
+    #[serde(rename = "app.bsky.feed.defs#reasonPin")]
+    ReasonPin(Box<ReasonPin>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
@@ -250,6 +262,8 @@ pub enum ReplyRefRootRefs {
 pub enum SkeletonFeedPostReasonRefs {
     #[serde(rename = "app.bsky.feed.defs#skeletonReasonRepost")]
     SkeletonReasonRepost(Box<SkeletonReasonRepost>),
+    #[serde(rename = "app.bsky.feed.defs#skeletonReasonPin")]
+    SkeletonReasonPin(Box<SkeletonReasonPin>),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
