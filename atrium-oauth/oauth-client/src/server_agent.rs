@@ -4,8 +4,9 @@ use crate::jose::jwt::{RegisteredClaims, RegisteredClaimsAud};
 use crate::keyset::Keyset;
 use crate::resolver::OAuthResolver;
 use crate::types::{
-    OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
-    PushedAuthorizationRequestParameters, TokenGrantType, TokenRequestParameters, TokenSet,
+    AuthorizationCodeParameters, OAuthAuthorizationServerMetadata, OAuthClientMetadata,
+    OAuthTokenResponse, PushedAuthorizationRequestParameters, RefreshTokenParameters,
+    RevocationRequestParameters, TokenRequestParameters, TokenSet,
 };
 use crate::utils::{compare_algos, generate_nonce};
 use atrium_api::types::string::Datetime;
@@ -56,7 +57,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 #[allow(dead_code)]
 pub enum OAuthRequest {
     Token(TokenRequestParameters),
-    Revocation,
+    Revocation(RevocationRequestParameters),
     Introspection,
     PushedAuthorizationRequest(PushedAuthorizationRequestParameters),
 }
@@ -65,14 +66,14 @@ impl OAuthRequest {
     fn name(&self) -> String {
         String::from(match self {
             Self::Token(_) => "token",
-            Self::Revocation => "revocation",
+            Self::Revocation(_) => "revocation",
             Self::Introspection => "introspection",
             Self::PushedAuthorizationRequest(_) => "pushed_authorization_request",
         })
     }
     fn expected_status(&self) -> StatusCode {
         match self {
-            Self::Token(_) => StatusCode::OK,
+            Self::Token(_) | Self::Revocation(_) => StatusCode::OK,
             Self::PushedAuthorizationRequest(_) => StatusCode::CREATED,
             _ => unimplemented!(),
         }
@@ -96,6 +97,8 @@ where
 pub struct OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     server_metadata: OAuthAuthorizationServerMetadata,
     client_metadata: OAuthClientMetadata,
@@ -162,12 +165,44 @@ where
     }
     pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
         self.verify_token_response(
-            self.request(OAuthRequest::Token(TokenRequestParameters {
-                grant_type: TokenGrantType::AuthorizationCode,
-                code: code.into(),
-                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
-                code_verifier: verifier.into(),
-            }))
+            self.request(OAuthRequest::Token(TokenRequestParameters::AuthorizationCode(
+                AuthorizationCodeParameters {
+                    code: code.into(),
+                    redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
+                    code_verifier: verifier.into(),
+                },
+            )))
+            .await?,
+        )
+        .await
+    }
+    pub async fn revoke(&self, token: &str) -> Result<()> {
+        self.request(OAuthRequest::Revocation(RevocationRequestParameters { token: token.into() }))
+            .await
+    }
+    pub async fn refresh(&self, token_set: TokenSet) -> Result<TokenSet> {
+        let TokenSet { sub, scope, refresh_token, access_token, token_type, expires_at, .. } =
+            token_set;
+        let expires_in = expires_at.map(|expires_at| {
+            expires_at.as_ref().signed_duration_since(Datetime::now().as_ref()).num_seconds()
+        });
+        let token_response = OAuthTokenResponse {
+            access_token,
+            token_type,
+            expires_in,
+            refresh_token,
+            scope,
+            sub: Some(sub),
+        };
+        let TokenSet { scope, refresh_token: Some(refresh_token), .. } =
+            self.verify_token_response(token_response).await?
+        else {
+            todo!();
+        };
+        self.verify_token_response(
+            self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
+                RefreshTokenParameters { refresh_token, scope },
+            )))
             .await?,
         )
         .await
@@ -182,6 +217,7 @@ where
         let body = match &request {
             OAuthRequest::Token(params) => self.build_body(params)?,
             OAuthRequest::PushedAuthorizationRequest(params) => self.build_body(params)?,
+            OAuthRequest::Revocation(params) => self.build_body(params)?,
             _ => unimplemented!(),
         };
         let req = Request::builder()
@@ -267,11 +303,91 @@ where
     fn endpoint(&self, request: &OAuthRequest) -> Option<&String> {
         match request {
             OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
-            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
+            OAuthRequest::Revocation(_) => self.server_metadata.revocation_endpoint.as_ref(),
             OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
             OAuthRequest::PushedAuthorizationRequest(_) => {
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
             }
         }
+    }
+}
+
+#[cfg(feature = "default-client")]
+pub struct OAuthServerFactory<D, H, T = crate::http_client::default::DefaultHttpClient>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub client_metadata: OAuthClientMetadata,
+    keyset: Option<Keyset>,
+    resolver: Arc<OAuthResolver<T, D, H>>,
+    http_client: Arc<T>,
+}
+
+#[cfg(not(feature = "default-client"))]
+pub struct OAuthServerFactory<D, H, T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub client_metadata: OAuthClientMetadata,
+    keyset: Option<Keyset>,
+    resolver: Arc<OAuthResolver<T, D, H>>,
+    http_client: Arc<T>,
+}
+
+#[cfg(feature = "default-client")]
+impl<D, H> OAuthServerFactory<D, H, crate::http_client::default::DefaultHttpClient> {
+    pub fn new(
+        resolver: Arc<OAuthResolver<crate::http_client::default::DefaultHttpClient, D, H>>,
+        client_metadata: OAuthClientMetadata,
+        keyset: Option<Keyset>,
+    ) -> Self {
+        let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
+        Self { client_metadata, resolver, http_client, keyset }
+    }
+}
+#[cfg(not(feature = "default-client"))]
+impl<D, H, T> OAuthServerFactory<D, H, T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub fn new(
+        http_client: T,
+        resolver: Arc<OAuthResolver<crate::http_client::default::DefaultHttpClient, D, H>>,
+        client_metadata: OAuthClientMetadata,
+        keyset: Option<Keyset>,
+    ) -> Self {
+        let http_client = Arc::new(http_client);
+        Self { client_metadata, resolver, http_client, keyset }
+    }
+}
+
+impl<D, H, T> OAuthServerFactory<D, H, T>
+where
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub async fn from_issuer(
+        &self,
+        issuer: &str,
+        dpop_key: Key,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        let server_metadata = self.resolver.get_authorization_server_metadata(issuer).await?;
+        self.from_metadata(server_metadata, dpop_key).await
+    }
+    pub async fn from_metadata(
+        &self,
+        server_metadata: OAuthAuthorizationServerMetadata,
+        dpop_key: Key,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        let server = OAuthServerAgent::new(
+            dpop_key,
+            server_metadata,
+            self.client_metadata.clone(),
+            self.resolver.clone(),
+            self.http_client.clone(),
+            self.keyset.clone(),
+        )?;
+        Ok(server)
     }
 }

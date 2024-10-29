@@ -45,18 +45,27 @@ pub struct PushedAuthorizationRequestParameters {
     pub prompt: Option<String>,
 }
 
+// https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
 #[derive(Serialize)]
-#[serde(rename_all = "snake_case")]
-pub enum TokenGrantType {
-    AuthorizationCode,
+#[serde(tag = "grant_type", rename_all = "snake_case")]
+pub enum TokenRequestParameters {
+    AuthorizationCode(AuthorizationCodeParameters),
+    RefreshToken(RefreshTokenParameters),
 }
 
 #[derive(Serialize)]
-pub struct TokenRequestParameters {
-    // https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
-    pub grant_type: TokenGrantType,
+pub struct AuthorizationCodeParameters {
     pub code: String,
     pub redirect_uri: String,
     // https://datatracker.ietf.org/doc/html/rfc7636#section-4.5
     pub code_verifier: String,
+}
+#[derive(Serialize)]
+pub struct RefreshTokenParameters {
+    pub refresh_token: String,
+    pub scope: Option<String>,
+}
+#[derive(Serialize)]
+pub struct RevocationRequestParameters {
+    pub token: String,
 }

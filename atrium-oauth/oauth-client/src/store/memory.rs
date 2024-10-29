@@ -10,6 +10,7 @@ use thiserror::Error;
 pub struct Error;
 
 // TODO: LRU cache?
+#[derive(Clone)]
 pub struct MemorySimpleStore<K, V> {
     store: Arc<Mutex<HashMap<K, V>>>,
 }

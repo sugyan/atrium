@@ -16,6 +16,8 @@ pub enum Error {
     Callback(String),
     #[error("state store error: {0:?}")]
     StateStore(Box<dyn std::error::Error + Send + Sync + 'static>),
+    #[error(transparent)]
+    Session(#[from] crate::oauth_session::Error),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
