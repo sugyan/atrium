@@ -1,4 +1,4 @@
-use super::{Session, SessionStore};
+use super::{AtpSession, AtpSessionStore};
 use crate::did_doc::DidDocument;
 use crate::types::{string::Did, TryFromUnknown};
 use atrium_xrpc::{
@@ -70,7 +70,7 @@ where
 
 impl<S, T> XrpcClient for WrapperClient<S, T>
 where
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn base_uri(&self) -> String {
@@ -102,7 +102,7 @@ pub struct Client<S, T> {
 
 impl<S, T> Client<S, T>
 where
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     pub fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
@@ -217,7 +217,7 @@ where
 
 impl<S, T> Clone for Client<S, T>
 where
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn clone(&self) -> Self {
@@ -246,7 +246,7 @@ where
 
 impl<S, T> XrpcClient for Client<S, T>
 where
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn base_uri(&self) -> String {
@@ -292,14 +292,14 @@ impl<S> Store<S> {
     }
 }
 
-impl<S> SessionStore for Store<S>
+impl<S> AtpSessionStore for Store<S>
 where
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
 {
-    async fn get_session(&self) -> Option<Session> {
+    async fn get_session(&self) -> Option<AtpSession> {
         self.inner.get_session().await
     }
-    async fn set_session(&self, session: Session) {
+    async fn set_session(&self, session: AtpSession) {
         self.inner.set_session(session).await;
     }
     async fn clear_session(&self) {
