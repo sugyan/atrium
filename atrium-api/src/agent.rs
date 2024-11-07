@@ -5,6 +5,7 @@ mod inner;
 mod session_manager;
 
 use crate::{client::Service, types::string::Did};
+// pub use atp_agent::{AtpAgent, CredentialSession};
 pub use session_manager::SessionManager;
 use std::sync::Arc;
 

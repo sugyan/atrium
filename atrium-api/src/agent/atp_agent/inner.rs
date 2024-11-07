@@ -1,7 +1,8 @@
-use super::{AtpSession, AtpSessionStore};
+use super::AtpSession;
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
+use atrium_common::store::MapStore;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::types::AuthorizationToken;
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
@@ -69,7 +70,7 @@ where
 
 impl<S, T> XrpcClient for WrapperClient<S, T>
 where
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn base_uri(&self) -> String {
@@ -101,7 +102,7 @@ pub struct Client<S, T> {
 
 impl<S, T> Client<S, T>
 where
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     pub fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
@@ -156,13 +157,13 @@ where
     }
     async fn refresh_session_inner(&self) {
         if let Ok(output) = self.call_refresh_session().await {
-            if let Some(mut session) = self.store.get_session().await {
+            if let Some(mut session) = self.store.get(&()).await.expect("todo") {
                 session.access_jwt = output.data.access_jwt;
                 session.did = output.data.did;
                 session.did_doc = output.data.did_doc.clone();
                 session.handle = output.data.handle;
                 session.refresh_jwt = output.data.refresh_jwt;
-                self.store.set_session(session).await;
+                self.store.set((), session).await.expect("todo");
             }
             if let Some(did_doc) = output
                 .data
@@ -173,7 +174,7 @@ where
                 self.store.update_endpoint(&did_doc);
             }
         } else {
-            self.store.clear_session().await;
+            self.store.clear().await.expect("todo");
         }
     }
     // same as `crate::client::com::atproto::server::Service::refresh_session()`
@@ -216,7 +217,7 @@ where
 
 impl<S, T> Clone for Client<S, T>
 where
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn clone(&self) -> Self {
@@ -245,7 +246,7 @@ where
 
 impl<S, T> XrpcClient for Client<S, T>
 where
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn base_uri(&self) -> String {
@@ -291,17 +292,22 @@ impl<S> Store<S> {
     }
 }
 
-impl<S> AtpSessionStore for Store<S>
+impl<S> MapStore<(), AtpSession> for Store<S>
 where
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
-    async fn get_session(&self) -> Option<AtpSession> {
-        self.inner.get_session().await
+    type Error = S::Error;
+
+    async fn get(&self, key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
+        self.inner.get(key).await
     }
-    async fn set_session(&self, session: AtpSession) {
-        self.inner.set_session(session).await;
+    async fn set(&self, key: (), value: AtpSession) -> core::result::Result<(), Self::Error> {
+        self.inner.set(key, value).await
     }
-    async fn clear_session(&self) {
-        self.inner.clear_session().await;
+    async fn del(&self, key: &()) -> core::result::Result<(), Self::Error> {
+        self.inner.del(key).await
+    }
+    async fn clear(&self) -> core::result::Result<(), Self::Error> {
+        self.inner.clear().await
     }
 }

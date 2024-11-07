@@ -1,20 +1,19 @@
 use super::config::Config;
 use super::BskyAgent;
 use crate::error::Result;
-use atrium_api::agent::atp_agent::{
-    store::{AtpSessionStore, MemorySessionStore},
-    AtpAgent,
-};
+use atrium_api::agent::atp_agent::{AtpAgent, AtpSession};
 use atrium_api::xrpc::XrpcClient;
+use atrium_common::store::memory::MemoryMapStore;
+use atrium_common::store::MapStore;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use std::sync::Arc;
 
 /// A builder for creating a [`BskyAtpAgent`].
-pub struct BskyAtpAgentBuilder<T, S = MemorySessionStore>
+pub struct BskyAtpAgentBuilder<T, S = MemoryMapStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     config: Config,
     store: S,
@@ -27,14 +26,14 @@ where
 {
     /// Create a new builder with the given XRPC client.
     pub fn new(client: T) -> Self {
-        Self { config: Config::default(), store: MemorySessionStore::default(), client }
+        Self { config: Config::default(), store: MemoryMapStore::default(), client }
     }
 }
 
 impl<T, S> BskyAtpAgentBuilder<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     /// Set the configuration for the agent.
     pub fn config(mut self, config: Config) -> Self {
@@ -46,7 +45,7 @@ where
     /// Returns a new builder with the session store set.
     pub fn store<S0>(self, store: S0) -> BskyAtpAgentBuilder<T, S0>
     where
-        S0: AtpSessionStore + Send + Sync,
+        S0: MapStore<(), AtpSession> + Send + Sync,
     {
         BskyAtpAgentBuilder { config: self.config, store, client: self.client }
     }
@@ -93,10 +92,10 @@ where
 
 #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
 #[cfg(feature = "default-client")]
-impl Default for BskyAtpAgentBuilder<ReqwestClient, MemorySessionStore> {
+impl Default for BskyAtpAgentBuilder<ReqwestClient, MemoryMapStore<(), AtpSession>> {
     /// Create a new builder with the default client and session store.
     ///
-    /// Default client is [`ReqwestClient`] and default session store is [`MemorySessionStore`].
+    /// Default client is [`ReqwestClient`] and default session store is [`MemoryMapStore`].
     fn default() -> Self {
         Self::new(ReqwestClient::new(Config::default().endpoint))
     }
@@ -126,12 +125,21 @@ mod tests {
 
     struct MockSessionStore;
 
-    impl AtpSessionStore for MockSessionStore {
-        async fn get_session(&self) -> Option<AtpSession> {
-            Some(session())
+    impl MapStore<(), AtpSession> for MockSessionStore {
+        type Error = std::convert::Infallible;
+
+        async fn get(&self, _key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
+            Ok(Some(session()))
         }
-        async fn set_session(&self, _: AtpSession) {}
-        async fn clear_session(&self) {}
+        async fn set(&self, _key: (), _value: AtpSession) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
+        async fn del(&self, _key: &()) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
     }
 
     #[cfg(feature = "default-client")]

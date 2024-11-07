@@ -8,11 +8,12 @@ use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
 use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
-use atrium_api::agent::atp_agent::store::MemorySessionStore;
-use atrium_api::agent::atp_agent::{store::AtpSessionStore, AtpAgent};
+use atrium_api::agent::atp_agent::{AtpAgent, AtpSession};
 use atrium_api::app::bsky::actor::defs::PreferencesItem;
 use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
+use atrium_common::store::memory::MemoryMapStore;
+use atrium_common::store::MapStore;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use std::collections::HashMap;
@@ -37,19 +38,19 @@ use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
 #[derive(Clone)]
-pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
+pub struct BskyAgent<T = ReqwestClient, S = MemoryMapStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct BskyAgent<T, S = MemorySessionStore>
+pub struct BskyAgent<T, S = MemoryMapStore>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -58,7 +59,7 @@ where
 #[cfg(feature = "default-client")]
 impl BskyAgent {
     /// Create a new [`BskyAtpAgentBuilder`] with the default client and session store.
-    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemorySessionStore> {
+    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemoryMapStore<(), AtpSession>> {
         BskyAtpAgentBuilder::default()
     }
 }
@@ -66,7 +67,7 @@ impl BskyAgent {
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     /// Get the agent's current state as a [`Config`].
     pub async fn to_config(&self) -> Config {
@@ -248,7 +249,7 @@ where
 impl<T, S> Deref for BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     type Target = AtpAgent<S, T>;
 
@@ -265,14 +266,19 @@ mod tests {
     #[derive(Clone)]
     struct NoopStore;
 
-    impl AtpSessionStore for NoopStore {
-        async fn get_session(&self) -> Option<AtpSession> {
+    impl MapStore<(), AtpSession> for NoopStore {
+        type Error = std::convert::Infallible;
+
+        async fn get(&self, _key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
             unimplemented!()
         }
-        async fn set_session(&self, _: AtpSession) {
+        async fn set(&self, _key: (), _value: AtpSession) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
-        async fn clear_session(&self) {
+        async fn del(&self, _key: &()) -> core::result::Result<(), Self::Error> {
+            unimplemented!()
+        }
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
     }

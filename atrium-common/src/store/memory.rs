@@ -1,4 +1,4 @@
-use super::Store;
+use super::MapStore;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -11,17 +11,17 @@ pub struct Error;
 
 // TODO: LRU cache?
 #[derive(Clone)]
-pub struct MemoryStore<K, V> {
+pub struct MemoryMapStore<K, V> {
     store: Arc<Mutex<HashMap<K, V>>>,
 }
 
-impl<K, V> Default for MemoryStore<K, V> {
+impl<K, V> Default for MemoryMapStore<K, V> {
     fn default() -> Self {
         Self { store: Arc::new(Mutex::new(HashMap::new())) }
     }
 }
 
-impl<K, V> Store<K, V> for MemoryStore<K, V>
+impl<K, V> MapStore<K, V> for MemoryMapStore<K, V>
 where
     K: Debug + Eq + Hash + Send + Sync + 'static,
     V: Debug + Clone + Send + Sync + 'static,

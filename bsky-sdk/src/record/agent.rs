@@ -1,16 +1,17 @@
 use super::Record;
 use crate::error::{Error, Result};
 use crate::BskyAgent;
-use atrium_api::agent::atp_agent::store::AtpSessionStore;
+use atrium_api::agent::atp_agent::AtpSession;
 use atrium_api::com::atproto::repo::{create_record, delete_record};
 use atrium_api::record::KnownRecord;
 use atrium_api::types::string::RecordKey;
 use atrium_api::xrpc::XrpcClient;
+use atrium_common::store::MapStore;
 
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: AtpSessionStore + Send + Sync,
+    S: MapStore<(), AtpSession> + Send + Sync,
 {
     /// Create a record with various types of data.
     /// For example, the Record families defined in [`KnownRecord`](atrium_api::record::KnownRecord) are supported.

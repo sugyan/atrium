@@ -45,7 +45,7 @@ where
     fn base_uri(&self) -> String {
         self.token_set.aud.clone()
     }
-    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
+    async fn authorization_token(&self, _is_refresh: bool) -> Option<AuthorizationToken> {
         Some(AuthorizationToken::Dpop(self.token_set.access_token.clone()))
     }
     // async fn atproto_proxy_header(&self) -> Option<String> {
