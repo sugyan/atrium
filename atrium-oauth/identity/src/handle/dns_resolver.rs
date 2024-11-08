@@ -43,7 +43,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
         for result in self
             .dns_txt_resolver
             .resolve(&format!("{SUBDOMAIN}.{}", handle.as_ref()))

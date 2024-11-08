@@ -39,10 +39,15 @@ where
     async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
         let document =
             match input.parse::<AtIdentifier>().map_err(|e| Error::AtIdentifier(e.to_string()))? {
-                AtIdentifier::Did(did) => self.did_resolver.resolve(&did).await?,
+                AtIdentifier::Did(did) => {
+                    let result = self.did_resolver.resolve(&did).await?;
+                    result.ok_or_else(|| Error::NotFound)?
+                }
                 AtIdentifier::Handle(handle) => {
-                    let did = self.handle_resolver.resolve(&handle).await?;
-                    let document = self.did_resolver.resolve(&did).await?;
+                    let result = self.handle_resolver.resolve(&handle).await?;
+                    let did = result.ok_or_else(|| Error::NotFound)?;
+                    let result = self.did_resolver.resolve(&did).await?;
+                    let document = result.ok_or_else(|| Error::NotFound)?;
                     if let Some(aka) = &document.also_known_as {
                         if !aka.contains(&format!("at://{}", handle.as_str())) {
                             return Err(Error::DidDocument(format!(

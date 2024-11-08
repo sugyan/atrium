@@ -35,7 +35,7 @@ where
     type Output = DidDocument;
     type Error = Error;
 
-    async fn resolve(&self, did: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, did: &Self::Input) -> Result<Option<Self::Output>> {
         let uri = Builder::from(self.plc_directory_url.parse::<Uri>()?)
             .path_and_query(format!("/{}", did.as_str()))
             .build()?;

@@ -33,7 +33,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
         let uri = Builder::from(self.service_url.parse::<Uri>()?)
             .path_and_query(format!(
                 "/xrpc/com.atproto.identity.resolveHandle?{}",

@@ -31,7 +31,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
         let url = format!("https://{}{WELL_KNWON_PATH}", handle.as_str());
         // TODO: no-cache?
         let res = self
