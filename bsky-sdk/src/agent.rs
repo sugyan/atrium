@@ -2,14 +2,14 @@
 mod builder;
 pub mod config;
 
-pub use self::builder::BskyAgentBuilder;
+pub use self::builder::BskyAtpAgentBuilder;
 use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
 use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
-use atrium_api::agent::store::MemorySessionStore;
-use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::agent::atp_agent::store::MemorySessionStore;
+use atrium_api::agent::atp_agent::{store::AtpSessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::PreferencesItem;
 use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
@@ -21,8 +21,8 @@ use std::sync::Arc;
 
 /// A Bluesky agent.
 ///
-/// This agent is a wrapper around the [`AtpAgent`] that provides additional functionality for working with Bluesky.
-/// For creating an instance of this agent, use the [`BskyAgentBuilder`].
+/// This agent is a wrapper around the [`Agent`](atrium_api::agent::Agent) that provides additional functionality for working with Bluesky.
+/// For creating an instance of this agent, use the [`BskyAtpAgentBuilder`].
 ///
 /// # Example
 ///
@@ -40,7 +40,7 @@ use std::sync::Arc;
 pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -49,7 +49,7 @@ where
 pub struct BskyAgent<T, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -57,16 +57,16 @@ where
 #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
 #[cfg(feature = "default-client")]
 impl BskyAgent {
-    /// Create a new [`BskyAgentBuilder`] with the default client and session store.
-    pub fn builder() -> BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
-        BskyAgentBuilder::default()
+    /// Create a new [`BskyAtpAgentBuilder`] with the default client and session store.
+    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemorySessionStore> {
+        BskyAtpAgentBuilder::default()
     }
 }
 
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
 {
     /// Get the agent's current state as a [`Config`].
     pub async fn to_config(&self) -> Config {
@@ -248,7 +248,7 @@ where
 impl<T, S> Deref for BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
 {
     type Target = AtpAgent<S, T>;
 
@@ -260,16 +260,16 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atrium_api::agent::Session;
+    use atrium_api::agent::atp_agent::AtpSession;
 
     #[derive(Clone)]
     struct NoopStore;
 
-    impl SessionStore for NoopStore {
-        async fn get_session(&self) -> Option<Session> {
+    impl AtpSessionStore for NoopStore {
+        async fn get_session(&self) -> Option<AtpSession> {
             unimplemented!()
         }
-        async fn set_session(&self, _: Session) {
+        async fn set_session(&self, _: AtpSession) {
             unimplemented!()
         }
         async fn clear_session(&self) {
