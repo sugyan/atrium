@@ -1,12 +1,11 @@
 //! Configuration for the [`BskyAgent`](super::BskyAgent).
 mod file;
 
-use std::future::Future;
-
+pub use self::file::FileStore;
 use crate::error::{Error, Result};
-use atrium_api::agent::Session;
-pub use file::FileStore;
+use atrium_api::agent::atp_agent::AtpSession;
 use serde::{Deserialize, Serialize};
+use std::future::Future;
 
 /// Configuration data struct for the [`BskyAgent`](super::BskyAgent).
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,7 +13,7 @@ pub struct Config {
     /// The base URL for the XRPC endpoint.
     pub endpoint: String,
     /// The session data.
-    pub session: Option<Session>,
+    pub session: Option<AtpSession>,
     /// The labelers header values.
     pub labelers_header: Option<Vec<String>>,
     /// The proxy header for service proxying.

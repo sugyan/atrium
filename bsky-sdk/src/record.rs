@@ -5,7 +5,7 @@ use std::future::Future;
 
 use crate::error::{Error, Result};
 use crate::BskyAgent;
-use atrium_api::agent::store::SessionStore;
+use atrium_api::agent::atp_agent::store::AtpSessionStore;
 use atrium_api::com::atproto::repo::{
     create_record, delete_record, get_record, list_records, put_record,
 };
@@ -16,7 +16,7 @@ use atrium_api::xrpc::XrpcClient;
 pub trait Record<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
 {
     fn list(
         agent: &BskyAgent<T, S>,
@@ -45,7 +45,7 @@ macro_rules! record_impl {
         impl<T, S> Record<T, S> for $record
         where
             T: XrpcClient + Send + Sync,
-            S: SessionStore + Send + Sync,
+            S: AtpSessionStore + Send + Sync,
         {
             async fn list(
                 agent: &BskyAgent<T, S>,
@@ -162,7 +162,7 @@ macro_rules! record_impl {
         impl<T, S> Record<T, S> for $record_data
         where
             T: XrpcClient + Send + Sync,
-            S: SessionStore + Send + Sync,
+            S: AtpSessionStore + Send + Sync,
         {
             async fn list(
                 agent: &BskyAgent<T, S>,
@@ -273,9 +273,9 @@ record_impl!(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::agent::BskyAgentBuilder;
+    use crate::agent::BskyAtpAgentBuilder;
     use crate::tests::FAKE_CID;
-    use atrium_api::agent::Session;
+    use atrium_api::agent::atp_agent::AtpSession;
     use atrium_api::com::atproto::server::create_session::OutputData;
     use atrium_api::types::string::Datetime;
     use atrium_api::xrpc::http::{Request, Response};
@@ -321,8 +321,8 @@ mod tests {
 
     struct MockSessionStore;
 
-    impl SessionStore for MockSessionStore {
-        async fn get_session(&self) -> Option<Session> {
+    impl AtpSessionStore for MockSessionStore {
+        async fn get_session(&self) -> Option<AtpSession> {
             Some(
                 OutputData {
                     access_jwt: String::from("access"),
@@ -339,13 +339,13 @@ mod tests {
                 .into(),
             )
         }
-        async fn set_session(&self, _: Session) {}
+        async fn set_session(&self, _: AtpSession) {}
         async fn clear_session(&self) {}
     }
 
     #[tokio::test]
     async fn actor_profile() -> Result<()> {
-        let agent = BskyAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
+        let agent = BskyAtpAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
         // create
         let output = atrium_api::app::bsky::actor::profile::RecordData {
             avatar: None,
@@ -377,7 +377,7 @@ mod tests {
 
     #[tokio::test]
     async fn feed_post() -> Result<()> {
-        let agent = BskyAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
+        let agent = BskyAtpAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
         // create
         let output = atrium_api::app::bsky::feed::post::RecordData {
             created_at: Datetime::now(),
@@ -409,7 +409,7 @@ mod tests {
 
     #[tokio::test]
     async fn graph_follow() -> Result<()> {
-        let agent = BskyAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
+        let agent = BskyAtpAgentBuilder::new(MockClient).store(MockSessionStore).build().await?;
         // create
         let output = atrium_api::app::bsky::graph::follow::RecordData {
             created_at: Datetime::now(),
