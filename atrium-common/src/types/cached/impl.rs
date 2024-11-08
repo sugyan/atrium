@@ -14,7 +14,7 @@ pub use self::wasm::WasmCache as CacheImpl;
 use super::CacheConfig;
 
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
-pub(crate) trait Cache {
+pub trait Cache {
     type Input: Hash + Eq + Sync + 'static;
     type Output: Clone + Sync + 'static;
 

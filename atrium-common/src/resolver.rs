@@ -5,7 +5,6 @@ mod throttled;
 pub use self::cached::CachedResolver;
 pub use self::error::{Error, Result};
 pub use self::throttled::ThrottledResolver;
-pub use super::types::cached::r#impl::CacheImpl;
 use std::future::Future;
 
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
@@ -23,7 +22,7 @@ pub trait Resolver {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::cached::r#impl::Cache;
+    use crate::types::cached::r#impl::{Cache, CacheImpl};
     use crate::types::cached::{CacheConfig, Cacheable};
     use crate::types::throttled::Throttleable;
     use std::collections::HashMap;
