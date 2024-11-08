@@ -1,4 +1,4 @@
-mod r#impl;
+pub mod r#impl;
 
 use std::fmt::Debug;
 use std::time::Duration;
@@ -16,18 +16,15 @@ where
     fn cached(self, cache: C) -> Cached<Self, C>;
 }
 
-impl<T, C> Cacheable<C> for T
-where
-    C: Default,
-{
+impl<T, C> Cacheable<C> for T {
     fn cached(self, cache: C) -> Cached<Self, C> {
         Cached::new(self, cache)
     }
 }
 
 pub struct Cached<T, C> {
-    inner: T,
-    cache: C,
+    pub inner: T,
+    pub cache: C,
 }
 
 impl<T, C> Cached<T, C> {

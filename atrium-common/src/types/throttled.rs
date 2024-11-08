@@ -17,8 +17,8 @@ where
 }
 
 pub struct Throttled<T, P> {
-    inner: T,
-    pending: Arc<P>,
+    pub inner: T,
+    pub pending: Arc<P>,
 }
 
 impl<T, P> Throttled<T, P>
