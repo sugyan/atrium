@@ -1,0 +1,42 @@
+[package]
+name = "atrium-common"
+version = "0.1.0"
+authors = ["sugyan <sugi1982+github@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+description = "Utility library for common abstractions in atproto"
+documentation = "https://docs.rs/atrium-common"
+readme = "README.md"
+repository.workspace = true
+license.workspace = true
+keywords = ["atproto", "bluesky", "identity"]
+
+[dependencies]
+atrium-xrpc.workspace = true
+chrono = { workspace = true, features = ["serde"] }
+dashmap.workspace = true
+hickory-proto = { workspace = true, optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde_html_form.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio = { workspace = true, default-features = false, features = ["sync"] }
+trait-variant.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+moka = { workspace = true, features = ["future"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+lru.workspace = true
+web-time.workspace = true
+
+[dev-dependencies]
+futures.workspace = true
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
+
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+gloo-timers.workspace = true
+tokio = { workspace = true, features = ["time"] }
+wasm-bindgen-test.workspace = true
