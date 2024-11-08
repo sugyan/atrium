@@ -2,6 +2,7 @@ use super::dns_resolver::{DnsHandleResolver, DnsHandleResolverConfig, DnsTxtReso
 use super::well_known_resolver::{WellKnownHandleResolver, WellKnownHandleResolverConfig};
 use super::HandleResolver;
 use crate::error::Result;
+use crate::Error;
 use atrium_api::types::string::{Did, Handle};
 use atrium_common::resolver::Resolver;
 use atrium_xrpc::HttpClient;

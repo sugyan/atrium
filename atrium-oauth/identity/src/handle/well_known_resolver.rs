@@ -41,7 +41,7 @@ where
             .map_err(Error::HttpClient)?;
         if res.status().is_success() {
             let text = String::from_utf8_lossy(res.body()).to_string();
-            text.parse::<Did>().map_err(|e| Error::Did(e.to_string()))
+            Some(text.parse::<Did>().map_err(|e| Error::Did(e.to_string()))).transpose()
         } else {
             Err(Error::HttpStatus(res.status()))
         }

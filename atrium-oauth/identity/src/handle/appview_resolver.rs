@@ -49,7 +49,7 @@ where
             .await
             .map_err(Error::HttpClient)?;
         if res.status().is_success() {
-            Ok(serde_json::from_slice::<resolve_handle::OutputData>(res.body())?.did)
+            Ok(Some(serde_json::from_slice::<resolve_handle::OutputData>(res.body())?.did))
         } else {
             Err(Error::HttpStatus(res.status()))
         }

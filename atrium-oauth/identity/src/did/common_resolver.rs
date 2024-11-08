@@ -45,14 +45,8 @@ where
 
     async fn resolve(&self, did: &Self::Input) -> Result<Option<Self::Output>> {
         match did.strip_prefix("did:").and_then(|s| s.split_once(':').map(|(method, _)| method)) {
-            Some("plc") => {
-                let result = self.plc_resolver.resolve(did).await?;
-                result.ok_or_else(|| Error::NotFound)
-            }
-            Some("web") => {
-                let result = self.web_resolver.resolve(did).await?;
-                result.ok_or_else(|| Error::NotFound)
-            }
+            Some("plc") => self.plc_resolver.resolve(did).await,
+            Some("web") => self.web_resolver.resolve(did).await,
             _ => Err(Error::UnsupportedDidMethod(did.clone())),
         }
     }
