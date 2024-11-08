@@ -148,7 +148,9 @@ where
         } else {
             self.client_metadata.redirect_uris[0].clone()
         };
-        let (metadata, identity) = self.resolver.resolve(input.as_ref()).await?;
+        let result = self.resolver.resolve(input.as_ref()).await?;
+        let (metadata, identity) =
+            result.ok_or_else(|| Error::Identity(atrium_identity::Error::NotFound))?;
         let Some(dpop_key) = Self::generate_dpop_key(&metadata) else {
             return Err(Error::Authorize("none of the algorithms worked".into()));
         };

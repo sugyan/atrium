@@ -24,7 +24,7 @@ where
     type Output = OAuthProtectedResourceMetadata;
     type Error = Error;
 
-    async fn resolve(&self, resource: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, resource: &Self::Input) -> Result<Option<Self::Output>> {
         let uri = Builder::from(resource.parse::<Uri>()?)
             .path_and_query("/.well-known/oauth-protected-resource")
             .build()?;
@@ -38,7 +38,7 @@ where
             let metadata = serde_json::from_slice::<OAuthProtectedResourceMetadata>(res.body())?;
             // https://datatracker.ietf.org/doc/html/draft-ietf-oauth-resource-metadata-08#section-3.3
             if &metadata.resource == resource {
-                Ok(metadata)
+                Ok(Some(metadata))
             } else {
                 Err(Error::ProtectedResourceMetadata(format!(
                     "invalid resource: {}",

@@ -24,7 +24,7 @@ where
     type Output = OAuthAuthorizationServerMetadata;
     type Error = Error;
 
-    async fn resolve(&self, issuer: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, issuer: &Self::Input) -> Result<Option<Self::Output>> {
         let uri = Builder::from(issuer.parse::<Uri>()?)
             .path_and_query("/.well-known/oauth-authorization-server")
             .build()?;
@@ -38,7 +38,7 @@ where
             let metadata = serde_json::from_slice::<OAuthAuthorizationServerMetadata>(res.body())?;
             // https://datatracker.ietf.org/doc/html/rfc8414#section-3.3
             if &metadata.issuer == issuer {
-                Ok(metadata)
+                Ok(Some(metadata))
             } else {
                 Err(Error::AuthorizationServerMetadata(format!(
                     "invalid issuer: {}",
