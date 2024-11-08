@@ -31,12 +31,13 @@ impl<D, H> Resolver for IdentityResolver<D, H>
 where
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
+    // Error: From<D::Error> + From<H::Error>,
 {
     type Input = str;
     type Output = ResolvedIdentity;
     type Error = Error;
 
-    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
+    async fn resolve(&self, input: &Self::Input) -> Result<Option<Self::Output>> {
         let document =
             match input.parse::<AtIdentifier>().map_err(|e| Error::AtIdentifier(e.to_string()))? {
                 AtIdentifier::Did(did) => {
@@ -66,6 +67,6 @@ where
                 document.id
             )));
         };
-        Ok(ResolvedIdentity { did: document.id, pds: service })
+        Ok(Some(ResolvedIdentity { did: document.id, pds: service }))
     }
 }

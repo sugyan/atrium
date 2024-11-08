@@ -51,7 +51,7 @@ where
             .map_err(Error::DnsResolver)?
         {
             if let Some(did) = result.strip_prefix(PREFIX) {
-                return did.parse::<Did>().map_err(|e| Error::Did(e.to_string()));
+                return Some(did.parse::<Did>().map_err(|e| Error::Did(e.to_string()))).transpose();
             }
         }
         Err(Error::NotFound)
