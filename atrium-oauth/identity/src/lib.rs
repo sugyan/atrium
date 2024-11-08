@@ -5,4 +5,3 @@ pub mod identity_resolver;
 pub mod resolver;
 
 pub use self::error::{Error, Result};
-pub use self::resolver::Resolver;

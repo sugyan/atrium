@@ -1,6 +1,7 @@
 use crate::error::{Error, Result};
-use crate::{did::DidResolver, handle::HandleResolver, Resolver};
+use crate::{did::DidResolver, handle::HandleResolver};
 use atrium_api::types::string::AtIdentifier;
+use atrium_common::resolver::Resolver;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,14 +34,20 @@ where
 {
     type Input = str;
     type Output = ResolvedIdentity;
+    type Error = Error;
 
     async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
         let document =
             match input.parse::<AtIdentifier>().map_err(|e| Error::AtIdentifier(e.to_string()))? {
-                AtIdentifier::Did(did) => self.did_resolver.resolve(&did).await?,
+                AtIdentifier::Did(did) => {
+                    let result = self.did_resolver.resolve(&did).await?;
+                    result.ok_or_else(|| Error::NotFound)?
+                }
                 AtIdentifier::Handle(handle) => {
-                    let did = self.handle_resolver.resolve(&handle).await?;
-                    let document = self.did_resolver.resolve(&did).await?;
+                    let result = self.handle_resolver.resolve(&handle).await?;
+                    let did = result.ok_or_else(|| Error::NotFound)?;
+                    let result = self.did_resolver.resolve(&did).await?;
+                    let document = result.ok_or_else(|| Error::NotFound)?;
                     if let Some(aka) = &document.also_known_as {
                         if !aka.contains(&format!("at://{}", handle.as_str())) {
                             return Err(Error::DidDocument(format!(

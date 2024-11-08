@@ -15,6 +15,7 @@ keywords = ["atproto", "bluesky", "oauth"]
 
 [dependencies]
 atrium-api = { workspace = true, default-features = false }
+atrium-common.workspace = true
 atrium-identity.workspace = true
 atrium-xrpc.workspace = true
 base64.workspace = true

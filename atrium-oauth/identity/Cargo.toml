@@ -15,6 +15,7 @@ keywords = ["atproto", "bluesky", "identity"]
 
 [dependencies]
 atrium-api = { workspace = true, default-features = false }
+atrium-common.workspace = true
 atrium-xrpc.workspace = true
 dashmap.workspace = true
 hickory-proto = { workspace = true, optional = true }

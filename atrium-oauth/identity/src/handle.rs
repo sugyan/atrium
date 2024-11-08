@@ -11,7 +11,7 @@ pub use self::dns_resolver::DnsTxtResolver;
 #[cfg(feature = "doh-handle-resolver")]
 pub use self::doh_dns_txt_resolver::{DohDnsTxtResolver, DohDnsTxtResolverConfig};
 pub use self::well_known_resolver::{WellKnownHandleResolver, WellKnownHandleResolverConfig};
-use crate::Resolver;
 use atrium_api::types::string::{Did, Handle};
+use atrium_common::resolver::Resolver;
 
 pub trait HandleResolver: Resolver<Input = Handle, Output = Did> {}
