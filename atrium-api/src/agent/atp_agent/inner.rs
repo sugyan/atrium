@@ -2,6 +2,7 @@ use super::{AtpSession, AtpSessionStore};
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
+use atrium_common::store::CellStore;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response};
@@ -288,17 +289,39 @@ impl<S> Store<S> {
     }
 }
 
-impl<S> AtpSessionStore for Store<S>
+impl<S> CellStore<AtpSession> for Store<S>
 where
-    S: AtpSessionStore + Send + Sync,
+    S: CellStore<AtpSession> + Send + Sync,
 {
-    async fn get_session(&self) -> Option<AtpSession> {
-        self.inner.get_session().await
+    type Error = std::convert::Infallible;
+
+    async fn get(&self) -> core::result::Result<Option<AtpSession>, Self::Error> {
+        let value = self.inner.get().await.unwrap();
+        Ok(value)
     }
-    async fn set_session(&self, session: AtpSession) {
-        self.inner.set_session(session).await;
+    async fn set(&self, value: AtpSession) -> core::result::Result<(), Self::Error> {
+        self.inner.set(value).await.unwrap();
+        Ok(())
     }
-    async fn clear_session(&self) {
-        self.inner.clear_session().await;
+    async fn clear(&self) -> core::result::Result<(), Self::Error> {
+        self.inner.clear().await.unwrap();
+        Ok(())
     }
 }
+
+// impl<S> AtpSessionStore for Store<S> where S: Send + Sync + CellStore<AtpSession> {}
+
+// impl<S> Store<S>
+// where
+//     S: CellStore<AtpSession> + Send + Sync,
+// {
+//     pub async fn get_session(&self) -> Option<AtpSession> {
+//         self.inner.get().await.expect("Infallible")
+//     }
+//     pub async fn set_session(&self, session: AtpSession) {
+//         self.inner.set(session).await.expect("Infallible")
+//     }
+//     pub async fn clear_session(&self) {
+//         self.inner.clear().await.expect("Infallible")
+//     }
+// }

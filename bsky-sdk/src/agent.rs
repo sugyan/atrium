@@ -261,18 +261,23 @@ where
 mod tests {
     use super::*;
     use atrium_api::agent::atp_agent::AtpSession;
+    use atrium_common::store::CellStore;
 
     #[derive(Clone)]
     struct NoopStore;
 
-    impl AtpSessionStore for NoopStore {
-        async fn get_session(&self) -> Option<AtpSession> {
+    impl CellStore<AtpSession> for NoopStore {
+        type Error = std::convert::Infallible;
+
+        async fn get(&self) -> core::result::Result<Option<AtpSession>, Self::Error> {
             unimplemented!()
         }
-        async fn set_session(&self, _: AtpSession) {
+
+        async fn set(&self, _value: AtpSession) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
-        async fn clear_session(&self) {
+
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
     }
