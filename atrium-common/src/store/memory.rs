@@ -1,4 +1,4 @@
-use super::Store;
+use super::{CellStore, MapStore};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -9,19 +9,49 @@ use thiserror::Error;
 #[error("memory store error")]
 pub struct Error;
 
+#[derive(Clone)]
+pub struct MemoryCellStore<V> {
+    store: Arc<Mutex<Option<V>>>,
+}
+
+impl<V> Default for MemoryCellStore<V> {
+    fn default() -> Self {
+        Self { store: Arc::new(Mutex::new(None)) }
+    }
+}
+
+impl<V> CellStore<V> for MemoryCellStore<V>
+where
+    V: Debug + Clone + Send + Sync + 'static,
+{
+    type Error = Error;
+
+    async fn get(&self) -> Result<Option<V>, Self::Error> {
+        Ok(self.store.lock().unwrap().as_ref().cloned())
+    }
+    async fn set(&self, value: V) -> Result<(), Self::Error> {
+        let _ = self.store.lock().unwrap().insert(value);
+        Ok(())
+    }
+    async fn clear(&self) -> Result<(), Self::Error> {
+        self.store.lock().unwrap().take();
+        Ok(())
+    }
+}
+
 // TODO: LRU cache?
 #[derive(Clone)]
-pub struct MemoryStore<K, V> {
+pub struct MemoryMapStore<K, V> {
     store: Arc<Mutex<HashMap<K, V>>>,
 }
 
-impl<K, V> Default for MemoryStore<K, V> {
+impl<K, V> Default for MemoryMapStore<K, V> {
     fn default() -> Self {
         Self { store: Arc::new(Mutex::new(HashMap::new())) }
     }
 }
 
-impl<K, V> Store<K, V> for MemoryStore<K, V>
+impl<K, V> MapStore<K, V> for MemoryMapStore<K, V>
 where
     K: Debug + Eq + Hash + Send + Sync + 'static,
     V: Debug + Clone + Send + Sync + 'static,
