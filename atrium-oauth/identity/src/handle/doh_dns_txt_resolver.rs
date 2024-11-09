@@ -39,8 +39,7 @@ where
     async fn resolve(
         &self,
         query: &str,
-    ) -> core::result::Result<Option<Vec<String>>, Box<dyn std::error::Error + Send + Sync + 'static>>
-    {
+    ) -> core::result::Result<Vec<String>, Box<dyn std::error::Error + Send + Sync + 'static>> {
         let mut message = Message::new();
         message
             .set_recursion_desired(true)
