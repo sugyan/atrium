@@ -107,6 +107,7 @@ mod tests {
     use super::*;
     use atrium_api::agent::atp_agent::AtpSession;
     use atrium_api::com::atproto::server::create_session::OutputData;
+    use atrium_common::store::CellStore;
 
     fn session() -> AtpSession {
         OutputData {
@@ -126,12 +127,18 @@ mod tests {
 
     struct MockSessionStore;
 
-    impl AtpSessionStore for MockSessionStore {
-        async fn get_session(&self) -> Option<AtpSession> {
-            Some(session())
+    impl CellStore<AtpSession> for MockSessionStore {
+        type Error = std::convert::Infallible;
+
+        async fn get(&self) -> core::result::Result<Option<AtpSession>, Self::Error> {
+            Ok(Some(session()))
         }
-        async fn set_session(&self, _: AtpSession) {}
-        async fn clear_session(&self) {}
+        async fn set(&self, _value: AtpSession) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
     }
 
     #[cfg(feature = "default-client")]

@@ -281,6 +281,7 @@ mod tests {
     use atrium_api::xrpc::http::{Request, Response};
     use atrium_api::xrpc::types::Header;
     use atrium_api::xrpc::{HttpClient, XrpcClient};
+    use atrium_common::store::CellStore;
 
     struct MockClient;
 
@@ -321,9 +322,11 @@ mod tests {
 
     struct MockSessionStore;
 
-    impl AtpSessionStore for MockSessionStore {
-        async fn get_session(&self) -> Option<AtpSession> {
-            Some(
+    impl CellStore<AtpSession> for MockSessionStore {
+        type Error = std::convert::Infallible;
+
+        async fn get(&self) -> core::result::Result<Option<AtpSession>, Self::Error> {
+            Ok(Some(
                 OutputData {
                     access_jwt: String::from("access"),
                     active: None,
@@ -337,10 +340,14 @@ mod tests {
                     status: None,
                 }
                 .into(),
-            )
+            ))
         }
-        async fn set_session(&self, _: AtpSession) {}
-        async fn clear_session(&self) {}
+        async fn set(&self, _value: AtpSession) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
+            Ok(())
+        }
     }
 
     #[tokio::test]
