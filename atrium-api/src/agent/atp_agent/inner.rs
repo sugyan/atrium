@@ -308,20 +308,3 @@ where
         Ok(())
     }
 }
-
-// impl<S> AtpSessionStore for Store<S> where S: Send + Sync + CellStore<AtpSession> {}
-
-// impl<S> Store<S>
-// where
-//     S: CellStore<AtpSession> + Send + Sync,
-// {
-//     pub async fn get_session(&self) -> Option<AtpSession> {
-//         self.inner.get().await.expect("Infallible")
-//     }
-//     pub async fn set_session(&self, session: AtpSession) {
-//         self.inner.set(session).await.expect("Infallible")
-//     }
-//     pub async fn clear_session(&self) {
-//         self.inner.clear().await.expect("Infallible")
-//     }
-// }
