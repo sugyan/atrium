@@ -1,8 +1,8 @@
 use crate::jose::create_signed_jwt;
 use crate::jose::jws::RegisteredHeader;
 use crate::jose::jwt::{Claims, PublicClaims, RegisteredClaims};
-use crate::store::memory::MemorySimpleStore;
-use crate::store::SimpleStore;
+use atrium_common::store::memory::MemoryMapStore;
+use atrium_common::store::MapStore;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -35,9 +35,9 @@ pub enum Error {
 
 type Result<T> = core::result::Result<T, Error>;
 
-pub struct DpopClient<T, S = MemorySimpleStore<String, String>>
+pub struct DpopClient<T, S = MemoryMapStore<String, String>>
 where
-    S: SimpleStore<String, String>,
+    S: MapStore<String, String>,
 {
     inner: Arc<T>,
     key: Key,
@@ -65,7 +65,7 @@ impl<T> DpopClient<T> {
                 return Err(Error::UnsupportedKey);
             }
         }
-        let nonces = MemorySimpleStore::<String, String>::default();
+        let nonces = MemoryMapStore::<String, String>::default();
         Ok(Self { inner: http_client, key, iss, nonces })
     }
     fn build_proof(&self, htm: String, htu: String, nonce: Option<String>) -> Result<String> {

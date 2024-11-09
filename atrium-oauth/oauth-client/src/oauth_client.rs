@@ -3,7 +3,7 @@ use crate::error::{Error, Result};
 use crate::keyset::Keyset;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
-use crate::store::state::{InternalStateData, StateStore};
+use crate::store::{InternalStateData, StateStore};
 use crate::types::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
     OAuthAuthorizationServerMetadata, OAuthClientMetadata,

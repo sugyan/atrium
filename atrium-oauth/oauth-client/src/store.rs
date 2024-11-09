@@ -1,20 +1,16 @@
-pub mod memory;
-pub mod state;
+use atrium_common::store::{memory::MemoryMapStore, MapStore};
+use jose_jwk::Key;
+use serde::{Deserialize, Serialize};
 
-use std::error::Error;
-use std::future::Future;
-use std::hash::Hash;
-
-#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
-pub trait SimpleStore<K, V>
-where
-    K: Eq + Hash,
-    V: Clone,
-{
-    type Error: Error + Send + Sync + 'static;
-
-    fn get(&self, key: &K) -> impl Future<Output = Result<Option<V>, Self::Error>>;
-    fn set(&self, key: K, value: V) -> impl Future<Output = Result<(), Self::Error>>;
-    fn del(&self, key: &K) -> impl Future<Output = Result<(), Self::Error>>;
-    fn clear(&self) -> impl Future<Output = Result<(), Self::Error>>;
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct InternalStateData {
+    pub iss: String,
+    pub dpop_key: Key,
+    pub verifier: String,
 }
+
+pub trait StateStore: MapStore<String, InternalStateData> {}
+
+pub type MemoryStateStore = MemoryMapStore<String, InternalStateData>;
+
+impl StateStore for MemoryStateStore {}
