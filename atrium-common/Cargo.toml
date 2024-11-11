@@ -1,7 +1,7 @@
 [package]
 name = "atrium-common"
 version = "0.1.0"
-authors = ["sugyan <sugi1982+github@gmail.com>"]
+authors = ["sugyan <sugi1982+github@gmail.com>", "avdb13 <avdb@keemail.me>"]
 edition.workspace = true
 rust-version.workspace = true
 description = "Utility library for common abstractions in atproto"
