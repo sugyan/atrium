@@ -162,8 +162,7 @@ where
         };
         self.state_store
             .set(state.clone(), state_data)
-            .await
-            .map_err(|e| Error::StateStore(Box::new(e)))?;
+            .await.unwrap();
         let login_hint = if identity.is_some() { Some(input.as_ref().into()) } else { None };
         let parameters = PushedAuthorizationRequestParameters {
             response_type: AuthorizationResponseType::Code,
@@ -220,12 +219,12 @@ where
         };
 
         let Some(state) =
-            self.state_store.get(&state_key).await.map_err(|e| Error::StateStore(Box::new(e)))?
+            self.state_store.get(&state_key).await.unwrap()
         else {
             return Err(Error::Callback(format!("unknown authorization state: {state_key}")));
         };
         // Prevent any kind of replay
-        self.state_store.del(&state_key).await.map_err(|e| Error::StateStore(Box::new(e)))?;
+        self.state_store.del(&state_key).await.unwrap();
 
         let metadata = self.resolver.get_authorization_server_metadata(&state.iss).await?;
         // https://datatracker.ietf.org/doc/html/rfc9207#section-2.4
