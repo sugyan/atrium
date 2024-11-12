@@ -293,4 +293,27 @@ where
         )?;
         Ok(OAuthSession::new(dpop_client, token_set))
     }
+    pub async fn server_from_issuer(
+        &self,
+        issuer: &str,
+        dpop_key: Key,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        let server_metadata = self.resolver.get_authorization_server_metadata(issuer).await?;
+        self.server_from_metadata(server_metadata, dpop_key)
+    }
+    pub fn server_from_metadata(
+        &self,
+        server_metadata: OAuthAuthorizationServerMetadata,
+        dpop_key: Key,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        let server = OAuthServerAgent::new(
+            dpop_key,
+            server_metadata,
+            self.client_metadata.clone(),
+            self.resolver.clone(),
+            self.http_client.clone(),
+            self.keyset.clone(),
+        )?;
+        Ok(server)
+    }
 }
