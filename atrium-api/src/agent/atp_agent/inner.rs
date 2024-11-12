@@ -292,19 +292,21 @@ impl<S> Store<S> {
     }
 }
 
-impl<S> MapStore<(), AtpSession> for Store<S>
+impl<S, K, V> MapStore<K, V> for Store<S>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    K: Eq + Hash + Send + Sync,
+    V: Clone + Send + Sync,
+    S: MapStore<K, V> + Send + Sync,
 {
     type Error = S::Error;
 
-    async fn get(&self, key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
+    async fn get(&self, key: &K) -> core::result::Result<Option<V>, Self::Error> {
         self.inner.get(key).await
     }
-    async fn set(&self, key: (), value: AtpSession) -> core::result::Result<(), Self::Error> {
+    async fn set(&self, key: K, value: V) -> core::result::Result<(), Self::Error> {
         self.inner.set(key, value).await
     }
-    async fn del(&self, key: &()) -> core::result::Result<(), Self::Error> {
+    async fn del(&self, key: &K) -> core::result::Result<(), Self::Error> {
         self.inner.del(key).await
     }
     async fn clear(&self) -> core::result::Result<(), Self::Error> {
