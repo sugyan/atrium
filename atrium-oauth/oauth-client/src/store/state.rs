@@ -1,5 +1,4 @@
-use super::memory::MemorySimpleStore;
-use super::SimpleStore;
+use atrium_common::store::{memory::MemoryMapStore, MapStore};
 use jose_jwk::Key;
 use serde::{Deserialize, Serialize};
 
@@ -11,8 +10,8 @@ pub struct InternalStateData {
     pub app_state: Option<String>,
 }
 
-pub trait StateStore: SimpleStore<String, InternalStateData> {}
+pub trait StateStore: MapStore<String, InternalStateData> {}
 
-pub type MemoryStateStore = MemorySimpleStore<String, InternalStateData>;
+pub type MemoryStateStore = MemoryMapStore<String, InternalStateData>;
 
 impl StateStore for MemoryStateStore {}
