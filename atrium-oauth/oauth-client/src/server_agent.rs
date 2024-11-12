@@ -58,7 +58,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub enum OAuthRequest {
     Token(TokenRequestParameters),
     Refresh(RefreshRequestParameters),
-    Revocation,
+    Revocation(RevocationRequestParameters),
     Introspection,
     PushedAuthorizationRequest(PushedAuthorizationRequestParameters),
 }
@@ -68,14 +68,14 @@ impl OAuthRequest {
         String::from(match self {
             Self::Token(_) => "token",
             Self::Refresh(_) => "refresh",
-            Self::Revocation => "revocation",
+            Self::Revocation(_) => "revocation",
             Self::Introspection => "introspection",
             Self::PushedAuthorizationRequest(_) => "pushed_authorization_request",
         })
     }
     fn expected_status(&self) -> StatusCode {
         match self {
-            Self::Token(_) | Self::Refresh(_) => StatusCode::OK,
+            Self::Token(_) | Self::Refresh(_) | Self::Revocation(_) => StatusCode::OK,
             Self::PushedAuthorizationRequest(_) => StatusCode::CREATED,
             _ => unimplemented!(),
         }
@@ -165,12 +165,44 @@ where
     }
     pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
         self.verify_token_response(
-            self.request(OAuthRequest::Token(TokenRequestParameters {
-                grant_type: TokenGrantType::AuthorizationCode,
-                code: code.into(),
-                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
-                code_verifier: verifier.into(),
-            }))
+            self.request(OAuthRequest::Token(TokenRequestParameters::AuthorizationCode(
+                AuthorizationCodeParameters {
+                    code: code.into(),
+                    redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
+                    code_verifier: verifier.into(),
+                },
+            )))
+            .await?,
+        )
+        .await
+    }
+    pub async fn revoke_session(&self, token: &str) -> Result<()> {
+        self.request(OAuthRequest::Revocation(RevocationRequestParameters { token: token.into() }))
+            .await
+    }
+    pub async fn refresh_session(&self, token_set: TokenSet) -> Result<TokenSet> {
+        let TokenSet { sub, scope, refresh_token, access_token, token_type, expires_at, .. } =
+            token_set;
+        let expires_in = expires_at.map(|expires_at| {
+            expires_at.as_ref().signed_duration_since(Datetime::now().as_ref()).num_seconds()
+        });
+        let token_response = OAuthTokenResponse {
+            access_token,
+            token_type,
+            expires_in,
+            refresh_token,
+            scope,
+            sub: Some(sub),
+        };
+        let TokenSet { scope, refresh_token: Some(refresh_token), .. } =
+            self.verify_token_response(token_response).await?
+        else {
+            todo!();
+        };
+        self.verify_token_response(
+            self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
+                RefreshTokenParameters { refresh_token, scope },
+            )))
             .await?,
         )
         .await
@@ -279,7 +311,7 @@ where
             OAuthRequest::Token(_) | OAuthRequest::Refresh(_) => {
                 Some(&self.server_metadata.token_endpoint)
             }
-            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
+            OAuthRequest::Revocation(_) => self.server_metadata.revocation_endpoint.as_ref(),
             OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
             OAuthRequest::PushedAuthorizationRequest(_) => {
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()

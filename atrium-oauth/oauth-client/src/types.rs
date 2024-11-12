@@ -14,7 +14,8 @@ pub use request::{
 };
 pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
 use serde::Deserialize;
-pub use token::{TokenSet, TokenInfo};
+#[allow(unused_imports)]
+pub use token::{TokenInfo, TokenSet};
 
 #[derive(Debug, Deserialize)]
 pub enum AuthorizeOptionPrompt {
