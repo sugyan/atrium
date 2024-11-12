@@ -1,15 +1,15 @@
-use crate::store::{memory::MemorySimpleStore, SimpleStore};
 use crate::{DpopClient, TokenSet};
 use atrium_api::{agent::SessionManager, types::string::Did};
+use atrium_common::store::{memory::MemoryMapStore, MapStore};
 use atrium_xrpc::{
     http::{Request, Response},
     types::AuthorizationToken,
     HttpClient, XrpcClient,
 };
 
-pub struct OAuthSession<T, S = MemorySimpleStore<String, String>>
+pub struct OAuthSession<T, S = MemoryMapStore<String, String>>
 where
-    S: SimpleStore<String, String>,
+    S: MapStore<String, String>,
 {
     inner: DpopClient<T, S>,
     token_set: TokenSet, // TODO: replace with a session store?
@@ -17,7 +17,7 @@ where
 
 impl<T, S> OAuthSession<T, S>
 where
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: MapStore<String, String> + Send + Sync + 'static,
 {
     pub fn new(dpop_client: DpopClient<T, S>, token_set: TokenSet) -> Self {
         Self { inner: dpop_client, token_set }
@@ -27,7 +27,7 @@ where
 impl<T, S> HttpClient for OAuthSession<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: MapStore<String, String> + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -40,7 +40,7 @@ where
 impl<T, S> XrpcClient for OAuthSession<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: MapStore<String, String> + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.token_set.aud.clone()
@@ -71,7 +71,7 @@ where
 impl<T, S> SessionManager for OAuthSession<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: MapStore<String, String> + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
         todo!()
