@@ -1,6 +1,8 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
+use crate::http_client::dpop::{DpopClient, Error as DpopError};
 use crate::keyset::Keyset;
+use crate::oauth_session::OAuthSession;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::state::{InternalStateData, StateStore};
@@ -155,6 +157,7 @@ where
             iss: metadata.issuer.clone(),
             dpop_key: dpop_key.clone(),
             verifier,
+            app_state: options.state,
         };
         self.state_store
             .set(state.clone(), state_data)
@@ -207,7 +210,10 @@ where
             todo!()
         }
     }
-    pub async fn callback(&self, params: CallbackParams) -> Result<TokenSet> {
+    pub async fn callback(
+        &self,
+        params: CallbackParams,
+    ) -> Result<(OAuthSession<T>, Option<String>)> {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -241,9 +247,15 @@ where
             self.keyset.clone(),
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
+        // TODO: store token_set to session store
 
-        // TODO: create session?
-        Ok(token_set)
+        let session = self.create_session(
+            state.dpop_key.clone(),
+            &metadata,
+            &self.client_metadata,
+            token_set,
+        )?;
+        Ok((session, state.app_state))
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
         let mut algs =
@@ -255,8 +267,22 @@ where
         // https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
         let verifier =
             URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
-        let mut hasher = Sha256::new();
-        hasher.update(verifier.as_bytes());
-        (URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())), verifier)
+        (URL_SAFE_NO_PAD.encode(Sha256::digest(&verifier)), verifier)
+    }
+    fn create_session(
+        &self,
+        dpop_key: Key,
+        server_metadata: &OAuthAuthorizationServerMetadata,
+        client_metadata: &OAuthClientMetadata,
+        token_set: TokenSet,
+    ) -> core::result::Result<OAuthSession<T>, DpopError> {
+        let dpop_client = DpopClient::new(
+            dpop_key,
+            client_metadata.client_id.clone(),
+            self.http_client.clone(),
+            false,
+            &server_metadata.token_endpoint_auth_signing_alg_values_supported,
+        )?;
+        Ok(OAuthSession::new(dpop_client, token_set))
     }
 }

@@ -72,7 +72,7 @@ where
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
-    async fn authentication_token(&self, is_refresh: bool) -> Option<String> {
+    async fn authorization_token(&self, is_refresh: bool) -> Option<String> {
         self.store.get_session().await.map(|session| {
             if is_refresh {
                 session.data.refresh_jwt

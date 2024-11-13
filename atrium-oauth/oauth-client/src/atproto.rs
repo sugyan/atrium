@@ -94,7 +94,7 @@ impl TryIntoOAuthClientMetadata for AtprotoLocalhostClientMetadata {
             return Err(Error::EmptyRedirectUris);
         }
         Ok(OAuthClientMetadata {
-            client_id: String::from("http://localhost"),
+            client_id: String::from("http://localhost?scope=atproto+transition:generic"), // TODO
             client_uri: None,
             redirect_uris: self.redirect_uris,
             scope: None,       // will be set to `atproto`

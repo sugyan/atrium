@@ -14,7 +14,7 @@ keywords = ["atproto", "bluesky", "oauth"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-atrium-api = { workspace = true, default-features = false }
+atrium-api = { workspace = true, features = ["agent"] }
 atrium-identity.workspace = true
 atrium-xrpc.workspace = true
 base64.workspace = true
@@ -34,6 +34,7 @@ thiserror.workspace = true
 trait-variant.workspace = true
 
 [dev-dependencies]
+atrium-api = { workspace = true, features = ["bluesky"] }
 hickory-resolver.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 

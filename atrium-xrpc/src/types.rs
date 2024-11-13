@@ -4,6 +4,20 @@ use serde::{de::DeserializeOwned, Serialize};
 
 pub(crate) const NSID_REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
 
+pub enum AuthorizationType {
+    Bearer,
+    Dpop,
+}
+
+impl AsRef<str> for AuthorizationType {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Bearer => "Bearer",
+            Self::Dpop => "DPoP",
+        }
+    }
+}
+
 /// HTTP headers which can be used in XPRC requests.
 pub enum Header {
     ContentType,

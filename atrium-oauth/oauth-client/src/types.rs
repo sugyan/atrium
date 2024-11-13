@@ -38,11 +38,17 @@ pub struct AuthorizeOptions {
     pub redirect_uri: Option<String>,
     pub scopes: Option<Vec<String>>, // TODO: enum?
     pub prompt: Option<AuthorizeOptionPrompt>,
+    pub state: Option<String>,
 }
 
 impl Default for AuthorizeOptions {
     fn default() -> Self {
-        Self { redirect_uri: None, scopes: Some(vec![String::from("atproto")]), prompt: None }
+        Self {
+            redirect_uri: None,
+            scopes: Some(vec![String::from("atproto")]),
+            prompt: None,
+            state: None,
+        }
     }
 }
 

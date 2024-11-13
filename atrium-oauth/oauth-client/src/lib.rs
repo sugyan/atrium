@@ -5,6 +5,7 @@ mod http_client;
 mod jose;
 mod keyset;
 mod oauth_client;
+mod oauth_session;
 mod resolver;
 mod server_agent;
 pub mod store;
@@ -19,6 +20,7 @@ pub use error::{Error, Result};
 pub use http_client::default::DefaultHttpClient;
 pub use http_client::dpop::DpopClient;
 pub use oauth_client::{OAuthClient, OAuthClientConfig};
+pub use oauth_session::OAuthSession;
 pub use resolver::OAuthResolverConfig;
 pub use types::{
     AuthorizeOptionPrompt, AuthorizeOptions, CallbackParams, OAuthClientMetadata, TokenSet,

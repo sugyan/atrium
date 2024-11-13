@@ -1,3 +1,4 @@
+use atrium_api::agent::Agent;
 use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
 use atrium_oauth_client::store::state::MemoryStateStore;
@@ -61,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .authorize(
                 std::env::var("HANDLE").unwrap_or(String::from("https://bsky.social")),
                 AuthorizeOptions {
-                    scopes: Some(vec![String::from("atproto")]),
+                    scopes: Some(vec![String::from("atproto"), String::from("transition:generic")]),
                     ..Default::default()
                 }
             )
@@ -78,7 +79,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uri = url.trim().parse::<Uri>()?;
     let params = serde_html_form::from_str(uri.query().unwrap())?;
-    println!("{}", serde_json::to_string_pretty(&client.callback(params).await?)?);
-
+    let (session, _) = client.callback(params).await?;
+    let agent = Agent::new(session);
+    println!(
+        "{:?}",
+        agent
+            .api
+            .app
+            .bsky
+            .feed
+            .get_timeline(
+                atrium_api::app::bsky::feed::get_timeline::ParametersData {
+                    algorithm: None,
+                    cursor: None,
+                    limit: 1.try_into().ok()
+                }
+                .into()
+            )
+            .await?
+    );
     Ok(())
 }
