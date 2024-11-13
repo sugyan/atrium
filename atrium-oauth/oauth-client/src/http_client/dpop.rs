@@ -66,7 +66,7 @@ impl<T> DpopClient<T> {
             }
         }
         let nonces = MemorySimpleStore::<String, String>::default();
-        Ok(Self { inner: http_client, key, nonces, is_auth_server })
+        Ok(Self { inner: http_client, key, iss, nonces, is_auth_server })
     }
 }
 

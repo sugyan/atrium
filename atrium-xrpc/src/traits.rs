@@ -1,5 +1,6 @@
-use crate::error::{Error, XrpcError, XrpcErrorKind};
-use crate::types::{AuthorizationToken, Header, NSID_REFRESH_SESSION};
+use crate::error::Error;
+use crate::error::{XrpcError, XrpcErrorKind};
+use crate::types::{AuthorizationType, Header, NSID_REFRESH_SESSION};
 use crate::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
@@ -30,12 +31,13 @@ type XrpcResult<O, E> = core::result::Result<OutputDataOrBytes<O>, self::Error<E
 pub trait XrpcClient: HttpClient {
     /// The base URI of the XRPC server.
     fn base_uri(&self) -> String;
+    /// The type of authorization to use (default is [`AuthorizationType::Bearer`]).
+    fn authorization_type(&self) -> AuthorizationType {
+        AuthorizationType::Bearer
+    }
     /// Get the authorization token to use `Authorization` header.
     #[allow(unused_variables)]
-    fn authorization_token(
-        &self,
-        is_refresh: bool,
-    ) -> impl Future<Output = Option<AuthorizationToken>> {
+    fn authorization_token(&self, is_refresh: bool) -> impl Future<Output = Option<String>> {
         async { None }
     }
     /// Get the `atproto-proxy` header.
@@ -106,7 +108,10 @@ where
         .authorization_token(request.method == Method::POST && request.nsid == NSID_REFRESH_SESSION)
         .await
     {
-        builder = builder.header(Header::Authorization, token);
+        builder = builder.header(
+            Header::Authorization,
+            format!("{} {}", client.authorization_type().as_ref(), token),
+        );
     }
     if let Some(proxy) = client.atproto_proxy_header().await {
         builder = builder.header(Header::AtprotoProxy, proxy);

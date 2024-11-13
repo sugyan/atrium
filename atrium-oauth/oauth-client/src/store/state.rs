@@ -8,6 +8,7 @@ pub struct InternalStateData {
     pub iss: String,
     pub dpop_key: Key,
     pub verifier: String,
+    pub app_state: Option<String>,
 }
 
 pub trait StateStore: SimpleStore<String, InternalStateData> {}

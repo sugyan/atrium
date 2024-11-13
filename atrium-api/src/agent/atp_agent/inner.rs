@@ -76,7 +76,11 @@ where
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
+<<<<<<< HEAD
     async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
+=======
+    async fn authorization_token(&self, is_refresh: bool) -> Option<String> {
+>>>>>>> d041ae7 (Add OAuthSession)
         self.store.get_session().await.map(|session| {
             AuthorizationToken::Bearer(if is_refresh {
                 session.data.refresh_jwt
