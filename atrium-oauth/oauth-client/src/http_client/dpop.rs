@@ -151,8 +151,8 @@ where
             .map(|auth| URL_SAFE_NO_PAD.encode(Sha256::digest(&auth.as_bytes()[5..])));
 
         let ath = match request.headers().get("Authorization").and_then(|v| v.to_str().ok()) {
-            Some(s) if s.starts_with("DPoP") => {
-                Some(URL_SAFE_NO_PAD.encode(Sha256::digest(s.strip_prefix("DPoP").unwrap())))
+            Some(s) if s.starts_with("DPoP ") => {
+                Some(URL_SAFE_NO_PAD.encode(Sha256::digest(s.strip_prefix("DPoP ").unwrap())))
             }
             _ => None,
         };

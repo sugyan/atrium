@@ -22,6 +22,7 @@ base64.workspace = true
 chrono.workspace = true
 ecdsa = { workspace = true, features = ["signing"] }
 elliptic-curve.workspace = true
+futures.workspace = true
 jose-jwa.workspace = true
 jose-jwk = { workspace = true, features = ["p256"] }
 p256 = { workspace = true, features = ["ecdsa"] }
