@@ -168,7 +168,7 @@ where
             response_type: AuthorizationResponseType::Code,
             redirect_uri,
             state,
-            scope: options.scopes.map(|v| v.join(" ")),
+            scope: Some(options.scopes.iter().map(AsRef::as_ref).collect::<Vec<_>>().join(" ")),
             response_mode: None,
             code_challenge,
             code_challenge_method: AuthorizationCodeChallengeMethod::S256,

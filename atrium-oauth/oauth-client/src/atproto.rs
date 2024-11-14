@@ -1,6 +1,6 @@
 use crate::keyset::Keyset;
 use crate::types::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
-use atrium_xrpc::http::Uri;
+use atrium_xrpc::http::uri::Uri;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -18,6 +18,8 @@ pub enum Error {
     EmptyJwks,
     #[error("`private_key_jwt` auth method requires `token_endpoint_auth_signing_alg`, otherwise must not be provided")]
     AuthSigningAlg,
+    #[error(transparent)]
+    SerdeHtmlForm(#[from] serde_html_form::ser::Error),
 }
 
 pub type Result<T> = core::result::Result<T, Error>;
@@ -56,22 +58,37 @@ impl From<GrantType> for String {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(untagged)]
 pub enum Scope {
-    Atproto,
+    Known(KnownScope),
+    Unknown(String),
 }
 
-impl From<Scope> for String {
-    fn from(value: Scope) -> Self {
-        match value {
-            Scope::Atproto => String::from("atproto"),
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum KnownScope {
+    #[serde(rename = "atproto")]
+    Atproto,
+    #[serde(rename = "transition:generic")]
+    TransitionGeneric,
+    #[serde(rename = "transition:chat.bsky")]
+    TransitionChatBsky,
+}
+
+impl AsRef<str> for Scope {
+    fn as_ref(&self) -> &str {
+        match self {
+            Self::Known(KnownScope::Atproto) => "atproto",
+            Self::Known(KnownScope::TransitionGeneric) => "transition:generic",
+            Self::Known(KnownScope::TransitionChatBsky) => "transition:chat.bsky",
+            Self::Unknown(value) => value,
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct AtprotoLocalhostClientMetadata {
-    pub redirect_uris: Vec<String>,
+    pub redirect_uris: Option<Vec<String>>,
+    pub scopes: Option<Vec<Scope>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -90,13 +107,29 @@ impl TryIntoOAuthClientMetadata for AtprotoLocalhostClientMetadata {
     type Error = Error;
 
     fn try_into_client_metadata(self, _: &Option<Keyset>) -> Result<OAuthClientMetadata> {
-        if self.redirect_uris.is_empty() {
-            return Err(Error::EmptyRedirectUris);
+        #[derive(serde::Serialize)]
+        struct Parameters {
+            #[serde(skip_serializing_if = "Option::is_none")]
+            redirect_uri: Option<Vec<String>>,
+            #[serde(skip_serializing_if = "Option::is_none")]
+            scope: Option<String>,
+        }
+        let query = serde_html_form::to_string(Parameters {
+            redirect_uri: self.redirect_uris.clone(),
+            scope: self
+                .scopes
+                .map(|scopes| scopes.iter().map(AsRef::as_ref).collect::<Vec<_>>().join(" ")),
+        })?;
+        let mut client_id = String::from("http://localhost");
+        if !query.is_empty() {
+            client_id.push_str(&format!("?{query}"));
         }
         Ok(OAuthClientMetadata {
-            client_id: String::from("http://localhost?scope=atproto+transition:generic"), // TODO
+            client_id,
             client_uri: None,
-            redirect_uris: self.redirect_uris,
+            redirect_uris: self
+                .redirect_uris
+                .unwrap_or(vec![String::from("http://127.0.0.1/"), String::from("http://[::1]/")]),
             scope: None,       // will be set to `atproto`
             grant_types: None, // will be set to `authorization_code` and `refresh_token`
             token_endpoint_auth_method: Some(String::from("none")),
@@ -121,7 +154,7 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
         if !self.grant_types.contains(&GrantType::AuthorizationCode) {
             return Err(Error::InvalidGrantTypes);
         }
-        if !self.scopes.contains(&Scope::Atproto) {
+        if !self.scopes.contains(&Scope::Known(KnownScope::Atproto)) {
             return Err(Error::InvalidScope);
         }
         let (jwks_uri, mut jwks) = (self.jwks_uri, None);
@@ -150,13 +183,71 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
             redirect_uris: self.redirect_uris,
             token_endpoint_auth_method: Some(self.token_endpoint_auth_method.into()),
             grant_types: Some(self.grant_types.into_iter().map(|v| v.into()).collect()),
-            scope: Some(
-                self.scopes.into_iter().map(|v| v.into()).collect::<Vec<String>>().join(" "),
-            ),
+            scope: Some(self.scopes.iter().map(AsRef::as_ref).collect::<Vec<_>>().join(" ")),
             dpop_bound_access_tokens: Some(true),
             jwks_uri,
             jwks,
             token_endpoint_auth_signing_alg: self.token_endpoint_auth_signing_alg,
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_localhost_client_metadata_default() {
+        let metadata = AtprotoLocalhostClientMetadata::default();
+        assert_eq!(
+            metadata.try_into_client_metadata(&None).expect("failed to convert metadata"),
+            OAuthClientMetadata {
+                client_id: String::from("http://localhost"),
+                client_uri: None,
+                redirect_uris: vec![
+                    String::from("http://127.0.0.1/"),
+                    String::from("http://[::1]/"),
+                ],
+                scope: None,
+                grant_types: None,
+                token_endpoint_auth_method: Some(AuthMethod::None.into()),
+                dpop_bound_access_tokens: None,
+                jwks_uri: None,
+                jwks: None,
+                token_endpoint_auth_signing_alg: None,
+            }
+        );
+    }
+
+    #[test]
+    fn test_localhost_client_metadata_custom() {
+        let metadata = AtprotoLocalhostClientMetadata {
+            redirect_uris: Some(vec![
+                String::from("http://127.0.0.1/callback"),
+                String::from("http://[::1]/callback"),
+            ]),
+            scopes: Some(vec![
+                Scope::Known(KnownScope::Atproto),
+                Scope::Known(KnownScope::TransitionGeneric),
+            ]),
+        };
+        assert_eq!(
+            metadata.try_into_client_metadata(&None).expect("failed to convert metadata"),
+            OAuthClientMetadata {
+                client_id: String::from("http://localhost?redirect_uri=http%3A%2F%2F127.0.0.1%2Fcallback&redirect_uri=http%3A%2F%2F%5B%3A%3A1%5D%2Fcallback&scope=atproto+transition%3Ageneric"),
+                client_uri: None,
+                redirect_uris: vec![
+                    String::from("http://127.0.0.1/callback"),
+                    String::from("http://[::1]/callback"),
+                    ],
+                scope: None,
+                grant_types: None,
+                token_endpoint_auth_method: Some(AuthMethod::None.into()),
+                dpop_bound_access_tokens: None,
+                jwks_uri: None,
+                jwks: None,
+                token_endpoint_auth_signing_alg: None,
+            }
+        );
     }
 }

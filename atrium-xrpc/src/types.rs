@@ -1,20 +1,22 @@
-use http::header::{AUTHORIZATION, CONTENT_TYPE};
-use http::{HeaderName, Method};
+use http::header::{HeaderName, HeaderValue, InvalidHeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use http::Method;
 use serde::{de::DeserializeOwned, Serialize};
 
 pub(crate) const NSID_REFRESH_SESSION: &str = "com.atproto.server.refreshSession";
 
-pub enum AuthorizationType {
-    Bearer,
-    Dpop,
+pub enum AuthorizationToken {
+    Bearer(String),
+    Dpop(String),
 }
 
-impl AsRef<str> for AuthorizationType {
-    fn as_ref(&self) -> &str {
-        match self {
-            Self::Bearer => "Bearer",
-            Self::Dpop => "DPoP",
-        }
+impl TryFrom<AuthorizationToken> for HeaderValue {
+    type Error = InvalidHeaderValue;
+
+    fn try_from(token: AuthorizationToken) -> Result<Self, Self::Error> {
+        HeaderValue::from_str(&match token {
+            AuthorizationToken::Bearer(t) => format!("Bearer {t}"),
+            AuthorizationToken::Dpop(t) => format!("DPoP {t}"),
+        })
     }
 }
 

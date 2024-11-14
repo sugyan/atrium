@@ -3,6 +3,7 @@ use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
+use atrium_xrpc::types::AuthorizationToken;
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
@@ -72,13 +73,13 @@ where
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
-    async fn authorization_token(&self, is_refresh: bool) -> Option<String> {
+    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
         self.store.get_session().await.map(|session| {
-            if is_refresh {
+            AuthorizationToken::Bearer(if is_refresh {
                 session.data.refresh_jwt
             } else {
                 session.data.access_jwt
-            }
+            })
         })
     }
     async fn atproto_proxy_header(&self) -> Option<String> {

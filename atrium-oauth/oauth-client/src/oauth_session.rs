@@ -1,9 +1,9 @@
 use crate::store::{memory::MemorySimpleStore, SimpleStore};
 use crate::{DpopClient, TokenSet};
 use atrium_api::{agent::SessionManager, types::string::Did};
-use atrium_xrpc::types::AuthorizationType;
 use atrium_xrpc::{
     http::{Request, Response},
+    types::AuthorizationToken,
     HttpClient, XrpcClient,
 };
 
@@ -45,11 +45,8 @@ where
     fn base_uri(&self) -> String {
         self.token_set.aud.clone()
     }
-    fn authorization_type(&self) -> AuthorizationType {
-        AuthorizationType::Dpop
-    }
-    async fn authorization_token(&self, is_refresh: bool) -> Option<String> {
-        Some(self.token_set.access_token.clone())
+    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
+        Some(AuthorizationToken::Dpop(self.token_set.access_token.clone()))
     }
     // async fn atproto_proxy_header(&self) -> Option<String> {
     //     todo!()
