@@ -32,6 +32,8 @@ pub enum Error {
     Token(String),
     #[error("unsupported authentication method")]
     UnsupportedAuthMethod,
+    #[error("no refresh token available for {0}")]
+    NoRefreshToken(String),
     #[error(transparent)]
     DpopClient(#[from] crate::http_client::dpop::Error),
     #[error(transparent)]
@@ -140,10 +142,12 @@ where
     async fn verify_token_response(&self, token_response: OAuthTokenResponse) -> Result<TokenSet> {
         // ATPROTO requires that the "sub" is always present in the token response.
         let Some(sub) = &token_response.sub else {
+            self.revoke(&token_response.access_token).await;
             return Err(Error::Token("missing `sub` in token response".into()));
         };
         let (metadata, identity) = self.resolver.resolve_from_identity(sub).await?;
         if metadata.issuer != self.server_metadata.issuer {
+            self.revoke(&token_response.access_token).await;
             return Err(Error::Token("issuer mismatch".into()));
         }
         let expires_at = token_response.expires_in.and_then(|expires_in| {
@@ -176,36 +180,42 @@ where
         )
         .await
     }
-    pub async fn revoke_session(&self, token: &str) -> Result<()> {
-        self.request(OAuthRequest::Revocation(RevocationRequestParameters { token: token.into() }))
-            .await
+    pub async fn revoke(&self, token: &str) {
+        let _ = self
+            .request::<()>(OAuthRequest::Revocation(RevocationRequestParameters {
+                token: token.into(),
+            }))
+            .await;
     }
-    pub async fn refresh_session(&self, token_set: TokenSet) -> Result<TokenSet> {
-        let TokenSet { sub, scope, refresh_token, access_token, token_type, expires_at, .. } =
-            token_set;
-        let expires_in = expires_at.map(|expires_at| {
-            expires_at.as_ref().signed_duration_since(Datetime::now().as_ref()).num_seconds()
-        });
-        let token_response = OAuthTokenResponse {
-            access_token,
-            token_type,
-            expires_in,
-            refresh_token,
-            scope,
-            sub: Some(sub),
+    /**
+     * /!\ IMPORTANT /!\
+     *
+     * The "sub" MUST be a DID, whose issuer authority is indeed the server we
+     * are trying to obtain credentials from. Note that we are doing this
+     * *before* we actually try to refresh the token:
+     *   1) To avoid unnecessary refresh
+     *   2) So that the refresh is the last async operation, ensuring as few
+     *      async operations happen before the result gets a chance to be stored.
+     */
+    pub async fn refresh(&self, token_set: TokenSet) -> Result<TokenSet> {
+        let Some(refresh_token) = token_set.refresh_token else {
+            return Err(Error::NoRefreshToken(token_set.sub.clone()));
         };
-        let TokenSet { scope, refresh_token: Some(refresh_token), .. } =
-            self.verify_token_response(token_response).await?
-        else {
-            todo!();
-        };
-        self.verify_token_response(
-            self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
-                RefreshTokenParameters { refresh_token, scope },
-            )))
-            .await?,
-        )
-        .await
+        let (metadata, atrium_identity::identity_resolver::ResolvedIdentity { pds: aud, .. }) =
+            self.resolver.resolve_from_identity(&token_set.sub).await?;
+        if metadata.issuer != self.server_metadata.issuer {
+            let _ = self.revoke(&token_set.access_token).await;
+            return Err(Error::Token("issuer mismatch".into()));
+        }
+        let token_set = self
+            .verify_token_response(
+                self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
+                    RefreshTokenParameters { refresh_token, scope: token_set.scope.clone() },
+                )))
+                .await?,
+            )
+            .await?;
+        Ok(TokenSet { aud, ..token_set })
     }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where
