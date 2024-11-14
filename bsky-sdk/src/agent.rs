@@ -262,7 +262,6 @@ where
 mod tests {
     use super::*;
     use atrium_api::agent::atp_agent::AtpSession;
-    use atrium_common::store::MapStore;
 
     #[derive(Clone)]
     struct NoopStore;

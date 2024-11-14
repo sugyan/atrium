@@ -282,7 +282,6 @@ mod tests {
     use atrium_api::xrpc::http::{Request, Response};
     use atrium_api::xrpc::types::Header;
     use atrium_api::xrpc::{HttpClient, XrpcClient};
-    use atrium_common::store::MapStore;
 
     struct MockClient;
 

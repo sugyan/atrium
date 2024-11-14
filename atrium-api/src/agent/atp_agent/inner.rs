@@ -1,4 +1,3 @@
-use super::AtpSession;
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
@@ -13,6 +12,8 @@ use std::{
     sync::{Arc, RwLock},
 };
 use tokio::sync::{Mutex, Notify};
+
+use super::AtpSession;
 
 struct WrapperClient<S, T> {
     store: Arc<Store<S>>,

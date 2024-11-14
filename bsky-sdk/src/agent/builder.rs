@@ -106,7 +106,6 @@ mod tests {
     use super::*;
     use atrium_api::agent::atp_agent::AtpSession;
     use atrium_api::com::atproto::server::create_session::OutputData;
-    use atrium_common::store::MapStore;
 
     fn session() -> AtpSession {
         OutputData {
