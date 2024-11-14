@@ -11,7 +11,7 @@ use crate::types::{
 use crate::utils::{compare_algos, generate_nonce};
 use atrium_api::types::string::Datetime;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
-use atrium_xrpc::http::{Method, Request, StatusCode};
+use atrium_xrpc::http::{Method, Request, Response, StatusCode};
 use atrium_xrpc::HttpClient;
 use chrono::{TimeDelta, Utc};
 use jose_jwk::Key;
@@ -317,5 +317,20 @@ where
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
             }
         }
+    }
+}
+
+impl<T, D, H> HttpClient for OAuthServerAgent<T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
+{
+    async fn send_http(
+        &self,
+        request: Request<Vec<u8>>,
+    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
+    {
+        self.dpop_client.send_http(request).await
     }
 }
