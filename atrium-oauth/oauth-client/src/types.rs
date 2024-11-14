@@ -47,7 +47,7 @@ impl Default for AuthorizeOptions {
     fn default() -> Self {
         Self {
             redirect_uri: None,
-            scopes: Some(vec![String::from("atproto")]),
+            scopes: vec![Scope::Known(KnownScope::Atproto)],
             prompt: None,
             state: None,
         }

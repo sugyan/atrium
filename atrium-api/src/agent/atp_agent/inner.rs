@@ -1,11 +1,10 @@
 use super::{AtpSession, AtpSessionStore};
 use crate::did_doc::DidDocument;
-use crate::types::{string::Did, TryFromUnknown};
-use atrium_xrpc::{
-    error::{Error, Result, XrpcErrorKind},
-    types::AuthorizationToken,
-    HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest,
-};
+use crate::types::string::Did;
+use crate::types::TryFromUnknown;
+use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
+use atrium_xrpc::types::AuthorizationToken;
+use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{
@@ -76,11 +75,7 @@ where
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
-<<<<<<< HEAD
-    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
-=======
     async fn authorization_token(&self, is_refresh: bool) -> Option<String> {
->>>>>>> d041ae7 (Add OAuthSession)
         self.store.get_session().await.map(|session| {
             AuthorizationToken::Bearer(if is_refresh {
                 session.data.refresh_jwt

@@ -88,22 +88,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let params = serde_html_form::from_str(uri.query().unwrap())?;
     let (session, _) = client.callback(params).await?;
     let agent = Agent::new(session);
-    println!(
-        "{:?}",
-        agent
-            .api
-            .app
-            .bsky
-            .feed
-            .get_timeline(
-                atrium_api::app::bsky::feed::get_timeline::ParametersData {
-                    algorithm: None,
-                    cursor: None,
-                    limit: 1.try_into().ok()
-                }
-                .into()
-            )
-            .await?
-    );
+    let output = agent
+        .api
+        .app
+        .bsky
+        .feed
+        .get_timeline(
+            atrium_api::app::bsky::feed::get_timeline::ParametersData {
+                algorithm: None,
+                cursor: None,
+                limit: 3.try_into().ok(),
+            }
+            .into(),
+        )
+        .await?;
+    for feed in &output.feed {
+        println!("{feed:?}");
+    }
     Ok(())
 }

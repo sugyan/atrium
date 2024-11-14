@@ -121,6 +121,7 @@ impl TryIntoOAuthClientMetadata for AtprotoLocalhostClientMetadata {
     type Error = Error;
 
     fn try_into_client_metadata(self, _: &Option<Keyset>) -> Result<OAuthClientMetadata> {
+<<<<<<< HEAD
         // validate redirect_uris
         if let Some(redirect_uris) = &self.redirect_uris {
             for redirect_uri in redirect_uris {
@@ -137,6 +138,8 @@ impl TryIntoOAuthClientMetadata for AtprotoLocalhostClientMetadata {
             }
         }
         // determine client_id
+=======
+>>>>>>> 1e7805d (Update)
         #[derive(serde::Serialize)]
         struct Parameters {
             #[serde(skip_serializing_if = "Option::is_none")]
@@ -155,12 +158,16 @@ impl TryIntoOAuthClientMetadata for AtprotoLocalhostClientMetadata {
             client_id.push_str(&format!("?{query}"));
         }
         Ok(OAuthClientMetadata {
-            client_id: String::from("http://localhost?scope=atproto+transition:generic"), // TODO
+            client_id,
             client_uri: None,
             redirect_uris: self
                 .redirect_uris
                 .unwrap_or(vec![String::from("http://127.0.0.1/"), String::from("http://[::1]/")]),
+<<<<<<< HEAD
             scope: None,
+=======
+            scope: None,       // will be set to `atproto`
+>>>>>>> 1e7805d (Update)
             grant_types: None, // will be set to `authorization_code` and `refresh_token`
             token_endpoint_auth_method: Some(String::from("none")),
             dpop_bound_access_tokens: None, // will be set to `true`
@@ -225,6 +232,7 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
 #[cfg(test)]
 mod tests {
     use super::*;
+<<<<<<< HEAD
     use elliptic_curve::SecretKey;
     use jose_jwk::{Jwk, Key, Parameters};
     use p256::pkcs8::DecodePrivateKey;
@@ -234,6 +242,8 @@ MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgED1AAgC7Fc9kPh5T
 4i4Tn+z+tc47W1zYgzXtyjJtD92hRANCAAT80DqC+Z/JpTO7/pkPBmWqIV1IGh1P
 gbGGr0pN+oSing7cZ0169JaRHTNh+0LNQXrFobInX6cj95FzEdRyT4T3
 -----END PRIVATE KEY-----"#;
+=======
+>>>>>>> 1e7805d (Update)
 
     #[test]
     fn test_localhost_client_metadata_default() {
@@ -268,13 +278,20 @@ gbGGr0pN+oSing7cZ0169JaRHTNh+0LNQXrFobInX6cj95FzEdRyT4T3
             scopes: Some(vec![
                 Scope::Known(KnownScope::Atproto),
                 Scope::Known(KnownScope::TransitionGeneric),
+<<<<<<< HEAD
                 Scope::Unknown(String::from("unknown")),
+=======
+>>>>>>> 1e7805d (Update)
             ]),
         };
         assert_eq!(
             metadata.try_into_client_metadata(&None).expect("failed to convert metadata"),
             OAuthClientMetadata {
+<<<<<<< HEAD
                 client_id: String::from("http://localhost?redirect_uri=http%3A%2F%2F127.0.0.1%2Fcallback&redirect_uri=http%3A%2F%2F%5B%3A%3A1%5D%2Fcallback&scope=atproto+transition%3Ageneric+unknown"),
+=======
+                client_id: String::from("http://localhost?redirect_uri=http%3A%2F%2F127.0.0.1%2Fcallback&redirect_uri=http%3A%2F%2F%5B%3A%3A1%5D%2Fcallback&scope=atproto+transition%3Ageneric"),
+>>>>>>> 1e7805d (Update)
                 client_uri: None,
                 redirect_uris: vec![
                     String::from("http://127.0.0.1/callback"),
@@ -290,6 +307,7 @@ gbGGr0pN+oSing7cZ0169JaRHTNh+0LNQXrFobInX6cj95FzEdRyT4T3
             }
         );
     }
+<<<<<<< HEAD
 
     #[test]
     fn test_localhost_client_metadata_invalid() {
@@ -393,4 +411,6 @@ gbGGr0pN+oSing7cZ0169JaRHTNh+0LNQXrFobInX6cj95FzEdRyT4T3
             serde_json::from_str::<Scopes>(&json).expect("failed to deserialize scopes");
         assert_eq!(deserialized, scopes);
     }
+=======
+>>>>>>> 1e7805d (Update)
 }
