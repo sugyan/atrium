@@ -12,6 +12,7 @@ use jose_jwa::{Algorithm, Signing};
 use jose_jwk::{crypto, EcCurves, Jwk, Key};
 use rand::rngs::SmallRng;
 use rand::{RngCore, SeedableRng};
+use reqwest::header::HeaderValue;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
@@ -148,6 +149,13 @@ where
             .get("Authorization")
             .filter(|v| v.to_str().map_or(false, |s| s.starts_with("DPoP ")))
             .map(|auth| URL_SAFE_NO_PAD.encode(Sha256::digest(&auth.as_bytes()[5..])));
+
+        let ath = match request.headers().get("Authorization").and_then(|v| v.to_str().ok()) {
+            Some(s) if s.starts_with("DPoP") => {
+                Some(URL_SAFE_NO_PAD.encode(Sha256::digest(s.strip_prefix("DPoP").unwrap())))
+            }
+            _ => None,
+        };
 
         let init_nonce = self.nonces.get(&nonce_key).await?;
         let init_proof =
