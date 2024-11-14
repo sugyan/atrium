@@ -5,16 +5,17 @@ use crate::keyset::Keyset;
 use crate::oauth_session::OAuthSession;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
-use crate::store::session::{SessionStore, Session};
+use crate::store::session::{Session, SessionStore};
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
     OAuthAuthorizationServerMetadata, OAuthClientMetadata,
-    OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters, TokenSet,
+    OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters,
     TryIntoOAuthClientMetadata,
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
 use atrium_common::resolver::Resolver;
+use atrium_common::store::CellStore;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;

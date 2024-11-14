@@ -175,6 +175,12 @@ where
         )
         .await
     }
+    pub async fn revoke_session(&self, token: &str) -> Result<()> {
+        todo!()
+    }
+    pub async fn refresh_session(&self, token_set: TokenSet) -> Result<TokenSet> {
+        todo!()
+    }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where
         O: serde::de::DeserializeOwned,

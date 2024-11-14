@@ -1,7 +1,7 @@
 use atrium_api::agent::Agent;
 use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
-use atrium_oauth_client::store::session::MemorySessionStore;
+use atrium_oauth_client::store::session::{MemorySessionStore, Session};
 use atrium_oauth_client::store::state::MemoryStateStore;
 use atrium_oauth_client::{
     AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, KnownScope, OAuthClient,

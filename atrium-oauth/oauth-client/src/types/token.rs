@@ -15,3 +15,13 @@ pub struct TokenSet {
 
     pub expires_at: Option<Datetime>,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct TokenInfo {
+    pub iss: String,
+    pub sub: String,
+    pub aud: String,
+    pub scope: Option<String>,
+
+    pub expires_at: Option<Datetime>,
+}

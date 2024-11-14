@@ -11,6 +11,7 @@ mod server_agent;
 pub mod store;
 mod types;
 mod utils;
+mod oauth_session;
 
 pub use atproto::{
     AtprotoClientMetadata, AtprotoLocalhostClientMetadata, AuthMethod, GrantType, KnownScope, Scope,
