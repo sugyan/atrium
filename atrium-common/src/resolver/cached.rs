@@ -20,17 +20,12 @@ where
     type Output = R::Output;
     type Error = R::Error;
 
-    async fn resolve(&self, input: &Self::Input) -> Result<Option<Self::Output>, Self::Error> {
-        match self.cache.get(input).await {
-            Some(cached) => Ok(Some(cached)),
-            None => {
-                let result = self.inner.resolve(input).await?;
-
-                if let Some(result) = result.as_ref().cloned() {
-                    self.cache.set(input.clone(), result.clone()).await;
-                }
-                Ok(result)
-            }
+    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output, Self::Error> {
+        if let Some(output) = self.cache.get(input).await {
+            return Ok(output);
         }
+        let output = self.inner.resolve(input).await?;
+        self.cache.set(input.clone(), output.clone()).await;
+        Ok(output)
     }
 }

@@ -32,7 +32,7 @@ where
     type Output = DidDocument;
     type Error = Error;
 
-    async fn resolve(&self, did: &Self::Input) -> Result<Option<Self::Output>> {
+    async fn resolve(&self, did: &Self::Input) -> Result<Self::Output> {
         let document_url = format!(
             "https://{}/.well-known/did.json",
             did.as_str()

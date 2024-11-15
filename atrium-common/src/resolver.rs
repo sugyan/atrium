@@ -16,7 +16,7 @@ pub trait Resolver {
     fn resolve(
         &self,
         input: &Self::Input,
-    ) -> impl Future<Output = core::result::Result<Option<Self::Output>, Self::Error>>;
+    ) -> impl Future<Output = core::result::Result<Self::Output, Self::Error>>;
 }
 
 #[cfg(test)]
@@ -52,10 +52,17 @@ mod tests {
         type Output = String;
         type Error = Error;
 
-        async fn resolve(&self, input: &Self::Input) -> Result<Option<Self::Output>> {
+        async fn resolve(
+            &self,
+            input: &Self::Input,
+        ) -> core::result::Result<Self::Output, Self::Error> {
             sleep(Duration::from_millis(10)).await;
             *self.counts.write().await.entry(input.clone()).or_default() += 1;
-            Ok(self.data.get(input).cloned())
+            if let Some(value) = self.data.get(input) {
+                Ok(value.clone())
+            } else {
+                Err(Error::NotFound)
+            }
         }
     }
 
@@ -87,12 +94,8 @@ mod tests {
         ] {
             let result = resolver.resolve(&input.to_string()).await;
             match expected {
-                Some(value) => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), Some(value))
-                }
-                None => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), None)
-                }
+                Some(value) => assert_eq!(result.expect("failed to resolve"), value),
+                None => assert!(result.is_err()),
             }
         }
         assert_eq!(
@@ -119,12 +122,8 @@ mod tests {
         ] {
             let result = resolver.resolve(&input.to_string()).await;
             match expected {
-                Some(value) => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), Some(value))
-                }
-                None => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), None)
-                }
+                Some(value) => assert_eq!(result.expect("failed to resolve"), value),
+                None => assert!(result.is_err()),
             }
         }
         assert_eq!(
@@ -152,12 +151,8 @@ mod tests {
         ] {
             let result = resolver.resolve(&input.to_string()).await;
             match expected {
-                Some(value) => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), Some(value))
-                }
-                None => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), None)
-                }
+                Some(value) => assert_eq!(result.expect("failed to resolve"), value),
+                None => assert!(result.is_err()),
             }
         }
         assert_eq!(
@@ -178,12 +173,12 @@ mod tests {
         }));
         for _ in 0..10 {
             let result = resolver.resolve(&String::from("k1")).await;
-            assert_eq!(result.expect("failed to resolve").as_deref(), Some("v1"));
+            assert_eq!(result.expect("failed to resolve"), "v1");
         }
         sleep(Duration::from_millis(10)).await;
         for _ in 0..10 {
             let result = resolver.resolve(&String::from("k1")).await;
-            assert_eq!(result.expect("failed to resolve").as_deref(), Some("v1"));
+            assert_eq!(result.expect("failed to resolve"), "v1");
         }
         assert_eq!(*counts.read().await, [(String::from("k1"), 2)].into_iter().collect());
     }
@@ -212,9 +207,7 @@ mod tests {
                 Some(value) => {
                     assert_eq!(result.expect("failed to resolve").as_deref(), Some(value))
                 }
-                None => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), None)
-                }
+                None => assert!(result.is_err()),
             }
         }
         assert_eq!(

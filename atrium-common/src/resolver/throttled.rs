@@ -20,10 +20,10 @@ where
     R::Output: Clone + Send + Sync + 'static,
 {
     type Input = R::Input;
-    type Output = R::Output;
+    type Output = Option<R::Output>;
     type Error = R::Error;
 
-    async fn resolve(&self, input: &Self::Input) -> Result<Option<Self::Output>, Self::Error> {
+    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output, Self::Error> {
         match self.pending.entry(input.clone()) {
             Entry::Occupied(occupied) => {
                 let tx = occupied.get().lock().await.clone();
@@ -34,9 +34,9 @@ where
                 let (tx, _) = channel(1);
                 vacant.insert(Arc::new(Mutex::new(tx.clone())));
                 let result = self.inner.resolve(input).await;
-                let _ = tx.send(result.as_ref().cloned().transpose().and_then(Result::ok));
+                tx.send(result.as_ref().ok().cloned()).ok();
                 self.pending.remove(input);
-                result
+                result.map(Some)
             }
         }
     }

@@ -75,7 +75,7 @@ where
         };
         Self { inner: Arc::new(Mutex::new(store)), expiration: config.time_to_live }
     }
-    async fn get(&self, key: &Self::Input) -> Option<Self::Output> {
+    async fn get(&self, key: &Self::Input) -> Self::Output {
         let mut cache = self.inner.lock().await;
         if let Some(ValueWithInstant { value, instant }) = cache.get(key) {
             if let Some(expiration) = self.expiration {

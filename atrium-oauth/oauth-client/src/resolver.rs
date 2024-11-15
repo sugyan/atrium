@@ -129,8 +129,7 @@ where
         &self,
         input: &str,
     ) -> Result<(OAuthAuthorizationServerMetadata, ResolvedIdentity)> {
-        let result = self.identity_resolver.resolve(input).await;
-        let identity = result.and_then(|result| result.ok_or_else(|| Error::NotFound))?;
+        let identity = self.identity_resolver.resolve(input).await?;
         let metadata = self.get_resource_server_metadata(&identity.pds).await?;
         Ok((metadata, identity))
     }
@@ -193,15 +192,15 @@ where
     type Output = (OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>);
     type Error = Error;
 
-    async fn resolve(&self, input: &Self::Input) -> Result<Option<Self::Output>> {
+    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
         // Allow using an entryway, or PDS url, directly as login input (e.g.
         // when the user forgot their handle, or when the handle does not
         // resolve to a DID)
         Ok(if input.starts_with("https://") {
-            Some((self.resolve_from_service(input.as_ref()).await?, None))
+            (self.resolve_from_service(input.as_ref()).await?, None)
         } else {
             let (metadata, identity) = self.resolve_from_identity(input).await?;
-            Some((metadata, Some(identity)))
+            (metadata, Some(identity))
         })
     }
 }

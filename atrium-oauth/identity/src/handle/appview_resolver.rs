@@ -33,7 +33,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(self.service_url.parse::<Uri>()?)
             .path_and_query(format!(
                 "/xrpc/com.atproto.identity.resolveHandle?{}",
@@ -49,7 +49,7 @@ where
             .await
             .map_err(Error::HttpClient)?;
         if res.status().is_success() {
-            Ok(Some(serde_json::from_slice::<resolve_handle::OutputData>(res.body())?.did))
+            Ok(serde_json::from_slice::<resolve_handle::OutputData>(res.body())?.did)
         } else {
             Err(Error::HttpStatus(res.status()))
         }

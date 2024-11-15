@@ -6,6 +6,8 @@ pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error("resource not found")]
+    NotFound,
     #[error("dns resolver error: {0}")]
     DnsResolver(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error(transparent)]

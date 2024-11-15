@@ -41,7 +41,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         let d_fut = self.dns.resolve(handle);
         let h_fut = self.http.resolve(handle);
         if let Ok(did) = d_fut.await {
