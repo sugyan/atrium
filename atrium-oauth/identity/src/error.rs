@@ -46,6 +46,7 @@ impl From<resolver::Error> for Error {
             resolver::Error::SerdeJson(error) => Error::SerdeJson(error),
             resolver::Error::SerdeHtmlForm(error) => Error::SerdeHtmlForm(error),
             resolver::Error::Uri(error) => Error::Uri(error),
+            resolver::Error::NotFound => Error::NotFound,
         }
     }
 }

@@ -31,7 +31,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         let url = format!("https://{}{WELL_KNWON_PATH}", handle.as_str());
         // TODO: no-cache?
         let res = self
@@ -41,7 +41,7 @@ where
             .map_err(Error::HttpClient)?;
         if res.status().is_success() {
             let text = String::from_utf8_lossy(res.body()).to_string();
-            Some(text.parse::<Did>().map_err(|e| Error::Did(e.to_string()))).transpose()
+            text.parse::<Did>().map_err(|e| Error::Did(e.to_string()))
         } else {
             Err(Error::HttpStatus(res.status()))
         }

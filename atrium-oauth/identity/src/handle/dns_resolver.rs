@@ -43,7 +43,7 @@ where
     type Output = Did;
     type Error = Error;
 
-    async fn resolve(&self, handle: &Self::Input) -> Result<Option<Self::Output>> {
+    async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         for result in self
             .dns_txt_resolver
             .resolve(&format!("{SUBDOMAIN}.{}", handle.as_ref()))
@@ -51,7 +51,7 @@ where
             .map_err(Error::DnsResolver)?
         {
             if let Some(did) = result.strip_prefix(PREFIX) {
-                return Some(did.parse::<Did>().map_err(|e| Error::Did(e.to_string()))).transpose();
+                return did.parse::<Did>().map_err(|e| Error::Did(e.to_string()));
             }
         }
         Err(Error::NotFound)
