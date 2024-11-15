@@ -1,9 +1,7 @@
 mod cached;
-mod error;
 mod throttled;
 
 pub use self::cached::CachedResolver;
-pub use self::error::{Error, Result};
 pub use self::throttled::ThrottledResolver;
 use std::future::Future;
 
@@ -41,6 +39,11 @@ mod tests {
     async fn sleep(duration: Duration) {
         gloo_timers::future::sleep(duration).await;
     }
+
+    #[derive(Debug)]
+    struct Error;
+
+    type Result<T> = core::result::Result<T, Error>;
 
     struct MockResolver {
         data: HashMap<String, String>,

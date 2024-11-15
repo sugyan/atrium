@@ -17,32 +17,12 @@ keywords = ["atproto", "bluesky", "identity"]
 atrium-api = { workspace = true, default-features = false }
 atrium-common.workspace = true
 atrium-xrpc.workspace = true
-dashmap.workspace = true
 hickory-proto = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_html_form.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, default-features = false, features = ["sync"] }
 trait-variant.workspace = true
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-moka = { workspace = true, features = ["future"] }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-lru.workspace = true
-web-time.workspace = true
-
-[dev-dependencies]
-futures.workspace = true
-
-[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
-tokio = { workspace = true, features = ["macros", "rt-multi-thread", "time"] }
-
-[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
-gloo-timers.workspace = true
-tokio = { workspace = true, features = ["time"] }
-wasm-bindgen-test.workspace = true
 
 [features]
 default = []
