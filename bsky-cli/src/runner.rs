@@ -7,7 +7,6 @@ use bsky_sdk::agent::config::{Config, FileStore};
 use bsky_sdk::api;
 use bsky_sdk::BskyAgent;
 use serde::Serialize;
-use std::ffi::OsStr;
 use std::path::PathBuf;
 use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncReadExt;
