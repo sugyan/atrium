@@ -4,6 +4,7 @@ mod request;
 mod response;
 mod token;
 
+use crate::atproto::{KnownScope, Scope};
 pub use client_metadata::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
 pub use metadata::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
 pub use request::{
@@ -36,13 +37,19 @@ impl From<AuthorizeOptionPrompt> for String {
 #[derive(Debug, Deserialize)]
 pub struct AuthorizeOptions {
     pub redirect_uri: Option<String>,
-    pub scopes: Option<Vec<String>>, // TODO: enum?
+    pub scopes: Vec<Scope>,
     pub prompt: Option<AuthorizeOptionPrompt>,
+    pub state: Option<String>,
 }
 
 impl Default for AuthorizeOptions {
     fn default() -> Self {
-        Self { redirect_uri: None, scopes: Some(vec![String::from("atproto")]), prompt: None }
+        Self {
+            redirect_uri: None,
+            scopes: vec![Scope::Known(KnownScope::Atproto)],
+            prompt: None,
+            state: None,
+        }
     }
 }
 

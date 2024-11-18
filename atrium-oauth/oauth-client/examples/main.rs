@@ -2,8 +2,8 @@ use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_P
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
 use atrium_oauth_client::store::state::MemoryStateStore;
 use atrium_oauth_client::{
-    AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, OAuthClient,
-    OAuthClientConfig, OAuthResolverConfig,
+    AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, KnownScope, OAuthClient,
+    OAuthClientConfig, OAuthResolverConfig, Scope,
 };
 use atrium_xrpc::http::Uri;
 use hickory_resolver::TokioAsyncResolver;
@@ -37,7 +37,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let http_client = Arc::new(DefaultHttpClient::default());
     let config = OAuthClientConfig {
         client_metadata: AtprotoLocalhostClientMetadata {
-            redirect_uris: vec!["http://127.0.0.1".to_string()],
+            redirect_uris: Some(vec![String::from("http://127.0.0.1/callback")]),
+            scopes: Some(vec![
+                Scope::Known(KnownScope::Atproto),
+                Scope::Known(KnownScope::TransitionGeneric),
+            ]),
         },
         keys: None,
         resolver: OAuthResolverConfig {
@@ -61,7 +65,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .authorize(
                 std::env::var("HANDLE").unwrap_or(String::from("https://bsky.social")),
                 AuthorizeOptions {
-                    scopes: Some(vec![String::from("atproto")]),
+                    scopes: vec![
+                        Scope::Known(KnownScope::Atproto),
+                        Scope::Known(KnownScope::TransitionGeneric)
+                    ],
                     ..Default::default()
                 }
             )

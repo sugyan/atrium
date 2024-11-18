@@ -35,6 +35,7 @@ trait-variant.workspace = true
 
 [dev-dependencies]
 hickory-resolver.workspace = true
+p256 = { workspace = true, features = ["pem"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]

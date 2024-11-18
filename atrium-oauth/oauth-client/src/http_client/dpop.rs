@@ -13,6 +13,7 @@ use jose_jwk::{crypto, EcCurves, Jwk, Key};
 use rand::rngs::SmallRng;
 use rand::{RngCore, SeedableRng};
 use serde::Deserialize;
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use thiserror::Error;
 
@@ -44,6 +45,7 @@ where
     #[allow(dead_code)]
     iss: String,
     nonces: S,
+    is_auth_server: bool,
 }
 
 impl<T> DpopClient<T> {
@@ -51,6 +53,7 @@ impl<T> DpopClient<T> {
         key: Key,
         iss: String,
         http_client: Arc<T>,
+        is_auth_server: bool,
         supported_algs: &Option<Vec<String>>,
     ) -> Result<Self> {
         if let Some(algs) = supported_algs {
@@ -66,9 +69,21 @@ impl<T> DpopClient<T> {
             }
         }
         let nonces = MemorySimpleStore::<String, String>::default();
-        Ok(Self { inner: http_client, key, iss, nonces })
+        Ok(Self { inner: http_client, key, iss, nonces, is_auth_server })
     }
-    fn build_proof(&self, htm: String, htu: String, nonce: Option<String>) -> Result<String> {
+}
+
+impl<T, S> DpopClient<T, S>
+where
+    S: SimpleStore<String, String>,
+{
+    fn build_proof(
+        &self,
+        htm: String,
+        htu: String,
+        ath: Option<String>,
+        nonce: Option<String>,
+    ) -> Result<String> {
         match crypto::Key::try_from(&self.key).map_err(Error::JwkCrypto)? {
             crypto::Key::P256(crypto::Kind::Secret(secret_key)) => {
                 let mut header = RegisteredHeader::from(Algorithm::Signing(Signing::Es256));
@@ -83,12 +98,7 @@ impl<T> DpopClient<T> {
                         iat: Some(Utc::now().timestamp()),
                         ..Default::default()
                     },
-                    public: PublicClaims {
-                        htm: Some(htm),
-                        htu: Some(htu),
-                        nonce,
-                        ..Default::default()
-                    },
+                    public: PublicClaims { htm: Some(htm), htu: Some(htu), ath, nonce },
                 };
                 Ok(create_signed_jwt(secret_key.into(), header.into(), claims)?)
             }
@@ -96,14 +106,24 @@ impl<T> DpopClient<T> {
         }
     }
     fn is_use_dpop_nonce_error(&self, response: &Response<Vec<u8>>) -> bool {
-        // is auth server?
-        if response.status() == 400 {
-            if let Ok(res) = serde_json::from_slice::<ErrorResponse>(response.body()) {
-                return res.error == "use_dpop_nonce";
-            };
+        // https://datatracker.ietf.org/doc/html/rfc9449#name-authorization-server-provid
+        if self.is_auth_server {
+            if response.status() == 400 {
+                if let Ok(res) = serde_json::from_slice::<ErrorResponse>(response.body()) {
+                    return res.error == "use_dpop_nonce";
+                };
+            }
         }
-        // is resource server?
-
+        // https://datatracker.ietf.org/doc/html/rfc6750#section-3
+        // https://datatracker.ietf.org/doc/html/rfc9449#name-resource-server-provided-no
+        else if response.status() == 401 {
+            if let Some(www_auth) =
+                response.headers().get("WWW-Authenticate").and_then(|v| v.to_str().ok())
+            {
+                return www_auth.starts_with("DPoP")
+                    && www_auth.contains(r#"error="use_dpop_nonce""#);
+            }
+        }
         false
     }
     // https://datatracker.ietf.org/doc/html/rfc9449#section-4.2
@@ -115,9 +135,10 @@ impl<T> DpopClient<T> {
     }
 }
 
-impl<T> HttpClient for DpopClient<T>
+impl<T, S> HttpClient for DpopClient<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
+    S: SimpleStore<String, String> + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -128,9 +149,16 @@ where
         let nonce_key = uri.authority().unwrap().to_string();
         let htm = request.method().to_string();
         let htu = uri.to_string();
+        // https://datatracker.ietf.org/doc/html/rfc9449#section-4.2
+        let ath = request
+            .headers()
+            .get("Authorization")
+            .filter(|v| v.to_str().map_or(false, |s| s.starts_with("DPoP ")))
+            .map(|auth| URL_SAFE_NO_PAD.encode(Sha256::digest(&auth.as_bytes()[5..])));
 
         let init_nonce = self.nonces.get(&nonce_key).await?;
-        let init_proof = self.build_proof(htm.clone(), htu.clone(), init_nonce.clone())?;
+        let init_proof =
+            self.build_proof(htm.clone(), htu.clone(), ath.clone(), init_nonce.clone())?;
         request.headers_mut().insert("DPoP", init_proof.parse()?);
         let response = self.inner.send_http(request.clone()).await?;
 
@@ -151,7 +179,7 @@ where
         if !self.is_use_dpop_nonce_error(&response) {
             return Ok(response);
         }
-        let next_proof = self.build_proof(htm, htu, next_nonce)?;
+        let next_proof = self.build_proof(htm, htu, ath, next_nonce)?;
         request.headers_mut().insert("DPoP", next_proof.parse()?);
         let response = self.inner.send_http(request).await?;
         Ok(response)
