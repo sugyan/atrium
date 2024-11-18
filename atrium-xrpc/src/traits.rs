@@ -1,11 +1,9 @@
-use crate::error::Error;
-use crate::error::{XrpcError, XrpcErrorKind};
+use crate::error::{Error, XrpcError, XrpcErrorKind};
 use crate::types::{AuthorizationToken, Header, NSID_REFRESH_SESSION};
 use crate::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
-use std::future::Future;
+use std::{fmt::Debug, future::Future};
 
 /// An abstract HTTP client.
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]

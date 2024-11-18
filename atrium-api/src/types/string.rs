@@ -7,7 +7,7 @@ use ipld_core::cid;
 use langtag::{LanguageTag, LanguageTagBuf};
 use regex::Regex;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
-use std::{cell::OnceCell, cmp, ops::Deref, str::FromStr};
+use std::{cmp, ops::Deref, str::FromStr, sync::OnceLock};
 
 /// Common trait implementations for Lexicon string formats that are newtype wrappers
 /// around `String`.
@@ -213,7 +213,7 @@ impl FromStr for Datetime {
         // datetimes to the subset that is also valid under ISO 8601. Apply a regex that
         // validates enough of the relevant ISO 8601 format that the RFC 3339 parser can
         // do the rest.
-        const RE_ISO_8601: OnceCell<Regex> = OnceCell::new();
+        static RE_ISO_8601: OnceLock<Regex> = OnceLock::new();
         if RE_ISO_8601
             .get_or_init(|| Regex::new(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?(Z|(\+[0-9]{2}|\-[0-9][1-9]):[0-9]{2})$").unwrap())
             .is_match(s)
@@ -267,7 +267,7 @@ impl Did {
     #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `Did` from the given string.
     pub fn new(did: String) -> Result<Self, &'static str> {
-        const RE_DID: OnceCell<Regex> = OnceCell::new();
+        static RE_DID: OnceLock<Regex> = OnceLock::new();
 
         // https://atproto.com/specs/did#at-protocol-did-identifier-syntax
         if did.len() > 2048 {
@@ -305,7 +305,7 @@ impl Handle {
     #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `Handle` from the given string.
     pub fn new(handle: String) -> Result<Self, &'static str> {
-        const RE_HANDLE: OnceCell<Regex> = OnceCell::new();
+        static RE_HANDLE: OnceLock<Regex> = OnceLock::new();
 
         // https://atproto.com/specs/handle#handle-identifier-syntax
         if handle.len() > 253 {
@@ -338,7 +338,7 @@ impl Nsid {
     #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses an NSID from the given string.
     pub fn new(nsid: String) -> Result<Self, &'static str> {
-        const RE_NSID: OnceCell<Regex> = OnceCell::new();
+        static RE_NSID: OnceLock<Regex> = OnceLock::new();
 
         // https://atproto.com/specs/handle#handle-identifier-syntax
         if nsid.len() > 317 {
@@ -420,7 +420,7 @@ impl Tid {
     #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `TID` from the given string.
     pub fn new(tid: String) -> Result<Self, &'static str> {
-        const RE_TID: OnceCell<Regex> = OnceCell::new();
+        static RE_TID: OnceLock<Regex> = OnceLock::new();
 
         if tid.len() != 13 {
             Err("TID must be 13 characters")
@@ -452,7 +452,7 @@ impl RecordKey {
     #[allow(clippy::borrow_interior_mutable_const, clippy::declare_interior_mutable_const)]
     /// Parses a `Record Key` from the given string.
     pub fn new(s: String) -> Result<Self, &'static str> {
-        const RE_RKEY: OnceCell<Regex> = OnceCell::new();
+        static RE_RKEY: OnceLock<Regex> = OnceLock::new();
 
         if [".", ".."].contains(&s.as_str()) {
             Err("Disallowed rkey")
