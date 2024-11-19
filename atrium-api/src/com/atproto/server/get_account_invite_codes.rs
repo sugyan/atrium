@@ -5,10 +5,10 @@ pub const NSID: &str = "com.atproto.server.getAccountInviteCodes";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     ///Controls whether any new 'earned' but not 'created' invites should be created.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub create_available: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_used: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub create_available: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub include_used: core::option::Option<bool>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

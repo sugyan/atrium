@@ -3,18 +3,20 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MemberData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_at: core::option::Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_updated_by: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub profile: Option<crate::app::bsky::actor::defs::ProfileViewDetailed>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub disabled: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_updated_by: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub profile: core::option::Option<
+        crate::app::bsky::actor::defs::ProfileViewDetailed,
+    >,
     pub role: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub updated_at: core::option::Option<crate::types::string::Datetime>,
 }
 pub type Member = crate::types::Object<MemberData>;
 ///Admin role. Highest level of access, can perform all actions.

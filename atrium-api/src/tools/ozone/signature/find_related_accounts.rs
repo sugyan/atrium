@@ -4,19 +4,19 @@ pub const NSID: &str = "tools.ozone.signature.findRelatedAccounts";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub accounts: Vec<RelatedAccount>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -31,7 +31,9 @@ impl std::fmt::Display for Error {
 #[serde(rename_all = "camelCase")]
 pub struct RelatedAccountData {
     pub account: crate::com::atproto::admin::defs::AccountView,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub similarities: Option<Vec<crate::tools::ozone::signature::defs::SigDetail>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub similarities: core::option::Option<
+        Vec<crate::tools::ozone::signature::defs::SigDetail>,
+    >,
 }
 pub type RelatedAccount = crate::types::Object<RelatedAccountData>;

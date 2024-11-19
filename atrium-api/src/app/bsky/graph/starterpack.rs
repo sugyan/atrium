@@ -4,12 +4,14 @@
 #[serde(rename_all = "camelCase")]
 pub struct RecordData {
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub feeds: Option<Vec<FeedItem>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description_facets: core::option::Option<
+        Vec<crate::app::bsky::richtext::facet::Main>,
+    >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub feeds: core::option::Option<Vec<FeedItem>>,
     ///Reference (AT-URI) to the list record.
     pub list: String,
     ///Display name for starter pack; can not be empty.

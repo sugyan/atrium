@@ -4,16 +4,16 @@ pub const NSID: &str = "tools.ozone.server.getConfig";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub appview: Option<ServiceConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub blob_divert: Option<ServiceConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat: Option<ServiceConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pds: Option<ServiceConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<ViewerConfig>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub appview: core::option::Option<ServiceConfig>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub blob_divert: core::option::Option<ServiceConfig>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub chat: core::option::Option<ServiceConfig>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub pds: core::option::Option<ServiceConfig>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<ViewerConfig>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -27,14 +27,14 @@ impl std::fmt::Display for Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ServiceConfigData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub url: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub url: core::option::Option<String>,
 }
 pub type ServiceConfig = crate::types::Object<ServiceConfigData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewerConfigData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub role: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub role: core::option::Option<String>,
 }
 pub type ViewerConfig = crate::types::Object<ViewerConfigData>;

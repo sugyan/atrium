@@ -12,8 +12,8 @@ pub type Main = crate::types::Object<MainData>;
 pub struct ImageData {
     ///Alt text description of the image, for accessibility.
     pub alt: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub aspect_ratio: Option<crate::app::bsky::embed::defs::AspectRatio>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub aspect_ratio: core::option::Option<crate::app::bsky::embed::defs::AspectRatio>,
     pub image: crate::types::BlobRef,
 }
 pub type Image = crate::types::Object<ImageData>;
@@ -28,8 +28,8 @@ pub type View = crate::types::Object<ViewData>;
 pub struct ViewImageData {
     ///Alt text description of the image, for accessibility.
     pub alt: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub aspect_ratio: Option<crate::app::bsky::embed::defs::AspectRatio>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub aspect_ratio: core::option::Option<crate::app::bsky::embed::defs::AspectRatio>,
     ///Fully-qualified URL where a large version of the image can be fetched. May or may not be the exact original blob. For example, CDN location provided by the App View.
     pub fullsize: String,
     ///Fully-qualified URL where a thumbnail of the image can be fetched. For example, CDN location provided by the App View.

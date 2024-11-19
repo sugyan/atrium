@@ -4,10 +4,10 @@ pub const NSID: &str = "com.atproto.temp.fetchLabels";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<250u8>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub since: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<250u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub since: core::option::Option<i64>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

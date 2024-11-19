@@ -4,11 +4,11 @@ pub const NSID: &str = "tools.ozone.setting.upsertOption";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
     pub key: crate::types::string::Nsid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub manager_role: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub manager_role: core::option::Option<String>,
     pub scope: String,
     pub value: crate::types::Unknown,
 }

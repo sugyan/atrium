@@ -4,20 +4,22 @@
 #[serde(rename_all = "camelCase")]
 pub struct RecordData {
     ///Declaration that a feed accepts feedback interactions from a client through app.bsky.feed.sendInteractions
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub accepts_interactions: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<crate::types::BlobRef>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub accepts_interactions: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub avatar: core::option::Option<crate::types::BlobRef>,
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description_facets: core::option::Option<
+        Vec<crate::app::bsky::richtext::facet::Main>,
+    >,
     pub did: crate::types::string::Did,
     pub display_name: String,
     ///Self-label values
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<crate::types::Union<RecordLabelsRefs>>,
 }
 pub type Record = crate::types::Object<RecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

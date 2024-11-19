@@ -4,8 +4,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct BlockedAuthorData {
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<crate::app::bsky::actor::defs::ViewerState>,
 }
 pub type BlockedAuthor = crate::types::Object<BlockedAuthorData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -28,57 +28,59 @@ pub const CLICKTHROUGH_REPOSTER: &str = "app.bsky.feed.defs#clickthroughReposter
 #[serde(rename_all = "camelCase")]
 pub struct FeedViewPostData {
     ///Context provided by feed generator that may be passed back alongside interactions.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub feed_context: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub feed_context: core::option::Option<String>,
     pub post: PostView,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<crate::types::Union<FeedViewPostReasonRefs>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply: Option<ReplyRef>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reason: core::option::Option<crate::types::Union<FeedViewPostReasonRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reply: core::option::Option<ReplyRef>,
 }
 pub type FeedViewPost = crate::types::Object<FeedViewPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneratorViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub accepts_interactions: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub accepts_interactions: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub avatar: core::option::Option<String>,
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description_facets: core::option::Option<
+        Vec<crate::app::bsky::richtext::facet::Main>,
+    >,
     pub did: crate::types::string::Did,
     pub display_name: String,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like_count: core::option::Option<usize>,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<GeneratorViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<GeneratorViewerState>,
 }
 pub type GeneratorView = crate::types::Object<GeneratorViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneratorViewerStateData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like: core::option::Option<String>,
 }
 pub type GeneratorViewerState = crate::types::Object<GeneratorViewerStateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InteractionData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub event: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub event: core::option::Option<String>,
     ///Context on a feed item that was originally supplied by the feed generator on getFeedSkeleton.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub feed_context: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub item: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub feed_context: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub item: core::option::Option<String>,
 }
 pub type Interaction = crate::types::Object<InteractionData>;
 ///User liked the feed item
@@ -105,25 +107,25 @@ pub type NotFoundPost = crate::types::Object<NotFoundPostData>;
 pub struct PostViewData {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: crate::types::string::Cid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<crate::types::Union<PostViewEmbedRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub embed: core::option::Option<crate::types::Union<PostViewEmbedRefs>>,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub quote_count: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like_count: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub quote_count: core::option::Option<i64>,
     pub record: crate::types::Unknown,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply_count: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub repost_count: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub threadgate: Option<ThreadgateView>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reply_count: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub repost_count: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub threadgate: core::option::Option<ThreadgateView>,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<ViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<ViewerState>,
 }
 pub type PostView = crate::types::Object<PostViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -141,8 +143,10 @@ pub type ReasonRepost = crate::types::Object<ReasonRepostData>;
 #[serde(rename_all = "camelCase")]
 pub struct ReplyRefData {
     ///When parent is a reply to another post, this is the author of that post.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub grandparent_author: Option<crate::app::bsky::actor::defs::ProfileViewBasic>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub grandparent_author: core::option::Option<
+        crate::app::bsky::actor::defs::ProfileViewBasic,
+    >,
     pub parent: crate::types::Union<ReplyRefParentRefs>,
     pub root: crate::types::Union<ReplyRefRootRefs>,
 }
@@ -155,11 +159,11 @@ pub const REQUEST_MORE: &str = "app.bsky.feed.defs#requestMore";
 #[serde(rename_all = "camelCase")]
 pub struct SkeletonFeedPostData {
     ///Context that will be passed through to client and may be passed to feed generator back alongside interactions.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub feed_context: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub feed_context: core::option::Option<String>,
     pub post: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reason: core::option::Option<crate::types::Union<SkeletonFeedPostReasonRefs>>,
 }
 pub type SkeletonFeedPost = crate::types::Object<SkeletonFeedPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -175,42 +179,44 @@ pub type SkeletonReasonRepost = crate::types::Object<SkeletonReasonRepostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ThreadViewPostData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent: Option<crate::types::Union<ThreadViewPostParentRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub parent: core::option::Option<crate::types::Union<ThreadViewPostParentRefs>>,
     pub post: PostView,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub replies: Option<Vec<crate::types::Union<ThreadViewPostRepliesItem>>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub replies: core::option::Option<
+        Vec<crate::types::Union<ThreadViewPostRepliesItem>>,
+    >,
 }
 pub type ThreadViewPost = crate::types::Object<ThreadViewPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ThreadgateViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<crate::types::string::Cid>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lists: Option<Vec<crate::app::bsky::graph::defs::ListViewBasic>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record: Option<crate::types::Unknown>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub uri: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cid: core::option::Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub lists: core::option::Option<Vec<crate::app::bsky::graph::defs::ListViewBasic>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub record: core::option::Option<crate::types::Unknown>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub uri: core::option::Option<String>,
 }
 pub type ThreadgateView = crate::types::Object<ThreadgateViewData>;
 ///Metadata about the requesting account's relationship with the subject content. Only has meaningful content for authed requests.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewerStateData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embedding_disabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pinned: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply_disabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub repost: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thread_muted: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub embedding_disabled: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub pinned: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reply_disabled: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub repost: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub thread_muted: core::option::Option<bool>,
 }
 pub type ViewerState = crate::types::Object<ViewerStateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

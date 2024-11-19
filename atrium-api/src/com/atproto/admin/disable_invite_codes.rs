@@ -4,10 +4,10 @@ pub const NSID: &str = "com.atproto.admin.disableInviteCodes";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub accounts: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub codes: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub accounts: core::option::Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub codes: core::option::Option<Vec<String>>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

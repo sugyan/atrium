@@ -5,11 +5,11 @@ pub const NSID: &str = "com.atproto.server.updateEmail";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     pub email: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_auth_factor: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email_auth_factor: core::option::Option<bool>,
     ///Requires a token from com.atproto.sever.requestEmailUpdate if the account's email has been confirmed.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub token: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub token: core::option::Option<String>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

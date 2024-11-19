@@ -5,21 +5,21 @@
 #[serde(rename_all = "camelCase")]
 pub struct LabelData {
     ///Optionally, CID specifying the specific version of 'uri' resource this label applies to.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cid: core::option::Option<crate::types::string::Cid>,
     ///Timestamp when this label was created.
     pub cts: crate::types::string::Datetime,
     ///Timestamp at which this label expires (no longer applies).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exp: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub exp: core::option::Option<crate::types::string::Datetime>,
     ///If true, this is a negation label, overwriting a previous label.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub neg: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub neg: core::option::Option<bool>,
     ///Signature of dag-cbor encoded label.
     #[serde(default)]
     #[serde(with = "serde_bytes")]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sig: Option<Vec<u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub sig: core::option::Option<Vec<u8>>,
     ///DID of the actor who created this label.
     pub src: crate::types::string::Did,
     ///AT URI of the record, repository (account), or other resource that this label applies to.
@@ -27,8 +27,8 @@ pub struct LabelData {
     ///The short string name of the value or type of this label.
     pub val: String,
     ///The AT Protocol version of the label object.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub ver: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub ver: core::option::Option<i64>,
 }
 pub type Label = crate::types::Object<LabelData>;
 pub type LabelValue = String;
@@ -37,13 +37,13 @@ pub type LabelValue = String;
 #[serde(rename_all = "camelCase")]
 pub struct LabelValueDefinitionData {
     ///Does the user need to have adult content enabled in order to configure this label?
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub adult_only: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub adult_only: core::option::Option<bool>,
     ///What should this label hide in the UI, if applied? 'content' hides all of the target; 'media' hides the images/video/audio; 'none' hides nothing.
     pub blurs: String,
     ///The default setting for this label.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub default_setting: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub default_setting: core::option::Option<String>,
     ///The value of the label being defined. Must only include lowercase ascii and the '-' character ([a-z-]+).
     pub identifier: String,
     pub locales: Vec<LabelValueDefinitionStrings>,

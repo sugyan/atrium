@@ -5,25 +5,25 @@ pub const NSID: &str = "app.bsky.unspecced.searchStarterPacksSkeleton";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     ///Optional pagination mechanism; may not necessarily allow scrolling through entire result set.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.
     pub q: String,
     ///DID of the account making the request (not included for public/unauthenticated queries).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<crate::types::string::Did>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     ///Count of search hits. Optional, may be rounded/truncated, and may not be possible to paginate through all hits.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub hits_total: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub hits_total: core::option::Option<i64>,
     pub starter_packs: Vec<crate::app::bsky::unspecced::defs::SkeletonSearchStarterPack>,
 }
 pub type Output = crate::types::Object<OutputData>;

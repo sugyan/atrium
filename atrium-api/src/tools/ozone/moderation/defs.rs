@@ -6,27 +6,27 @@
 pub struct AccountEventData {
     ///Indicates that the account has a repository which can be fetched from the host that emitted this event.
     pub active: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub status: core::option::Option<String>,
     pub timestamp: crate::types::string::Datetime,
 }
 pub type AccountEvent = crate::types::Object<AccountEventData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountHostingData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deactivated_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deleted_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reactivated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub deactivated_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub deleted_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reactivated_at: core::option::Option<crate::types::string::Datetime>,
     pub status: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub updated_at: core::option::Option<crate::types::string::Datetime>,
 }
 pub type AccountHosting = crate::types::Object<AccountHostingData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -34,11 +34,11 @@ pub type AccountHosting = crate::types::Object<AccountHostingData>;
 pub struct BlobViewData {
     pub cid: crate::types::string::Cid,
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub details: Option<crate::types::Union<BlobViewDetailsRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub details: core::option::Option<crate::types::Union<BlobViewDetailsRefs>>,
     pub mime_type: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub moderation: Option<Moderation>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub moderation: core::option::Option<Moderation>,
     pub size: i64,
 }
 pub type BlobView = crate::types::Object<BlobViewData>;
@@ -46,15 +46,15 @@ pub type BlobView = crate::types::Object<BlobViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct IdentityEventData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub handle: Option<crate::types::string::Handle>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub pds_host: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub handle: core::option::Option<crate::types::string::Handle>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub pds_host: core::option::Option<String>,
     pub timestamp: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tombstone: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub tombstone: core::option::Option<bool>,
 }
 pub type IdentityEvent = crate::types::Object<IdentityEventData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -67,8 +67,8 @@ pub type ImageDetails = crate::types::Object<ImageDetailsData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventAcknowledgeData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventAcknowledge = crate::types::Object<ModEventAcknowledgeData>;
 ///Add a comment to a subject
@@ -77,16 +77,16 @@ pub type ModEventAcknowledge = crate::types::Object<ModEventAcknowledgeData>;
 pub struct ModEventCommentData {
     pub comment: String,
     ///Make the comment persistent on the subject
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sticky: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub sticky: core::option::Option<bool>,
 }
 pub type ModEventComment = crate::types::Object<ModEventCommentData>;
 ///Divert a record's blobs to a 3rd party service for further scanning/tagging
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventDivertData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventDivert = crate::types::Object<ModEventDivertData>;
 ///Keep a log of outgoing email to a user
@@ -94,11 +94,11 @@ pub type ModEventDivert = crate::types::Object<ModEventDivertData>;
 #[serde(rename_all = "camelCase")]
 pub struct ModEventEmailData {
     ///Additional comment about the outgoing comm.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///The content of the email sent to the user.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub content: core::option::Option<String>,
     ///The subject line of the email sent to the user.
     pub subject_line: String,
 }
@@ -106,16 +106,16 @@ pub type ModEventEmail = crate::types::Object<ModEventEmailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventEscalateData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventEscalate = crate::types::Object<ModEventEscalateData>;
 ///Apply/Negate labels on a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventLabelData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     pub create_label_vals: Vec<String>,
     pub negate_label_vals: Vec<String>,
 }
@@ -124,8 +124,8 @@ pub type ModEventLabel = crate::types::Object<ModEventLabelData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventMuteData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Indicates how long the subject should remain muted.
     pub duration_in_hours: i64,
 }
@@ -134,22 +134,22 @@ pub type ModEventMute = crate::types::Object<ModEventMuteData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventMuteReporterData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Indicates how long the account should remain muted. Falsy value here means a permanent mute.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_in_hours: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub duration_in_hours: core::option::Option<i64>,
 }
 pub type ModEventMuteReporter = crate::types::Object<ModEventMuteReporterData>;
 ///Report a subject
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventReportData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Set to true if the reporter was muted from reporting at the time of the event. These reports won't impact the reviewState of the subject.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_reporter_muted: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub is_reporter_muted: core::option::Option<bool>,
     pub report_type: crate::com::atproto::moderation::defs::ReasonType,
 }
 pub type ModEventReport = crate::types::Object<ModEventReportData>;
@@ -158,8 +158,8 @@ pub type ModEventReport = crate::types::Object<ModEventReportData>;
 #[serde(rename_all = "camelCase")]
 pub struct ModEventResolveAppealData {
     ///Describe resolution.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventResolveAppeal = crate::types::Object<ModEventResolveAppealData>;
 ///Revert take down action on a subject
@@ -167,8 +167,8 @@ pub type ModEventResolveAppeal = crate::types::Object<ModEventResolveAppealData>
 #[serde(rename_all = "camelCase")]
 pub struct ModEventReverseTakedownData {
     ///Describe reasoning behind the reversal.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventReverseTakedown = crate::types::Object<ModEventReverseTakedownData>;
 ///Add/Remove a tag on a subject
@@ -178,8 +178,8 @@ pub struct ModEventTagData {
     ///Tags to be added to the subject. If already exists, won't be duplicated.
     pub add: Vec<String>,
     ///Additional comment about added/removed tags.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Tags to be removed to the subject. Ignores a tag If it doesn't exist, won't be duplicated.
     pub remove: Vec<String>,
 }
@@ -189,13 +189,13 @@ pub type ModEventTag = crate::types::Object<ModEventTagData>;
 #[serde(rename_all = "camelCase")]
 pub struct ModEventTakedownData {
     ///If true, all other reports on content authored by this account will be resolved (acknowledged).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub acknowledge_account_subjects: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub acknowledge_account_subjects: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Indicates how long the takedown should be in effect before automatically expiring.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub duration_in_hours: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub duration_in_hours: core::option::Option<i64>,
 }
 pub type ModEventTakedown = crate::types::Object<ModEventTakedownData>;
 ///Unmute action on a subject
@@ -203,8 +203,8 @@ pub type ModEventTakedown = crate::types::Object<ModEventTakedownData>;
 #[serde(rename_all = "camelCase")]
 pub struct ModEventUnmuteData {
     ///Describe reasoning behind the reversal.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventUnmute = crate::types::Object<ModEventUnmuteData>;
 ///Unmute incoming reports from an account
@@ -212,8 +212,8 @@ pub type ModEventUnmute = crate::types::Object<ModEventUnmuteData>;
 #[serde(rename_all = "camelCase")]
 pub struct ModEventUnmuteReporterData {
     ///Describe reasoning behind the reversal.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
 }
 pub type ModEventUnmuteReporter = crate::types::Object<ModEventUnmuteReporterData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -221,14 +221,14 @@ pub type ModEventUnmuteReporter = crate::types::Object<ModEventUnmuteReporterDat
 pub struct ModEventViewData {
     pub created_at: crate::types::string::Datetime,
     pub created_by: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub creator_handle: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub creator_handle: core::option::Option<String>,
     pub event: crate::types::Union<ModEventViewEventRefs>,
     pub id: i64,
     pub subject: crate::types::Union<ModEventViewSubjectRefs>,
     pub subject_blob_cids: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_handle: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_handle: core::option::Option<String>,
 }
 pub type ModEventView = crate::types::Object<ModEventViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -245,25 +245,25 @@ pub type ModEventViewDetail = crate::types::Object<ModEventViewDetailData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_status: Option<SubjectStatusView>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_status: core::option::Option<SubjectStatusView>,
 }
 pub type Moderation = crate::types::Object<ModerationData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModerationDetailData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_status: Option<SubjectStatusView>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_status: core::option::Option<SubjectStatusView>,
 }
 pub type ModerationDetail = crate::types::Object<ModerationDetailData>;
 ///Logs lifecycle event on a record subject. Normally captured by automod from the firehose and emitted to ozone for historical tracking.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordEventData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<crate::types::string::Cid>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cid: core::option::Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     pub op: String,
     pub timestamp: crate::types::string::Datetime,
 }
@@ -271,13 +271,13 @@ pub type RecordEvent = crate::types::Object<RecordEventData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordHostingData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deleted_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub deleted_at: core::option::Option<crate::types::string::Datetime>,
     pub status: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub updated_at: core::option::Option<crate::types::string::Datetime>,
 }
 pub type RecordHosting = crate::types::Object<RecordHostingData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -298,8 +298,8 @@ pub struct RecordViewDetailData {
     pub blobs: Vec<BlobView>,
     pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
     pub repo: RepoView,
     pub uri: String,
@@ -315,23 +315,23 @@ pub type RecordViewNotFound = crate::types::Object<RecordViewNotFoundData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deactivated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub deactivated_at: core::option::Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email: core::option::Option<String>,
     pub handle: crate::types::string::Handle,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invite_note: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invites_disabled: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invite_note: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invited_by: core::option::Option<crate::com::atproto::server::defs::InviteCode>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invites_disabled: core::option::Option<bool>,
     pub moderation: Moderation,
     pub related_records: Vec<crate::types::Unknown>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub threat_signatures: Option<
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub threat_signatures: core::option::Option<
         Vec<crate::com::atproto::admin::defs::ThreatSignature>,
     >,
 }
@@ -339,29 +339,31 @@ pub type RepoView = crate::types::Object<RepoViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewDetailData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deactivated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub deactivated_at: core::option::Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_confirmed_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email_confirmed_at: core::option::Option<crate::types::string::Datetime>,
     pub handle: crate::types::string::Handle,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invite_note: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invites: Option<Vec<crate::com::atproto::server::defs::InviteCode>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invites_disabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invite_note: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invited_by: core::option::Option<crate::com::atproto::server::defs::InviteCode>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invites: core::option::Option<
+        Vec<crate::com::atproto::server::defs::InviteCode>,
+    >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invites_disabled: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
     pub moderation: ModerationDetail,
     pub related_records: Vec<crate::types::Unknown>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub threat_signatures: Option<
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub threat_signatures: core::option::Option<
         Vec<crate::com::atproto::admin::defs::ThreatSignature>,
     >,
 }
@@ -385,41 +387,41 @@ pub type SubjectReviewState = String;
 #[serde(rename_all = "camelCase")]
 pub struct SubjectStatusViewData {
     ///True indicates that the a previously taken moderator action was appealed against, by the author of the content. False indicates last appeal was resolved by moderators.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub appealed: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub appealed: core::option::Option<bool>,
     ///Sticky comment on the subject.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Timestamp referencing the first moderation status impacting event was emitted on the subject
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub hosting: Option<crate::types::Union<SubjectStatusViewHostingRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub hosting: core::option::Option<crate::types::Union<SubjectStatusViewHostingRefs>>,
     pub id: i64,
     ///Timestamp referencing when the author of the subject appealed a moderation action
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_appealed_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reported_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reviewed_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_reviewed_by: Option<crate::types::string::Did>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mute_reporting_until: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub mute_until: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_appealed_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_reported_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_reviewed_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_reviewed_by: core::option::Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub mute_reporting_until: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub mute_until: core::option::Option<crate::types::string::Datetime>,
     pub review_state: SubjectReviewState,
     pub subject: crate::types::Union<SubjectStatusViewSubjectRefs>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_repo_handle: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub suspend_until: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub takendown: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_blob_cids: core::option::Option<Vec<crate::types::string::Cid>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_repo_handle: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub suspend_until: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub tags: core::option::Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub takendown: core::option::Option<bool>,
     ///Timestamp referencing when the last update was made to the moderation status of the subject
     pub updated_at: crate::types::string::Datetime,
 }

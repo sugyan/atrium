@@ -4,8 +4,8 @@ pub const NSID: &str = "com.atproto.server.createSession";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub auth_factor_token: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub auth_factor_token: core::option::Option<String>,
     ///Handle or other identifier supported by the server for the authenticating user.
     pub identifier: String,
     pub password: String,
@@ -15,22 +15,22 @@ pub type Input = crate::types::Object<InputData>;
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub access_jwt: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub active: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub active: core::option::Option<bool>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub did_doc: Option<crate::types::Unknown>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_auth_factor: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_confirmed: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub did_doc: core::option::Option<crate::types::Unknown>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email_auth_factor: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email_confirmed: core::option::Option<bool>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
     ///If active=false, this optional field indicates a possible reason for why the account is not active. If active=false and no status is supplied, then the host makes no claim for why the repository is no longer being hosted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub status: core::option::Option<String>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -4,8 +4,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct RecordData {
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<crate::types::Union<RecordLabelsRefs>>,
     pub policies: crate::app::bsky::labeler::defs::LabelerPolicies,
 }
 pub type Record = crate::types::Object<RecordData>;

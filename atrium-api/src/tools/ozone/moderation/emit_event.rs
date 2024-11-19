@@ -7,8 +7,8 @@ pub struct InputData {
     pub created_by: crate::types::string::Did,
     pub event: crate::types::Union<InputEventRefs>,
     pub subject: crate::types::Union<InputSubjectRefs>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_blob_cids: core::option::Option<Vec<crate::types::string::Cid>>,
 }
 pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::moderation::defs::ModEventView;

@@ -4,8 +4,8 @@ pub const NSID: &str = "app.bsky.unspecced.getConfig";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub check_email_confirmed: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub check_email_confirmed: core::option::Option<bool>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

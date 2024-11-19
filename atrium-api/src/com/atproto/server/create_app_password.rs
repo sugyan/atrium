@@ -7,8 +7,8 @@ pub struct InputData {
     ///A short name for the App Password, to help distinguish them.
     pub name: String,
     ///If an app password has 'privileged' access to possibly sensitive account state. Meant for use with trusted clients.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub privileged: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub privileged: core::option::Option<bool>,
 }
 pub type Input = crate::types::Object<InputData>;
 pub type Output = AppPassword;
@@ -36,7 +36,7 @@ pub struct AppPasswordData {
     pub created_at: crate::types::string::Datetime,
     pub name: String,
     pub password: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub privileged: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub privileged: core::option::Option<bool>,
 }
 pub type AppPassword = crate::types::Object<AppPasswordData>;
