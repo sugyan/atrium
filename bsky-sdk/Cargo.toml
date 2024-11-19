@@ -1,6 +1,6 @@
 [package]
 name = "bsky-sdk"
-version = "0.1.12"
+version = "0.1.13"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true

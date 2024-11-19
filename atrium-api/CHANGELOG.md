@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.8](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.7...atrium-api-v0.24.8) - 2024-11-19
+
+### Added
+
+- Update API, based on the latest lexicon schemas ([#256](https://github.com/sugyan/atrium/pull/256))
+- Update XrpcClient, add AuthorizationToken ([#248](https://github.com/sugyan/atrium/pull/248))
+- Replace OnceCell with static OnceLock for regex compilation ([#250](https://github.com/sugyan/atrium/pull/250))
+
 ## [0.24.7](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.6...atrium-api-v0.24.7) - 2024-10-28
 
 ### Added
