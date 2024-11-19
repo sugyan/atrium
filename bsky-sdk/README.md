@@ -110,7 +110,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ### Posts
 
-Create a BlueSky post:
+Create a Bluesky post:
 
 ```rust,no_run
 use atrium_api::types::string::Datetime;
