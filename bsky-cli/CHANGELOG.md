@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.26](https://github.com/sugyan/atrium/compare/bsky-cli-v0.1.25...bsky-cli-v0.1.26) - 2024-11-19
+
+### Other
+
+- updated the following local packages: bsky-sdk
+
 ## [0.1.25](https://github.com/sugyan/atrium/compare/bsky-cli-v0.1.24...bsky-cli-v0.1.25) - 2024-10-28
 
 ### Added
