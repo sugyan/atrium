@@ -5,8 +5,8 @@ pub const NSID: &str = "com.atproto.server.deactivateAccount";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     ///A recommendation to server as to how long they should hold onto the deactivated account before deleting.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub delete_after: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub delete_after: core::option::Option<crate::types::string::Datetime>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -4,5 +4,6 @@ pub mod communication;
 pub mod moderation;
 pub mod server;
 pub mod set;
+pub mod setting;
 pub mod signature;
 pub mod team;

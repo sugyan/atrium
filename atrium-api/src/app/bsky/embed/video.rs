@@ -5,12 +5,12 @@
 #[serde(rename_all = "camelCase")]
 pub struct MainData {
     ///Alt text description of the video, for accessibility.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub alt: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub aspect_ratio: Option<crate::app::bsky::embed::defs::AspectRatio>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub captions: Option<Vec<Caption>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub alt: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub aspect_ratio: core::option::Option<crate::app::bsky::embed::defs::AspectRatio>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub captions: core::option::Option<Vec<Caption>>,
     pub video: crate::types::BlobRef,
 }
 pub type Main = crate::types::Object<MainData>;
@@ -24,13 +24,13 @@ pub type Caption = crate::types::Object<CaptionData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub alt: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub aspect_ratio: Option<crate::app::bsky::embed::defs::AspectRatio>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub alt: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub aspect_ratio: core::option::Option<crate::app::bsky::embed::defs::AspectRatio>,
     pub cid: crate::types::string::Cid,
     pub playlist: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumbnail: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub thumbnail: core::option::Option<String>,
 }
 pub type View = crate::types::Object<ViewData>;

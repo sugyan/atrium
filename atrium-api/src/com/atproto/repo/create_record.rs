@@ -11,25 +11,25 @@ pub struct InputData {
     ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
     ///The Record Key.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rkey: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rkey: core::option::Option<String>,
     ///Compare and swap with the previous commit by CID.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub swap_commit: core::option::Option<crate::types::string::Cid>,
     ///Can be set to 'false' to skip Lexicon schema validation of record data, 'true' to require it, or leave unset to validate only for known Lexicons.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub validate: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub validate: core::option::Option<bool>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub cid: crate::types::string::Cid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<crate::com::atproto::repo::defs::CommitMeta>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub commit: core::option::Option<crate::com::atproto::repo::defs::CommitMeta>,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub validation_status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub validation_status: core::option::Option<String>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -4,27 +4,27 @@ pub const NSID: &str = "app.bsky.unspecced.getSuggestionsSkeleton";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///DID of the account to get suggestions relative to. If not provided, suggestions will be based on the viewer.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub relative_to_did: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub relative_to_did: core::option::Option<crate::types::string::Did>,
     ///DID of the account making the request (not included for public/unauthenticated queries). Used to boost followed accounts in ranking.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<crate::types::string::Did>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub actors: Vec<crate::app::bsky::unspecced::defs::SkeletonSearchActor>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     ///DID of the account these suggestions are relative to. If this is returned undefined, suggestions are based on the viewer.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub relative_to_did: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub relative_to_did: core::option::Option<crate::types::string::Did>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

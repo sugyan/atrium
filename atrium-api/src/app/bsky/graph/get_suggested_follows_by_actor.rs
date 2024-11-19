@@ -11,8 +11,8 @@ pub type Parameters = crate::types::Object<ParametersData>;
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     ///If true, response has fallen-back to generic results, and is not scoped using relativeToDid
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_fallback: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub is_fallback: core::option::Option<bool>,
     pub suggestions: Vec<crate::app::bsky::actor::defs::ProfileView>,
 }
 pub type Output = crate::types::Object<OutputData>;

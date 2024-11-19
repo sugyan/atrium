@@ -4,22 +4,22 @@ pub const NSID: &str = "tools.ozone.moderation.searchRepos";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub q: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub q: core::option::Option<String>,
     ///DEPRECATED: use 'q' instead
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub term: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub term: core::option::Option<String>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     pub repos: Vec<crate::tools::ozone::moderation::defs::RepoView>,
 }
 pub type Output = crate::types::Object<OutputData>;

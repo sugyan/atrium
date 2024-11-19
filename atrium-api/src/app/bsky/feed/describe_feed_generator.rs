@@ -6,8 +6,8 @@ pub const NSID: &str = "app.bsky.feed.describeFeedGenerator";
 pub struct OutputData {
     pub did: crate::types::string::Did,
     pub feeds: Vec<Feed>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub links: Option<Links>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub links: core::option::Option<Links>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -27,9 +27,9 @@ pub type Feed = crate::types::Object<FeedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LinksData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub privacy_policy: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub terms_of_service: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub privacy_policy: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub terms_of_service: core::option::Option<String>,
 }
 pub type Links = crate::types::Object<LinksData>;

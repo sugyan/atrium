@@ -5,55 +5,61 @@ pub const NSID: &str = "tools.ozone.moderation.queryEvents";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     ///If specified, only events where all of these labels were added are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub added_labels: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub added_labels: core::option::Option<Vec<String>>,
     ///If specified, only events where all of these tags were added are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub added_tags: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub added_tags: core::option::Option<Vec<String>>,
+    ///If specified, only events where the subject belongs to the given collections will be returned. When subjectType is set to 'account', this will be ignored.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub collections: core::option::Option<Vec<crate::types::string::Nsid>>,
     ///If specified, only events with comments containing the keyword are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     ///Retrieve events created after a given timestamp
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_after: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_after: core::option::Option<crate::types::string::Datetime>,
     ///Retrieve events created before a given timestamp
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_before: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_by: Option<crate::types::string::Did>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_before: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_by: core::option::Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     ///If true, only events with comments are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub has_comment: Option<bool>,
-    ///If true, events on all record types (posts, lists, profile etc.) owned by the did are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub include_all_user_records: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub has_comment: core::option::Option<bool>,
+    ///If true, events on all record types (posts, lists, profile etc.) or records from given 'collections' param, owned by the did are returned.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub include_all_user_records: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///If specified, only events where all of these labels were removed are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub removed_labels: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub removed_labels: core::option::Option<Vec<String>>,
     ///If specified, only events where all of these tags were removed are returned
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub removed_tags: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub report_types: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub removed_tags: core::option::Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub report_types: core::option::Option<Vec<String>>,
     ///Sort direction for the events. Defaults to descending order of created at timestamp.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sort_direction: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub sort_direction: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject: core::option::Option<String>,
+    ///If specified, only events where the subject is of the given type (account or record) will be returned. When this is set to 'account' the 'collections' parameter will be ignored. When includeAllUserRecords or subject is set, this will be ignored.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_type: core::option::Option<String>,
     ///The types of events (fully qualified string in the format of tools.ozone.moderation.defs#modEvent<name>) to filter by. If not specified, all events are returned.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub types: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub types: core::option::Option<Vec<String>>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     pub events: Vec<crate::tools::ozone::moderation::defs::ModEventView>,
 }
 pub type Output = crate::types::Object<OutputData>;

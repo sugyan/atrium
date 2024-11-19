@@ -5,11 +5,11 @@ pub const NSID: &str = "app.bsky.feed.getPostThread";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     ///How many levels of reply depth should be included in response.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub depth: Option<crate::types::LimitedU16<1000u16>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub depth: core::option::Option<crate::types::LimitedU16<1000u16>>,
     ///How many levels of parent (and grandparent, etc) post to include.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_height: Option<crate::types::LimitedU16<1000u16>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub parent_height: core::option::Option<crate::types::LimitedU16<1000u16>>,
     ///Reference (AT-URI) to post record.
     pub uri: String,
 }
@@ -18,8 +18,8 @@ pub type Parameters = crate::types::Object<ParametersData>;
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub thread: crate::types::Union<OutputThreadRefs>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub threadgate: Option<crate::app::bsky::feed::defs::ThreadgateView>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub threadgate: core::option::Option<crate::app::bsky::feed::defs::ThreadgateView>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

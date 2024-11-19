@@ -5,8 +5,8 @@ pub const NSID: &str = "com.atproto.label.subscribeLabels";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     ///The last known event seq number to backfill from.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<i64>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -30,8 +30,8 @@ impl std::fmt::Display for Error {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InfoData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub message: core::option::Option<String>,
     pub name: String,
 }
 pub type Info = crate::types::Object<InfoData>;

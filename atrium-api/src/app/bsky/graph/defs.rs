@@ -13,52 +13,54 @@ pub type ListPurpose = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ListViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub avatar: core::option::Option<String>,
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description_facets: core::option::Option<
+        Vec<crate::app::bsky::richtext::facet::Main>,
+    >,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub list_item_count: Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub list_item_count: core::option::Option<usize>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<ListViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<ListViewerState>,
 }
 pub type ListView = crate::types::Object<ListViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ListViewBasicData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub avatar: core::option::Option<String>,
     pub cid: crate::types::string::Cid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub indexed_at: Option<crate::types::string::Datetime>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub list_item_count: Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub indexed_at: core::option::Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub list_item_count: core::option::Option<usize>,
     pub name: String,
     pub purpose: ListPurpose,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<ListViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<ListViewerState>,
 }
 pub type ListViewBasic = crate::types::Object<ListViewBasicData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ListViewerStateData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub blocked: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub muted: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub blocked: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub muted: core::option::Option<bool>,
 }
 pub type ListViewerState = crate::types::Object<ListViewerStateData>;
 ///A list of actors to apply an aggregate moderation action (mute/block) on.
@@ -79,11 +81,11 @@ pub const REFERENCELIST: &str = "app.bsky.graph.defs#referencelist";
 pub struct RelationshipData {
     pub did: crate::types::string::Did,
     ///if the actor is followed by this DID, contains the AT-URI of the follow record
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub followed_by: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub followed_by: core::option::Option<String>,
     ///if the actor follows this DID, this is the AT-URI of the follow record
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub following: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub following: core::option::Option<String>,
 }
 pub type Relationship = crate::types::Object<RelationshipData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -91,19 +93,19 @@ pub type Relationship = crate::types::Object<RelationshipData>;
 pub struct StarterPackViewData {
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileViewBasic,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub feeds: Option<Vec<crate::app::bsky::feed::defs::GeneratorView>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub feeds: core::option::Option<Vec<crate::app::bsky::feed::defs::GeneratorView>>,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_all_time_count: Option<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_week_count: Option<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub list: Option<ListViewBasic>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub list_items_sample: Option<Vec<ListItemView>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub joined_all_time_count: core::option::Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub joined_week_count: core::option::Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub list: core::option::Option<ListViewBasic>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub list_items_sample: core::option::Option<Vec<ListItemView>>,
     pub record: crate::types::Unknown,
     pub uri: String,
 }
@@ -114,14 +116,14 @@ pub struct StarterPackViewBasicData {
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_all_time_count: Option<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub joined_week_count: Option<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub list_item_count: Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub joined_all_time_count: core::option::Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub joined_week_count: core::option::Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub list_item_count: core::option::Option<usize>,
     pub record: crate::types::Unknown,
     pub uri: String,
 }

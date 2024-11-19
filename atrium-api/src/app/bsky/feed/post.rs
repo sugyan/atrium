@@ -5,25 +5,25 @@
 pub struct RecordData {
     ///Client-declared timestamp when this post was originally created.
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<crate::types::Union<RecordEmbedRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub embed: core::option::Option<crate::types::Union<RecordEmbedRefs>>,
     ///DEPRECATED: replaced by app.bsky.richtext.facet.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub entities: Option<Vec<Entity>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub entities: core::option::Option<Vec<Entity>>,
     ///Annotations of text (mentions, URLs, hashtags, etc)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub facets: core::option::Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     ///Self-label values for this post. Effectively content warnings.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<crate::types::Union<RecordLabelsRefs>>,
     ///Indicates human language of post primary text content.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub langs: Option<Vec<crate::types::string::Language>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply: Option<ReplyRef>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub langs: core::option::Option<Vec<crate::types::string::Language>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reply: core::option::Option<ReplyRef>,
     ///Additional hashtags, in addition to any included in post text and facets.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub tags: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub tags: core::option::Option<Vec<String>>,
     ///The primary post content. May be an empty string, if there are embeds.
     pub text: String,
 }

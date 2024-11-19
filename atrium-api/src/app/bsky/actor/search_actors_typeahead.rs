@@ -4,14 +4,14 @@ pub const NSID: &str = "app.bsky.actor.searchActorsTypeahead";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///Search query prefix; not a full query string.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub q: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub q: core::option::Option<String>,
     ///DEPRECATED: use 'q' instead.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub term: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub term: core::option::Option<String>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

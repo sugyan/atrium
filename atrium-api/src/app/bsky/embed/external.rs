@@ -11,8 +11,8 @@ pub type Main = crate::types::Object<MainData>;
 #[serde(rename_all = "camelCase")]
 pub struct ExternalData {
     pub description: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumb: Option<crate::types::BlobRef>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub thumb: core::option::Option<crate::types::BlobRef>,
     pub title: String,
     pub uri: String,
 }
@@ -27,8 +27,8 @@ pub type View = crate::types::Object<ViewData>;
 #[serde(rename_all = "camelCase")]
 pub struct ViewExternalData {
     pub description: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub thumb: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub thumb: core::option::Option<String>,
     pub title: String,
     pub uri: String,
 }

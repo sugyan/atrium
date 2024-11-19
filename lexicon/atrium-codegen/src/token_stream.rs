@@ -135,9 +135,7 @@ fn xrpc_body(body: &LexXrpcBody, name: &str) -> Result<TokenStream> {
 fn xrpc_errors(errors: &Option<Vec<LexXrpcError>>) -> Result<TokenStream> {
     let derives = derives()?;
     let errors = errors.as_ref().map_or(Vec::new(), |e| {
-        e.iter()
-            .map(|error| (error.name.clone(), error.description.clone()))
-            .collect()
+        e.iter().map(|error| (error.name.clone(), error.description.clone())).collect()
     });
     let enum_variants: Vec<TokenStream> = errors
         .iter()
@@ -195,11 +193,8 @@ fn lex_query(query: &LexXrpcQuery) -> Result<TokenStream> {
     } else {
         quote!()
     };
-    let outputs = if let Some(body) = &query.output {
-        xrpc_body(body, "Output")?
-    } else {
-        quote!()
-    };
+    let outputs =
+        if let Some(body) = &query.output { xrpc_body(body, "Output")? } else { quote!() };
     let errors = xrpc_errors(&query.errors)?;
     Ok(quote! {
         #params
@@ -209,16 +204,10 @@ fn lex_query(query: &LexXrpcQuery) -> Result<TokenStream> {
 }
 
 fn lex_procedure(procedure: &LexXrpcProcedure) -> Result<TokenStream> {
-    let inputs = if let Some(body) = &procedure.input {
-        xrpc_body(body, "Input")?
-    } else {
-        quote!()
-    };
-    let outputs = if let Some(body) = &procedure.output {
-        xrpc_body(body, "Output")?
-    } else {
-        quote!()
-    };
+    let inputs =
+        if let Some(body) = &procedure.input { xrpc_body(body, "Input")? } else { quote!() };
+    let outputs =
+        if let Some(body) = &procedure.output { xrpc_body(body, "Output")? } else { quote!() };
     let errors = xrpc_errors(&procedure.errors)?;
     Ok(quote! {
         #inputs
@@ -306,12 +295,7 @@ fn lex_object_property(
         LexObjectProperty::Ref(r#ref) => ref_type(r#ref)?,
         LexObjectProperty::Union(union) => union_type(
             union,
-            format!(
-                "{}{}Refs",
-                object_name.to_pascal_case(),
-                name.to_pascal_case()
-            )
-            .as_str(),
+            format!("{}{}Refs", object_name.to_pascal_case(), name.to_pascal_case()).as_str(),
         )?,
         LexObjectProperty::Bytes(bytes) => bytes_type(bytes)?,
         LexObjectProperty::CidLink(cid_link) => cid_link_type(cid_link)?,
@@ -324,19 +308,11 @@ fn lex_object_property(
     };
     let field_name = format_ident!(
         "{}",
-        if name == "ref" || name == "type" {
-            format!("r#{name}")
-        } else {
-            name.to_snake_case()
-        }
+        if name == "ref" || name == "type" { format!("r#{name}") } else { name.to_snake_case() }
     );
     let mut attributes = match property {
         LexObjectProperty::Bytes(_) => {
-            let default = if is_required {
-                quote!()
-            } else {
-                quote!(#[serde(default)])
-            };
+            let default = if is_required { quote!() } else { quote!(#[serde(default)]) };
             quote! {
                 #default
                 #[serde(with = "serde_bytes")]
@@ -345,10 +321,10 @@ fn lex_object_property(
         _ => quote!(),
     };
     if !is_required {
-        field_type = quote!(Option<#field_type>);
+        field_type = quote!(core::option::Option<#field_type>);
         attributes = quote! {
             #attributes
-            #[serde(skip_serializing_if = "Option::is_none")]
+            #[serde(skip_serializing_if = "core::option::Option::is_none")]
         };
     }
     Ok(quote! {
@@ -593,11 +569,7 @@ pub fn enum_common(
     for r#ref in refs {
         let path = resolve_path(r#ref, if is_record { "record" } else { "main" })?;
         let rename = if r#ref.starts_with('#') {
-            format!(
-                "{}{}",
-                schema_id.expect("schema id must be specified"),
-                r#ref
-            )
+            format!("{}{}", schema_id.expect("schema id must be specified"), r#ref)
         } else {
             r#ref.clone()
         };
@@ -614,9 +586,8 @@ pub fn enum_common(
         let name = format_ident!("{}", parts.join(""));
         let mut feature = quote!();
         if is_record {
-            if let Some((_, Some(feature_name))) = namespaces
-                .iter()
-                .find(|(prefix, _)| r#ref.starts_with(prefix))
+            if let Some((_, Some(feature_name))) =
+                namespaces.iter().find(|(prefix, _)| r#ref.starts_with(prefix))
             {
                 feature = quote! {
                     #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
@@ -657,9 +628,8 @@ pub fn impl_into_record(
         parts.pop();
         let name = format_ident!("{}", parts.join(""));
         let mut feature = quote!();
-        if let Some((_, Some(feature_name))) = namespaces
-            .iter()
-            .find(|(prefix, _)| r#ref.starts_with(prefix))
+        if let Some((_, Some(feature_name))) =
+            namespaces.iter().find(|(prefix, _)| r#ref.starts_with(prefix))
         {
             feature = quote! {
                 #[cfg_attr(docsrs, doc(cfg(feature = #feature_name)))]
@@ -739,9 +709,8 @@ pub fn client(
             };
             methods.push(method);
         }
-        let feature = if let Some((_, Some(feature_name))) = namespaces
-            .iter()
-            .find(|(prefix, _)| key.starts_with(prefix))
+        let feature = if let Some((_, Some(feature_name))) =
+            namespaces.iter().find(|(prefix, _)| key.starts_with(prefix))
         {
             quote!(#[cfg(feature = #feature_name)])
         } else {
@@ -810,11 +779,8 @@ fn client_services(
                     #feature
                     pub #name: #name::Service<T>,
                 });
-                let target = if target.is_empty() {
-                    child.to_string()
-                } else {
-                    format!("{target}.{child}")
-                };
+                let target =
+                    if target.is_empty() { child.to_string() } else { format!("{target}.{child}") };
                 let submodule = client_services(&target, tree, namespaces)?;
                 mods.push(quote! {
                     #feature
@@ -853,11 +819,8 @@ fn client_new(
         if *is_leaf {
             continue;
         }
-        let parts = if key.is_empty() {
-            vec![*name]
-        } else {
-            key.split('.').chain([*name]).collect_vec()
-        };
+        let parts =
+            if key.is_empty() { vec![*name] } else { key.split('.').chain([*name]).collect_vec() };
         let namespace = parts.join(".");
         let feature = if let Some((_, Some(feature_name))) =
             namespaces.iter().find(|(prefix, _)| prefix == &namespace)
@@ -909,18 +872,10 @@ fn xrpc_impl_query(query: &LexXrpcQuery, nsid: &str) -> Result<TokenStream> {
     let generic_args = vec![
         if has_params { quote!(_) } else { quote!(()) },
         quote!(()),
-        if output_type == OutputType::Data {
-            quote!(_)
-        } else {
-            quote!(())
-        },
+        if output_type == OutputType::Data { quote!(_) } else { quote!(()) },
         quote!(_),
     ];
-    let param_value = if has_params {
-        quote!(Some(params))
-    } else {
-        quote!(None)
-    };
+    let param_value = if has_params { quote!(Some(params)) } else { quote!(None) };
     let nsid_path = resolve_path(nsid, "NSID")?;
     let xrpc_call = quote! {
         self.xrpc.send_xrpc::<#(#generic_args),*>(&atrium_xrpc::XrpcRequest {
@@ -966,11 +921,7 @@ fn xrpc_impl_procedure(procedure: &LexXrpcProcedure, nsid: &str) -> Result<Token
         } else {
             quote!(())
         },
-        if output_type == OutputType::Data {
-            quote!(_)
-        } else {
-            quote!(())
-        },
+        if output_type == OutputType::Data { quote!(_) } else { quote!(()) },
         quote!(_),
     ];
     let input_value = if let Some(body) = input {
@@ -1062,14 +1013,7 @@ fn xrpc_impl_common(
 
 fn derives() -> Result<TokenStream> {
     let mut derives = Vec::new();
-    for derive in &[
-        "serde::Serialize",
-        "serde::Deserialize",
-        "Debug",
-        "Clone",
-        "PartialEq",
-        "Eq",
-    ] {
+    for derive in &["serde::Serialize", "serde::Deserialize", "Debug", "Clone", "PartialEq", "Eq"] {
         derives.push(syn::parse_str::<Path>(derive)?);
     }
     Ok(quote!(#[derive(#(#derives),*)]))

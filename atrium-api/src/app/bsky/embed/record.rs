@@ -40,19 +40,19 @@ pub type ViewNotFound = crate::types::Object<ViewNotFoundData>;
 pub struct ViewRecordData {
     pub author: crate::app::bsky::actor::defs::ProfileViewBasic,
     pub cid: crate::types::string::Cid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embeds: Option<Vec<crate::types::Union<ViewRecordEmbedsItem>>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub embeds: core::option::Option<Vec<crate::types::Union<ViewRecordEmbedsItem>>>,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub quote_count: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reply_count: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub repost_count: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like_count: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub quote_count: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reply_count: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub repost_count: core::option::Option<i64>,
     pub uri: String,
     ///The record data itself.
     pub value: crate::types::Unknown,

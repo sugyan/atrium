@@ -3,8 +3,8 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SetData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
     pub name: String,
 }
 pub type Set = crate::types::Object<SetData>;
@@ -12,8 +12,8 @@ pub type Set = crate::types::Object<SetData>;
 #[serde(rename_all = "camelCase")]
 pub struct SetViewData {
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
     pub name: String,
     pub set_size: i64,
     pub updated_at: crate::types::string::Datetime,

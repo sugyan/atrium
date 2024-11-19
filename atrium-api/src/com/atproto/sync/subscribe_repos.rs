@@ -5,8 +5,8 @@ pub const NSID: &str = "com.atproto.sync.subscribeRepos";
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
     ///The last known event seq number to backfill from.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<i64>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -44,8 +44,8 @@ pub struct AccountData {
     pub did: crate::types::string::Did,
     pub seq: i64,
     ///If active=false, this optional field indicates a reason for why the account is not active.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub status: core::option::Option<String>,
     pub time: crate::types::string::Datetime,
 }
 pub type Account = crate::types::Object<AccountData>;
@@ -61,8 +61,8 @@ pub struct CommitData {
     pub commit: crate::types::CidLink,
     pub ops: Vec<RepoOp>,
     ///DEPRECATED -- unused. WARNING -- nullable and optional; stick with optional to ensure golang interoperability.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub prev: Option<crate::types::CidLink>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub prev: core::option::Option<crate::types::CidLink>,
     ///DEPRECATED -- unused
     pub rebase: bool,
     ///The repo this event comes from.
@@ -72,8 +72,8 @@ pub struct CommitData {
     ///The stream sequence number of this message.
     pub seq: i64,
     ///The rev of the last emitted commit from this repo (if any).
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub since: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub since: core::option::Option<String>,
     ///Timestamp of when this message was originally broadcast.
     pub time: crate::types::string::Datetime,
     ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
@@ -96,8 +96,8 @@ pub type Handle = crate::types::Object<HandleData>;
 pub struct IdentityData {
     pub did: crate::types::string::Did,
     ///The current handle for the account, or 'handle.invalid' if validation fails. This field is optional, might have been validated or passed-through from an upstream source. Semantics and behaviors for PDS vs Relay may evolve in the future; see atproto specs for more details.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub handle: Option<crate::types::string::Handle>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub handle: core::option::Option<crate::types::string::Handle>,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
 }
@@ -105,8 +105,8 @@ pub type Identity = crate::types::Object<IdentityData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InfoData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub message: core::option::Option<String>,
     pub name: String,
 }
 pub type Info = crate::types::Object<InfoData>;
@@ -115,8 +115,8 @@ pub type Info = crate::types::Object<InfoData>;
 #[serde(rename_all = "camelCase")]
 pub struct MigrateData {
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub migrate_to: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub migrate_to: core::option::Option<String>,
     pub seq: i64,
     pub time: crate::types::string::Datetime,
 }
@@ -127,8 +127,8 @@ pub type Migrate = crate::types::Object<MigrateData>;
 pub struct RepoOpData {
     pub action: String,
     ///For creates and updates, the new record CID. For deletions, null.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<crate::types::CidLink>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cid: core::option::Option<crate::types::CidLink>,
     pub path: String,
 }
 pub type RepoOp = crate::types::Object<RepoOpData>;

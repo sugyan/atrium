@@ -3,12 +3,12 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allow: Option<Vec<crate::types::Union<RecordAllowItem>>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub allow: core::option::Option<Vec<crate::types::Union<RecordAllowItem>>>,
     pub created_at: crate::types::string::Datetime,
     ///List of hidden reply URIs.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub hidden_replies: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub hidden_replies: core::option::Option<Vec<String>>,
     ///Reference (AT-URI) to the post record.
     pub post: String,
 }

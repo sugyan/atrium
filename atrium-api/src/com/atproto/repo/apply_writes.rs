@@ -7,21 +7,21 @@ pub struct InputData {
     ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
     ///If provided, the entire operation will fail if the current repo commit CID does not match this value. Used to prevent conflicting repo mutations.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub swap_commit: core::option::Option<crate::types::string::Cid>,
     ///Can be set to 'false' to skip Lexicon schema validation of record data across all operations, 'true' to require it, or leave unset to validate only for known Lexicons.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub validate: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub validate: core::option::Option<bool>,
     pub writes: Vec<InputWritesItem>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<crate::com::atproto::repo::defs::CommitMeta>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub results: Option<Vec<OutputResultsItem>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub commit: core::option::Option<crate::com::atproto::repo::defs::CommitMeta>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub results: core::option::Option<Vec<OutputResultsItem>>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -48,8 +48,8 @@ impl std::fmt::Display for Error {
 #[serde(rename_all = "camelCase")]
 pub struct CreateData {
     pub collection: crate::types::string::Nsid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rkey: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rkey: core::option::Option<String>,
     pub value: crate::types::Unknown,
 }
 pub type Create = crate::types::Object<CreateData>;
@@ -58,8 +58,8 @@ pub type Create = crate::types::Object<CreateData>;
 pub struct CreateResultData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub validation_status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub validation_status: core::option::Option<String>,
 }
 pub type CreateResult = crate::types::Object<CreateResultData>;
 ///Operation which deletes an existing record.
@@ -88,8 +88,8 @@ pub type Update = crate::types::Object<UpdateData>;
 pub struct UpdateResultData {
     pub cid: crate::types::string::Cid,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub validation_status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub validation_status: core::option::Option<String>,
 }
 pub type UpdateResult = crate::types::Object<UpdateResultData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

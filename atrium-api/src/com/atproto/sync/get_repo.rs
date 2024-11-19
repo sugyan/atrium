@@ -7,8 +7,8 @@ pub struct ParametersData {
     ///The DID of the repo.
     pub did: crate::types::string::Did,
     ///The revision ('rev') of the repo to create a diff from.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub since: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub since: core::option::Option<String>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
