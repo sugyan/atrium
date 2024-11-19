@@ -89,6 +89,18 @@ pub enum InputEventRefs {
     ToolsOzoneModerationDefsModEventTag(
         Box<crate::tools::ozone::moderation::defs::ModEventTag>,
     ),
+    #[serde(rename = "tools.ozone.moderation.defs#accountEvent")]
+    ToolsOzoneModerationDefsAccountEvent(
+        Box<crate::tools::ozone::moderation::defs::AccountEvent>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#identityEvent")]
+    ToolsOzoneModerationDefsIdentityEvent(
+        Box<crate::tools::ozone::moderation::defs::IdentityEvent>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#recordEvent")]
+    ToolsOzoneModerationDefsRecordEvent(
+        Box<crate::tools::ozone::moderation::defs::RecordEvent>,
+    ),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]

@@ -22,6 +22,8 @@ pub struct AccountViewData {
     pub invites_disabled: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub related_records: Option<Vec<crate::types::Unknown>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub threat_signatures: Option<Vec<ThreatSignature>>,
 }
 pub type AccountView = crate::types::Object<AccountViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -47,3 +49,10 @@ pub struct StatusAttrData {
     pub r#ref: Option<String>,
 }
 pub type StatusAttr = crate::types::Object<StatusAttrData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ThreatSignatureData {
+    pub property: String,
+    pub value: String,
+}
+pub type ThreatSignature = crate::types::Object<ThreatSignatureData>;

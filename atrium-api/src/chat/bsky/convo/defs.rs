@@ -8,6 +8,8 @@ pub struct ConvoViewData {
     pub last_message: Option<crate::types::Union<ConvoViewLastMessageRefs>>,
     pub members: Vec<crate::chat::bsky::actor::defs::ProfileViewBasic>,
     pub muted: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub opened: Option<bool>,
     pub rev: String,
     pub unread_count: i64,
 }

@@ -7,6 +7,9 @@ pub struct ParametersData {
     ///Get subjects in unresolved appealed status
     #[serde(skip_serializing_if = "Option::is_none")]
     pub appealed: Option<bool>,
+    ///If specified, subjects belonging to the given collections will be returned. When subjectType is set to 'account', this will be ignored.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collections: Option<Vec<crate::types::string::Nsid>>,
     ///Search subjects by keyword from comments
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
@@ -14,9 +17,24 @@ pub struct ParametersData {
     pub cursor: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub exclude_tags: Option<Vec<String>>,
+    ///Search subjects where the associated record/account was deleted after a given timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hosting_deleted_after: Option<crate::types::string::Datetime>,
+    ///Search subjects where the associated record/account was deleted before a given timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hosting_deleted_before: Option<crate::types::string::Datetime>,
+    ///Search subjects by the status of the associated record/account
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hosting_statuses: Option<Vec<String>>,
+    ///Search subjects where the associated record/account was updated after a given timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hosting_updated_after: Option<crate::types::string::Datetime>,
+    ///Search subjects where the associated record/account was updated before a given timestamp
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hosting_updated_before: Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ignore_subjects: Option<Vec<String>>,
-    ///All subjects belonging to the account specified in the 'subject' param will be returned.
+    ///All subjects, or subjects from given 'collections' param, belonging to the account specified in the 'subject' param will be returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_all_user_records: Option<bool>,
     ///By default, we don't include muted subjects in the results. Set this to true to include them.
@@ -52,6 +70,9 @@ pub struct ParametersData {
     ///The subject to get the status for.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
+    ///If specified, subjects of the given type (account or record) will be returned. When this is set to 'account' the 'collections' parameter will be ignored. When includeAllUserRecords or subject is set, this will be ignored.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_type: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<String>>,
     ///Get subjects that were taken down

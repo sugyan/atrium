@@ -10,6 +10,9 @@ pub struct ParametersData {
     ///If specified, only events where all of these tags were added are returned
     #[serde(skip_serializing_if = "Option::is_none")]
     pub added_tags: Option<Vec<String>>,
+    ///If specified, only events where the subject belongs to the given collections will be returned. When subjectType is set to 'account', this will be ignored.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub collections: Option<Vec<crate::types::string::Nsid>>,
     ///If specified, only events with comments containing the keyword are returned
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
@@ -26,7 +29,7 @@ pub struct ParametersData {
     ///If true, only events with comments are returned
     #[serde(skip_serializing_if = "Option::is_none")]
     pub has_comment: Option<bool>,
-    ///If true, events on all record types (posts, lists, profile etc.) owned by the did are returned
+    ///If true, events on all record types (posts, lists, profile etc.) or records from given 'collections' param, owned by the did are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub include_all_user_records: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -44,6 +47,9 @@ pub struct ParametersData {
     pub sort_direction: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub subject: Option<String>,
+    ///If specified, only events where the subject is of the given type (account or record) will be returned. When this is set to 'account' the 'collections' parameter will be ignored. When includeAllUserRecords or subject is set, this will be ignored.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_type: Option<String>,
     ///The types of events (fully qualified string in the format of tools.ozone.moderation.defs#modEvent<name>) to filter by. If not specified, all events are returned.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<Vec<String>>,
