@@ -19,8 +19,27 @@ impl<T, S> OAuthSession<T, S>
 where
     S: MapStore<String, String> + Send + Sync + 'static,
 {
-    pub fn new(dpop_client: DpopClient<T, S>, token_set: TokenSet) -> Self {
-        Self { inner: dpop_client, token_set }
+    pub fn new(session_store: S, server: OAuthServerAgent<T, D, H>) -> Self {
+        Self { session_store, server }
+    }
+    pub async fn get_session(&self, refresh: bool) -> crate::Result<Session> {
+        let Some(session) = self.session_store.get().await.expect("todo") else {
+            panic!("a session should always exist");
+        };
+        if session.expires_in().expect("no expires_at") == TimeDelta::zero() && refresh {
+            let token_set = self.server.refresh(session.token_set.clone()).await?;
+            Ok(Session { dpop_key: session.dpop_key.clone(), token_set })
+        } else {
+            Ok(session)
+        }
+    }
+    pub async fn logout(&self) -> crate::Result<()> {
+        let session = self.get_session(false).await?;
+
+        self.server.revoke(&session.token_set.access_token).await;
+        self.session_store.clear().await.expect("todo");
+
+        Ok(())
     }
 }
 

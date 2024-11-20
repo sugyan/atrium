@@ -12,7 +12,6 @@ use jose_jwa::{Algorithm, Signing};
 use jose_jwk::{crypto, EcCurves, Jwk, Key};
 use rand::rngs::SmallRng;
 use rand::{RngCore, SeedableRng};
-use reqwest::header::HeaderValue;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
