@@ -1,4 +1,4 @@
-use atrium_api::agent::Agent;
+use atrium_common::store::memory::MemoryMapStore;
 use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
 use atrium_oauth_client::store::session::{MemorySessionStore, Session};
@@ -88,24 +88,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uri = url.trim().parse::<Uri>()?;
     let params = serde_html_form::from_str(uri.query().unwrap())?;
-    let (session, _) = client.callback(params).await?;
-    let agent = Agent::new(session);
-    let output = agent
-        .api
-        .app
-        .bsky
-        .feed
-        .get_timeline(
-            atrium_api::app::bsky::feed::get_timeline::ParametersData {
-                algorithm: None,
-                cursor: None,
-                limit: 3.try_into().ok(),
-            }
-            .into(),
-        )
-        .await?;
-    for feed in &output.feed {
-        println!("{feed:?}");
-    }
+    let session = client.callback::<MemoryMapStore<(), Session>>(params).await?;
+    println!("{}", serde_json::to_string_pretty(&session.get_session(false).await?)?);
+
     Ok(())
 }

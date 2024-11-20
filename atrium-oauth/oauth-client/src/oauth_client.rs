@@ -15,7 +15,7 @@ use crate::types::{
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
 use atrium_common::resolver::Resolver;
-use atrium_common::store::CellStore;
+use atrium_common::store::MapStore;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -221,10 +221,10 @@ where
             todo!()
         }
     }
-    pub async fn callback(
-        &self,
-        params: CallbackParams,
-    ) -> Result<(OAuthSession<T>, Option<String>)> {
+    pub async fn callback<S>(&self, params: CallbackParams) -> Result<OAuthSession<S, T, D, H>>
+    where
+        S: MapStore<(), Session> + Default,
+    {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -258,13 +258,15 @@ where
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
         // TODO: store token_set to session store
 
-        let session = self.create_session(
-            state.dpop_key.clone(),
-            &metadata,
-            &self.client_metadata,
-            token_set,
-        )?;
-        Ok((session, state.app_state))
+        self.session_store.set(token_set.sub.clone(), session.clone()).await.unwrap();
+
+        let session_store = S::default();
+        session_store.set((), session.clone()).await.expect("todo");
+
+        Ok(OAuthSession::new(
+            session_store,
+            self.server_from_metadata(metadata.clone(), state.dpop_key.clone()).unwrap(),
+        ))
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
         let mut algs =

@@ -1,4 +1,4 @@
-use super::{CellStore, MapStore};
+use super::MapStore;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -8,36 +8,6 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[error("memory store error")]
 pub struct Error;
-
-#[derive(Clone)]
-pub struct MemoryCellStore<V> {
-    store: Arc<Mutex<Option<V>>>,
-}
-
-impl<V> Default for MemoryCellStore<V> {
-    fn default() -> Self {
-        Self { store: Arc::new(Mutex::new(None)) }
-    }
-}
-
-impl<V> CellStore<V> for MemoryCellStore<V>
-where
-    V: Debug + Clone + Send + Sync + 'static,
-{
-    type Error = Error;
-
-    async fn get(&self) -> Result<Option<V>, Self::Error> {
-        Ok((*self.store.lock().unwrap()).clone())
-    }
-    async fn set(&self, value: V) -> Result<(), Self::Error> {
-        *self.store.lock().unwrap() = Some(value);
-        Ok(())
-    }
-    async fn clear(&self) -> Result<(), Self::Error> {
-        *self.store.lock().unwrap() = None;
-        Ok(())
-    }
-}
 
 // TODO: LRU cache?
 #[derive(Clone)]

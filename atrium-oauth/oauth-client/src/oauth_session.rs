@@ -1,6 +1,7 @@
-use crate::{DpopClient, TokenSet};
+use crate::{store::session::Session, DpopClient, TokenSet};
 use atrium_api::{agent::SessionManager, types::string::Did};
-use atrium_common::store::{memory::MemoryMapStore, MapStore};
+use atrium_common::store::MapStore;
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
     http::{Request, Response},
     types::AuthorizationToken,
@@ -9,7 +10,10 @@ use atrium_xrpc::{
 
 pub struct OAuthSession<T, S = MemoryMapStore<String, String>>
 where
-    S: MapStore<String, String>,
+    S: MapStore<(), Session>,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     inner: DpopClient<T, S>,
     token_set: TokenSet, // TODO: replace with a session store?
@@ -17,13 +21,16 @@ where
 
 impl<T, S> OAuthSession<T, S>
 where
-    S: MapStore<String, String> + Send + Sync + 'static,
+    S: MapStore<(), Session>,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     pub fn new(session_store: S, server: OAuthServerAgent<T, D, H>) -> Self {
         Self { session_store, server }
     }
     pub async fn get_session(&self, refresh: bool) -> crate::Result<Session> {
-        let Some(session) = self.session_store.get().await.expect("todo") else {
+        let Some(session) = self.session_store.get(&()).await.expect("todo") else {
             panic!("a session should always exist");
         };
         if session.expires_in().expect("no expires_at") == TimeDelta::zero() && refresh {
@@ -45,8 +52,8 @@ where
 
 impl<T, S> HttpClient for OAuthSession<T, S>
 where
+    S: MapStore<(), Session> + Default + Sync,
     T: HttpClient + Send + Sync + 'static,
-    S: MapStore<String, String> + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -58,8 +65,8 @@ where
 
 impl<T, S> XrpcClient for OAuthSession<T, S>
 where
+    S: MapStore<(), Session> + Default + Sync,
     T: HttpClient + Send + Sync + 'static,
-    S: MapStore<String, String> + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.token_set.aud.clone()
@@ -97,5 +104,15 @@ where
     }
 }
 
-#[cfg(test)]
-mod tests {}
+impl<S, T, D, H> SessionManager for OAuthSession<S, T, D, H>
+where
+    S: MapStore<(), Session> + Default + Sync,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
+{
+    async fn did(&self) -> Option<Did> {
+        let session = self.session_store.get(&()).await.expect("todo");
+        session.map(|session| session.token_set.sub.parse().unwrap())
+    }
+}
