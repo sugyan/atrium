@@ -1,3 +1,4 @@
+use atrium_api::agent::Agent;
 use atrium_common::store::memory::MemoryMapStore;
 use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
@@ -88,8 +89,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uri = url.trim().parse::<Uri>()?;
     let params = serde_html_form::from_str(uri.query().unwrap())?;
-    let session = client.callback::<MemoryMapStore<(), Session>>(params).await?;
-    println!("{}", serde_json::to_string_pretty(&session.get_session(false).await?)?);
+    let session_manager = client.callback::<MemoryMapStore<(), Session>>(params).await?;
+    let session = session_manager.get_session(false).await?;
+    println!("{}", serde_json::to_string_pretty(&session)?);
+
+    let agent = Agent::new(session_manager);
+    let session = agent.api.com.atproto.server.get_session().await?;
+    println!("{:?}", &session.data);
 
     Ok(())
 }
