@@ -1,11 +1,9 @@
-use crate::error::Error;
-use crate::error::{XrpcError, XrpcErrorKind};
-use crate::types::{Header, NSID_REFRESH_SESSION};
+use crate::error::{Error, XrpcError, XrpcErrorKind};
+use crate::types::{AuthorizationToken, Header, NSID_REFRESH_SESSION};
 use crate::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
-use std::future::Future;
+use std::{fmt::Debug, future::Future};
 
 /// An abstract HTTP client.
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
@@ -32,9 +30,12 @@ type XrpcResult<O, E> = core::result::Result<OutputDataOrBytes<O>, self::Error<E
 pub trait XrpcClient: HttpClient {
     /// The base URI of the XRPC server.
     fn base_uri(&self) -> String;
-    /// Get the authentication token to use `Authorization` header.
+    /// Get the authorization token to use `Authorization` header.
     #[allow(unused_variables)]
-    fn authentication_token(&self, is_refresh: bool) -> impl Future<Output = Option<String>> {
+    fn authorization_token(
+        &self,
+        is_refresh: bool,
+    ) -> impl Future<Output = Option<AuthorizationToken>> {
         async { None }
     }
     /// Get the `atproto-proxy` header.
@@ -102,12 +103,10 @@ where
         builder = builder.header(Header::ContentType, encoding);
     }
     if let Some(token) = client
-        .authentication_token(
-            request.method == Method::POST && request.nsid == NSID_REFRESH_SESSION,
-        )
+        .authorization_token(request.method == Method::POST && request.nsid == NSID_REFRESH_SESSION)
         .await
     {
-        builder = builder.header(Header::Authorization, format!("Bearer {}", token));
+        builder = builder.header(Header::Authorization, token);
     }
     if let Some(proxy) = client.atproto_proxy_header().await {
         builder = builder.header(Header::AtprotoProxy, proxy);

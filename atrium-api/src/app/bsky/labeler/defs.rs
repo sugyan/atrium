@@ -4,8 +4,8 @@
 #[serde(rename_all = "camelCase")]
 pub struct LabelerPoliciesData {
     ///Label values created by this labeler and scoped exclusively to it. Labels defined here will override global label definitions for this labeler.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub label_value_definitions: Option<
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub label_value_definitions: core::option::Option<
         Vec<crate::com::atproto::label::defs::LabelValueDefinition>,
     >,
     ///The label values which this labeler publishes. May include global or custom labels.
@@ -18,13 +18,13 @@ pub struct LabelerViewData {
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like_count: core::option::Option<usize>,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<LabelerViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<LabelerViewerState>,
 }
 pub type LabelerView = crate::types::Object<LabelerViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -33,20 +33,20 @@ pub struct LabelerViewDetailedData {
     pub cid: crate::types::string::Cid,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like_count: Option<usize>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like_count: core::option::Option<usize>,
     pub policies: crate::app::bsky::labeler::defs::LabelerPolicies,
     pub uri: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<LabelerViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<LabelerViewerState>,
 }
 pub type LabelerViewDetailed = crate::types::Object<LabelerViewDetailedData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LabelerViewerStateData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub like: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub like: core::option::Option<String>,
 }
 pub type LabelerViewerState = crate::types::Object<LabelerViewerStateData>;

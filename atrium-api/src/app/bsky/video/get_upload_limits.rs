@@ -5,14 +5,14 @@ pub const NSID: &str = "app.bsky.video.getUploadLimits";
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
     pub can_upload: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub remaining_daily_bytes: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub remaining_daily_videos: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub error: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub message: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub remaining_daily_bytes: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub remaining_daily_videos: core::option::Option<i64>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

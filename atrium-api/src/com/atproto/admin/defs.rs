@@ -3,25 +3,29 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub deactivated_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub deactivated_at: core::option::Option<crate::types::string::Datetime>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email_confirmed_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email_confirmed_at: core::option::Option<crate::types::string::Datetime>,
     pub handle: crate::types::string::Handle,
     pub indexed_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invite_note: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invited_by: Option<crate::com::atproto::server::defs::InviteCode>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invites: Option<Vec<crate::com::atproto::server::defs::InviteCode>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invites_disabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub related_records: Option<Vec<crate::types::Unknown>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invite_note: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invited_by: core::option::Option<crate::com::atproto::server::defs::InviteCode>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invites: core::option::Option<
+        Vec<crate::com::atproto::server::defs::InviteCode>,
+    >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invites_disabled: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub related_records: core::option::Option<Vec<crate::types::Unknown>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub threat_signatures: core::option::Option<Vec<ThreatSignature>>,
 }
 pub type AccountView = crate::types::Object<AccountViewData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -29,8 +33,8 @@ pub type AccountView = crate::types::Object<AccountViewData>;
 pub struct RepoBlobRefData {
     pub cid: crate::types::string::Cid,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub record_uri: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub record_uri: core::option::Option<String>,
 }
 pub type RepoBlobRef = crate::types::Object<RepoBlobRefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -43,7 +47,14 @@ pub type RepoRef = crate::types::Object<RepoRefData>;
 #[serde(rename_all = "camelCase")]
 pub struct StatusAttrData {
     pub applied: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub r#ref: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub r#ref: core::option::Option<String>,
 }
 pub type StatusAttr = crate::types::Object<StatusAttrData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ThreatSignatureData {
+    pub property: String,
+    pub value: String,
+}
+pub type ThreatSignature = crate::types::Object<ThreatSignatureData>;

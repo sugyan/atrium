@@ -9,15 +9,15 @@ pub struct TemplateViewData {
     pub disabled: bool,
     pub id: String,
     ///Message language.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lang: Option<crate::types::string::Language>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub lang: core::option::Option<crate::types::string::Language>,
     ///DID of the user who last updated the template.
     pub last_updated_by: crate::types::string::Did,
     ///Name of the template.
     pub name: String,
     ///Content of the template, can contain markdown and variable placeholders.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject: core::option::Option<String>,
     pub updated_at: crate::types::string::Datetime,
 }
 pub type TemplateView = crate::types::Object<TemplateViewData>;

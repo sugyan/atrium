@@ -5,27 +5,27 @@ pub const NSID: &str = "com.atproto.server.createAccount";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     ///Pre-existing atproto DID, being imported to a new account.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub did: Option<crate::types::string::Did>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub email: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub did: core::option::Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub email: core::option::Option<String>,
     ///Requested handle for the account.
     pub handle: crate::types::string::Handle,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub invite_code: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub invite_code: core::option::Option<String>,
     ///Initial account password. May need to meet instance-specific password strength requirements.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub password: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub password: core::option::Option<String>,
     ///A signed DID PLC operation to be submitted as part of importing an existing account to this instance. NOTE: this optional field may be updated when full account migration is implemented.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub plc_op: Option<crate::types::Unknown>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub plc_op: core::option::Option<crate::types::Unknown>,
     ///DID PLC rotation key (aka, recovery key) to be included in PLC creation operation.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub recovery_key: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verification_code: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verification_phone: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub recovery_key: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub verification_code: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub verification_phone: core::option::Option<String>,
 }
 pub type Input = crate::types::Object<InputData>;
 ///Account login session returned on successful account creation.
@@ -36,8 +36,8 @@ pub struct OutputData {
     ///The DID of the new account.
     pub did: crate::types::string::Did,
     ///Complete DID document.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub did_doc: Option<crate::types::Unknown>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub did_doc: core::option::Option<crate::types::Unknown>,
     pub handle: crate::types::string::Handle,
     pub refresh_jwt: String,
 }

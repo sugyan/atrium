@@ -5,8 +5,8 @@ pub const NSID: &str = "com.atproto.moderation.createReport";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     ///Additional context about the content and violation.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reason: core::option::Option<String>,
     ///Indicates the broad category of violation the report is for.
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub subject: crate::types::Union<InputSubjectRefs>,
@@ -17,8 +17,8 @@ pub type Input = crate::types::Object<InputData>;
 pub struct OutputData {
     pub created_at: crate::types::string::Datetime,
     pub id: i64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reason: core::option::Option<String>,
     pub reason_type: crate::com::atproto::moderation::defs::ReasonType,
     pub reported_by: crate::types::string::Did,
     pub subject: crate::types::Union<OutputSubjectRefs>,

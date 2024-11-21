@@ -3,20 +3,22 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfileViewBasicData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub associated: Option<crate::app::bsky::actor::defs::ProfileAssociated>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub associated: core::option::Option<
+        crate::app::bsky::actor::defs::ProfileAssociated,
+    >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub avatar: core::option::Option<String>,
     ///Set to true when the actor cannot actively participate in converations
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub chat_disabled: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub chat_disabled: core::option::Option<bool>,
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub display_name: core::option::Option<String>,
     pub handle: crate::types::string::Handle,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub viewer: Option<crate::app::bsky::actor::defs::ViewerState>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub viewer: core::option::Option<crate::app::bsky::actor::defs::ViewerState>,
 }
 pub type ProfileViewBasic = crate::types::Object<ProfileViewBasicData>;

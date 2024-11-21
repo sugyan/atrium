@@ -12,3 +12,9 @@ pub struct SkeletonSearchPostData {
     pub uri: String,
 }
 pub type SkeletonSearchPost = crate::types::Object<SkeletonSearchPostData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SkeletonSearchStarterPackData {
+    pub uri: String,
+}
+pub type SkeletonSearchStarterPack = crate::types::Object<SkeletonSearchStarterPackData>;

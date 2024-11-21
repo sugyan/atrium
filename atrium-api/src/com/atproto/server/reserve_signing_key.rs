@@ -5,8 +5,8 @@ pub const NSID: &str = "com.atproto.server.reserveSigningKey";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     ///The DID to reserve a key for.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub did: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub did: core::option::Option<crate::types::string::Did>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

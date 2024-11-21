@@ -6,8 +6,8 @@ pub const NSID: &str = "com.atproto.admin.enableAccountInvites";
 pub struct InputData {
     pub account: crate::types::string::Did,
     ///Optional reason for enabled invites.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub note: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub note: core::option::Option<String>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

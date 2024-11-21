@@ -7,11 +7,11 @@ pub struct ParametersData {
     ///The DID of the service that the token will be used to authenticate with
     pub aud: crate::types::string::Did,
     ///The time in Unix Epoch seconds that the JWT expires. Defaults to 60 seconds in the future. The service may enforce certain time bounds on tokens depending on the requested scope.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub exp: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub exp: core::option::Option<i64>,
     ///Lexicon (XRPC) method to bind the requested token to
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lxm: Option<crate::types::string::Nsid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub lxm: core::option::Option<crate::types::string::Nsid>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

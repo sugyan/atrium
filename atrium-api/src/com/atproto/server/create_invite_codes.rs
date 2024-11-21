@@ -5,8 +5,8 @@ pub const NSID: &str = "com.atproto.server.createInviteCodes";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     pub code_count: i64,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub for_accounts: Option<Vec<crate::types::string::Did>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub for_accounts: core::option::Option<Vec<crate::types::string::Did>>,
     pub use_count: i64,
 }
 pub type Input = crate::types::Object<InputData>;

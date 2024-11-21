@@ -7,8 +7,8 @@ pub struct InputData {
     pub created_by: crate::types::string::Did,
     pub event: crate::types::Union<InputEventRefs>,
     pub subject: crate::types::Union<InputSubjectRefs>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject_blob_cids: Option<Vec<crate::types::string::Cid>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_blob_cids: core::option::Option<Vec<crate::types::string::Cid>>,
 }
 pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::moderation::defs::ModEventView;
@@ -88,6 +88,18 @@ pub enum InputEventRefs {
     #[serde(rename = "tools.ozone.moderation.defs#modEventTag")]
     ToolsOzoneModerationDefsModEventTag(
         Box<crate::tools::ozone::moderation::defs::ModEventTag>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#accountEvent")]
+    ToolsOzoneModerationDefsAccountEvent(
+        Box<crate::tools::ozone::moderation::defs::AccountEvent>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#identityEvent")]
+    ToolsOzoneModerationDefsIdentityEvent(
+        Box<crate::tools::ozone::moderation::defs::IdentityEvent>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#recordEvent")]
+    ToolsOzoneModerationDefsRecordEvent(
+        Box<crate::tools::ozone::moderation::defs::RecordEvent>,
     ),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
