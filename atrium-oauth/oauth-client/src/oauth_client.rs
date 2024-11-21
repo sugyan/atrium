@@ -1,6 +1,5 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
-use crate::http_client::dpop::{DpopClient, Error as DpopError};
 use crate::keyset::Keyset;
 use crate::oauth_session::OAuthSession;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
@@ -176,14 +175,7 @@ where
             prompt: options.prompt.map(String::from),
         };
         if metadata.pushed_authorization_request_endpoint.is_some() {
-            let server = OAuthServerAgent::new(
-                dpop_key,
-                metadata.clone(),
-                self.client_metadata.clone(),
-                self.resolver.clone(),
-                self.http_client.clone(),
-                self.keyset.clone(),
-            )?;
+            let server = self.create_server_agent(dpop_key, metadata.clone())?;
             let par_response = server
                 .request::<OAuthPusehedAuthorizationRequestResponse>(
                     OAuthRequest::PushedAuthorizationRequest(parameters),
@@ -213,7 +205,7 @@ where
     pub async fn callback(
         &self,
         params: CallbackParams,
-    ) -> Result<(OAuthSession<T>, Option<String>)> {
+    ) -> Result<(OAuthSession<T, D, H>, Option<String>)> {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -238,24 +230,54 @@ where
         } else if metadata.authorization_response_iss_parameter_supported == Some(true) {
             return Err(Error::Callback("missing `iss` parameter".into()));
         }
-        let server = OAuthServerAgent::new(
-            state.dpop_key.clone(),
-            metadata.clone(),
+        let server = self.create_server_agent(state.dpop_key.clone(), metadata.clone())?;
+        let token_set = server.exchange_code(&params.code, &state.verifier).await?;
+        // TODO: store token_set to session store
+
+        let session =
+            self.create_session_from_metadata(state.dpop_key.clone(), metadata, token_set)?;
+        Ok((session, state.app_state))
+    }
+    pub async fn create_session(
+        &self,
+        dpop_key: Key,
+        issuer: String,
+        token_set: TokenSet,
+    ) -> Result<OAuthSession<T, D, H>> {
+        let server_metadata = self.resolver.get_authorization_server_metadata(issuer).await?;
+        self.create_session_from_metadata(dpop_key, server_metadata, token_set)
+    }
+    fn create_session_from_metadata(
+        &self,
+        dpop_key: Key,
+        server_metadata: OAuthAuthorizationServerMetadata,
+        token_set: TokenSet,
+    ) -> Result<OAuthSession<T, D, H>> {
+        #[derive(serde::Serialize, Debug)]
+        struct DumpData {
+            key: Key,
+            token_set: TokenSet,
+        }
+        let data = DumpData { key: dpop_key.clone(), token_set: token_set.clone() };
+        println!("{}", serde_json::to_string_pretty(&data).expect("failed to serialize"));
+
+        Ok(self
+            .create_server_agent(dpop_key, server_metadata)?
+            .create_session(self.http_client.clone(), token_set)?)
+    }
+    fn create_server_agent(
+        &self,
+        dpop_key: Key,
+        server_metadata: OAuthAuthorizationServerMetadata,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        Ok(OAuthServerAgent::new(
+            dpop_key,
+            server_metadata,
             self.client_metadata.clone(),
             self.resolver.clone(),
             self.http_client.clone(),
             self.keyset.clone(),
-        )?;
-        let token_set = server.exchange_code(&params.code, &state.verifier).await?;
-        // TODO: store token_set to session store
-
-        let session = self.create_session(
-            state.dpop_key.clone(),
-            &metadata,
-            &self.client_metadata,
-            token_set,
-        )?;
-        Ok((session, state.app_state))
+        )?)
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
         let mut algs =
@@ -268,21 +290,5 @@ where
         let verifier =
             URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
         (URL_SAFE_NO_PAD.encode(Sha256::digest(&verifier)), verifier)
-    }
-    fn create_session(
-        &self,
-        dpop_key: Key,
-        server_metadata: &OAuthAuthorizationServerMetadata,
-        client_metadata: &OAuthClientMetadata,
-        token_set: TokenSet,
-    ) -> core::result::Result<OAuthSession<T>, DpopError> {
-        let dpop_client = DpopClient::new(
-            dpop_key,
-            client_metadata.client_id.clone(),
-            self.http_client.clone(),
-            false,
-            &server_metadata.token_endpoint_auth_signing_alg_values_supported,
-        )?;
-        Ok(OAuthSession::new(dpop_client, token_set))
     }
 }

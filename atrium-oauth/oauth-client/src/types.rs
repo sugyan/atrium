@@ -9,7 +9,8 @@ pub use client_metadata::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
 pub use metadata::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
 pub use request::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType,
-    PushedAuthorizationRequestParameters, TokenGrantType, TokenRequestParameters,
+    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
+    TokenRequestParameters,
 };
 pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
 use serde::Deserialize;
