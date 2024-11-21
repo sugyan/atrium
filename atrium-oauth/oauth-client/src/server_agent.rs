@@ -5,7 +5,8 @@ use crate::keyset::Keyset;
 use crate::resolver::OAuthResolver;
 use crate::types::{
     OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
-    PushedAuthorizationRequestParameters, TokenGrantType, TokenRequestParameters, TokenSet,
+    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
+    TokenRequestParameters, TokenSet,
 };
 use crate::utils::{compare_algos, generate_nonce};
 use atrium_api::types::string::Datetime;
@@ -56,6 +57,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 #[allow(dead_code)]
 pub enum OAuthRequest {
     Token(TokenRequestParameters),
+    Refresh(RefreshRequestParameters),
     Revocation,
     Introspection,
     PushedAuthorizationRequest(PushedAuthorizationRequestParameters),
@@ -65,6 +67,7 @@ impl OAuthRequest {
     fn name(&self) -> String {
         String::from(match self {
             Self::Token(_) => "token",
+            Self::Refresh(_) => "refresh",
             Self::Revocation => "revocation",
             Self::Introspection => "introspection",
             Self::PushedAuthorizationRequest(_) => "pushed_authorization_request",
@@ -72,7 +75,7 @@ impl OAuthRequest {
     }
     fn expected_status(&self) -> StatusCode {
         match self {
-            Self::Token(_) => StatusCode::OK,
+            Self::Token(_) | Self::Refresh(_) => StatusCode::OK,
             Self::PushedAuthorizationRequest(_) => StatusCode::CREATED,
             _ => unimplemented!(),
         }
@@ -120,7 +123,6 @@ where
     ) -> Result<Self> {
         let dpop_client = DpopClient::new(
             dpop_key,
-            client_metadata.client_id.clone(),
             http_client,
             true,
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
@@ -182,6 +184,7 @@ where
         };
         let body = match &request {
             OAuthRequest::Token(params) => self.build_body(params)?,
+            OAuthRequest::Refresh(params) => self.build_body(params)?,
             OAuthRequest::PushedAuthorizationRequest(params) => self.build_body(params)?,
             _ => unimplemented!(),
         };
@@ -267,7 +270,9 @@ where
     }
     fn endpoint(&self, request: &OAuthRequest) -> Option<&String> {
         match request {
-            OAuthRequest::Token(_) => Some(&self.server_metadata.token_endpoint),
+            OAuthRequest::Token(_) | OAuthRequest::Refresh(_) => {
+                Some(&self.server_metadata.token_endpoint)
+            }
             OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
             OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
             OAuthRequest::PushedAuthorizationRequest(_) => {

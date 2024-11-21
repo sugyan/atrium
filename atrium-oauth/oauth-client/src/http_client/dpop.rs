@@ -41,9 +41,7 @@ where
     S: SimpleStore<String, String>,
 {
     inner: Arc<T>,
-    key: Key,
-    #[allow(dead_code)]
-    iss: String,
+    pub(crate) key: Key,
     nonces: S,
     is_auth_server: bool,
 }
@@ -51,7 +49,6 @@ where
 impl<T> DpopClient<T> {
     pub fn new(
         key: Key,
-        iss: String,
         http_client: Arc<T>,
         is_auth_server: bool,
         supported_algs: &Option<Vec<String>>,
@@ -69,7 +66,7 @@ impl<T> DpopClient<T> {
             }
         }
         let nonces = MemorySimpleStore::<String, String>::default();
-        Ok(Self { inner: http_client, key, iss, nonces, is_auth_server })
+        Ok(Self { inner: http_client, key, nonces, is_auth_server })
     }
 }
 
