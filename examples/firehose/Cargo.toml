@@ -7,8 +7,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.80"
-# atrium-api = { version = "0.18.1", features = ["dag-cbor"] }
-atrium-api = { path = "../../atrium-api" }
+atrium-api = { version = "0.24.8" }
 chrono = "0.4.34"
 cid_old = { package = "cid", version = "0.10.1" }
 cid = { package = "cid", version = "0.11.1" }
