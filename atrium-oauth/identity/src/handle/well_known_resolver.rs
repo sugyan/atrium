@@ -1,7 +1,7 @@
 use super::HandleResolver;
 use crate::error::{Error, Result};
-use crate::Resolver;
 use atrium_api::types::string::{Did, Handle};
+use atrium_common::resolver::Resolver;
 use atrium_xrpc::http::Request;
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
@@ -29,6 +29,7 @@ where
 {
     type Input = Handle;
     type Output = Did;
+    type Error = Error;
 
     async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         let url = format!("https://{}{WELL_KNWON_PATH}", handle.as_str());

@@ -1,6 +1,7 @@
 use crate::error::{Error, Result};
-use crate::{did::DidResolver, handle::HandleResolver, Resolver};
+use crate::{did::DidResolver, handle::HandleResolver};
 use atrium_api::types::string::AtIdentifier;
+use atrium_common::resolver::Resolver;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,6 +34,7 @@ where
 {
     type Input = str;
     type Output = ResolvedIdentity;
+    type Error = Error;
 
     async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
         let document =

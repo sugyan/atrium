@@ -1,8 +1,8 @@
 use super::HandleResolver;
 use crate::error::{Error, Result};
-use crate::Resolver;
 use atrium_api::com::atproto::identity::resolve_handle;
 use atrium_api::types::string::{Did, Handle};
+use atrium_common::resolver::Resolver;
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
@@ -31,6 +31,7 @@ where
 {
     type Input = Handle;
     type Output = Did;
+    type Error = Error;
 
     async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(self.service_url.parse::<Uri>()?)

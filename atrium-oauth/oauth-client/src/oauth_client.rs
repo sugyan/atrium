@@ -11,7 +11,8 @@ use crate::types::{
     TryIntoOAuthClientMetadata,
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
-use atrium_identity::{did::DidResolver, handle::HandleResolver, Resolver};
+use atrium_common::resolver::Resolver;
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine;

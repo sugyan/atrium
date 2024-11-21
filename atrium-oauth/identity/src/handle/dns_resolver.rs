@@ -1,7 +1,7 @@
 use super::HandleResolver;
 use crate::error::{Error, Result};
-use crate::Resolver;
 use atrium_api::types::string::{Did, Handle};
+use atrium_common::resolver::Resolver;
 use std::future::Future;
 
 const SUBDOMAIN: &str = "_atproto";
@@ -41,6 +41,7 @@ where
 {
     type Input = Handle;
     type Output = Did;
+    type Error = Error;
 
     async fn resolve(&self, handle: &Self::Input) -> Result<Self::Output> {
         for result in self

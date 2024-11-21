@@ -1,4 +1,4 @@
-use super::super::cached_resolver::{Cache as CacheTrait, CachedResolverConfig};
+use super::{Cache as CacheTrait, CacheConfig};
 use moka::{future::Cache, policy::EvictionPolicy};
 use std::collections::hash_map::RandomState;
 use std::hash::Hash;
@@ -15,7 +15,7 @@ where
     type Input = I;
     type Output = O;
 
-    fn new(config: CachedResolverConfig) -> Self {
+    fn new(config: CacheConfig) -> Self {
         let mut builder = Cache::<I, O, _>::builder().eviction_policy(EvictionPolicy::lru());
         if let Some(max_capacity) = config.max_capacity {
             builder = builder.max_capacity(max_capacity);
