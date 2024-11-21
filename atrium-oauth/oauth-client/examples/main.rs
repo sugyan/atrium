@@ -89,6 +89,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uri = url.trim().parse::<Uri>()?;
     let params = serde_html_form::from_str(uri.query().unwrap())?;
+
     let session_manager = client.callback::<MemoryMapStore<(), Session>>(params).await?;
     let session = session_manager.get_session(false).await?;
     println!("{}", serde_json::to_string_pretty(&session)?);

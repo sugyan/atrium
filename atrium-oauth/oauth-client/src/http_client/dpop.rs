@@ -30,6 +30,8 @@ pub enum Error {
     JwkCrypto(crypto::Error),
     #[error("key does not match any alg supported by the server")]
     UnsupportedKey,
+    #[error("nonce store error: {0}")]
+    Nonces(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 }
@@ -100,16 +102,16 @@ where
             _ => unimplemented!(),
         }
     }
-    fn is_use_dpop_nonce_error(&self, response: &Response<Vec<u8>>) -> bool {
+    fn is_use_dpop_nonce_error(&self, response: &Response<Vec<u8>>, is_auth_server: bool) -> bool {
         // https://datatracker.ietf.org/doc/html/rfc9449#name-authorization-server-provid
-        if response.status() == 400 {
+        if is_auth_server && response.status() == 400 {
             if let Ok(res) = serde_json::from_slice::<ErrorResponse>(response.body()) {
                 return res.error == "use_dpop_nonce";
             };
         }
-        // https://datatracker.ietf.org/doc/html/rfc6750#section-3
         // https://datatracker.ietf.org/doc/html/rfc9449#name-resource-server-provided-no
-        if response.status() == 401 {
+        if !is_auth_server && response.status() == 401 {
+            // https://datatracker.ietf.org/doc/html/rfc6750#section-3
             if let Some(www_auth) =
                 response.headers().get("WWW-Authenticate").and_then(|v| v.to_str().ok())
             {
@@ -132,6 +134,7 @@ impl<T, S> HttpClient for DpopClient<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
     S: MapStore<String, String> + Send + Sync + 'static,
+    S::Error: Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -142,13 +145,8 @@ where
         let nonce_key = uri.authority().unwrap().to_string();
         let htm = request.method().to_string();
         let htu = uri.to_string();
-        // https://datatracker.ietf.org/doc/html/rfc9449#section-4.2
-        let ath = request
-            .headers()
-            .get("Authorization")
-            .filter(|v| v.to_str().map_or(false, |s| s.starts_with("DPoP ")))
-            .map(|auth| URL_SAFE_NO_PAD.encode(Sha256::digest(&auth.as_bytes()[5..])));
 
+        let is_auth_server = uri.path().starts_with("/oauth");
         let ath = match request.headers().get("Authorization").and_then(|v| v.to_str().ok()) {
             Some(s) if s.starts_with("DPoP ") => {
                 Some(URL_SAFE_NO_PAD.encode(Sha256::digest(s.strip_prefix("DPoP ").unwrap())))
@@ -156,7 +154,8 @@ where
             _ => None,
         };
 
-        let init_nonce = self.nonces.get(&nonce_key).await?;
+        let init_nonce =
+            self.nonces.get(&nonce_key).await.map_err(|e| Error::Nonces(Box::new(e)))?;
         let init_proof =
             self.build_proof(htm.clone(), htu.clone(), ath.clone(), init_nonce.clone())?;
         request.headers_mut().insert("DPoP", init_proof.parse()?);
@@ -167,7 +166,10 @@ where
         match &next_nonce {
             Some(s) if next_nonce != init_nonce => {
                 // Store the fresh nonce for future requests
-                self.nonces.set(nonce_key, s.clone()).await?;
+                self.nonces
+                    .set(nonce_key, s.clone())
+                    .await
+                    .map_err(|e| Error::Nonces(Box::new(e)))?;
             }
             _ => {
                 // No nonce was returned or it is the same as the one we sent. No need to
@@ -176,7 +178,7 @@ where
             }
         }
 
-        if !self.is_use_dpop_nonce_error(&response) {
+        if !self.is_use_dpop_nonce_error(&response, is_auth_server) {
             return Ok(response);
         }
         let next_proof = self.build_proof(htm, htu, ath, next_nonce)?;

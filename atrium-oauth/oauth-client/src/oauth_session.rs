@@ -1,4 +1,5 @@
-use crate::{store::session::Session, DpopClient, TokenSet};
+use std::fmt::Debug;
+
 use atrium_api::{agent::SessionManager, types::string::Did};
 use atrium_common::store::MapStore;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
@@ -7,21 +8,28 @@ use atrium_xrpc::{
     types::AuthorizationToken,
     HttpClient, XrpcClient,
 };
+use chrono::TimeDelta;
+use thiserror::Error;
 
-pub struct OAuthSession<T, S = MemoryMapStore<String, String>>
+use crate::{server_agent::OAuthServerAgent, store::session::Session};
+
+#[derive(Clone, Debug, Error)]
+pub enum Error {}
+
+pub struct OAuthSession<S, T, D, H>
 where
-    S: MapStore<(), Session>,
+    S: MapStore<(), Session> + Default,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
 {
-    inner: DpopClient<T, S>,
-    token_set: TokenSet, // TODO: replace with a session store?
+    session_store: S,
+    server: OAuthServerAgent<T, D, H>,
 }
 
-impl<T, S> OAuthSession<T, S>
+impl<S, T, D, H> OAuthSession<S, T, D, H>
 where
-    S: MapStore<(), Session>,
+    S: MapStore<(), Session> + Default,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
@@ -50,57 +58,45 @@ where
     }
 }
 
-impl<T, S> HttpClient for OAuthSession<T, S>
+impl<S, T, D, H> HttpClient for OAuthSession<S, T, D, H>
 where
     S: MapStore<(), Session> + Default + Sync,
     T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
         request: Request<Vec<u8>>,
     ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-        self.inner.send_http(request).await
+        self.server.send_http(request).await
     }
 }
 
-impl<T, S> XrpcClient for OAuthSession<T, S>
+impl<S, T, D, H> XrpcClient for OAuthSession<S, T, D, H>
 where
     S: MapStore<(), Session> + Default + Sync,
     T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
-        self.token_set.aud.clone()
+        let Ok(Some(Session { dpop_key: _, token_set })) =
+            futures::FutureExt::now_or_never(self.get_session(false)).transpose()
+        else {
+            panic!("session, now or never");
+        };
+        dbg!(&token_set);
+        token_set.aud
     }
-    async fn authorization_token(&self, _is_refresh: bool) -> Option<AuthorizationToken> {
-        Some(AuthorizationToken::Dpop(self.token_set.access_token.clone()))
-    }
-    // async fn atproto_proxy_header(&self) -> Option<String> {
-    //     todo!()
-    // }
-    // async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
-    //     todo!()
-    // }
-    // async fn send_xrpc<P, I, O, E>(
-    //     &self,
-    //     request: &XrpcRequest<P, I>,
-    // ) -> Result<OutputDataOrBytes<O>, Error<E>>
-    // where
-    //     P: Serialize + Send + Sync,
-    //     I: Serialize + Send + Sync,
-    //     O: DeserializeOwned + Send + Sync,
-    //     E: DeserializeOwned + Send + Sync + Debug,
-    // {
-    //     todo!()
-    // }
-}
-
-impl<T, S> SessionManager for OAuthSession<T, S>
-where
-    T: HttpClient + Send + Sync + 'static,
-    S: MapStore<String, String> + Send + Sync + 'static,
-{
-    async fn did(&self) -> Option<Did> {
-        todo!()
+    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
+        let Session { dpop_key: _, token_set } = self.get_session(false).await.ok()?;
+        dbg!(&token_set);
+        if is_refresh {
+            token_set.refresh_token.as_ref().cloned().map(AuthorizationToken::Dpop)
+        } else {
+            Some(AuthorizationToken::Bearer(token_set.access_token.clone()))
+        }
     }
 }
 

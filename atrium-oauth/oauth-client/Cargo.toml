@@ -44,7 +44,3 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 [features]
 default = ["default-client"]
 default-client = ["reqwest/default-tls"]
-
-[[bin]]
-name = "example"
-path = "examples/main.rs"

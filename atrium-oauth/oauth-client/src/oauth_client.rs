@@ -1,6 +1,5 @@
 use crate::constants::FALLBACK_ALG;
 use crate::error::{Error, Result};
-use crate::http_client::dpop::{DpopClient, Error as DpopError};
 use crate::keyset::Keyset;
 use crate::oauth_session::OAuthSession;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
@@ -223,7 +222,7 @@ where
     }
     pub async fn callback<S>(&self, params: CallbackParams) -> Result<OAuthSession<S, T, D, H>>
     where
-        S: MapStore<(), Session> + Default,
+        S: MapStore<(), Session> + Default + Send + Sync + 'static,
     {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
@@ -258,6 +257,7 @@ where
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
         // TODO: store token_set to session store
 
+        let session = Session { dpop_key: state.dpop_key.clone(), token_set: token_set.clone() };
         self.session_store.set(token_set.sub.clone(), session.clone()).await.unwrap();
 
         let session_store = S::default();
@@ -279,22 +279,6 @@ where
         let verifier =
             URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
         (URL_SAFE_NO_PAD.encode(Sha256::digest(&verifier)), verifier)
-    }
-    fn create_session(
-        &self,
-        dpop_key: Key,
-        server_metadata: &OAuthAuthorizationServerMetadata,
-        client_metadata: &OAuthClientMetadata,
-        token_set: TokenSet,
-    ) -> core::result::Result<OAuthSession<T>, DpopError> {
-        let dpop_client = DpopClient::new(
-            dpop_key,
-            client_metadata.client_id.clone(),
-            self.http_client.clone(),
-            false,
-            &server_metadata.token_endpoint_auth_signing_alg_values_supported,
-        )?;
-        Ok(OAuthSession::new(dpop_client, token_set))
     }
     pub async fn server_from_issuer(
         &self,

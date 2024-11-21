@@ -126,7 +126,6 @@ where
         let dpop_client = DpopClient::new(
             dpop_key,
             http_client,
-            true,
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
         Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
