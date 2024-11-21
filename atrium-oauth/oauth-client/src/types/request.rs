@@ -49,6 +49,8 @@ pub struct PushedAuthorizationRequestParameters {
 #[serde(rename_all = "snake_case")]
 pub enum TokenGrantType {
     AuthorizationCode,
+    #[allow(dead_code)]
+    RefreshToken,
 }
 
 #[derive(Serialize)]
@@ -59,4 +61,12 @@ pub struct TokenRequestParameters {
     pub redirect_uri: String,
     // https://datatracker.ietf.org/doc/html/rfc7636#section-4.5
     pub code_verifier: String,
+}
+
+#[derive(Serialize)]
+pub struct RefreshRequestParameters {
+    // https://datatracker.ietf.org/doc/html/rfc6749#section-6
+    pub grant_type: TokenGrantType,
+    pub refresh_token: String,
+    pub scope: Option<String>,
 }

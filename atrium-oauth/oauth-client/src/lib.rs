@@ -12,7 +12,7 @@ mod types;
 mod utils;
 
 pub use atproto::{
-    AtprotoClientMetadata, AtprotoLocalhostClientMetadata, AuthMethod, GrantType, Scope,
+    AtprotoClientMetadata, AtprotoLocalhostClientMetadata, AuthMethod, GrantType, KnownScope, Scope,
 };
 pub use error::{Error, Result};
 #[cfg(feature = "default-client")]

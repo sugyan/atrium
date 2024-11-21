@@ -166,7 +166,7 @@ where
             response_type: AuthorizationResponseType::Code,
             redirect_uri,
             state,
-            scope: options.scopes.map(|v| v.join(" ")),
+            scope: Some(options.scopes.iter().map(AsRef::as_ref).collect::<Vec<_>>().join(" ")),
             response_mode: None,
             code_challenge,
             code_challenge_method: AuthorizationCodeChallengeMethod::S256,
@@ -256,8 +256,6 @@ where
         // https://datatracker.ietf.org/doc/html/rfc7636#section-4.1
         let verifier =
             URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
-        let mut hasher = Sha256::new();
-        hasher.update(verifier.as_bytes());
-        (URL_SAFE_NO_PAD.encode(Sha256::digest(verifier.as_bytes())), verifier)
+        (URL_SAFE_NO_PAD.encode(Sha256::digest(&verifier)), verifier)
     }
 }
