@@ -1,8 +1,10 @@
-use crate::http_client::dpop::Error;
-use crate::server_agent::OAuthServerAgent;
-use crate::store::{memory::MemorySimpleStore, SimpleStore};
-use crate::{DpopClient, TokenSet};
+use crate::{
+    http_client::dpop::Error,
+    server_agent::OAuthServerAgent,
+    {DpopClient, TokenSet},
+};
 use atrium_api::{agent::SessionManager, types::string::Did};
+use atrium_common::store::{memory::MemoryStore, Store};
 use atrium_xrpc::{
     http::{Request, Response},
     types::AuthorizationToken,
@@ -11,10 +13,10 @@ use atrium_xrpc::{
 use jose_jwk::Key;
 use std::sync::Arc;
 
-pub struct OAuthSession<T, D, H, S = MemorySimpleStore<String, String>>
+pub struct OAuthSession<T, D, H, S = MemoryStore<String, String>>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: SimpleStore<String, String>,
+    S: Store<String, String>,
 {
     server_agent: OAuthServerAgent<T, D, H>,
     dpop_client: DpopClient<T, S>,
@@ -52,7 +54,8 @@ where
     T: HttpClient + Send + Sync + 'static,
     D: Send + Sync + 'static,
     H: Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: Store<String, String> + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -67,7 +70,8 @@ where
     T: HttpClient + Send + Sync + 'static,
     D: Send + Sync + 'static,
     H: Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: Store<String, String> + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.token_set.aud.clone()
@@ -100,7 +104,8 @@ where
     T: HttpClient + Send + Sync + 'static,
     D: Send + Sync + 'static,
     H: Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: Store<String, String> + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
         todo!()

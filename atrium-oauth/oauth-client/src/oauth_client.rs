@@ -1,22 +1,23 @@
-use crate::constants::FALLBACK_ALG;
-use crate::error::{Error, Result};
-use crate::keyset::Keyset;
-use crate::oauth_session::OAuthSession;
-use crate::resolver::{OAuthResolver, OAuthResolverConfig};
-use crate::server_agent::{OAuthRequest, OAuthServerAgent};
-use crate::store::state::{InternalStateData, StateStore};
-use crate::types::{
-    AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
-    OAuthAuthorizationServerMetadata, OAuthClientMetadata,
-    OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters, TokenSet,
-    TryIntoOAuthClientMetadata,
+use crate::{
+    constants::FALLBACK_ALG,
+    error::{Error, Result},
+    keyset::Keyset,
+    oauth_session::OAuthSession,
+    resolver::{OAuthResolver, OAuthResolverConfig},
+    server_agent::{OAuthRequest, OAuthServerAgent},
+    store::state::{InternalStateData, StateStore},
+    types::{
+        AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions,
+        CallbackParams, OAuthAuthorizationServerMetadata, OAuthClientMetadata,
+        OAuthPusehedAuthorizationRequestResponse, PushedAuthorizationRequestParameters, TokenSet,
+        TryIntoOAuthClientMetadata,
+    },
+    utils::{compare_algos, generate_key, generate_nonce, get_random_values},
 };
-use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
 use atrium_common::resolver::Resolver;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::HttpClient;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use base64::Engine;
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use jose_jwk::{Jwk, JwkSet, Key};
 use rand::rngs::ThreadRng;
 use serde::Serialize;
@@ -130,6 +131,7 @@ where
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn jwks(&self) -> JwkSet {
         self.keyset.as_ref().map(|keyset| keyset.public_jwks()).unwrap_or_default()
@@ -254,14 +256,6 @@ where
         server_metadata: OAuthAuthorizationServerMetadata,
         token_set: TokenSet,
     ) -> Result<OAuthSession<T, D, H>> {
-        #[derive(serde::Serialize, Debug)]
-        struct DumpData {
-            key: Key,
-            token_set: TokenSet,
-        }
-        let data = DumpData { key: dpop_key.clone(), token_set: token_set.clone() };
-        println!("{}", serde_json::to_string_pretty(&data).expect("failed to serialize"));
-
         Ok(self
             .create_server_agent(dpop_key, server_metadata)?
             .create_session(self.http_client.clone(), token_set)?)
