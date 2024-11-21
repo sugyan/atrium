@@ -223,6 +223,7 @@ where
     pub async fn callback<S>(&self, params: CallbackParams) -> Result<OAuthSession<S, T, D, H>>
     where
         S: MapStore<(), Session> + Default + Send + Sync + 'static,
+        S::Error: Send + Sync + 'static,
     {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
@@ -255,17 +256,19 @@ where
             self.keyset.clone(),
         )?;
         let token_set = server.exchange_code(&params.code, &state.verifier).await?;
-        // TODO: store token_set to session store
 
         let session = Session { dpop_key: state.dpop_key.clone(), token_set: token_set.clone() };
         self.session_store.set(token_set.sub.clone(), session.clone()).await.unwrap();
 
         let session_store = S::default();
-        session_store.set((), session.clone()).await.expect("todo");
+        session_store
+            .set((), session.clone())
+            .await
+            .map_err(|e| crate::Error::SessionStore(Box::new(e)))?;
 
         Ok(OAuthSession::new(
             session_store,
-            self.server_from_metadata(metadata.clone(), state.dpop_key.clone()).unwrap(),
+            server.from_metadata(metadata.clone(), state.dpop_key.clone())?,
         ))
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
@@ -279,28 +282,5 @@ where
         let verifier =
             URL_SAFE_NO_PAD.encode(get_random_values::<_, 32>(&mut ThreadRng::default()));
         (URL_SAFE_NO_PAD.encode(Sha256::digest(&verifier)), verifier)
-    }
-    pub async fn server_from_issuer(
-        &self,
-        issuer: &str,
-        dpop_key: Key,
-    ) -> Result<OAuthServerAgent<T, D, H>> {
-        let server_metadata = self.resolver.get_authorization_server_metadata(issuer).await?;
-        self.server_from_metadata(server_metadata, dpop_key)
-    }
-    pub fn server_from_metadata(
-        &self,
-        server_metadata: OAuthAuthorizationServerMetadata,
-        dpop_key: Key,
-    ) -> Result<OAuthServerAgent<T, D, H>> {
-        let server = OAuthServerAgent::new(
-            dpop_key,
-            server_metadata,
-            self.client_metadata.clone(),
-            self.resolver.clone(),
-            self.http_client.clone(),
-            self.keyset.clone(),
-        )?;
-        Ok(server)
     }
 }

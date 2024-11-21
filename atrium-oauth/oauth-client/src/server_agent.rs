@@ -105,6 +105,7 @@ where
     server_metadata: OAuthAuthorizationServerMetadata,
     client_metadata: OAuthClientMetadata,
     dpop_client: DpopClient<T>,
+    http_client: Arc<T>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
 }
@@ -125,10 +126,11 @@ where
     ) -> Result<Self> {
         let dpop_client = DpopClient::new(
             dpop_key,
-            http_client,
+            client_metadata.client_id.clone(),
+            http_client.clone(),
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
-        Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
+        Ok(Self { server_metadata, client_metadata, dpop_client, http_client, resolver, keyset })
     }
     /**
      * VERY IMPORTANT ! Always call this to process token responses.
@@ -320,6 +322,31 @@ where
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
             }
         }
+    }
+    #[allow(clippy::wrong_self_convention)]
+    pub async fn from_issuer(
+        &self,
+        issuer: &str,
+        dpop_key: Key,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        let server_metadata = self.resolver.get_authorization_server_metadata(issuer).await?;
+        self.from_metadata(server_metadata, dpop_key)
+    }
+    #[allow(clippy::wrong_self_convention)]
+    pub fn from_metadata(
+        &self,
+        server_metadata: OAuthAuthorizationServerMetadata,
+        dpop_key: Key,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        let server = OAuthServerAgent::new(
+            dpop_key,
+            server_metadata,
+            self.client_metadata.clone(),
+            self.resolver.clone(),
+            self.http_client.clone(),
+            self.keyset.clone(),
+        )?;
+        Ok(server)
     }
 }
 

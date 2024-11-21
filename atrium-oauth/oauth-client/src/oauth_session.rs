@@ -30,6 +30,7 @@ where
 impl<S, T, D, H> OAuthSession<S, T, D, H>
 where
     S: MapStore<(), Session> + Default,
+    S::Error: Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
@@ -38,7 +39,12 @@ where
         Self { session_store, server }
     }
     pub async fn get_session(&self, refresh: bool) -> crate::Result<Session> {
-        let Some(session) = self.session_store.get(&()).await.expect("todo") else {
+        let Some(session) = self
+            .session_store
+            .get(&())
+            .await
+            .map_err(|e| crate::Error::SessionStore(Box::new(e)))?
+        else {
             panic!("a session should always exist");
         };
         if session.expires_in().expect("no expires_at") == TimeDelta::zero() && refresh {
@@ -52,7 +58,7 @@ where
         let session = self.get_session(false).await?;
 
         self.server.revoke(&session.token_set.access_token).await;
-        self.session_store.clear().await.expect("todo");
+        self.session_store.clear().await.map_err(|e| crate::Error::SessionStore(Box::new(e)))?;
 
         Ok(())
     }
@@ -76,22 +82,24 @@ where
 impl<S, T, D, H> XrpcClient for OAuthSession<S, T, D, H>
 where
     S: MapStore<(), Session> + Default + Sync,
+    S::Error: Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
-        let Ok(Some(Session { dpop_key: _, token_set })) =
-            futures::FutureExt::now_or_never(self.get_session(false)).transpose()
-        else {
-            panic!("session, now or never");
-        };
-        dbg!(&token_set);
-        token_set.aud
+        // let Ok(Some(Session { dpop_key: _, token_set })) =
+        //     futures::FutureExt::now_or_never(self.get_session(false)).transpose()
+        // else {
+        //     panic!("session, now or never");
+        // };
+
+        todo!()
     }
     async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
-        let Session { dpop_key: _, token_set } = self.get_session(false).await.ok()?;
-        dbg!(&token_set);
+        let Ok(Session { dpop_key: _, token_set }) = self.get_session(false).await else {
+            return None;
+        };
         if is_refresh {
             token_set.refresh_token.as_ref().cloned().map(AuthorizationToken::Dpop)
         } else {
@@ -103,12 +111,15 @@ where
 impl<S, T, D, H> SessionManager for OAuthSession<S, T, D, H>
 where
     S: MapStore<(), Session> + Default + Sync,
+    S::Error: Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
-        let session = self.session_store.get(&()).await.expect("todo");
-        session.map(|session| session.token_set.sub.parse().unwrap())
+        let Ok(Some(session)) = self.session_store.get(&()).await else {
+            return None;
+        };
+        Some(session.token_set.sub.parse().expect("TokenSet contains valid sub"))
     }
 }
