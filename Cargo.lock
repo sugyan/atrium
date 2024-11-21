@@ -200,6 +200,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "atrium-common"
+version = "0.1.0"
+dependencies = [
+ "dashmap",
+ "futures",
+ "gloo-timers",
+ "lru",
+ "moka",
+ "thiserror",
+ "tokio",
+ "trait-variant",
+ "wasm-bindgen-test",
+ "web-time",
+]
+
+[[package]]
 name = "atrium-crypto"
 version = "0.1.2"
 dependencies = [
@@ -219,21 +235,14 @@ name = "atrium-identity"
 version = "0.1.0"
 dependencies = [
  "atrium-api",
+ "atrium-common",
  "atrium-xrpc",
- "dashmap",
- "futures",
- "gloo-timers",
  "hickory-proto",
- "lru",
- "moka",
  "serde",
  "serde_html_form",
  "serde_json",
  "thiserror",
- "tokio",
  "trait-variant",
- "wasm-bindgen-test",
- "web-time",
 ]
 
 [[package]]
@@ -241,6 +250,7 @@ name = "atrium-oauth-client"
 version = "0.1.0"
 dependencies = [
  "atrium-api",
+ "atrium-common",
  "atrium-identity",
  "atrium-xrpc",
  "base64",
