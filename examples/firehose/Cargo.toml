@@ -7,12 +7,17 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.80"
-atrium-api = { version = "0.18.1", features = ["dag-cbor"] }
+# atrium-api = { version = "0.18.1", features = ["dag-cbor"] }
+atrium-api = { path = "../../atrium-api" }
 chrono = "0.4.34"
+cid_old = { package = "cid", version = "0.10.1" }
+cid = { package = "cid", version = "0.11.1" }
 futures = "0.3.30"
 ipld-core = { version = "0.4.0", default-features = false, features = ["std"] }
 rs-car = "0.4.1"
-serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }
+serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = [
+    "std",
+] }
 tokio = { version = "1.36.0", features = ["full"] }
 tokio-tungstenite = { version = "0.21.0", features = ["native-tls"] }
 trait-variant = "0.1.1"
