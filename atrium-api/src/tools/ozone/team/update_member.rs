@@ -5,10 +5,10 @@ pub const NSID: &str = "tools.ozone.team.updateMember";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disabled: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub role: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub disabled: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub role: core::option::Option<String>,
 }
 pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::team::defs::Member;

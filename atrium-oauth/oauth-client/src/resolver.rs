@@ -1,3 +1,11 @@
+use atrium_common::resolver::CachedResolver;
+use atrium_common::resolver::Resolver;
+use atrium_common::resolver::ThrottledResolver;
+use atrium_common::types::cached::r#impl::Cache;
+use atrium_common::types::cached::r#impl::CacheImpl;
+use atrium_common::types::cached::CacheConfig;
+use atrium_common::types::cached::Cacheable;
+use atrium_common::types::throttled::Throttleable;
 mod oauth_authorization_server_resolver;
 mod oauth_protected_resource_resolver;
 
@@ -7,10 +15,7 @@ use crate::types::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetad
 use atrium_identity::identity_resolver::{
     IdentityResolver, IdentityResolverConfig, ResolvedIdentity,
 };
-use atrium_identity::resolver::{
-    Cacheable, CachedResolver, CachedResolverConfig, Throttleable, ThrottledResolver,
-};
-use atrium_identity::{did::DidResolver, handle::HandleResolver, Resolver};
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_identity::{Error, Result};
 use atrium_xrpc::HttpClient;
 use std::marker::PhantomData;
@@ -19,13 +24,13 @@ use std::time::Duration;
 
 #[derive(Clone, Debug)]
 pub struct OAuthAuthorizationServerMetadataResolverConfig {
-    pub cache: CachedResolverConfig,
+    pub cache: CacheConfig,
 }
 
 impl Default for OAuthAuthorizationServerMetadataResolverConfig {
     fn default() -> Self {
         Self {
-            cache: CachedResolverConfig {
+            cache: CacheConfig {
                 max_capacity: Some(100),
                 time_to_live: Some(Duration::from_secs(60)),
             },
@@ -35,13 +40,13 @@ impl Default for OAuthAuthorizationServerMetadataResolverConfig {
 
 #[derive(Clone, Debug)]
 pub struct OAuthProtectedResourceMetadataResolverConfig {
-    pub cache: CachedResolverConfig,
+    pub cache: CacheConfig,
 }
 
 impl Default for OAuthProtectedResourceMetadataResolverConfig {
     fn default() -> Self {
         Self {
-            cache: CachedResolverConfig {
+            cache: CacheConfig {
                 max_capacity: Some(100),
                 time_to_live: Some(Duration::from_secs(60)),
             },
@@ -81,11 +86,11 @@ where
         let protected_resource_resolver =
             DefaultOAuthProtectedResourceResolver::new(http_client.clone())
                 .throttled()
-                .cached(config.authorization_server_metadata.cache);
+                .cached(CacheImpl::new(config.authorization_server_metadata.cache));
         let authorization_server_resolver =
             DefaultOAuthAuthorizationServerResolver::new(http_client.clone())
                 .throttled()
-                .cached(config.protected_resource_metadata.cache);
+                .cached(CacheImpl::new(config.protected_resource_metadata.cache));
         Self {
             identity_resolver: IdentityResolver::new(IdentityResolverConfig {
                 did_resolver: config.did_resolver,
@@ -108,7 +113,9 @@ where
         &self,
         issuer: impl AsRef<str>,
     ) -> Result<OAuthAuthorizationServerMetadata> {
-        self.authorization_server_resolver.resolve(&issuer.as_ref().to_string()).await
+        let result =
+            self.authorization_server_resolver.resolve(&issuer.as_ref().to_string()).await?;
+        result.ok_or_else(|| Error::NotFound)
     }
     async fn resolve_from_service(&self, input: &str) -> Result<OAuthAuthorizationServerMetadata> {
         // Assume first that input is a PDS URL (as required by ATPROTO)
@@ -130,7 +137,8 @@ where
         &self,
         pds: &str,
     ) -> Result<OAuthAuthorizationServerMetadata> {
-        let rs_metadata = self.protected_resource_resolver.resolve(&pds.to_string()).await?;
+        let result = self.protected_resource_resolver.resolve(&pds.to_string()).await?;
+        let rs_metadata = result.ok_or_else(|| Error::NotFound)?;
         // ATPROTO requires one, and only one, authorization server entry
         // > That document MUST contain a single item in the authorization_servers array.
         // https://github.com/bluesky-social/proposals/tree/main/0004-oauth#server-metadata
@@ -182,6 +190,7 @@ where
 {
     type Input = str;
     type Output = (OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>);
+    type Error = Error;
 
     async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
         // Allow using an entryway, or PDS url, directly as login input (e.g.

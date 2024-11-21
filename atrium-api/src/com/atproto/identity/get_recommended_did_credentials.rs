@@ -4,15 +4,15 @@ pub const NSID: &str = "com.atproto.identity.getRecommendedDidCredentials";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub also_known_as: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub also_known_as: core::option::Option<Vec<String>>,
     ///Recommended rotation keys for PLC dids. Should be undefined (or ignored) for did:webs.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rotation_keys: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub services: Option<crate::types::Unknown>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verification_methods: Option<crate::types::Unknown>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rotation_keys: core::option::Option<Vec<String>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub services: core::option::Option<crate::types::Unknown>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub verification_methods: core::option::Option<crate::types::Unknown>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

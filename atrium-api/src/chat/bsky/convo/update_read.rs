@@ -5,8 +5,8 @@ pub const NSID: &str = "chat.bsky.convo.updateRead";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     pub convo_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub message_id: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub message_id: core::option::Option<String>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

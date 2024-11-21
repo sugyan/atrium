@@ -1,4 +1,4 @@
-use super::super::cached_resolver::{Cache as CacheTrait, CachedResolverConfig};
+use super::{Cache as CacheTrait, CacheConfig};
 use lru::LruCache;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -64,7 +64,7 @@ where
     type Input = I;
     type Output = O;
 
-    fn new(config: CachedResolverConfig) -> Self {
+    fn new(config: CacheConfig) -> Self {
         let store = if let Some(max_capacity) = config.max_capacity {
             Store::Lru(LruCache::new(
                 NonZeroUsize::new(max_capacity as usize)

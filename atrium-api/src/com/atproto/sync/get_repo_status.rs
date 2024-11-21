@@ -14,11 +14,11 @@ pub struct OutputData {
     pub active: bool,
     pub did: crate::types::string::Did,
     ///Optional field, the current rev of the repo, if active=true
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rev: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rev: core::option::Option<String>,
     ///If active=false, this optional field indicates a possible reason for why the account is not active. If active=false and no status is supplied, then the host makes no claim for why the repository is no longer being hosted.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub status: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub status: core::option::Option<String>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

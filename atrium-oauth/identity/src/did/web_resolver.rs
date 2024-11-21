@@ -1,8 +1,8 @@
 use super::DidResolver;
 use crate::error::{Error, Result};
-use crate::Resolver;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
+use atrium_common::resolver::Resolver;
 use atrium_xrpc::http::{header::ACCEPT, Request, Uri};
 use atrium_xrpc::HttpClient;
 use std::sync::Arc;
@@ -30,6 +30,7 @@ where
 {
     type Input = Did;
     type Output = DidDocument;
+    type Error = Error;
 
     async fn resolve(&self, did: &Self::Input) -> Result<Self::Output> {
         let document_url = format!(

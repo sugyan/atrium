@@ -5,13 +5,13 @@ pub const NSID: &str = "com.atproto.admin.sendEmail";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     ///Additional comment by the sender that won't be used in the email itself but helpful to provide more context for moderators/reviewers
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub comment: core::option::Option<String>,
     pub content: String,
     pub recipient_did: crate::types::string::Did,
     pub sender_did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject: core::option::Option<String>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

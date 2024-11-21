@@ -7,11 +7,11 @@ pub struct InputData {
     ///Content of the template, markdown supported, can contain variable placeholders.
     pub content_markdown: String,
     ///DID of the user who is creating the template.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub created_by: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub created_by: core::option::Option<crate::types::string::Did>,
     ///Message language.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lang: Option<crate::types::string::Language>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub lang: core::option::Option<crate::types::string::Language>,
     ///Name of the template.
     pub name: String,
     ///Subject of the message, used in emails.

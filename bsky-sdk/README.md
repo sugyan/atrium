@@ -108,6 +108,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 ```
 
+### Posts
+
+Create a Bluesky post:
+
+```rust,no_run
+use atrium_api::types::string::Datetime;
+use bsky_sdk::BskyAgent;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let agent = BskyAgent::builder().build().await?;
+    agent.login("...", "...").await?;
+
+    agent
+        .create_record(atrium_api::app::bsky::feed::post::RecordData {
+            created_at: Datetime::now(),
+            embed: None,
+            entities: None,
+            facets: None,
+            labels: None,
+            langs: None,
+            reply: None,
+            tags: None,
+            text: "Hello world, from Rust!".to_string(),
+        })
+        .await?;
+    Ok(())
+}
+```
+
 ### RichText
 
 Creating a RichText object from a string:

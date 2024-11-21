@@ -178,7 +178,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atrium-api"
-version = "0.24.7"
+version = "0.24.8"
 dependencies = [
  "atrium-xrpc",
  "atrium-xrpc-client",
@@ -197,6 +197,22 @@ dependencies = [
  "tokio",
  "trait-variant",
  "wasm-bindgen-test",
+]
+
+[[package]]
+name = "atrium-common"
+version = "0.1.0"
+dependencies = [
+ "dashmap",
+ "futures",
+ "gloo-timers",
+ "lru",
+ "moka",
+ "thiserror",
+ "tokio",
+ "trait-variant",
+ "wasm-bindgen-test",
+ "web-time",
 ]
 
 [[package]]
@@ -219,21 +235,14 @@ name = "atrium-identity"
 version = "0.1.0"
 dependencies = [
  "atrium-api",
+ "atrium-common",
  "atrium-xrpc",
- "dashmap",
- "futures",
- "gloo-timers",
  "hickory-proto",
- "lru",
- "moka",
  "serde",
  "serde_html_form",
  "serde_json",
  "thiserror",
- "tokio",
  "trait-variant",
- "wasm-bindgen-test",
- "web-time",
 ]
 
 [[package]]
@@ -241,6 +250,7 @@ name = "atrium-oauth-client"
 version = "0.1.0"
 dependencies = [
  "atrium-api",
+ "atrium-common",
  "atrium-identity",
  "atrium-xrpc",
  "base64",
@@ -264,7 +274,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.11.6"
+version = "0.12.0"
 dependencies = [
  "bumpalo",
  "http 1.1.0",
@@ -279,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.5.9"
+version = "0.5.10"
 dependencies = [
  "atrium-xrpc",
  "bumpalo",
@@ -360,7 +370,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-cli"
-version = "0.1.25"
+version = "0.1.26"
 dependencies = [
  "anyhow",
  "bsky-sdk",
@@ -374,7 +384,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "anyhow",
  "atrium-api",

@@ -4,26 +4,26 @@ pub const NSID: &str = "app.bsky.notification.listNotifications";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub priority: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub seen_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub priority: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub seen_at: core::option::Option<crate::types::string::Datetime>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     pub notifications: Vec<Notification>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub priority: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub seen_at: Option<crate::types::string::Datetime>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub priority: core::option::Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub seen_at: core::option::Option<crate::types::string::Datetime>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -41,12 +41,12 @@ pub struct NotificationData {
     pub cid: crate::types::string::Cid,
     pub indexed_at: crate::types::string::Datetime,
     pub is_read: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<Vec<crate::com::atproto::label::defs::Label>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<Vec<crate::com::atproto::label::defs::Label>>,
     ///Expected values are 'like', 'repost', 'follow', 'mention', 'reply', 'quote', and 'starterpack-joined'.
     pub reason: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reason_subject: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reason_subject: core::option::Option<String>,
     pub record: crate::types::Unknown,
     pub uri: String,
 }

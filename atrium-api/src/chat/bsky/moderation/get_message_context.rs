@@ -4,13 +4,13 @@ pub const NSID: &str = "chat.bsky.moderation.getMessageContext";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub after: Option<i64>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub before: Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub after: core::option::Option<i64>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub before: core::option::Option<i64>,
     ///Conversation that the message is from. NOTE: this field will eventually be required.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub convo_id: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub convo_id: core::option::Option<String>,
     pub message_id: String,
 }
 pub type Parameters = crate::types::Object<ParametersData>;

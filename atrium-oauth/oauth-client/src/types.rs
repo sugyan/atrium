@@ -4,7 +4,7 @@ mod request;
 mod response;
 mod token;
 
-use crate::{KnownScope, Scope};
+use crate::atproto::{KnownScope, Scope};
 pub use client_metadata::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
 pub use metadata::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
 pub use request::{

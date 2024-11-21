@@ -3,15 +3,17 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar: Option<crate::types::BlobRef>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub avatar: core::option::Option<crate::types::BlobRef>,
     pub created_at: crate::types::string::Datetime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description_facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub labels: Option<crate::types::Union<RecordLabelsRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description_facets: core::option::Option<
+        Vec<crate::app::bsky::richtext::facet::Main>,
+    >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub labels: core::option::Option<crate::types::Union<RecordLabelsRefs>>,
     ///Display name for list; can not be empty.
     pub name: String,
     ///Defines the purpose of the list (aka, moderation-oriented or curration-oriented)

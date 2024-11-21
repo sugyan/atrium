@@ -11,18 +11,18 @@ pub struct InputData {
     ///The Record Key.
     pub rkey: String,
     ///Compare and swap with the previous commit by CID.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_commit: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub swap_commit: core::option::Option<crate::types::string::Cid>,
     ///Compare and swap with the previous record by CID.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub swap_record: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub swap_record: core::option::Option<crate::types::string::Cid>,
 }
 pub type Input = crate::types::Object<InputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<crate::com::atproto::repo::defs::CommitMeta>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub commit: core::option::Option<crate::com::atproto::repo::defs::CommitMeta>,
 }
 pub type Output = crate::types::Object<OutputData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -6,8 +6,8 @@ pub const NSID: &str = "com.atproto.sync.getRecord";
 pub struct ParametersData {
     pub collection: crate::types::string::Nsid,
     ///DEPRECATED: referenced a repo commit by CID, and retrieved record as of that commit
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub commit: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub commit: core::option::Option<crate::types::string::Cid>,
     ///The DID of the repo.
     pub did: crate::types::string::Did,
     ///Record Key

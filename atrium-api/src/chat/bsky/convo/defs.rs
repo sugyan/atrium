@@ -4,10 +4,14 @@
 #[serde(rename_all = "camelCase")]
 pub struct ConvoViewData {
     pub id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_message: Option<crate::types::Union<ConvoViewLastMessageRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_message: core::option::Option<
+        crate::types::Union<ConvoViewLastMessageRefs>,
+    >,
     pub members: Vec<crate::chat::bsky::actor::defs::ProfileViewBasic>,
     pub muted: bool,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub opened: core::option::Option<bool>,
     pub rev: String,
     pub unread_count: i64,
 }
@@ -54,11 +58,11 @@ pub type LogLeaveConvo = crate::types::Object<LogLeaveConvoData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageInputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<crate::types::Union<MessageInputEmbedRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub embed: core::option::Option<crate::types::Union<MessageInputEmbedRefs>>,
     ///Annotations of text (mentions, URLs, hashtags, etc)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub facets: core::option::Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub text: String,
 }
 pub type MessageInput = crate::types::Object<MessageInputData>;
@@ -73,11 +77,11 @@ pub type MessageRef = crate::types::Object<MessageRefData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageViewData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub embed: Option<crate::types::Union<MessageViewEmbedRefs>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub embed: core::option::Option<crate::types::Union<MessageViewEmbedRefs>>,
     ///Annotations of text (mentions, URLs, hashtags, etc)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub facets: Option<Vec<crate::app::bsky::richtext::facet::Main>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub facets: core::option::Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub id: String,
     pub rev: String,
     pub sender: MessageViewSender,

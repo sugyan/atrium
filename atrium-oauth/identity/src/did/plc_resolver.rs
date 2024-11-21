@@ -1,8 +1,8 @@
 use super::DidResolver;
 use crate::error::{Error, Result};
-use crate::Resolver;
 use atrium_api::did_doc::DidDocument;
 use atrium_api::types::string::Did;
+use atrium_common::resolver::Resolver;
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, Uri};
 use atrium_xrpc::HttpClient;
@@ -33,6 +33,7 @@ where
 {
     type Input = Did;
     type Output = DidDocument;
+    type Error = Error;
 
     async fn resolve(&self, did: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(self.plc_directory_url.parse::<Uri>()?)

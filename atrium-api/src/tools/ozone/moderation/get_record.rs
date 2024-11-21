@@ -4,8 +4,8 @@ pub const NSID: &str = "tools.ozone.moderation.getRecord";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cid: Option<crate::types::string::Cid>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cid: core::option::Option<crate::types::string::Cid>,
     pub uri: String,
 }
 pub type Parameters = crate::types::Object<ParametersData>;

@@ -6,29 +6,29 @@ pub const NSID: &str = "com.atproto.repo.listRecords";
 pub struct ParametersData {
     ///The NSID of the record type.
     pub collection: crate::types::string::Nsid,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     ///The number of records to return.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub limit: Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
     ///The handle or DID of the repo.
     pub repo: crate::types::string::AtIdentifier,
     ///Flag to reverse the order of the returned records.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub reverse: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reverse: core::option::Option<bool>,
     ///DEPRECATED: The highest sort-ordered rkey to stop at (exclusive)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rkey_end: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rkey_end: core::option::Option<String>,
     ///DEPRECATED: The lowest sort-ordered rkey to start from (exclusive)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rkey_start: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rkey_start: core::option::Option<String>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub cursor: core::option::Option<String>,
     pub records: Vec<Record>,
 }
 pub type Output = crate::types::Object<OutputData>;

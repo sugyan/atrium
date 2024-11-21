@@ -1,5 +1,6 @@
+use crate::resolver::Resolver;
 use crate::types::OAuthAuthorizationServerMetadata;
-use atrium_identity::{Error, Resolver, Result};
+use atrium_identity::{Error, Result};
 use atrium_xrpc::http::uri::Builder;
 use atrium_xrpc::http::{Request, StatusCode, Uri};
 use atrium_xrpc::HttpClient;
@@ -21,6 +22,7 @@ where
 {
     type Input = String;
     type Output = OAuthAuthorizationServerMetadata;
+    type Error = Error;
 
     async fn resolve(&self, issuer: &Self::Input) -> Result<Self::Output> {
         let uri = Builder::from(issuer.parse::<Uri>()?)

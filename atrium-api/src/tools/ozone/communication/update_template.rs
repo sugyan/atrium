@@ -5,24 +5,24 @@ pub const NSID: &str = "tools.ozone.communication.updateTemplate";
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
     ///Content of the template, markdown supported, can contain variable placeholders.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub content_markdown: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub disabled: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub content_markdown: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub disabled: core::option::Option<bool>,
     ///ID of the template to be updated.
     pub id: String,
     ///Message language.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub lang: Option<crate::types::string::Language>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub lang: core::option::Option<crate::types::string::Language>,
     ///Name of the template.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub name: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub name: core::option::Option<String>,
     ///Subject of the message, used in emails.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub subject: Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject: core::option::Option<String>,
     ///DID of the user who is updating the template.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated_by: Option<crate::types::string::Did>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub updated_by: core::option::Option<crate::types::string::Did>,
 }
 pub type Input = crate::types::Object<InputData>;
 pub type Output = crate::tools::ozone::communication::defs::TemplateView;

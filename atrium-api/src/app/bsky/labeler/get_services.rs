@@ -4,8 +4,8 @@ pub const NSID: &str = "app.bsky.labeler.getServices";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ParametersData {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub detailed: Option<bool>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub detailed: core::option::Option<bool>,
     pub dids: Vec<crate::types::string::Did>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
