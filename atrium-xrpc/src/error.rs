@@ -19,6 +19,8 @@ where
     SerdeJson(#[from] serde_json::Error),
     #[error("serde_html_form error: {0}")]
     SerdeHtmlForm(#[from] serde_html_form::ser::Error),
+    #[error("session store error: {0}")]
+    SessionStore(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("unexpected response type")]
     UnexpectedResponseType,
 }

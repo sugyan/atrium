@@ -158,13 +158,13 @@ where
     }
     async fn refresh_session_inner(&self) {
         if let Ok(output) = self.call_refresh_session().await {
-            if let Some(mut session) = self.store.get(&()).await.expect("todo") {
+            if let Ok(Some(mut session)) = self.store.get(&()).await {
                 session.access_jwt = output.data.access_jwt;
                 session.did = output.data.did;
                 session.did_doc = output.data.did_doc.clone();
                 session.handle = output.data.handle;
                 session.refresh_jwt = output.data.refresh_jwt;
-                self.store.set((), session).await.expect("todo");
+                let _ = self.store.set((), session).await;
             }
             if let Some(did_doc) = output
                 .data
@@ -175,7 +175,7 @@ where
                 self.store.update_endpoint(&did_doc);
             }
         } else {
-            self.store.clear().await.expect("todo");
+            let _ = self.store.clear().await;
         }
     }
     // same as `crate::client::com::atproto::server::Service::refresh_session()`
@@ -248,6 +248,7 @@ where
 impl<S, T> XrpcClient for Client<S, T>
 where
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
     fn base_uri(&self) -> String {

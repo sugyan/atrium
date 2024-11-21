@@ -17,6 +17,7 @@ pub type AtpSession = crate::com::atproto::server::create_session::Output;
 pub struct CredentialSession<S, T>
 where
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
     store: Arc<inner::Store<S>>,
@@ -27,6 +28,7 @@ where
 impl<S, T> CredentialSession<S, T>
 where
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
     pub fn new(xrpc: T, store: S) -> Self {
@@ -58,7 +60,7 @@ where
                 .into(),
             )
             .await?;
-        self.store.set((), result.clone()).await.expect("todo");
+        self.store.set((), result.clone()).await.map_err(|e| Error::SessionStore(Box::new(e)))?;
         if let Some(did_doc) = result
             .did_doc
             .as_ref()
@@ -73,17 +75,22 @@ where
         &self,
         session: AtpSession,
     ) -> Result<(), Error<crate::com::atproto::server::get_session::Error>> {
-        self.store.set((), session.clone()).await.expect("todo");
+        self.store.set((), session.clone()).await.map_err(|e| Error::SessionStore(Box::new(e)))?;
         let result = self.api.com.atproto.server.get_session().await;
         match result {
             Ok(output) => {
                 assert_eq!(output.data.did, session.data.did);
-                if let Some(mut session) = self.store.get(&()).await.expect("todo") {
+                if let Some(mut session) =
+                    self.store.get(&()).await.map_err(|e| Error::SessionStore(Box::new(e)))?
+                {
                     session.did_doc = output.data.did_doc.clone();
                     session.email = output.data.email;
                     session.email_confirmed = output.data.email_confirmed;
                     session.handle = output.data.handle;
-                    self.store.set((), session).await.expect("todo");
+                    self.store
+                        .set((), session)
+                        .await
+                        .map_err(|e| Error::SessionStore(Box::new(e)))?;
                 }
                 if let Some(did_doc) = output
                     .data
@@ -96,7 +103,7 @@ where
                 Ok(())
             }
             Err(err) => {
-                self.store.clear().await.expect("todo");
+                self.store.clear().await.map_err(|e| Error::SessionStore(Box::new(e)))?;
                 Err(err)
             }
         }
@@ -125,7 +132,7 @@ where
     }
     /// Get the current session.
     pub async fn get_session(&self) -> Option<AtpSession> {
-        self.store.get(&()).await.expect("todo")
+        self.store.get(&()).await.transpose().and_then(Result::ok)
     }
     /// Get the current endpoint.
     pub async fn get_endpoint(&self) -> String {
@@ -146,6 +153,7 @@ where
 pub struct AtpAgent<S, T>
 where
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
     inner: CredentialSession<S, T>,
@@ -154,6 +162,7 @@ where
 impl<S, T> AtpAgent<S, T>
 where
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
     /// Create a new agent.
@@ -165,6 +174,7 @@ where
 impl<S, T> Deref for AtpAgent<S, T>
 where
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
     type Target = CredentialSession<S, T>;
@@ -365,7 +375,11 @@ mod tests {
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemoryMapStore::default());
-        agent.store.set((), session_data.clone().into()).await.expect("todo");
+        agent
+            .store
+            .set((), session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         let output = agent
             .api
             .com
@@ -399,7 +413,11 @@ mod tests {
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemoryMapStore::default());
-        agent.store.set((), session_data.clone().into()).await.expect("todo");
+        agent
+            .store
+            .set((), session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         let output = agent
             .api
             .com
@@ -410,7 +428,12 @@ mod tests {
             .expect("get session should be succeeded");
         assert_eq!(output.did.as_str(), "did:web:example.com");
         assert_eq!(
-            agent.store.get(&()).await.expect("todo").map(|session| session.data.access_jwt),
+            agent
+                .store
+                .get(&())
+                .await
+                .expect("get session should be succeeded")
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
     }
@@ -438,7 +461,11 @@ mod tests {
         };
         let counts = Arc::clone(&client.counts);
         let agent = Arc::new(AtpAgent::new(client, MemoryMapStore::default()));
-        agent.store.set((), session_data.clone().into()).await.expect("todo");
+        agent
+            .store
+            .set((), session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         let handles = (0..3).map(|_| {
             let agent = Arc::clone(&agent);
             tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
@@ -453,7 +480,12 @@ mod tests {
             assert_eq!(output.did.as_str(), "did:web:example.com");
         }
         assert_eq!(
-            agent.store.get(&()).await.expect("todo").map(|session| session.data.access_jwt),
+            agent
+                .store
+                .get(&())
+                .await
+                .expect("get session should be succeeded")
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
         assert_eq!(
