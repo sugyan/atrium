@@ -40,7 +40,7 @@ mod tests {
         gloo_timers::future::sleep(duration).await;
     }
 
-    #[derive(Debug)]
+    #[derive(Debug, PartialEq)]
     struct Error;
 
     type Result<T> = core::result::Result<T, Error>;
@@ -55,16 +55,13 @@ mod tests {
         type Output = String;
         type Error = Error;
 
-        async fn resolve(
-            &self,
-            input: &Self::Input,
-        ) -> core::result::Result<Self::Output, Self::Error> {
+        async fn resolve(&self, input: &Self::Input) -> Result<Self::Output> {
             sleep(Duration::from_millis(10)).await;
             *self.counts.write().await.entry(input.clone()).or_default() += 1;
             if let Some(value) = self.data.get(input) {
                 Ok(value.clone())
             } else {
-                Err(Error::NotFound)
+                Err(Error)
             }
         }
     }
@@ -98,7 +95,7 @@ mod tests {
             let result = resolver.resolve(&input.to_string()).await;
             match expected {
                 Some(value) => assert_eq!(result.expect("failed to resolve"), value),
-                None => assert!(result.is_err()),
+                None => assert_eq!(result.expect_err("succesfully resolved"), Error),
             }
         }
         assert_eq!(
@@ -126,7 +123,7 @@ mod tests {
             let result = resolver.resolve(&input.to_string()).await;
             match expected {
                 Some(value) => assert_eq!(result.expect("failed to resolve"), value),
-                None => assert!(result.is_err()),
+                None => assert_eq!(result.expect_err("succesfully resolved"), Error),
             }
         }
         assert_eq!(
@@ -155,7 +152,7 @@ mod tests {
             let result = resolver.resolve(&input.to_string()).await;
             match expected {
                 Some(value) => assert_eq!(result.expect("failed to resolve"), value),
-                None => assert!(result.is_err()),
+                None => assert_eq!(result.expect_err("succesfully resolved"), Error),
             }
         }
         assert_eq!(
@@ -206,11 +203,13 @@ mod tests {
             handles.push(async move { (resolver.resolve(&input.to_string()).await, expected) });
         }
         for (result, expected) in futures::future::join_all(handles).await {
+            let result = result.and_then(|opt| opt.ok_or(Error));
+
             match expected {
                 Some(value) => {
-                    assert_eq!(result.expect("failed to resolve").as_deref(), Some(value))
+                    assert_eq!(result.expect("failed to resolve"), value)
                 }
-                None => assert!(result.is_err()),
+                None => assert_eq!(result.expect_err("succesfully resolved"), Error),
             }
         }
         assert_eq!(
