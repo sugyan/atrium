@@ -12,6 +12,7 @@ impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     /// Create a record with various types of data.
     /// For example, the Record families defined in [`KnownRecord`](atrium_api::record::KnownRecord) are supported.

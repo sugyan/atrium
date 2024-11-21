@@ -34,6 +34,7 @@ impl<T, S> BskyAtpAgentBuilder<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     /// Set the configuration for the agent.
     pub fn config(mut self, config: Config) -> Self {

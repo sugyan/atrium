@@ -42,6 +42,7 @@ pub struct BskyAgent<T = ReqwestClient, S = MemoryMapStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -68,6 +69,7 @@ impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     /// Get the agent's current state as a [`Config`].
     pub async fn to_config(&self) -> Config {
@@ -250,6 +252,7 @@ impl<T, S> Deref for BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     type Target = AtpAgent<S, T>;
 

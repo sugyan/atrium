@@ -18,6 +18,7 @@ pub trait Record<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: MapStore<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     fn list(
         agent: &BskyAgent<T, S>,
@@ -47,6 +48,7 @@ macro_rules! record_impl {
         where
             T: XrpcClient + Send + Sync,
             S: MapStore<(), AtpSession> + Send + Sync,
+            S::Error: Send + Sync + 'static,
         {
             async fn list(
                 agent: &BskyAgent<T, S>,
@@ -164,6 +166,7 @@ macro_rules! record_impl {
         where
             T: XrpcClient + Send + Sync,
             S: MapStore<(), AtpSession> + Send + Sync,
+            S::Error: Send + Sync + 'static,
         {
             async fn list(
                 agent: &BskyAgent<T, S>,
