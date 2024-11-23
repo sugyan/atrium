@@ -144,6 +144,27 @@ pub struct UnknownData {
 /// Corresponds to [the `unknown` field type].
 ///
 /// [the `unknown` field type]: https://atproto.com/specs/lexicon#unknown
+///
+/// By using the [`TryFromUnknown`] trait, it is possible to convert to any type
+/// that implements [`DeserializeOwned`](serde::de::DeserializeOwned).
+///
+/// ```
+/// use atrium_api::types::{TryFromUnknown, Unknown};
+///
+/// #[derive(Debug, serde::Deserialize)]
+/// struct Foo {
+///     bar: i32,
+/// }
+///
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let value: Unknown = serde_json::from_str(r#"{"bar": 42}"#)?;
+/// println!("{value:?}"); // Object({"bar": DataModel(42)})
+///
+/// let foo = Foo::try_from_unknown(value)?;
+/// println!("{foo:?}"); // Foo { bar: 42 }
+/// #     Ok(())
+/// # }
+/// ```
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(untagged)]
 pub enum Unknown {
