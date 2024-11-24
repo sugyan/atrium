@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use atrium_api::{agent::SessionManager, types::string::Did};
 use atrium_common::store::{memory::MemoryStore, Store};
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
     http::{Request, Response},
     types::AuthorizationToken,
@@ -63,30 +64,36 @@ where
             self.session_store.get(&()).await.map_err(|e| Error::SessionStore(Box::new(e)))?;
         Ok(token_set.expect("session store can never be empty"))
     }
-    // pub async fn get_session(&self, refresh: bool) -> crate::Result<Session> {
-    //     let Some(session) = self
-    //         .session_store
-    //         .get(&())
-    //         .await
-    //         .map_err(|e| crate::Error::SessionStore(Box::new(e)))?
-    //     else {
-    //         panic!("a session should always exist");
-    //     };
-    //     if session.expires_in().expect("no expires_at") == TimeDelta::zero() && refresh {
-    //         let token_set = self.server.refresh(session.token_set.clone()).await?;
-    //         Ok(Session { dpop_key: session.dpop_key.clone(), token_set })
-    //     } else {
-    //         Ok(session)
-    //     }
-    // }
-    // pub async fn logout(&self) -> crate::Result<()> {
-    //     let session = self.get_session(false).await?;
+}
 
-    //     self.server.revoke(&session.token_set.access_token).await;
-    //     self.session_store.clear().await.map_err(|e| crate::Error::SessionStore(Box::new(e)))?;
+impl<T, D, H> OAuthSession<T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
+{
+    pub async fn refresh(&self) -> Result<(), Error> {
+        let Some(token_set) =
+            self.session_store.get(&()).await.map_err(|e| Error::SessionStore(Box::new(e)))?
+        else {
+            return Ok(());
+        };
+        let Ok(token_set) = self.server_agent.refresh(&token_set).await else {
+            todo!();
+        };
 
-    //     Ok(())
-    // }
+        self.session_store.set((), token_set).await.map_err(|e| Error::SessionStore(Box::new(e)))
+    }
+    pub async fn logout(&self) -> Result<(), Error> {
+        let Some(token_set) =
+            self.session_store.get(&()).await.map_err(|e| Error::SessionStore(Box::new(e)))?
+        else {
+            return Ok(());
+        };
+        self.server_agent.revoke(&token_set.access_token).await;
+
+        self.session_store.clear().await.map_err(|e| Error::SessionStore(Box::new(e)))
+    }
 }
 
 impl<T, D, H, S> HttpClient for OAuthSession<T, D, H, S>
