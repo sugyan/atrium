@@ -9,24 +9,35 @@ use atrium_xrpc::{
 };
 use jose_jwk::Key;
 
-use crate::{http_client::dpop::Error, server_agent::OAuthServerAgent, DpopClient, TokenSet};
+use crate::{
+    http_client::dpop::Error,
+    server_agent::OAuthServerAgent,
+    store::session::{MemorySessionStore, SessionStore},
+    DpopClient, TokenSet,
+};
 
-pub struct OAuthSession<T, D, H, S = MemoryStore<String, String>>
-where
+pub struct OAuthSession<
+    T,
+    D,
+    H,
+    S0 = MemoryStore<String, String>,
+    S1 = MemorySessionStore<(), TokenSet>,
+> where
     T: HttpClient + Send + Sync + 'static,
-    S: Store<String, String>,
+    S0: Store<String, String>,
+    S1: SessionStore<(), TokenSet>,
 {
     #[allow(dead_code)]
     server_agent: OAuthServerAgent<T, D, H>,
-    dpop_client: DpopClient<T, S>,
-    token_set: TokenSet,
+    dpop_client: DpopClient<T, S0>,
+    session_store: S1,
 }
 
 impl<T, D, H> OAuthSession<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    pub(crate) fn new(
+    pub(crate) async fn new(
         server_agent: OAuthServerAgent<T, D, H>,
         dpop_key: Key,
         http_client: Arc<T>,
@@ -38,13 +49,19 @@ where
             false,
             &server_agent.server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
-        Ok(Self { server_agent, dpop_client, token_set })
+
+        let session_store = MemorySessionStore::default();
+        session_store.set((), token_set).await.map_err(|e| Error::SessionStore(Box::new(e)))?;
+
+        Ok(Self { server_agent, dpop_client, session_store })
     }
     pub fn dpop_key(&self) -> Key {
         self.dpop_client.key.clone()
     }
-    pub fn token_set(&self) -> TokenSet {
-        self.token_set.clone()
+    pub async fn token_set(&self) -> Result<TokenSet, Error> {
+        let token_set =
+            self.session_store.get(&()).await.map_err(|e| Error::SessionStore(Box::new(e)))?;
+        Ok(token_set.expect("session store can never be empty"))
     }
     // pub async fn get_session(&self, refresh: bool) -> crate::Result<Session> {
     //     let Some(session) = self
@@ -97,13 +114,15 @@ where
     S::Error: std::error::Error + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
-        self.token_set.aud.clone()
+        // self.token_set.aud.clone()
+        todo!()
     }
     async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
+        let token_set = self.session_store.get(&()).await.transpose().and_then(Result::ok)?;
         if is_refresh {
-            self.token_set.refresh_token.as_ref().cloned().map(AuthorizationToken::Dpop)
+            token_set.refresh_token.as_ref().cloned().map(AuthorizationToken::Dpop)
         } else {
-            Some(AuthorizationToken::Dpop(self.token_set.access_token.clone()))
+            Some(AuthorizationToken::Dpop(token_set.access_token.clone()))
         }
     }
 }
@@ -117,6 +136,7 @@ where
     S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
-        Some(self.token_set.sub.clone())
+        let token_set = self.session_store.get(&()).await.transpose().and_then(Result::ok)?;
+        Some(token_set.sub.clone())
     }
 }

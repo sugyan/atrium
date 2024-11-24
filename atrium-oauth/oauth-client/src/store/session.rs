@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use crate::types::TokenSet;
 use atrium_api::types::string::{Datetime, Did};
 use atrium_common::store::{memory::MemoryStore, Store};
@@ -19,8 +21,18 @@ impl Session {
     }
 }
 
-pub trait SessionStore: Store<Did, Session> {}
+pub trait SessionStore<K = Did, V = Session>: Store<K, V>
+where
+    K: Eq + Hash,
+    V: Clone,
+{
+}
 
-pub type MemorySessionStore = MemoryStore<Did, Session>;
+pub type MemorySessionStore<K = Did, V = Session> = MemoryStore<K, V>;
 
-impl SessionStore for MemorySessionStore {}
+impl<K, V> SessionStore<K, V> for MemorySessionStore<K, V>
+where
+    K: Eq + Hash + Send + Sync,
+    V: Clone + Send,
+{
+}

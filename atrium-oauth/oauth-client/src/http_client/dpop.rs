@@ -32,6 +32,8 @@ pub enum Error {
     UnsupportedKey,
     #[error("nonce store error: {0}")]
     Nonces(Box<dyn std::error::Error + Send + Sync + 'static>),
+    #[error("session store error: {0}")]
+    SessionStore(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 }

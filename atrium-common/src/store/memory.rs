@@ -23,8 +23,8 @@ impl<K, V> Default for MemoryStore<K, V> {
 
 impl<K, V> Store<K, V> for MemoryStore<K, V>
 where
-    K: Debug + Eq + Hash + Send + Sync + 'static,
-    V: Debug + Clone + Send + Sync + 'static,
+    K: Eq + Hash + Send + Sync,
+    V: Clone + Send,
 {
     type Error = Error;
 

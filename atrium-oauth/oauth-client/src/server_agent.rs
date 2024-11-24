@@ -193,39 +193,19 @@ where
             .await;
     }
     #[allow(dead_code)]
-    pub async fn refresh(&self, token_set: &TokenSet) {
+    pub async fn refresh(&self, token_set: &TokenSet) -> Result<TokenSet> {
         let Some(refresh_token) = token_set.refresh_token.as_ref() else {
-            // TODO
-            return;
+            return Err(Error::NoRefreshToken(token_set.sub.to_string()));
         };
-        // TODO
-        let result = self
-            .request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
+        self.verify_token_response(
+            self.request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
                 grant_type: TokenGrantType::RefreshToken,
                 refresh_token: refresh_token.clone(),
                 scope: None,
             }))
-            .await;
-        println!("{result:?}");
-
-        // let Some(refresh_token) = token_set.refresh_token else {
-        //     return Err(Error::NoRefreshToken(token_set.sub.clone()));
-        // };
-        // let (metadata, atrium_identity::identity_resolver::ResolvedIdentity { pds: aud, .. }) =
-        //     self.resolver.resolve_from_identity(&token_set.sub).await?;
-        // if metadata.issuer != self.server_metadata.issuer {
-        //     let _ = self.revoke(&token_set.access_token).await;
-        //     return Err(Error::Token("issuer mismatch".into()));
-        // }
-        // let token_set = self
-        //     .verify_token_response(
-        //         self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
-        //             RefreshTokenParameters { refresh_token, scope: token_set.scope.clone() },
-        //         )))
-        //         .await?,
-        //     )
-        //     .await?;
-        // Ok(TokenSet { aud, ..token_set })
+            .await?,
+        )
+        .await
     }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where
@@ -345,6 +325,6 @@ where
         let dpop_key = self.dpop_client.key.clone();
         // TODO
         let session = session_getter.get(&sub).await.expect("").unwrap();
-        Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set)?)
+        OAuthSession::new(self, dpop_key, http_client, session.token_set).await.map_err(Into::into)
     }
 }
