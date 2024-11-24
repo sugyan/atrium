@@ -48,10 +48,11 @@ where
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct BskyAgent<T, S = MemoryStore>
+pub struct BskyAgent<T, S = MemoryStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
     S: Store<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }

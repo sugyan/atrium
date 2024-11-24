@@ -81,7 +81,7 @@ where
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S0,
-    session_store: S1,
+    session_getter: SessionGetter<S1>,
     http_client: Arc<T>,
 }
 
@@ -124,7 +124,7 @@ where
             keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
-            session_store: config.session_store,
+            session_getter: SessionGetter::new(config.session_store),
             http_client,
         })
     }
@@ -209,7 +209,10 @@ where
             todo!()
         }
     }
-    pub async fn callback(&self, params: CallbackParams) -> Result<(OAuthSession<T, D, H>, Option<String>)> {
+    pub async fn callback(
+        &self,
+        params: CallbackParams,
+    ) -> Result<(OAuthSession<T, D, H>, Option<String>)> {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
