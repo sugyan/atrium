@@ -16,7 +16,7 @@ pub enum Error {
     Authorize(String),
     #[error("callback error: {0}")]
     Callback(String),
-    #[error("state store error: {0:?}")]
+    #[error("state store error: {0}")]
     StateStore(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("session store error: {0}")]
     SessionStore(Box<dyn std::error::Error + Send + Sync + 'static>),

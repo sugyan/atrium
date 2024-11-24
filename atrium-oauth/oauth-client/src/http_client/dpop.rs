@@ -1,8 +1,8 @@
 use crate::jose::create_signed_jwt;
 use crate::jose::jws::RegisteredHeader;
 use crate::jose::jwt::{Claims, PublicClaims, RegisteredClaims};
-use atrium_common::store::memory::MemoryMapStore;
-use atrium_common::store::MapStore;
+use atrium_common::store::memory::MemoryStore;
+use atrium_common::store::Store;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -38,19 +38,21 @@ pub enum Error {
 
 type Result<T> = core::result::Result<T, Error>;
 
-pub struct DpopClient<T, S = MemoryMapStore<String, String>>
+pub struct DpopClient<T, S = MemoryStore<String, String>>
 where
-    S: MapStore<String, String>,
+    S: Store<String, String>,
 {
     inner: Arc<T>,
     pub(crate) key: Key,
     nonces: S,
+    is_auth_server: bool,
 }
 
 impl<T> DpopClient<T> {
     pub fn new(
         key: Key,
         http_client: Arc<T>,
+        is_auth_server: bool,
         supported_algs: &Option<Vec<String>>,
     ) -> Result<Self> {
         if let Some(algs) = supported_algs {
@@ -65,14 +67,14 @@ impl<T> DpopClient<T> {
                 return Err(Error::UnsupportedKey);
             }
         }
-        let nonces = MemoryMapStore::<String, String>::default();
-        Ok(Self { inner: http_client, key, iss, nonces })
+        let nonces = MemoryStore::<String, String>::default();
+        Ok(Self { inner: http_client, key, nonces, is_auth_server })
     }
 }
 
 impl<T, S> DpopClient<T, S>
 where
-    S: MapStore<String, String>,
+    S: Store<String, String>,
 {
     fn build_proof(
         &self,
@@ -102,16 +104,18 @@ where
             _ => unimplemented!(),
         }
     }
-    fn is_use_dpop_nonce_error(&self, response: &Response<Vec<u8>>, is_auth_server: bool) -> bool {
+    fn is_use_dpop_nonce_error(&self, response: &Response<Vec<u8>>) -> bool {
         // https://datatracker.ietf.org/doc/html/rfc9449#name-authorization-server-provid
-        if is_auth_server && response.status() == 400 {
-            if let Ok(res) = serde_json::from_slice::<ErrorResponse>(response.body()) {
-                return res.error == "use_dpop_nonce";
-            };
+        if self.is_auth_server {
+            if response.status() == 400 {
+                if let Ok(res) = serde_json::from_slice::<ErrorResponse>(response.body()) {
+                    return res.error == "use_dpop_nonce";
+                };
+            }
         }
+        // https://datatracker.ietf.org/doc/html/rfc6750#section-3
         // https://datatracker.ietf.org/doc/html/rfc9449#name-resource-server-provided-no
-        if !is_auth_server && response.status() == 401 {
-            // https://datatracker.ietf.org/doc/html/rfc6750#section-3
+        else if response.status() == 401 {
             if let Some(www_auth) =
                 response.headers().get("WWW-Authenticate").and_then(|v| v.to_str().ok())
             {
@@ -133,8 +137,8 @@ where
 impl<T, S> HttpClient for DpopClient<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: MapStore<String, String> + Send + Sync + 'static,
-    S::Error: Send + Sync + 'static,
+    S: Store<String, String> + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -146,7 +150,6 @@ where
         let htm = request.method().to_string();
         let htu = uri.to_string();
 
-        let is_auth_server = uri.path().starts_with("/oauth");
         let ath = match request.headers().get("Authorization").and_then(|v| v.to_str().ok()) {
             Some(s) if s.starts_with("DPoP ") => {
                 Some(URL_SAFE_NO_PAD.encode(Sha256::digest(s.strip_prefix("DPoP ").unwrap())))
@@ -178,7 +181,7 @@ where
             }
         }
 
-        if !self.is_use_dpop_nonce_error(&response, is_auth_server) {
+        if !self.is_use_dpop_nonce_error(&response) {
             return Ok(response);
         }
         let next_proof = self.build_proof(htm, htu, ath, next_nonce)?;

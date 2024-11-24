@@ -9,13 +9,13 @@ pub use client_metadata::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
 pub use metadata::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
 pub use request::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType,
-    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
-    TokenRequestParameters,
+    PushedAuthorizationRequestParameters, RefreshRequestParameters, RevocationRequestParameters,
+    TokenGrantType, TokenRequestParameters,
 };
 pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
 use serde::Deserialize;
 #[allow(unused_imports)]
-pub use token::{TokenInfo, TokenSet};
+pub use token::TokenSet;
 
 #[derive(Debug, Deserialize)]
 pub enum AuthorizeOptionPrompt {

@@ -1,12 +1,13 @@
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
-use atrium_common::store::MapStore;
+use atrium_common::store::Store as StoreTrait;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::types::AuthorizationToken;
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
+use std::hash::Hash;
 use std::{
     fmt::Debug,
     sync::{Arc, RwLock},
@@ -71,14 +72,14 @@ where
 
 impl<S, T> XrpcClient for WrapperClient<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: StoreTrait<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
     }
-    async fn authorization_token(&self, is_refresh: bool) -> Option<String> {
-        self.store.get_session().await.map(|session| {
+    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
+        self.store.get(&()).await.transpose().and_then(core::result::Result::ok).map(|session| {
             AuthorizationToken::Bearer(if is_refresh {
                 session.data.refresh_jwt
             } else {
@@ -103,7 +104,7 @@ pub struct Client<S, T> {
 
 impl<S, T> Client<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: StoreTrait<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     pub fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
@@ -218,7 +219,7 @@ where
 
 impl<S, T> Clone for Client<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: StoreTrait<(), AtpSession> + Send + Sync,
     T: XrpcClient + Send + Sync,
 {
     fn clone(&self) -> Self {
@@ -247,7 +248,7 @@ where
 
 impl<S, T> XrpcClient for Client<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: StoreTrait<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
@@ -294,11 +295,11 @@ impl<S> Store<S> {
     }
 }
 
-impl<S, K, V> MapStore<K, V> for Store<S>
+impl<S, K, V> StoreTrait<K, V> for Store<S>
 where
     K: Eq + Hash + Send + Sync,
-    V: Clone + Send + Sync,
-    S: MapStore<K, V> + Send + Sync,
+    V: Clone + Send,
+    S: StoreTrait<K, V> + Sync,
 {
     type Error = S::Error;
 

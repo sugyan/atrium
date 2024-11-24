@@ -7,7 +7,7 @@ use crate::{
     did_doc::DidDocument,
     types::{string::Did, TryFromUnknown},
 };
-use atrium_common::store::MapStore;
+use atrium_common::store::Store;
 use atrium_xrpc::{Error, XrpcClient};
 use std::{ops::Deref, sync::Arc};
 
@@ -16,7 +16,7 @@ pub type AtpSession = crate::com::atproto::server::create_session::Output;
 
 pub struct CredentialSession<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
@@ -27,7 +27,7 @@ where
 
 impl<S, T> CredentialSession<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
@@ -152,7 +152,7 @@ where
 /// Manages session token lifecycles and provides convenience methods.
 pub struct AtpAgent<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
@@ -161,7 +161,7 @@ where
 
 impl<S, T> AtpAgent<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
@@ -173,7 +173,7 @@ where
 
 impl<S, T> Deref for AtpAgent<S, T>
 where
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
@@ -191,7 +191,7 @@ mod tests {
     use crate::com::atproto::server::create_session::OutputData;
     use crate::did_doc::{DidDocument, Service, VerificationMethod};
     use crate::types::TryIntoUnknown;
-    use atrium_common::store::memory::MemoryMapStore;
+    use atrium_common::store::memory::MemoryStore;
     use atrium_xrpc::HttpClient;
     use http::{HeaderMap, HeaderName, HeaderValue, Request, Response};
     use std::collections::HashMap;
@@ -319,7 +319,7 @@ mod tests {
     #[tokio::test]
     #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
     async fn test_new() {
-        let agent = AtpAgent::new(MockClient::default(), MemoryMapStore::default());
+        let agent = AtpAgent::new(MockClient::default(), MemoryStore::default());
         assert_eq!(agent.get_session().await, None);
     }
 
@@ -338,7 +338,7 @@ mod tests {
                 },
                 ..Default::default()
             };
-            let agent = AtpAgent::new(client, MemoryMapStore::default());
+            let agent = AtpAgent::new(client, MemoryStore::default());
             agent.login("test", "pass").await.expect("login should be succeeded");
             assert_eq!(agent.get_session().await, Some(session_data.into()));
         }
@@ -348,7 +348,7 @@ mod tests {
                 responses: MockResponses { ..Default::default() },
                 ..Default::default()
             };
-            let agent = AtpAgent::new(client, MemoryMapStore::default());
+            let agent = AtpAgent::new(client, MemoryStore::default());
             agent.login("test", "bad").await.expect_err("login should be failed");
             assert_eq!(agent.get_session().await, None);
         }
@@ -374,7 +374,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let agent = AtpAgent::new(client, MemoryMapStore::default());
+        let agent = AtpAgent::new(client, MemoryStore::default());
         agent
             .store
             .set((), session_data.clone().into())
@@ -412,7 +412,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let agent = AtpAgent::new(client, MemoryMapStore::default());
+        let agent = AtpAgent::new(client, MemoryStore::default());
         agent
             .store
             .set((), session_data.clone().into())
@@ -460,7 +460,7 @@ mod tests {
             ..Default::default()
         };
         let counts = Arc::clone(&client.counts);
-        let agent = Arc::new(AtpAgent::new(client, MemoryMapStore::default()));
+        let agent = Arc::new(AtpAgent::new(client, MemoryStore::default()));
         agent
             .store
             .set((), session_data.clone().into())
@@ -519,7 +519,7 @@ mod tests {
                 },
                 ..Default::default()
             };
-            let agent = AtpAgent::new(client, MemoryMapStore::default());
+            let agent = AtpAgent::new(client, MemoryStore::default());
             assert_eq!(agent.get_session().await, None);
             agent
                 .resume_session(
@@ -539,7 +539,7 @@ mod tests {
                 responses: MockResponses { ..Default::default() },
                 ..Default::default()
             };
-            let agent = AtpAgent::new(client, MemoryMapStore::default());
+            let agent = AtpAgent::new(client, MemoryStore::default());
             assert_eq!(agent.get_session().await, None);
             agent
                 .resume_session(session_data.clone().into())
@@ -569,7 +569,7 @@ mod tests {
             },
             ..Default::default()
         };
-        let agent = AtpAgent::new(client, MemoryMapStore::default());
+        let agent = AtpAgent::new(client, MemoryStore::default());
         agent
             .resume_session(
                 OutputData { access_jwt: "expired".into(), ..session_data.clone() }.into(),
@@ -618,7 +618,7 @@ mod tests {
                 },
                 ..Default::default()
             };
-            let agent = AtpAgent::new(client, MemoryMapStore::default());
+            let agent = AtpAgent::new(client, MemoryStore::default());
             agent.login("test", "pass").await.expect("login should be succeeded");
             assert_eq!(agent.get_endpoint().await, "https://bsky.social");
             assert_eq!(agent.api.com.atproto.server.xrpc.base_uri(), "https://bsky.social");
@@ -653,7 +653,7 @@ mod tests {
                 },
                 ..Default::default()
             };
-            let agent = AtpAgent::new(client, MemoryMapStore::default());
+            let agent = AtpAgent::new(client, MemoryStore::default());
             agent.login("test", "pass").await.expect("login should be succeeded");
             // not updated
             assert_eq!(agent.get_endpoint().await, "http://localhost:8080");
@@ -666,7 +666,7 @@ mod tests {
     async fn test_configure_labelers_header() {
         let client = MockClient::default();
         let headers = Arc::clone(&client.headers);
-        let agent = AtpAgent::new(client, MemoryMapStore::default());
+        let agent = AtpAgent::new(client, MemoryStore::default());
 
         agent
             .api
@@ -729,7 +729,7 @@ mod tests {
     async fn test_configure_proxy_header() {
         let client = MockClient::default();
         let headers = Arc::clone(&client.headers);
-        let agent = AtpAgent::new(client, MemoryMapStore::default());
+        let agent = AtpAgent::new(client, MemoryStore::default());
 
         agent
             .api

@@ -11,13 +11,13 @@ use atrium_api::com::atproto::repo::{
 };
 use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
-use atrium_common::store::MapStore;
+use atrium_common::store::Store;
 
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait Record<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
 {
     fn list(
@@ -47,7 +47,7 @@ macro_rules! record_impl {
         impl<T, S> Record<T, S> for $record
         where
             T: XrpcClient + Send + Sync,
-            S: MapStore<(), AtpSession> + Send + Sync,
+            S: Store<(), AtpSession> + Send + Sync,
             S::Error: Send + Sync + 'static,
         {
             async fn list(
@@ -165,7 +165,7 @@ macro_rules! record_impl {
         impl<T, S> Record<T, S> for $record_data
         where
             T: XrpcClient + Send + Sync,
-            S: MapStore<(), AtpSession> + Send + Sync,
+            S: Store<(), AtpSession> + Send + Sync,
             S::Error: Send + Sync + 'static,
         {
             async fn list(
@@ -325,7 +325,7 @@ mod tests {
 
     struct MockSessionStore;
 
-    impl MapStore<(), AtpSession> for MockSessionStore {
+    impl Store<(), AtpSession> for MockSessionStore {
         type Error = std::convert::Infallible;
 
         async fn get(&self, _key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {

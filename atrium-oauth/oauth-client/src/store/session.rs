@@ -1,10 +1,9 @@
-use atrium_api::types::string::Datetime;
-use atrium_common::store::{memory::MemoryMapStore, MapStore};
+use crate::types::TokenSet;
+use atrium_api::types::string::{Datetime, Did};
+use atrium_common::store::{memory::MemoryStore, Store};
 use chrono::TimeDelta;
 use jose_jwk::Key;
 use serde::{Deserialize, Serialize};
-
-use crate::TokenSet;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Session {
@@ -20,8 +19,8 @@ impl Session {
     }
 }
 
-pub trait SessionStore: MapStore<String, Session> {}
+pub trait SessionStore: Store<Did, Session> {}
 
-pub type MemorySessionStore = MemoryMapStore<String, Session>;
+pub type MemorySessionStore = MemoryStore<Did, Session>;
 
 impl SessionStore for MemorySessionStore {}

@@ -1,5 +1,4 @@
 use atrium_api::types::string::Did;
-use atrium_common::resolver;
 use atrium_xrpc::http::uri::InvalidUri;
 use atrium_xrpc::http::StatusCode;
 use thiserror::Error;
@@ -34,21 +33,6 @@ pub enum Error {
     SerdeHtmlForm(#[from] serde_html_form::ser::Error),
     #[error(transparent)]
     Uri(#[from] InvalidUri),
-}
-
-impl From<resolver::Error> for Error {
-    fn from(error: resolver::Error) -> Self {
-        match error {
-            resolver::Error::DnsResolver(error) => Error::DnsResolver(error),
-            resolver::Error::Http(error) => Error::Http(error),
-            resolver::Error::HttpClient(error) => Error::HttpClient(error),
-            resolver::Error::HttpStatus(error) => Error::HttpStatus(error),
-            resolver::Error::SerdeJson(error) => Error::SerdeJson(error),
-            resolver::Error::SerdeHtmlForm(error) => Error::SerdeHtmlForm(error),
-            resolver::Error::Uri(error) => Error::Uri(error),
-            resolver::Error::NotFound => Error::NotFound,
-        }
-    }
 }
 
 pub type Result<T> = core::result::Result<T, Error>;

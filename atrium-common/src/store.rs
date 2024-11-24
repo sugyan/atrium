@@ -5,7 +5,7 @@ use std::future::Future;
 use std::hash::Hash;
 
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
-pub trait MapStore<K, V>
+pub trait Store<K, V>
 where
     K: Eq + Hash,
     V: Clone,

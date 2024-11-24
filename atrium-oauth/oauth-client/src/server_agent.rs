@@ -3,15 +3,19 @@ use crate::http_client::dpop::DpopClient;
 use crate::jose::jwt::{RegisteredClaims, RegisteredClaimsAud};
 use crate::keyset::Keyset;
 use crate::resolver::OAuthResolver;
+use crate::store::session::SessionStore;
+use crate::store::session_getter::SessionGetter;
 use crate::types::{
     OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
-    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
-    TokenRequestParameters, TokenSet,
+    PushedAuthorizationRequestParameters, RefreshRequestParameters, RevocationRequestParameters,
+    TokenGrantType, TokenRequestParameters, TokenSet,
 };
 use crate::utils::{compare_algos, generate_nonce};
-use atrium_api::types::string::Datetime;
+use crate::OAuthSession;
+use atrium_api::types::string::{Datetime, Did};
+use atrium_common::store::Store;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
-use atrium_xrpc::http::{Method, Request, Response, StatusCode};
+use atrium_xrpc::http::{Method, Request, StatusCode};
 use atrium_xrpc::HttpClient;
 use chrono::{TimeDelta, Utc};
 use jose_jwk::Key;
@@ -32,6 +36,8 @@ pub enum Error {
     Token(String),
     #[error("unsupported authentication method")]
     UnsupportedAuthMethod,
+    #[error("failed to parse DID: {0}")]
+    InvalidDid(&'static str),
     #[error("no refresh token available for {0}")]
     NoRefreshToken(String),
     #[error(transparent)]
@@ -102,10 +108,9 @@ pub struct OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    server_metadata: OAuthAuthorizationServerMetadata,
-    client_metadata: OAuthClientMetadata,
+    pub(crate) server_metadata: OAuthAuthorizationServerMetadata,
+    pub(crate) client_metadata: OAuthClientMetadata,
     dpop_client: DpopClient<T>,
-    http_client: Arc<T>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
 }
@@ -126,11 +131,11 @@ where
     ) -> Result<Self> {
         let dpop_client = DpopClient::new(
             dpop_key,
-            client_metadata.client_id.clone(),
             http_client.clone(),
+            true,
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
-        Ok(Self { server_metadata, client_metadata, dpop_client, http_client, resolver, keyset })
+        Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
     }
     /**
      * VERY IMPORTANT ! Always call this to process token responses.
@@ -158,7 +163,7 @@ where
                 .map(Datetime::new)
         });
         Ok(TokenSet {
-            sub: sub.clone(),
+            sub: sub.parse().map_err(Error::InvalidDid)?,
             aud: identity.pds,
             iss: metadata.issuer,
             scope: token_response.scope,
@@ -170,13 +175,12 @@ where
     }
     pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
         self.verify_token_response(
-            self.request(OAuthRequest::Token(TokenRequestParameters::AuthorizationCode(
-                AuthorizationCodeParameters {
-                    code: code.into(),
-                    redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
-                    code_verifier: verifier.into(),
-                },
-            )))
+            self.request(OAuthRequest::Token(TokenRequestParameters {
+                grant_type: TokenGrantType::AuthorizationCode,
+                code: code.into(),
+                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
+                code_verifier: verifier.into(),
+            }))
             .await?,
         )
         .await
@@ -188,35 +192,40 @@ where
             }))
             .await;
     }
-    /**
-     * /!\ IMPORTANT /!\
-     *
-     * The "sub" MUST be a DID, whose issuer authority is indeed the server we
-     * are trying to obtain credentials from. Note that we are doing this
-     * *before* we actually try to refresh the token:
-     *   1) To avoid unnecessary refresh
-     *   2) So that the refresh is the last async operation, ensuring as few
-     *      async operations happen before the result gets a chance to be stored.
-     */
-    pub async fn refresh(&self, token_set: TokenSet) -> Result<TokenSet> {
-        let Some(refresh_token) = token_set.refresh_token else {
-            return Err(Error::NoRefreshToken(token_set.sub.clone()));
+    #[allow(dead_code)]
+    pub async fn refresh(&self, token_set: &TokenSet) {
+        let Some(refresh_token) = token_set.refresh_token.as_ref() else {
+            // TODO
+            return;
         };
-        let (metadata, atrium_identity::identity_resolver::ResolvedIdentity { pds: aud, .. }) =
-            self.resolver.resolve_from_identity(&token_set.sub).await?;
-        if metadata.issuer != self.server_metadata.issuer {
-            let _ = self.revoke(&token_set.access_token).await;
-            return Err(Error::Token("issuer mismatch".into()));
-        }
-        let token_set = self
-            .verify_token_response(
-                self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
-                    RefreshTokenParameters { refresh_token, scope: token_set.scope.clone() },
-                )))
-                .await?,
-            )
-            .await?;
-        Ok(TokenSet { aud, ..token_set })
+        // TODO
+        let result = self
+            .request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
+                grant_type: TokenGrantType::RefreshToken,
+                refresh_token: refresh_token.clone(),
+                scope: None,
+            }))
+            .await;
+        println!("{result:?}");
+
+        // let Some(refresh_token) = token_set.refresh_token else {
+        //     return Err(Error::NoRefreshToken(token_set.sub.clone()));
+        // };
+        // let (metadata, atrium_identity::identity_resolver::ResolvedIdentity { pds: aud, .. }) =
+        //     self.resolver.resolve_from_identity(&token_set.sub).await?;
+        // if metadata.issuer != self.server_metadata.issuer {
+        //     let _ = self.revoke(&token_set.access_token).await;
+        //     return Err(Error::Token("issuer mismatch".into()));
+        // }
+        // let token_set = self
+        //     .verify_token_response(
+        //         self.request(OAuthRequest::Token(TokenRequestParameters::RefreshToken(
+        //             RefreshTokenParameters { refresh_token, scope: token_set.scope.clone() },
+        //         )))
+        //         .await?,
+        //     )
+        //     .await?;
+        // Ok(TokenSet { aud, ..token_set })
     }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where
@@ -323,44 +332,19 @@ where
             }
         }
     }
-    #[allow(clippy::wrong_self_convention)]
-    pub async fn from_issuer(
-        &self,
-        issuer: &str,
-        dpop_key: Key,
-    ) -> Result<OAuthServerAgent<T, D, H>> {
-        let server_metadata = self.resolver.get_authorization_server_metadata(issuer).await?;
-        self.from_metadata(server_metadata, dpop_key)
-    }
-    #[allow(clippy::wrong_self_convention)]
-    pub fn from_metadata(
-        &self,
-        server_metadata: OAuthAuthorizationServerMetadata,
-        dpop_key: Key,
-    ) -> Result<OAuthServerAgent<T, D, H>> {
-        let server = OAuthServerAgent::new(
-            dpop_key,
-            server_metadata,
-            self.client_metadata.clone(),
-            self.resolver.clone(),
-            self.http_client.clone(),
-            self.keyset.clone(),
-        )?;
-        Ok(server)
-    }
-}
-
-impl<T, D, H> HttpClient for OAuthServerAgent<T, D, H>
-where
-    T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
-    H: HandleResolver + Send + Sync + 'static,
-{
-    async fn send_http(
-        &self,
-        request: Request<Vec<u8>>,
-    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
+    pub(crate) async fn create_session<S>(
+        self,
+        sub: Did,
+        http_client: Arc<T>,
+        session_getter: SessionGetter<S>,
+    ) -> Result<OAuthSession<T, D, H>>
+    where
+        S: SessionStore + Send + Sync + 'static,
+        S::Error: std::error::Error + Send + Sync + 'static,
     {
-        self.dpop_client.send_http(request).await
+        let dpop_key = self.dpop_client.key.clone();
+        // TODO
+        let session = session_getter.get(&sub).await.expect("").unwrap();
+        Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set)?)
     }
 }

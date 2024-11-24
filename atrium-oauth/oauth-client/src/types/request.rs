@@ -55,7 +55,9 @@ pub enum TokenGrantType {
 }
 
 #[derive(Serialize)]
-pub struct AuthorizationCodeParameters {
+pub struct TokenRequestParameters {
+    // https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
+    pub grant_type: TokenGrantType,
     pub code: String,
     pub redirect_uri: String,
     // https://datatracker.ietf.org/doc/html/rfc7636#section-4.5
@@ -70,6 +72,7 @@ pub struct RefreshRequestParameters {
     pub scope: Option<String>,
 }
 
+#[allow(dead_code)]
 #[derive(Serialize)]
 pub struct RevocationRequestParameters {
     pub token: String,

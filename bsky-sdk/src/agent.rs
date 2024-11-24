@@ -12,8 +12,8 @@ use atrium_api::agent::atp_agent::{AtpAgent, AtpSession};
 use atrium_api::app::bsky::actor::defs::PreferencesItem;
 use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
-use atrium_common::store::memory::MemoryMapStore;
-use atrium_common::store::MapStore;
+use atrium_common::store::memory::MemoryStore;
+use atrium_common::store::Store;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use std::collections::HashMap;
@@ -38,20 +38,20 @@ use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
 #[derive(Clone)]
-pub struct BskyAgent<T = ReqwestClient, S = MemoryMapStore<(), AtpSession>>
+pub struct BskyAgent<T = ReqwestClient, S = MemoryStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct BskyAgent<T, S = MemoryMapStore>
+pub struct BskyAgent<T, S = MemoryStore>
 where
     T: XrpcClient + Send + Sync,
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -60,7 +60,7 @@ where
 #[cfg(feature = "default-client")]
 impl BskyAgent {
     /// Create a new [`BskyAtpAgentBuilder`] with the default client and session store.
-    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemoryMapStore<(), AtpSession>> {
+    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemoryStore<(), AtpSession>> {
         BskyAtpAgentBuilder::default()
     }
 }
@@ -68,7 +68,7 @@ impl BskyAgent {
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
 {
     /// Get the agent's current state as a [`Config`].
@@ -251,7 +251,7 @@ where
 impl<T, S> Deref for BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
 {
     type Target = AtpAgent<S, T>;
@@ -269,7 +269,7 @@ mod tests {
     #[derive(Clone)]
     struct NoopStore;
 
-    impl MapStore<(), AtpSession> for NoopStore {
+    impl Store<(), AtpSession> for NoopStore {
         type Error = std::convert::Infallible;
 
         async fn get(&self, _key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {

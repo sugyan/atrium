@@ -6,12 +6,12 @@ use atrium_api::com::atproto::repo::{create_record, delete_record};
 use atrium_api::record::KnownRecord;
 use atrium_api::types::string::RecordKey;
 use atrium_api::xrpc::XrpcClient;
-use atrium_common::store::MapStore;
+use atrium_common::store::Store;
 
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: MapStore<(), AtpSession> + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
     S::Error: Send + Sync + 'static,
 {
     /// Create a record with various types of data.

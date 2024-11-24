@@ -5,6 +5,7 @@ use crate::oauth_session::OAuthSession;
 use crate::resolver::{OAuthResolver, OAuthResolverConfig};
 use crate::server_agent::{OAuthRequest, OAuthServerAgent};
 use crate::store::session::{Session, SessionStore};
+use crate::store::session_getter::SessionGetter;
 use crate::store::state::{InternalStateData, StateStore};
 use crate::types::{
     AuthorizationCodeChallengeMethod, AuthorizationResponseType, AuthorizeOptions, CallbackParams,
@@ -13,8 +14,9 @@ use crate::types::{
     TryIntoOAuthClientMetadata,
 };
 use crate::utils::{compare_algos, generate_key, generate_nonce, get_random_values};
+use atrium_api::types::string::Did;
 use atrium_common::resolver::Resolver;
-use atrium_common::store::MapStore;
+use atrium_common::store::Store;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -60,23 +62,19 @@ where
 #[cfg(feature = "default-client")]
 pub struct OAuthClient<S0, S1, D, H, T = crate::http_client::default::DefaultHttpClient>
 where
-    S0: StateStore,
-    S1: SessionStore,
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S0,
-    session_store: S1,
+    session_getter: SessionGetter<S1>,
     http_client: Arc<T>,
 }
 
 #[cfg(not(feature = "default-client"))]
 pub struct OAuthClient<S0, S1, D, H, T>
 where
-    S0: StateStore,
-    S1: SessionStore,
     T: HttpClient + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
@@ -88,11 +86,7 @@ where
 }
 
 #[cfg(feature = "default-client")]
-impl<S0, S1, D, H> OAuthClient<S0, S1, D, H, crate::http_client::default::DefaultHttpClient>
-where
-    S0: StateStore,
-    S1: SessionStore,
-{
+impl<S0, S1, D, H> OAuthClient<S0, S1, D, H, crate::http_client::default::DefaultHttpClient> {
     pub fn new<M>(config: OAuthClientConfig<S0, S1, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
@@ -105,7 +99,7 @@ where
             keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
-            session_store: config.session_store,
+            session_getter: SessionGetter::new(config.session_store),
             http_client,
         })
     }
@@ -138,11 +132,13 @@ where
 
 impl<S0, S1, D, H, T> OAuthClient<S0, S1, D, H, T>
 where
-    S0: StateStore,
-    S1: SessionStore,
+    S0: StateStore + Send + Sync + 'static,
+    S1: SessionStore + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
+    S0::Error: std::error::Error + Send + Sync + 'static,
+    S1::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn jwks(&self) -> JwkSet {
         self.keyset.as_ref().map(|keyset| keyset.public_jwks()).unwrap_or_default()
@@ -186,14 +182,7 @@ where
             prompt: options.prompt.map(String::from),
         };
         if metadata.pushed_authorization_request_endpoint.is_some() {
-            let server = OAuthServerAgent::new(
-                dpop_key,
-                metadata.clone(),
-                self.client_metadata.clone(),
-                self.resolver.clone(),
-                self.http_client.clone(),
-                self.keyset.clone(),
-            )?;
+            let server = self.create_server_agent(dpop_key, metadata.clone())?;
             let par_response = server
                 .request::<OAuthPusehedAuthorizationRequestResponse>(
                     OAuthRequest::PushedAuthorizationRequest(parameters),
@@ -220,11 +209,7 @@ where
             todo!()
         }
     }
-    pub async fn callback<S>(&self, params: CallbackParams) -> Result<OAuthSession<S, T, D, H>>
-    where
-        S: MapStore<(), Session> + Default + Send + Sync + 'static,
-        S::Error: Send + Sync + 'static,
-    {
+    pub async fn callback(&self, params: CallbackParams) -> Result<(OAuthSession<T, D, H>, Option<String>)> {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -247,29 +232,43 @@ where
         } else if metadata.authorization_response_iss_parameter_supported == Some(true) {
             return Err(Error::Callback("missing `iss` parameter".into()));
         }
-        let server = OAuthServerAgent::new(
-            state.dpop_key.clone(),
-            metadata.clone(),
+        let server = self.create_server_agent(state.dpop_key.clone(), metadata.clone())?;
+        match server.exchange_code(&params.code, &state.verifier).await {
+            Ok(token_set) => {
+                let sub = token_set.sub.clone();
+                self.session_getter
+                    .set(sub.clone(), Session { dpop_key: state.dpop_key.clone(), token_set })
+                    .await
+                    .map_err(|e| Error::SessionStore(Box::new(e)))?;
+                Ok((self.create_session(server, sub).await?, state.app_state))
+            }
+            Err(_) => {
+                todo!()
+            }
+        }
+    }
+    async fn create_session(
+        &self,
+        server: OAuthServerAgent<T, D, H>,
+        sub: Did,
+    ) -> Result<OAuthSession<T, D, H>> {
+        Ok(server
+            .create_session(sub, self.http_client.clone(), self.session_getter.clone())
+            .await?)
+    }
+    fn create_server_agent(
+        &self,
+        dpop_key: Key,
+        server_metadata: OAuthAuthorizationServerMetadata,
+    ) -> Result<OAuthServerAgent<T, D, H>> {
+        Ok(OAuthServerAgent::new(
+            dpop_key,
+            server_metadata,
             self.client_metadata.clone(),
             self.resolver.clone(),
             self.http_client.clone(),
             self.keyset.clone(),
-        )?;
-        let token_set = server.exchange_code(&params.code, &state.verifier).await?;
-
-        let session = Session { dpop_key: state.dpop_key.clone(), token_set: token_set.clone() };
-        self.session_store.set(token_set.sub.clone(), session.clone()).await.unwrap();
-
-        let session_store = S::default();
-        session_store
-            .set((), session.clone())
-            .await
-            .map_err(|e| crate::Error::SessionStore(Box::new(e)))?;
-
-        Ok(OAuthSession::new(
-            session_store,
-            server.from_metadata(metadata.clone(), state.dpop_key.clone())?,
-        ))
+        )?)
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
         let mut algs =
