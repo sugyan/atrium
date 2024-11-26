@@ -389,6 +389,7 @@ version = "0.1.13"
 dependencies = [
  "anyhow",
  "atrium-api",
+ "atrium-common",
  "atrium-xrpc-client",
  "chrono",
  "ipld-core",

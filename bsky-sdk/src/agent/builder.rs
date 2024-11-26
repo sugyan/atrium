@@ -15,6 +15,7 @@ pub struct BskyAtpAgentBuilder<T, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
     S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     config: Config,
     store: S,
@@ -35,6 +36,7 @@ impl<T, S> BskyAtpAgentBuilder<T, S>
 where
     T: XrpcClient + Send + Sync,
     S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     /// Set the configuration for the agent.
     pub fn config(mut self, config: Config) -> Self {
@@ -47,6 +49,7 @@ where
     pub fn store<S0>(self, store: S0) -> BskyAtpAgentBuilder<T, S0>
     where
         S0: AtpSessionStore + Send + Sync,
+        S0::Error: std::error::Error + Send + Sync + 'static,
     {
         BskyAtpAgentBuilder { config: self.config, store, client: self.client }
     }
@@ -105,34 +108,7 @@ impl Default for BskyAtpAgentBuilder<ReqwestClient, MemorySessionStore> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atrium_api::agent::atp_agent::AtpSession;
-    use atrium_api::com::atproto::server::create_session::OutputData;
-
-    fn session() -> AtpSession {
-        OutputData {
-            access_jwt: String::new(),
-            active: None,
-            did: "did:fake:handle.test".parse().expect("invalid did"),
-            did_doc: None,
-            email: None,
-            email_auth_factor: None,
-            email_confirmed: None,
-            handle: "handle.test".parse().expect("invalid handle"),
-            refresh_jwt: String::new(),
-            status: None,
-        }
-        .into()
-    }
-
-    struct MockSessionStore;
-
-    impl AtpSessionStore for MockSessionStore {
-        async fn get_session(&self) -> Option<AtpSession> {
-            Some(session())
-        }
-        async fn set_session(&self, _: AtpSession) {}
-        async fn clear_session(&self) {}
-    }
+    use crate::agent::tests::MockSessionStore;
 
     #[cfg(feature = "default-client")]
     #[tokio::test]
