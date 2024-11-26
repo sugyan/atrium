@@ -2,6 +2,7 @@ use super::{AtpSession, AtpSessionStore};
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
+use atrium_common::store::Store;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
 use atrium_xrpc::types::AuthorizationToken;
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
@@ -12,7 +13,7 @@ use std::sync::{Arc, RwLock};
 use tokio::sync::{Mutex, Notify};
 
 struct WrapperClient<S, T> {
-    store: Arc<Store<S>>,
+    store: Arc<InnerStore<S>>,
     proxy_header: RwLock<Option<String>>,
     labelers_header: Arc<RwLock<Option<Vec<String>>>>,
     inner: Arc<T>,
@@ -69,6 +70,7 @@ impl<S, T> XrpcClient for WrapperClient<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.store.get_endpoint()
@@ -91,7 +93,7 @@ where
 }
 
 pub struct Client<S, T> {
-    store: Arc<Store<S>>,
+    store: Arc<InnerStore<S>>,
     inner: WrapperClient<S, T>,
     is_refreshing: Arc<Mutex<bool>>,
     notify: Arc<Notify>,
@@ -101,8 +103,9 @@ impl<S, T> Client<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
-    pub fn new(store: Arc<Store<S>>, xrpc: T) -> Self {
+    pub fn new(store: Arc<InnerStore<S>>, xrpc: T) -> Self {
         let inner = WrapperClient {
             store: Arc::clone(&store),
             labelers_header: Arc::new(RwLock::new(None)),
@@ -245,6 +248,7 @@ impl<S, T> XrpcClient for Client<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.inner.base_uri()
@@ -270,12 +274,12 @@ where
     }
 }
 
-pub struct Store<S> {
+pub struct InnerStore<S> {
     inner: S,
     endpoint: RwLock<String>,
 }
 
-impl<S> Store<S> {
+impl<S> InnerStore<S> {
     pub fn new(inner: S, initial_endpoint: String) -> Self {
         Self { inner, endpoint: RwLock::new(initial_endpoint) }
     }
@@ -289,9 +293,31 @@ impl<S> Store<S> {
     }
 }
 
-impl<S> AtpSessionStore for Store<S>
+impl<S> Store<(), AtpSession> for InnerStore<S>
 where
     S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
+{
+    type Error = S::Error;
+
+    async fn get(&self, key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
+        self.inner.get(key).await
+    }
+    async fn set(&self, key: (), session: AtpSession) -> core::result::Result<(), Self::Error> {
+        self.inner.set(key, session).await
+    }
+    async fn del(&self, key: &()) -> core::result::Result<(), Self::Error> {
+        self.inner.del(key).await
+    }
+    async fn clear(&self) -> core::result::Result<(), Self::Error> {
+        self.inner.clear().await
+    }
+}
+
+impl<S> AtpSessionStore for InnerStore<S>
+where
+    S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn get_session(&self) -> Option<AtpSession> {
         self.inner.get_session().await

@@ -22,9 +22,10 @@ pub type AtpSession = crate::com::atproto::server::create_session::Output;
 pub struct CredentialSession<S, T>
 where
     S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
-    store: Arc<inner::Store<S>>,
+    store: Arc<inner::InnerStore<S>>,
     inner: Arc<inner::Client<S, T>>,
     atproto_service: AtprotoService<inner::Client<S, T>>,
 }
@@ -33,9 +34,10 @@ impl<S, T> CredentialSession<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn new(xrpc: T, store: S) -> Self {
-        let store = Arc::new(inner::Store::new(store, xrpc.base_uri()));
+        let store = Arc::new(inner::InnerStore::new(store, xrpc.base_uri()));
         let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
         Self {
             store: Arc::clone(&store),
@@ -148,6 +150,7 @@ impl<S, T> HttpClient for CredentialSession<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -161,6 +164,7 @@ impl<S, T> XrpcClient for CredentialSession<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.inner.base_uri()
@@ -183,6 +187,7 @@ impl<S, T> SessionManager for CredentialSession<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
         self.store.get_session().await.map(|session| session.data.did)
@@ -209,6 +214,7 @@ pub struct AtpAgent<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     session_manager: Wrapper<CredentialSession<S, T>>,
     inner: Agent<Wrapper<CredentialSession<S, T>>>,
@@ -218,6 +224,7 @@ impl<S, T> AtpAgent<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     /// Create a new agent.
     pub fn new(xrpc: T, store: S) -> Self {
@@ -284,6 +291,7 @@ impl<S, T> Deref for AtpAgent<S, T>
 where
     S: AtpSessionStore + Send + Sync,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     type Target = Agent<Wrapper<CredentialSession<S, T>>>;
 
