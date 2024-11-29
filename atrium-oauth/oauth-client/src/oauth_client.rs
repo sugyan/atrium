@@ -286,3 +286,12 @@ where
         (URL_SAFE_NO_PAD.encode(Sha256::digest(&verifier)), verifier)
     }
 }
+
+impl<S0, S1, D, H, T> std::fmt::Debug for OAuthClient<S0, S1, D, H, T>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OAuthClient").field("client_metadata", &self.client_metadata).finish()
+    }
+}
