@@ -202,7 +202,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .data;
         println!("{status:?}");
         if status.blob.is_some()
-            || status.state == "JOB_STATE_CREATED"
+            || status.state == "JOB_STATE_COMPLETED"
             || status.state == "JOB_STATE_FAILED"
         {
             break;
