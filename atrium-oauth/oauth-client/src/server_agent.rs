@@ -1,18 +1,25 @@
-use crate::constants::FALLBACK_ALG;
-use crate::http_client::dpop::DpopClient;
-use crate::jose::jwt::{RegisteredClaims, RegisteredClaimsAud};
-use crate::keyset::Keyset;
-use crate::resolver::OAuthResolver;
-use crate::types::{
-    OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
-    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
-    TokenRequestParameters, TokenSet,
+use crate::{
+    constants::FALLBACK_ALG,
+    http_client::dpop::DpopClient,
+    jose::jwt::{RegisteredClaims, RegisteredClaimsAud},
+    keyset::Keyset,
+    oauth_session::OAuthSession,
+    resolver::OAuthResolver,
+    store::{session::SessionStore, session_getter::SessionGetter},
+    types::{
+        OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
+        PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
+        TokenRequestParameters, TokenSet,
+    },
+    utils::{compare_algos, generate_nonce},
 };
-use crate::utils::{compare_algos, generate_nonce};
-use atrium_api::types::string::Datetime;
+use atrium_api::types::string::{Datetime, Did};
+use atrium_common::store::Store;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
-use atrium_xrpc::http::{Method, Request, StatusCode};
-use atrium_xrpc::HttpClient;
+use atrium_xrpc::{
+    http::{Method, Request, StatusCode},
+    HttpClient,
+};
 use chrono::{TimeDelta, Utc};
 use jose_jwk::Key;
 use serde::Serialize;
@@ -32,6 +39,8 @@ pub enum Error {
     Token(String),
     #[error("unsupported authentication method")]
     UnsupportedAuthMethod,
+    #[error("failed to parse DID: {0}")]
+    InvalidDid(&'static str),
     #[error(transparent)]
     DpopClient(#[from] crate::http_client::dpop::Error),
     #[error(transparent)]
@@ -100,8 +109,8 @@ pub struct OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    server_metadata: OAuthAuthorizationServerMetadata,
-    client_metadata: OAuthClientMetadata,
+    pub(crate) server_metadata: OAuthAuthorizationServerMetadata,
+    pub(crate) client_metadata: OAuthClientMetadata,
     dpop_client: DpopClient<T>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
@@ -153,7 +162,7 @@ where
                 .map(Datetime::new)
         });
         Ok(TokenSet {
-            sub: sub.clone(),
+            sub: sub.parse().map_err(Error::InvalidDid)?,
             aud: identity.pds,
             iss: metadata.issuer,
             scope: token_response.scope,
@@ -174,6 +183,21 @@ where
             .await?,
         )
         .await
+    }
+    pub async fn refresh(&self, token_set: &TokenSet) {
+        let Some(refresh_token) = token_set.refresh_token.as_ref() else {
+            // TODO
+            return;
+        };
+        // TODO
+        let result = self
+            .request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
+                grant_type: TokenGrantType::RefreshToken,
+                refresh_token: refresh_token.clone(),
+                scope: None,
+            }))
+            .await;
+        println!("{result:?}");
     }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where
@@ -279,5 +303,20 @@ where
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
             }
         }
+    }
+    pub(crate) async fn create_session<S>(
+        self,
+        sub: Did,
+        http_client: Arc<T>,
+        session_getter: SessionGetter<S>,
+    ) -> Result<OAuthSession<T, D, H>>
+    where
+        S: SessionStore + Send + Sync + 'static,
+        S::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let dpop_key = self.dpop_client.key.clone();
+        // TODO
+        let session = session_getter.get(&sub).await.expect("").unwrap();
+        Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set)?)
     }
 }

@@ -49,7 +49,6 @@ pub struct PushedAuthorizationRequestParameters {
 #[serde(rename_all = "snake_case")]
 pub enum TokenGrantType {
     AuthorizationCode,
-    #[allow(dead_code)]
     RefreshToken,
 }
 

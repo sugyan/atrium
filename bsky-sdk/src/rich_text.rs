@@ -2,7 +2,7 @@
 mod detection;
 
 use crate::agent::config::Config;
-use crate::agent::BskyAgentBuilder;
+use crate::agent::BskyAtpAgentBuilder;
 use crate::error::Result;
 use atrium_api::app::bsky::richtext::facet::{
     ByteSliceData, Link, MainFeaturesItem, Mention, MentionData, Tag,
@@ -204,7 +204,7 @@ impl RichText {
     }
     /// Detect facets in the text and set them.
     pub async fn detect_facets(&mut self, client: impl XrpcClient + Send + Sync) -> Result<()> {
-        let agent = BskyAgentBuilder::new(client)
+        let agent = BskyAtpAgentBuilder::new(client)
             .config(Config { endpoint: PUBLIC_API_ENDPOINT.into(), ..Default::default() })
             .build()
             .await?;

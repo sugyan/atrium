@@ -2,14 +2,14 @@
 mod builder;
 pub mod config;
 
-pub use self::builder::BskyAgentBuilder;
+pub use self::builder::BskyAtpAgentBuilder;
 use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
 use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
-use atrium_api::agent::store::MemorySessionStore;
-use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::agent::atp_agent::store::MemorySessionStore;
+use atrium_api::agent::atp_agent::{store::AtpSessionStore, AtpAgent};
 use atrium_api::app::bsky::actor::defs::PreferencesItem;
 use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
@@ -21,8 +21,8 @@ use std::sync::Arc;
 
 /// A Bluesky agent.
 ///
-/// This agent is a wrapper around the [`AtpAgent`] that provides additional functionality for working with Bluesky.
-/// For creating an instance of this agent, use the [`BskyAgentBuilder`].
+/// This agent is a wrapper around the [`Agent`](atrium_api::agent::Agent) that provides additional functionality for working with Bluesky.
+/// For creating an instance of this agent, use the [`BskyAtpAgentBuilder`].
 ///
 /// # Example
 ///
@@ -40,7 +40,8 @@ use std::sync::Arc;
 pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -49,7 +50,8 @@ where
 pub struct BskyAgent<T, S = MemorySessionStore>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -57,16 +59,17 @@ where
 #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
 #[cfg(feature = "default-client")]
 impl BskyAgent {
-    /// Create a new [`BskyAgentBuilder`] with the default client and session store.
-    pub fn builder() -> BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
-        BskyAgentBuilder::default()
+    /// Create a new [`BskyAtpAgentBuilder`] with the default client and session store.
+    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemorySessionStore> {
+        BskyAtpAgentBuilder::default()
     }
 }
 
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     /// Get the agent's current state as a [`Config`].
     pub async fn to_config(&self) -> Config {
@@ -248,7 +251,8 @@ where
 impl<T, S> Deref for BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     type Target = AtpAgent<S, T>;
 
@@ -258,30 +262,62 @@ where
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
-    use atrium_api::agent::Session;
+    use atrium_api::{
+        agent::atp_agent::AtpSession, com::atproto::server::create_session::OutputData,
+    };
+    use atrium_common::store::Store;
+    use thiserror::Error;
+
+    #[derive(Error, Debug)]
+    #[error("mock session store error")]
+    pub struct MockSessionError;
 
     #[derive(Clone)]
-    struct NoopStore;
+    pub struct MockSessionStore;
 
-    impl SessionStore for NoopStore {
-        async fn get_session(&self) -> Option<Session> {
+    impl Store<(), AtpSession> for MockSessionStore {
+        type Error = MockSessionError;
+
+        async fn get(&self, _: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
+            Ok(Some(
+                OutputData {
+                    access_jwt: String::from("access"),
+                    active: None,
+                    did: "did:fake:handle.test".parse().expect("invalid did"),
+                    did_doc: None,
+                    email: None,
+                    email_auth_factor: None,
+                    email_confirmed: None,
+                    handle: "handle.test".parse().expect("invalid handle"),
+                    refresh_jwt: String::from("refresh"),
+                    status: None,
+                }
+                .into(),
+            ))
+        }
+        async fn set(&self, _: (), _: AtpSession) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
-        async fn set_session(&self, _: Session) {
+        async fn del(&self, _: &()) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
-        async fn clear_session(&self) {
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
     }
 
+    impl AtpSessionStore for MockSessionStore {}
+
     #[cfg(feature = "default-client")]
     #[tokio::test]
     async fn clone_agent() {
-        let agent =
-            BskyAgent::builder().store(NoopStore).build().await.expect("failed to build agent");
+        let agent = BskyAgent::builder()
+            .store(MockSessionStore)
+            .build()
+            .await
+            .expect("failed to build agent");
         let cloned = agent.clone();
 
         agent.configure_endpoint(String::from("https://example.com"));
