@@ -41,7 +41,7 @@ jobs:
 
       - name: Compile (rust-analyzer)
         run: cargo build --verbose
-        
+
       - name: Lint (clippy)
         uses: giraffate/clippy-action@v1
         with:
@@ -49,4 +49,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Format (rustfmt)
+        if: matrix.rust != 'stable'
         run: cargo fmt-no-gen --check
