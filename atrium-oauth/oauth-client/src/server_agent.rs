@@ -3,13 +3,17 @@ use crate::http_client::dpop::DpopClient;
 use crate::jose::jwt::{RegisteredClaims, RegisteredClaimsAud};
 use crate::keyset::Keyset;
 use crate::resolver::OAuthResolver;
+use crate::store::session::SessionStore;
+use crate::store::session_getter::SessionGetter;
 use crate::types::{
     OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
-    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
-    TokenRequestParameters, TokenSet,
+    PushedAuthorizationRequestParameters, RefreshRequestParameters, RevocationRequestParameters,
+    TokenGrantType, TokenRequestParameters, TokenSet,
 };
 use crate::utils::{compare_algos, generate_nonce};
-use atrium_api::types::string::Datetime;
+use crate::OAuthSession;
+use atrium_api::types::string::{Datetime, Did};
+use atrium_common::store::Store;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::http::{Method, Request, StatusCode};
 use atrium_xrpc::HttpClient;
@@ -32,6 +36,10 @@ pub enum Error {
     Token(String),
     #[error("unsupported authentication method")]
     UnsupportedAuthMethod,
+    #[error("failed to parse DID: {0}")]
+    InvalidDid(&'static str),
+    #[error("no refresh token available for {0}")]
+    NoRefreshToken(String),
     #[error(transparent)]
     DpopClient(#[from] crate::http_client::dpop::Error),
     #[error(transparent)]
@@ -58,7 +66,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub enum OAuthRequest {
     Token(TokenRequestParameters),
     Refresh(RefreshRequestParameters),
-    Revocation,
+    Revocation(RevocationRequestParameters),
     Introspection,
     PushedAuthorizationRequest(PushedAuthorizationRequestParameters),
 }
@@ -68,14 +76,14 @@ impl OAuthRequest {
         String::from(match self {
             Self::Token(_) => "token",
             Self::Refresh(_) => "refresh",
-            Self::Revocation => "revocation",
+            Self::Revocation(_) => "revocation",
             Self::Introspection => "introspection",
             Self::PushedAuthorizationRequest(_) => "pushed_authorization_request",
         })
     }
     fn expected_status(&self) -> StatusCode {
         match self {
-            Self::Token(_) | Self::Refresh(_) => StatusCode::OK,
+            Self::Token(_) | Self::Refresh(_) | Self::Revocation(_) => StatusCode::OK,
             Self::PushedAuthorizationRequest(_) => StatusCode::CREATED,
             _ => unimplemented!(),
         }
@@ -100,8 +108,8 @@ pub struct OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    server_metadata: OAuthAuthorizationServerMetadata,
-    client_metadata: OAuthClientMetadata,
+    pub(crate) server_metadata: OAuthAuthorizationServerMetadata,
+    pub(crate) client_metadata: OAuthClientMetadata,
     dpop_client: DpopClient<T>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
@@ -123,7 +131,7 @@ where
     ) -> Result<Self> {
         let dpop_client = DpopClient::new(
             dpop_key,
-            http_client,
+            http_client.clone(),
             true,
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
@@ -140,10 +148,12 @@ where
     async fn verify_token_response(&self, token_response: OAuthTokenResponse) -> Result<TokenSet> {
         // ATPROTO requires that the "sub" is always present in the token response.
         let Some(sub) = &token_response.sub else {
+            self.revoke(&token_response.access_token).await;
             return Err(Error::Token("missing `sub` in token response".into()));
         };
         let (metadata, identity) = self.resolver.resolve_from_identity(sub).await?;
         if metadata.issuer != self.server_metadata.issuer {
+            self.revoke(&token_response.access_token).await;
             return Err(Error::Token("issuer mismatch".into()));
         }
         let expires_at = token_response.expires_in.and_then(|expires_in| {
@@ -153,7 +163,7 @@ where
                 .map(Datetime::new)
         });
         Ok(TokenSet {
-            sub: sub.clone(),
+            sub: sub.parse().map_err(Error::InvalidDid)?,
             aud: identity.pds,
             iss: metadata.issuer,
             scope: token_response.scope,
@@ -170,6 +180,28 @@ where
                 code: code.into(),
                 redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
                 code_verifier: verifier.into(),
+            }))
+            .await?,
+        )
+        .await
+    }
+    pub async fn revoke(&self, token: &str) {
+        let _ = self
+            .request::<()>(OAuthRequest::Revocation(RevocationRequestParameters {
+                token: token.into(),
+            }))
+            .await;
+    }
+    #[allow(dead_code)]
+    pub async fn refresh(&self, token_set: &TokenSet) -> Result<TokenSet> {
+        let Some(refresh_token) = token_set.refresh_token.as_ref() else {
+            return Err(Error::NoRefreshToken(token_set.sub.to_string()));
+        };
+        self.verify_token_response(
+            self.request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
+                grant_type: TokenGrantType::RefreshToken,
+                refresh_token: refresh_token.clone(),
+                scope: None,
             }))
             .await?,
         )
@@ -273,11 +305,26 @@ where
             OAuthRequest::Token(_) | OAuthRequest::Refresh(_) => {
                 Some(&self.server_metadata.token_endpoint)
             }
-            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
+            OAuthRequest::Revocation(_) => self.server_metadata.revocation_endpoint.as_ref(),
             OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
             OAuthRequest::PushedAuthorizationRequest(_) => {
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
             }
         }
+    }
+    pub(crate) async fn create_session<S>(
+        self,
+        sub: Did,
+        http_client: Arc<T>,
+        session_getter: SessionGetter<S>,
+    ) -> Result<OAuthSession<T, D, H>>
+    where
+        S: SessionStore + Send + Sync + 'static,
+        S::Error: std::error::Error + Send + Sync + 'static,
+    {
+        let dpop_key = self.dpop_client.key.clone();
+        // TODO
+        let session = session_getter.get(&sub).await.expect("").unwrap();
+        OAuthSession::new(self, dpop_key, http_client, session.token_set).await.map_err(Into::into)
     }
 }

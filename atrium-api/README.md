@@ -43,14 +43,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 While `AtpServiceClient` can be used for simple XRPC calls, it is better to use `AtpAgent`, which has practical features such as session management.
 
 ```rust,no_run
-use atrium_api::agent::{store::MemorySessionStore, AtpAgent};
+use atrium_api::agent::atp_agent::AtpAgent;
+use atrium_common::store::memory::MemoryStore;
 use atrium_xrpc_client::reqwest::ReqwestClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let agent = AtpAgent::new(
         ReqwestClient::new("https://bsky.social"),
-        MemorySessionStore::default(),
+        MemoryStore::default(),
     );
     agent.login("alice@mail.com", "hunter2").await?;
     let result = agent

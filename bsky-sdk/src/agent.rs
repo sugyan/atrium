@@ -2,17 +2,18 @@
 mod builder;
 pub mod config;
 
-pub use self::builder::BskyAgentBuilder;
+pub use self::builder::BskyAtpAgentBuilder;
 use self::config::Config;
 use crate::error::Result;
 use crate::moderation::util::interpret_label_value_definitions;
 use crate::moderation::{ModerationPrefsLabeler, Moderator};
 use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
-use atrium_api::agent::store::MemorySessionStore;
-use atrium_api::agent::{store::SessionStore, AtpAgent};
+use atrium_api::agent::atp_agent::{AtpAgent, AtpSession};
 use atrium_api::app::bsky::actor::defs::PreferencesItem;
 use atrium_api::types::{Object, Union};
 use atrium_api::xrpc::XrpcClient;
+use atrium_common::store::memory::MemoryStore;
+use atrium_common::store::Store;
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use std::collections::HashMap;
@@ -21,8 +22,8 @@ use std::sync::Arc;
 
 /// A Bluesky agent.
 ///
-/// This agent is a wrapper around the [`AtpAgent`] that provides additional functionality for working with Bluesky.
-/// For creating an instance of this agent, use the [`BskyAgentBuilder`].
+/// This agent is a wrapper around the [`Agent`](atrium_api::agent::Agent) that provides additional functionality for working with Bluesky.
+/// For creating an instance of this agent, use the [`BskyAtpAgentBuilder`].
 ///
 /// # Example
 ///
@@ -37,19 +38,21 @@ use std::sync::Arc;
 
 #[cfg(feature = "default-client")]
 #[derive(Clone)]
-pub struct BskyAgent<T = ReqwestClient, S = MemorySessionStore>
+pub struct BskyAgent<T = ReqwestClient, S = MemoryStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
 
 #[cfg(not(feature = "default-client"))]
-pub struct BskyAgent<T, S = MemorySessionStore>
+pub struct BskyAgent<T, S = MemoryStore<(), AtpSession>>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     inner: Arc<AtpAgent<S, T>>,
 }
@@ -57,16 +60,17 @@ where
 #[cfg_attr(docsrs, doc(cfg(feature = "default-client")))]
 #[cfg(feature = "default-client")]
 impl BskyAgent {
-    /// Create a new [`BskyAgentBuilder`] with the default client and session store.
-    pub fn builder() -> BskyAgentBuilder<ReqwestClient, MemorySessionStore> {
-        BskyAgentBuilder::default()
+    /// Create a new [`BskyAtpAgentBuilder`] with the default client and session store.
+    pub fn builder() -> BskyAtpAgentBuilder<ReqwestClient, MemoryStore<(), AtpSession>> {
+        BskyAtpAgentBuilder::default()
     }
 }
 
 impl<T, S> BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     /// Get the agent's current state as a [`Config`].
     pub async fn to_config(&self) -> Config {
@@ -248,7 +252,8 @@ where
 impl<T, S> Deref for BskyAgent<T, S>
 where
     T: XrpcClient + Send + Sync,
-    S: SessionStore + Send + Sync,
+    S: Store<(), AtpSession> + Send + Sync,
+    S::Error: Send + Sync + 'static,
 {
     type Target = AtpAgent<S, T>;
 
@@ -260,19 +265,24 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use atrium_api::agent::Session;
+    use atrium_api::agent::atp_agent::AtpSession;
 
     #[derive(Clone)]
     struct NoopStore;
 
-    impl SessionStore for NoopStore {
-        async fn get_session(&self) -> Option<Session> {
+    impl Store<(), AtpSession> for NoopStore {
+        type Error = std::convert::Infallible;
+
+        async fn get(&self, _key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
             unimplemented!()
         }
-        async fn set_session(&self, _: Session) {
+        async fn set(&self, _key: (), _value: AtpSession) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
-        async fn clear_session(&self) {
+        async fn del(&self, _key: &()) -> core::result::Result<(), Self::Error> {
+            unimplemented!()
+        }
+        async fn clear(&self) -> core::result::Result<(), Self::Error> {
             unimplemented!()
         }
     }

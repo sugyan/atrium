@@ -1,5 +1,7 @@
+use atrium_api::agent::Agent;
 use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
 use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
+use atrium_oauth_client::store::session::MemorySessionStore;
 use atrium_oauth_client::store::state::MemoryStateStore;
 use atrium_oauth_client::{
     AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, KnownScope, OAuthClient,
@@ -57,6 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             protected_resource_metadata: Default::default(),
         },
         state_store: MemoryStateStore::default(),
+        session_store: MemorySessionStore::default(),
     };
     let client = OAuthClient::new(config)?;
     println!(
@@ -76,7 +79,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
 
     // Click the URL and sign in,
-    // then copy and paste the URL like “http://127.0.0.1/?iss=...&code=...” after it is redirected.
+    // then copy and paste the URL like “http://127.0.0.1/callback?iss=...&code=...” after it is redirected.
 
     print!("Redirected url: ");
     stdout().lock().flush()?;
@@ -85,7 +88,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uri = url.trim().parse::<Uri>()?;
     let params = serde_html_form::from_str(uri.query().unwrap())?;
-    println!("{}", serde_json::to_string_pretty(&client.callback(params).await?)?);
+
+    let (session, _) = client.callback(params).await?;
+    let agent = Agent::new(session);
+    let output = agent
+        .api
+        .app
+        .bsky
+        .feed
+        .get_timeline(
+            atrium_api::app::bsky::feed::get_timeline::ParametersData {
+                algorithm: None,
+                cursor: None,
+                limit: 3.try_into().ok(),
+            }
+            .into(),
+        )
+        .await?;
+    for feed in &output.feed {
+        println!("{feed:?}");
+    }
 
     Ok(())
 }
