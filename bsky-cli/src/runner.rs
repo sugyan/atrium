@@ -7,7 +7,6 @@ use bsky_sdk::agent::config::{Config, FileStore};
 use bsky_sdk::api;
 use bsky_sdk::BskyAgent;
 use serde::Serialize;
-use std::ffi::OsStr;
 use std::path::PathBuf;
 use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncReadExt;
@@ -374,7 +373,7 @@ impl Runner {
             }
             Command::CreatePost(args) => {
                 let mut images = Vec::new();
-                for image in &args.images {
+                for (idx,image) in args.images.iter().enumerate() {
                     if let Ok(mut file) = File::open(image).await {
                         let mut buf = Vec::new();
                         file.read_to_end(&mut buf).await.expect("read image file");
@@ -387,13 +386,20 @@ impl Runner {
                             .upload_blob(buf)
                             .await
                             .expect("upload blob");
+                        let alt= match args.alt_text.get(idx) {
+                            Some(text) => text.to_owned(),
+                            None => {
+                                image
+                                    .file_name()
+                                    .map(|s| s.to_string_lossy().into_owned())
+                                    .unwrap_or_default()
+
+                            }
+
+                        };
                         images.push(
                             api::app::bsky::embed::images::ImageData {
-                                alt: image
-                                    .file_name()
-                                    .map(OsStr::to_string_lossy)
-                                    .unwrap_or_default()
-                                    .into(),
+                                alt,
                                 aspect_ratio: None,
                                 image: output.data.blob,
                             }
