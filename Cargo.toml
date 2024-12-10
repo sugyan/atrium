@@ -27,7 +27,7 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.24.8", path = "atrium-api", default-features = false }
+atrium-api = { version = "0.24.8", path = "atrium-api" }
 atrium-common = { version = "0.1.0", path = "atrium-common" }
 atrium-identity = { version = "0.1.0", path = "atrium-oauth/identity" }
 atrium-xrpc = { version = "0.12.0", path = "atrium-xrpc" }
@@ -68,7 +68,7 @@ hickory-resolver = "0.24.1"
 http = "1.1.0"
 lru = "0.12.4"
 moka = "0.12.8"
-tokio = { version = "1.39", default-features = false }
+tokio = { version = "1.41", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"

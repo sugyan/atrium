@@ -26,6 +26,7 @@ unicode-segmentation = { version = "1.11.0", optional = true }
 trait-variant.workspace = true
 
 [dev-dependencies]
+atrium-common.workspace = true
 ipld-core.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
