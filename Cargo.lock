@@ -178,7 +178,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atrium-api"
-version = "0.24.8"
+version = "0.24.9"
 dependencies = [
  "atrium-xrpc",
  "atrium-xrpc-client",
@@ -384,7 +384,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "anyhow",
  "atrium-api",

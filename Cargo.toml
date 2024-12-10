@@ -27,12 +27,12 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.24.8", path = "atrium-api", default-features = false }
+atrium-api = { version = "0.24.9", path = "atrium-api", default-features = false }
 atrium-common = { version = "0.1.0", path = "atrium-common" }
 atrium-identity = { version = "0.1.0", path = "atrium-oauth/identity" }
 atrium-xrpc = { version = "0.12.0", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.10", path = "atrium-xrpc-client" }
-bsky-sdk = { version = "0.1.13", path = "bsky-sdk" }
+bsky-sdk = { version = "0.1.14", path = "bsky-sdk" }
 
 # DAG-CBOR codec
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
