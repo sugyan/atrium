@@ -1,6 +1,6 @@
 [package]
 name = "bsky-cli"
-version = "0.1.26"
+version = "0.1.27"
 authors = ["sugyan <sugi1982+github@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
