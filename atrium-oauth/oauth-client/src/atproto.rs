@@ -160,7 +160,7 @@ impl TryIntoOAuthClientMetadata for AtprotoLocalhostClientMetadata {
             redirect_uris: self
                 .redirect_uris
                 .unwrap_or(vec![String::from("http://127.0.0.1/"), String::from("http://[::1]/")]),
-            scope: None,
+            scope: None,       // will be set to `atproto`
             grant_types: None, // will be set to `authorization_code` and `refresh_token`
             token_endpoint_auth_method: Some(String::from("none")),
             dpop_bound_access_tokens: None, // will be set to `true`

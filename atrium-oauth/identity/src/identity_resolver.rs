@@ -31,6 +31,7 @@ impl<D, H> Resolver for IdentityResolver<D, H>
 where
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
+    // Error: From<D::Error> + From<H::Error>,
 {
     type Input = str;
     type Output = ResolvedIdentity;

@@ -1,8 +1,8 @@
 use crate::jose::create_signed_jwt;
 use crate::jose::jws::RegisteredHeader;
 use crate::jose::jwt::{Claims, PublicClaims, RegisteredClaims};
-use crate::store::memory::MemorySimpleStore;
-use crate::store::SimpleStore;
+use atrium_common::store::memory::MemoryStore;
+use atrium_common::store::Store;
 use atrium_xrpc::http::{Request, Response};
 use atrium_xrpc::HttpClient;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
@@ -30,15 +30,19 @@ pub enum Error {
     JwkCrypto(crypto::Error),
     #[error("key does not match any alg supported by the server")]
     UnsupportedKey,
+    #[error("nonce store error: {0}")]
+    Nonces(Box<dyn std::error::Error + Send + Sync + 'static>),
+    #[error("session store error: {0}")]
+    SessionStore(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error(transparent)]
     SerdeJson(#[from] serde_json::Error),
 }
 
 type Result<T> = core::result::Result<T, Error>;
 
-pub struct DpopClient<T, S = MemorySimpleStore<String, String>>
+pub struct DpopClient<T, S = MemoryStore<String, String>>
 where
-    S: SimpleStore<String, String>,
+    S: Store<String, String>,
 {
     inner: Arc<T>,
     pub(crate) key: Key,
@@ -65,14 +69,14 @@ impl<T> DpopClient<T> {
                 return Err(Error::UnsupportedKey);
             }
         }
-        let nonces = MemorySimpleStore::<String, String>::default();
+        let nonces = MemoryStore::<String, String>::default();
         Ok(Self { inner: http_client, key, nonces, is_auth_server })
     }
 }
 
 impl<T, S> DpopClient<T, S>
 where
-    S: SimpleStore<String, String>,
+    S: Store<String, String>,
 {
     fn build_proof(
         &self,
@@ -135,7 +139,8 @@ where
 impl<T, S> HttpClient for DpopClient<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: Store<String, String> + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -146,14 +151,16 @@ where
         let nonce_key = uri.authority().unwrap().to_string();
         let htm = request.method().to_string();
         let htu = uri.to_string();
-        // https://datatracker.ietf.org/doc/html/rfc9449#section-4.2
-        let ath = request
-            .headers()
-            .get("Authorization")
-            .filter(|v| v.to_str().map_or(false, |s| s.starts_with("DPoP ")))
-            .map(|auth| URL_SAFE_NO_PAD.encode(Sha256::digest(&auth.as_bytes()[5..])));
 
-        let init_nonce = self.nonces.get(&nonce_key).await?;
+        let ath = match request.headers().get("Authorization").and_then(|v| v.to_str().ok()) {
+            Some(s) if s.starts_with("DPoP ") => {
+                Some(URL_SAFE_NO_PAD.encode(Sha256::digest(s.strip_prefix("DPoP ").unwrap())))
+            }
+            _ => None,
+        };
+
+        let init_nonce =
+            self.nonces.get(&nonce_key).await.map_err(|e| Error::Nonces(Box::new(e)))?;
         let init_proof =
             self.build_proof(htm.clone(), htu.clone(), ath.clone(), init_nonce.clone())?;
         request.headers_mut().insert("DPoP", init_proof.parse()?);
@@ -164,7 +171,10 @@ where
         match &next_nonce {
             Some(s) if next_nonce != init_nonce => {
                 // Store the fresh nonce for future requests
-                self.nonces.set(nonce_key, s.clone()).await?;
+                self.nonces
+                    .set(nonce_key, s.clone())
+                    .await
+                    .map_err(|e| Error::Nonces(Box::new(e)))?;
             }
             _ => {
                 // No nonce was returned or it is the same as the one we sent. No need to

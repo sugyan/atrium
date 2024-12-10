@@ -1,4 +1,5 @@
-use crate::error::{Error, XrpcError, XrpcErrorKind};
+use crate::error::Error;
+use crate::error::{XrpcError, XrpcErrorKind};
 use crate::types::{AuthorizationToken, Header, NSID_REFRESH_SESSION};
 use crate::{InputDataOrBytes, OutputDataOrBytes, XrpcRequest};
 use http::{Method, Request, Response};

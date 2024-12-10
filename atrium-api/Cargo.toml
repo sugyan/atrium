@@ -13,6 +13,7 @@ keywords.workspace = true
 
 [dependencies]
 atrium-xrpc.workspace = true
+atrium-common.workspace = true
 chrono = { workspace = true, features = ["serde"] }
 http.workspace = true
 ipld-core = { workspace = true, features = ["serde"] }
