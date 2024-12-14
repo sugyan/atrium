@@ -151,7 +151,12 @@ where
             return Err(Error::Authorize("none of the algorithms worked".into()));
         };
         let (code_challenge, verifier) = Self::generate_pkce();
-        let state = generate_nonce();
+
+        let state = match options.state {
+            Some(state) => state,
+            None => generate_nonce(),
+        };
+
         let state_data = InternalStateData {
             iss: metadata.issuer.clone(),
             dpop_key: dpop_key.clone(),
