@@ -108,7 +108,7 @@ pub struct AtprotoLocalhostClientMetadata {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AtprotoClientMetadata {
     pub client_id: String,
-    pub client_uri: String,
+    pub client_uri: Option<String>,
     pub redirect_uris: Vec<String>,
     pub token_endpoint_auth_method: AuthMethod,
     pub grant_types: Vec<GrantType>,
@@ -209,7 +209,7 @@ impl TryIntoOAuthClientMetadata for AtprotoClientMetadata {
         }
         Ok(OAuthClientMetadata {
             client_id: self.client_id,
-            client_uri: Some(self.client_uri),
+            client_uri: self.client_uri,
             redirect_uris: self.redirect_uris,
             token_endpoint_auth_method: Some(self.token_endpoint_auth_method.into()),
             grant_types: Some(self.grant_types.into_iter().map(|v| v.into()).collect()),
@@ -331,7 +331,7 @@ gbGGr0pN+oSing7cZ0169JaRHTNh+0LNQXrFobInX6cj95FzEdRyT4T3
     fn test_client_metadata() {
         let metadata = AtprotoClientMetadata {
             client_id: String::from("https://example.com/client_metadata.json"),
-            client_uri: String::from("https://example.com"),
+            client_uri: Some(String::from("https://example.com")),
             redirect_uris: vec![String::from("https://example.com/callback")],
             token_endpoint_auth_method: AuthMethod::PrivateKeyJwt,
             grant_types: vec![GrantType::AuthorizationCode],
