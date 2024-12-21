@@ -3,9 +3,12 @@ use std::{collections::HashMap, convert::Infallible};
 use futures::{AsyncReadExt as _, AsyncSeekExt as _};
 use ipld_core::cid::{multihash::Multihash, Cid, Version};
 use serde::Deserialize;
+use sha2::Digest;
 use tokio::io::{AsyncRead, AsyncReadExt as _, AsyncSeek, AsyncSeekExt as _, SeekFrom};
 use tokio_util::compat::TokioAsyncReadCompatExt;
 use unsigned_varint::io::ReadError;
+
+use crate::blockstore::{self, AsyncBlockStoreRead};
 
 #[derive(Debug, Deserialize)]
 pub struct V1Header {
@@ -62,6 +65,8 @@ impl<R: AsyncRead + AsyncSeek + Unpin> IndexedReader<R> {
         reader.read_exact(&mut header_bytes).await?;
         let header: V1Header = serde_ipld_dagcbor::from_slice(&header_bytes)?;
 
+        let mut buffer = Vec::new();
+
         // Build the index.
         let mut index = HashMap::new();
         loop {
@@ -71,7 +76,22 @@ impl<R: AsyncRead + AsyncSeek + Unpin> IndexedReader<R> {
                     let cid = read_cid((&mut reader).compat()).await?;
                     let offset = reader.stream_position().await?;
                     let len = data_len - (offset - start);
-                    reader.seek(SeekFrom::Start(offset + len)).await?;
+                    // reader.seek(SeekFrom::Start(offset + len)).await?;
+
+                    // Validate this block's multihash.
+                    buffer.clear();
+                    buffer.resize(len as usize, 0);
+                    reader.read_exact(buffer.as_mut_slice()).await?;
+
+                    let digest = sha2::Sha256::digest(buffer.as_slice());
+                    let expected = Multihash::wrap(cid.hash().code(), digest.as_slice())
+                        .map_err(Error::Multihash)?;
+                    let expected = Cid::new_v1(cid.codec(), expected);
+
+                    if expected != cid {
+                        return Err(Error::InvalidHash);
+                    }
+
                     index.insert(cid, (offset, len as usize));
                 }
                 Err(ReadError::Io(e)) if e.kind() == std::io::ErrorKind::UnexpectedEof => break,
@@ -79,25 +99,29 @@ impl<R: AsyncRead + AsyncSeek + Unpin> IndexedReader<R> {
             }
         }
 
-        Ok(Self {
-            reader,
-            header,
-            index,
-        })
+        Ok(Self { reader, header, index })
     }
 
     pub fn header(&self) -> &V1Header {
         &self.header
     }
+}
 
-    pub async fn get_block(&mut self, cid: &Cid) -> Result<Vec<u8>, Error> {
-        let (offset, len) = self.index.get(cid).ok_or_else(|| Error::CidNotFound)?;
-        let mut buf = vec![0; *len];
+impl<R: AsyncRead + AsyncSeek + Send + Unpin> AsyncBlockStoreRead for IndexedReader<R> {
+    async fn read_block_into(
+        &mut self,
+        cid: &Cid,
+        contents: &mut Vec<u8>,
+    ) -> Result<(), blockstore::Error> {
+        contents.clear();
+
+        let (offset, len) = self.index.get(cid).ok_or_else(|| blockstore::Error::CidNotFound)?;
+        contents.resize(*len, 0);
 
         self.reader.seek(SeekFrom::Start(*offset)).await?;
-        self.reader.read_exact(&mut buf).await?;
+        self.reader.read_exact(contents).await?;
 
-        Ok(buf)
+        Ok(())
     }
 }
 
@@ -108,6 +132,8 @@ pub enum Error {
     Cid(#[from] ipld_core::cid::Error),
     #[error("CID does not exist in CAR")]
     CidNotFound,
+    #[error("Invalid hash")]
+    InvalidHash,
     #[error("Invalid explicit CID v0")]
     InvalidCidV0,
     #[error("Invalid varint: {0}")]

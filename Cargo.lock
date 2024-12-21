@@ -317,6 +317,7 @@ dependencies = [
  "ipld-core",
  "serde",
  "serde_ipld_dagcbor",
+ "sha2",
  "thiserror",
  "tokio",
  "tokio-util",

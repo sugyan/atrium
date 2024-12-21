@@ -11,6 +11,11 @@ repository.workspace = true
 license.workspace = true
 keywords.workspace = true
 
+[dev-dependencies]
+# atrium-api.features = ["bluesky"]
+tokio.workspace = true
+tokio.features = ["io-util", "macros", "rt"]
+
 [dependencies]
 atrium-api.workspace = true
 
@@ -28,3 +33,4 @@ unsigned-varint = { workspace = true, features = ["futures"] }
 
 # Errors
 thiserror.workspace = true
+sha2.workspace = true

@@ -1,0 +1,45 @@
+use std::collections::HashMap;
+
+use ipld_core::cid::{multihash::Multihash, Cid};
+use sha2::Digest;
+
+use super::{AsyncBlockStoreRead, AsyncBlockStoreWrite, Error};
+
+/// The SHA_256 multihash code
+const SHA2_256: u64 = 0x12;
+
+/// Basic in-memory blockstore
+pub struct MemoryBlockStore {
+    blocks: HashMap<Cid, Vec<u8>>,
+}
+
+impl MemoryBlockStore {
+    pub fn new() -> Self {
+        Self { blocks: HashMap::new() }
+    }
+}
+
+impl AsyncBlockStoreRead for MemoryBlockStore {
+    async fn read_block_into(&mut self, cid: &Cid, contents: &mut Vec<u8>) -> Result<(), Error> {
+        contents.clear();
+        contents.extend_from_slice(self.blocks.get(cid).ok_or(Error::CidNotFound)?);
+        Ok(())
+    }
+}
+
+impl AsyncBlockStoreWrite for MemoryBlockStore {
+    async fn write_block(&mut self, codec: u64, contents: &[u8]) -> Result<Cid, Error> {
+        let digest = sha2::Sha256::digest(contents);
+        let expected = Multihash::wrap(SHA2_256, digest.as_slice())
+            .expect("internal error encoding multihash");
+        let cid = Cid::new_v1(codec, expected);
+
+        self.blocks.insert(cid, contents.to_vec());
+        Ok(cid)
+    }
+
+    async fn delete_block(&mut self, cid: &Cid) -> Result<(), Error> {
+        self.blocks.remove(cid).ok_or(Error::CidNotFound)?;
+        Ok(())
+    }
+}
