@@ -1,7 +1,7 @@
-use std::{cmp::Ordering, convert::Infallible, pin::pin, string::FromUtf8Error};
+use std::{cmp::Ordering, collections::HashSet, convert::Infallible};
 
 use async_stream::try_stream;
-use futures::{Stream, StreamExt};
+use futures::Stream;
 use ipld_core::{cid::Cid, ipld::Ipld};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
@@ -55,6 +55,217 @@ mod schema {
     }
 }
 
+/// Merkle search tree helper algorithms.
+mod algos {
+    use super::*;
+
+    pub enum TraverseAction<R, M> {
+        Continue((Cid, M)),
+        Stop(R),
+    }
+
+    /// Traverse a merkle search tree.
+    pub async fn traverse<R, M>(
+        mut bs: impl AsyncBlockStoreRead,
+        root: Cid,
+        mut f: impl FnMut(Node, Cid) -> Result<TraverseAction<R, M>, Error>,
+    ) -> Result<(Vec<(Node, M)>, R), Error> {
+        let mut node_cid = root;
+        let mut node_path = vec![];
+        let mut seen = HashSet::new();
+
+        loop {
+            let node = Node::read_from(&mut bs, node_cid).await?;
+            if !seen.insert(node_cid) {
+                // This CID was already seen. There is a cycle in the graph.
+                panic!();
+            }
+
+            match f(node.clone(), node_cid)? {
+                TraverseAction::Continue((cid, meta)) => {
+                    node_path.push((node, meta));
+                    node_cid = cid;
+                }
+                TraverseAction::Stop(r) => {
+                    return Ok((node_path, r));
+                }
+            }
+        }
+    }
+
+    /// Traverse through the tree, finding the node that contains a key.
+    pub fn traverse_find<'a>(
+        key: &'a str,
+    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<(Node, usize), usize>, Error> + 'a {
+        move |node, _cid| -> Result<_, Error> {
+            if let Some(index) = node.find_ge(key) {
+                if let Some(NodeEntry::Leaf(e)) = node.entries.get(index) {
+                    if e.key == key {
+                        return Ok(TraverseAction::Stop((node, index)));
+                    }
+                }
+
+                // Check if the left neighbor is a tree, and if so, recurse into it.
+                if let Some(index) = index.checked_sub(1) {
+                    if let Some(subtree) = node.entries.get(index).unwrap().tree() {
+                        return Ok(TraverseAction::Continue((subtree.clone(), index)));
+                    } else {
+                        return Err(Error::KeyNotFound);
+                    }
+                } else {
+                    // There is no left neighbor. The key is not present.
+                    return Err(Error::KeyNotFound);
+                }
+            } else {
+                // We've recursed into an empty node, so the key is not present in the tree.
+                return Err(Error::KeyNotFound);
+            }
+        }
+    }
+
+    /// Traverse through the tree, finding the first node that consists of more than just a single
+    /// nested tree entry.
+    pub fn traverse_prune() -> impl FnMut(Node, Cid) -> Result<TraverseAction<Cid, usize>, Error> {
+        move |node, cid| -> Result<_, Error> {
+            if node.entries.len() == 1 {
+                if let Some(NodeEntry::Tree(cid)) = node.entries.first() {
+                    return Ok(TraverseAction::Continue((cid.clone(), 0)));
+                }
+            }
+
+            return Ok(TraverseAction::Stop(cid));
+        }
+    }
+
+    /// Recursively merge two subtrees into one.
+    pub async fn merge_subtrees(
+        mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
+        mut lc: Cid,
+        mut rc: Cid,
+    ) -> Result<Cid, Error> {
+        let mut node_path = vec![];
+
+        let (ln, rn) = loop {
+            // Traverse down both the left and right trees until we reach the first leaf node on either side.
+            let ln = Node::read_from(&mut bs, lc).await?;
+            let rn = Node::read_from(&mut bs, rc).await?;
+
+            if let (Some(NodeEntry::Tree(l)), Some(NodeEntry::Tree(r))) =
+                (ln.entries.last(), rn.entries.first())
+            {
+                node_path.push((ln.clone(), rn.clone()));
+
+                lc = l.clone();
+                rc = r.clone();
+            } else {
+                break (ln, rn);
+            }
+        };
+
+        // Merge the two nodes.
+        let node = Node { entries: ln.entries.into_iter().chain(rn.entries).collect() };
+        let mut cid = node.serialize_into(&mut bs).await?;
+
+        // Now go back up the node path chain and update parent entries.
+        for (ln, rn) in node_path.into_iter().rev() {
+            let node = Node {
+                entries: ln.entries[..ln.entries.len() - 1]
+                    .iter()
+                    .cloned()
+                    .chain([NodeEntry::Tree(cid)])
+                    .chain(rn.entries[1..].iter().cloned())
+                    .collect(),
+            };
+
+            cid = node.serialize_into(&mut bs).await?;
+        }
+
+        Ok(cid)
+    }
+
+    /// Recursively split a node based on a key.
+    ///
+    /// If the key is found within the subtree, this will return an error.
+    pub async fn split_subtree(
+        mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
+        node: Cid,
+        key: &str,
+    ) -> Result<(Cid, Option<Cid>), Error> {
+        let mut node_path = vec![];
+        let mut node_cid = node;
+
+        let (mut left, mut right) = loop {
+            let mut node = Node::read_from(&mut bs, node_cid).await?;
+
+            if let Some(partition) = node.find_ge(key) {
+                // Ensure that the key does not already exist.
+                if let Some(NodeEntry::Leaf(e)) = node.entries.get(partition) {
+                    if e.key == key {
+                        return Err(Error::KeyAlreadyExists);
+                    }
+                }
+
+                // Determine if the left neighbor is a subtree. If so, we need to recursively split that tree.
+                if let Some(partition) = partition.checked_sub(1) {
+                    match node.entries.get(partition) {
+                        Some(NodeEntry::Leaf(_e)) => {
+                            // Left neighbor is a leaf, so we can split the current node into two and we are done.
+                            let right = node.entries.split_off(partition + 1);
+
+                            break (
+                                node,
+                                if !right.is_empty() {
+                                    Some(Node { entries: right })
+                                } else {
+                                    None
+                                },
+                            );
+                        }
+                        Some(NodeEntry::Tree(e)) => {
+                            node_path.push((node_cid, partition, node.clone()));
+                            node_cid = e.clone();
+                        }
+                        // This should not happen; node.find_ge() should return `None` in this case.
+                        None => panic!(),
+                    }
+                }
+            } else {
+                // The node is empty.
+                todo!()
+            }
+        };
+
+        // If the node was split into two, walk back up the path chain and split all parents.
+        for (_parent_cid, i, mut parent) in node_path.into_iter().rev() {
+            // Remove the tree entry at the partition point.
+            parent.entries.remove(i);
+            let (e_left, e_right) = parent.entries.split_at(i);
+
+            let left_cid = left.serialize_into(&mut bs).await?;
+            left = Node {
+                entries: e_left.iter().cloned().chain([NodeEntry::Tree(left_cid)]).collect(),
+            };
+
+            if let Some(right) = right.as_mut() {
+                let right_cid = right.serialize_into(&mut bs).await?;
+                *right = Node {
+                    entries: [NodeEntry::Tree(right_cid)]
+                        .into_iter()
+                        .chain(e_right.iter().cloned())
+                        .collect::<Vec<_>>(),
+                };
+            }
+        }
+
+        // Serialize the two new subtrees.
+        let left = left.serialize_into(&mut bs).await?;
+        let right =
+            if let Some(right) = right { Some(right.serialize_into(&mut bs).await?) } else { None };
+
+        Ok((left, right))
+    }
+}
+
 // https://users.rust-lang.org/t/how-to-find-common-prefix-of-two-byte-slices-effectively/25815/3
 fn prefix(xs: &[u8], ys: &[u8]) -> usize {
     prefix_chunks::<128>(xs, ys)
@@ -68,15 +279,30 @@ fn prefix_chunks<const N: usize>(xs: &[u8], ys: &[u8]) -> usize {
 }
 
 /// Calculate the number of leading zeroes from the sha256 hash of a byte array
+///
+/// Reference: https://github.com/bluesky-social/atproto/blob/13636ba963225407f63c20253b983a92dcfe1bfa/packages/repo/src/mst/util.ts#L8-L23
 fn leading_zeroes(key: &[u8]) -> usize {
     let digest = sha2::Sha256::digest(key);
     let mut zeroes = 0;
 
     for byte in digest.iter() {
-        zeroes += byte.leading_zeros() as usize;
+        /* 64 */
+        if *byte < 0b0100_0000 {
+            zeroes += 1;
+        }
+        /* 16 */
+        if *byte < 0b0001_0000 {
+            zeroes += 1;
+        }
+        /* 4 */
+        if *byte < 0b0000_0100 {
+            zeroes += 1;
+        }
 
-        // If the byte is nonzero, then there cannot be any more leading zeroes.
-        if *byte != 0 {
+        if *byte == 0 {
+            zeroes += 1;
+        } else {
+            // If the byte is nonzero, then there cannot be any more leading zeroes.
             break;
         }
     }
@@ -92,7 +318,9 @@ fn leading_zeroes(key: &[u8]) -> usize {
 /// - The number of leading zeroes in the SHA256 hash of the key
 /// - The key's lexicographic position inside of a layer
 ///
-/// Useful reading: https://interjectedfuture.com/crdts-turned-inside-out/
+/// # References
+/// * Official documentation: https://atproto.com/guides/data-repos
+/// * Useful reading: https://interjectedfuture.com/crdts-turned-inside-out/
 pub struct Tree<S> {
     storage: S,
     root: Cid,
@@ -101,9 +329,8 @@ pub struct Tree<S> {
 impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
     /// Create a new MST with an empty root node
     pub async fn create(mut storage: S) -> Result<Self, Error> {
-        let node =
-            serde_ipld_dagcbor::to_vec(&schema::Node { left: None, entries: vec![] }).unwrap();
-        let cid = storage.write_block(DAG_CBOR, &node).await.unwrap();
+        let node = Node { entries: vec![] };
+        let cid = node.serialize_into(&mut storage).await?;
 
         Ok(Self { storage, root: cid })
     }
@@ -116,44 +343,81 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
         let mut node_path = vec![];
         let mut node_cid = self.root.clone();
 
-        let mut node = loop {
-            let mut node = self.read_node(node_cid).await?;
-
-            // Determine whether or not the desired node belongs in this layer.
-            if let Some(layer) = node.layer() {
+        // There are three cases we need to handle:
+        // 1) The target layer is above the tree (and our entire tree needs to be pushed down).
+        // 2) The target layer is contained within the tree (and we will traverse to find it).
+        // 3) The tree is currently empty (trivial).
+        let mut node = match self.depth(None).await {
+            Ok(layer) => {
                 match layer.cmp(&target_layer) {
-                    Ordering::Equal => break node,
-                    // The entire tree needs to be shifted downward.
+                    // The new key can be inserted into the root node.
+                    Ordering::Equal => Node::read_from(&mut self.storage, node_cid).await?,
+                    // The entire tree needs to be shifted down.
                     Ordering::Less => {
-                        // This should only happen for the root node.
-                        assert_eq!(self.root, node_cid);
-                        break Node { entries: vec![NodeEntry::Tree(node_cid)] };
+                        let mut layer = layer + 1;
+
+                        loop {
+                            let node = Node { entries: vec![NodeEntry::Tree(node_cid)] };
+
+                            if layer < target_layer {
+                                node_cid = node.serialize_into(&mut self.storage).await?;
+                                layer += 1;
+                            } else {
+                                break node;
+                            }
+                        }
                     }
-                    // Search in a subtree.
+                    // Search in a subtree (most common).
                     Ordering::Greater => {
-                        let partition = node.find_ge(key).unwrap();
+                        let mut layer = layer;
+                        loop {
+                            let mut node = Node::read_from(&mut self.storage, node_cid).await?;
 
-                        // If left neighbor is a subtree, recurse through.
-                        if let Some(subtree) = node.entries.get(partition - 1).unwrap().tree() {
-                            node_path.push((node_cid, partition - 1, node.clone()));
-                            node_cid = subtree.clone();
-                        } else {
-                            // N.B: The `node_cid` in the tree entry is a placeholder.
-                            node.entries.insert(partition, NodeEntry::Tree(node_cid));
-                            node_path.push((node_cid, partition, node.clone()));
+                            if layer == target_layer {
+                                break node;
+                            } else {
+                                let partition = node.find_ge(key).unwrap();
 
-                            // We need to insert a new subtree.
-                            break Node { entries: vec![] };
+                                layer -= 1;
+
+                                // If left neighbor is a subtree, recurse through.
+                                if let Some(partition) = partition.checked_sub(1) {
+                                    if let Some(subtree) =
+                                        node.entries.get(partition).unwrap().tree()
+                                    {
+                                        node_path.push((node_cid, partition, node.clone()));
+                                        node_cid = subtree.clone();
+                                        continue;
+                                    }
+                                }
+
+                                // N.B: The `node_cid` in the tree entry is a placeholder.
+                                //
+                                // FIXME: We should probably find a better way to insert these dummy entries.
+                                // This will almost certainly cause a tree to be generated with a cycle in it.
+                                node.entries.insert(partition, NodeEntry::Tree(node_cid));
+                                node_path.push((node_cid, partition, node.clone()));
+
+                                while layer != target_layer {
+                                    let node = Node { entries: vec![NodeEntry::Tree(node_cid)] };
+                                    let cid = node.serialize_into(&mut self.storage).await?;
+
+                                    node_path.push((cid, 0, node.clone()));
+                                    layer -= 1;
+                                }
+
+                                // We need to insert a new subtree.
+                                break Node { entries: vec![] };
+                            }
                         }
                     }
                 }
-            } else if node_cid == self.root {
-                // The node is an empty root node.
-                break node;
-            } else {
-                // This can happen if we encounter an empty intermediate node.
-                todo!()
             }
+            Err(Error::EmptyTree) => {
+                // The tree is currently empty.
+                Node { entries: vec![] }
+            }
+            Err(e) => return Err(e),
         };
 
         if let Some(partition) = node.find_ge(key) {
@@ -174,7 +438,8 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
                 }
                 Some(NodeEntry::Tree(e)) => {
                     // Need to split the subtree into two based on the node's key.
-                    let (left, right) = self.split_tree(e.clone(), key).await?;
+                    let (left, right) =
+                        algos::split_subtree(&mut self.storage, e.clone(), key).await?;
 
                     // Insert the new node inbetween the two subtrees.
                     let right_subvec = node.entries.split_off(partition);
@@ -208,76 +473,86 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
         Ok(())
     }
 
+    /// Update an existing key with a new value.
     pub async fn update(&mut self, key: &str, value: Cid) -> Result<(), Error> {
-        todo!()
-    }
+        let (node_path, (mut node, index)) =
+            algos::traverse(&mut self.storage, self.root, algos::traverse_find(key)).await?;
 
-    pub async fn delete(&mut self, key: &str) -> Result<(), Error> {
-        todo!()
-    }
+        // Update the value.
+        node.entries[index] = NodeEntry::Leaf(TreeEntry { key: key.to_string(), value });
 
-    /// Recursively split a node based on a key.
-    ///
-    /// If the key is found within the subtree, this will return an error.
-    async fn split_tree(&mut self, node: Cid, key: &str) -> Result<(Cid, Option<Cid>), Error> {
-        let mut node_path = vec![];
-        let mut node_cid = node;
+        let mut cid = node.serialize_into(&mut self.storage).await?;
 
-        let (left, right) = loop {
-            let mut node = self.read_node(node_cid).await?;
-
-            if let Some(partition) = node.find_ge(key) {
-                // Ensure that the key does not already exist.
-                if let Some(NodeEntry::Leaf(e)) = node.entries.get(partition) {
-                    if e.key == key {
-                        return Err(Error::KeyAlreadyExists);
-                    }
-                }
-
-                // Determine if the left neighbor is a subtree. If so, we need to recursively split that tree.
-                match node.entries.get(partition - 1) {
-                    Some(NodeEntry::Leaf(_e)) => {
-                        // Left neighbor is a leaf, so we can split the current node into two and we are done.
-                        let right = node.entries.split_off(partition);
-
-                        break (
-                            node,
-                            if !right.is_empty() { Some(Node { entries: right }) } else { None },
-                        );
-                    }
-                    Some(NodeEntry::Tree(e)) => {
-                        node_path.push((node_cid, partition, node.clone()));
-                        node_cid = e.clone();
-                    }
-                    // This should not happen; node.find_ge() should return `None` in this case.
-                    None => panic!(),
-                }
-            } else {
-                // The node is empty.
-                todo!()
-            }
-        };
-
-        // Now walk back up the path chain and split the parent entries.
-        for (parent_cid, i, parent) in node_path.into_iter().rev() {
-            todo!()
+        // Now walk up the node path chain and update parent entries to point to the new node's CID.
+        for (mut parent, i) in node_path.into_iter().rev() {
+            parent.entries[i] = NodeEntry::Tree(cid);
+            cid = parent.serialize_into(&mut self.storage).await?;
         }
 
-        // Serialize the two new subtrees.
-        let left = left.serialize_into(&mut self.storage).await?;
-        let right = if let Some(right) = right {
-            Some(right.serialize_into(&mut self.storage).await?)
-        } else {
-            None
-        };
+        self.root = cid;
+        Ok(())
+    }
 
-        Ok((left, right))
+    /// Delete a key from the tree.
+    pub async fn delete(&mut self, key: &str) -> Result<(), Error> {
+        let (node_path, (mut node, index)) =
+            algos::traverse(&mut self.storage, self.root, algos::traverse_find(key)).await?;
+
+        // Remove the key.
+        node.entries.remove(index);
+
+        if let Some(index) = index.checked_sub(1) {
+            // Check to see if the left and right neighbors are both trees. If so, merge them.
+            if let (Some(NodeEntry::Tree(lc)), Some(NodeEntry::Tree(rc))) =
+                (node.entries.get(index), node.entries.get(index + 1))
+            {
+                let cid = algos::merge_subtrees(&mut self.storage, lc.clone(), rc.clone()).await?;
+                node.entries[index] = NodeEntry::Tree(cid);
+                node.entries.remove(index + 1);
+
+                // If the resulting node consists of a single tree entry, elide it.
+                if node.entries.as_slice() == &[NodeEntry::Tree(cid)] {
+                    node = Node::read_from(&mut self.storage, cid).await?;
+                }
+            }
+        }
+
+        let mut cid = node.serialize_into(&mut self.storage).await?;
+
+        // Now walk back up the node path chain and update parent entries to point to the new node's CID.
+        for (mut parent, i) in node_path.into_iter().rev() {
+            parent.entries[i] = NodeEntry::Tree(cid);
+            cid = parent.serialize_into(&mut self.storage).await?;
+        }
+
+        self.root = cid;
+        self.prune().await?;
+        Ok(())
+    }
+
+    /// Prune entries that contain a single nested tree entry from the root.
+    async fn prune(&mut self) -> Result<(), Error> {
+        let (_node_path, cid) =
+            algos::traverse(&mut self.storage, self.root, algos::traverse_prune()).await?;
+
+        self.root = cid;
+        Ok(())
     }
 }
 
 impl<S: AsyncBlockStoreRead> Tree<S> {
-    pub fn load(storage: S, root: Cid) -> Self {
+    /// Open a pre-existing merkle search tree.
+    ///
+    /// This is a very cheap operation that does not actually load the MST
+    /// or check its validity. You should only use this with data from a trusted
+    /// source.
+    pub fn open(storage: S, root: Cid) -> Self {
         Self { storage, root }
+    }
+
+    /// Return the CID of the root node.
+    pub fn root(&self) -> Cid {
+        self.root
     }
 
     /// Parses the data with the given CID as an MST node.
@@ -329,17 +604,24 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         Ok(())
     }
 
-    /// Compute the depth of the merkle search tree
-    pub async fn depth(&mut self) -> Result<usize, Error> {
-        // The root of the tree should be the highest layer, so we can simply
-        // count the leading number of zeroes of the sha256 hash of a key in the
-        // root layer.
-        let mut keys = pin!(self.keys());
-        if let Some(Ok(e)) = keys.next().await {
-            return Ok(leading_zeroes(e.as_bytes()));
-        }
+    /// Compute the depth of the merkle search tree from either the specified node or the root
+    pub async fn depth(&mut self, node: Option<Cid>) -> Result<usize, Error> {
+        // Recursively iterate through the tree until we encounter a leaf node, and then
+        // use that to calculate the depth of the entire tree.
+        let mut subtrees = vec![(node.unwrap_or(self.root), 0usize)];
 
-        Err(Error::EmptyTree)
+        loop {
+            if let Some((subtree, depth)) = subtrees.pop() {
+                let node = Node::read_from(&mut self.storage, subtree).await?;
+                if let Some(layer) = node.layer() {
+                    return Ok(depth + layer);
+                }
+
+                subtrees.extend(node.trees().cloned().zip(std::iter::repeat(depth + 1)));
+            } else {
+                return Err(Error::EmptyTree);
+            }
+        }
     }
 
     /// Returns a stream of all keys in this tree.
@@ -390,7 +672,7 @@ pub enum Located<E> {
     InSubtree(Cid),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 enum NodeEntry {
     /// A nested node.
     Tree(Cid),
@@ -449,6 +731,12 @@ impl Node {
         Ok(Self { entries })
     }
 
+    /// Read and parse a node from block storage
+    pub async fn read_from(mut bs: impl AsyncBlockStoreRead, cid: Cid) -> Result<Self, Error> {
+        let bytes = bs.read_block(&cid).await?;
+        Self::parse(&bytes)
+    }
+
     pub async fn serialize_into(&self, mut bs: impl AsyncBlockStoreWrite) -> Result<Cid, Error> {
         let mut node = schema::Node { left: None, entries: vec![] };
 
@@ -490,11 +778,29 @@ impl Node {
         Ok(bs.write_block(DAG_CBOR, &bytes).await?)
     }
 
+    /// Return an iterator of the subtrees contained within this node
+    fn trees(&self) -> impl Iterator<Item = &Cid> {
+        self.entries.iter().filter_map(|entry| match entry {
+            NodeEntry::Tree(entry) => Some(entry),
+            _ => None,
+        })
+    }
+
+    /// Return an iterator of the leaves contained within this node
     fn leaves(&self) -> impl Iterator<Item = &TreeEntry> {
         self.entries.iter().filter_map(|entry| match entry {
             NodeEntry::Leaf(entry) => Some(entry),
             _ => None,
         })
+    }
+
+    /// Computes the node's layer, or returns `None` if this node has no leaves.
+    fn layer(&self) -> Option<usize> {
+        if let Some(e) = self.leaves().next() {
+            Some(leading_zeroes(&e.key.as_bytes()))
+        } else {
+            None
+        }
     }
 
     /// Find the index of the first leaf node that has a key greater than or equal to the provided key.
@@ -512,15 +818,6 @@ impl Node {
             } else {
                 None
             }
-        }
-    }
-
-    /// Computes the node's layer, or returns `None` if this node has no leaves.
-    fn layer(&self) -> Option<usize> {
-        if let Some(e) = self.leaves().next() {
-            Some(leading_zeroes(&e.key.as_bytes()))
-        } else {
-            None
         }
     }
 
@@ -558,8 +855,10 @@ impl Node {
             return list.into_iter();
         };
 
-        if let Some(NodeEntry::Tree(cid)) = self.entries.get(index - 1) {
-            list.push(Located::InSubtree(cid.clone()));
+        if let Some(index) = index.checked_sub(1) {
+            if let Some(NodeEntry::Tree(cid)) = self.entries.get(index) {
+                list.push(Located::InSubtree(cid.clone()));
+            }
         }
 
         // FIXME: Verify this logic.
@@ -594,7 +893,7 @@ impl Node {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 struct TreeEntry {
     key: String,
     value: Cid,
@@ -634,6 +933,8 @@ pub enum Error {
     EmptyTree,
     #[error("the key is already present in the tree")]
     KeyAlreadyExists,
+    #[error("the key is not present in the tree")]
+    KeyNotFound,
     #[error("Invalid key: {0}")]
     InvalidKey(#[from] std::str::Utf8Error),
     #[error("blockstore error: {0}")]
@@ -652,6 +953,8 @@ mod test {
 
     use super::*;
 
+    /// Returns a dummy value Cid used for testing.
+    ///
     /// b"bafyreie5cvv4h45feadgeuwhbcutmh6t2ceseocckahdoe6uat64zmz454"
     fn value_cid() -> Cid {
         Cid::new_v1(
@@ -659,8 +962,9 @@ mod test {
             match Multihash::wrap(
                 SHA2_256,
                 &[
-                    157, 21, 107, 195, 243, 165, 32, 6, 98, 82, 199, 8, 169, 54, 31, 211, 208, 137,
-                    34, 56, 66, 80, 14, 55, 19, 212, 4, 253, 204, 179, 60, 239,
+                    0x9d, 0x15, 0x6b, 0xc3, 0xf3, 0xa5, 0x20, 0x06, 0x62, 0x52, 0xc7, 0x08, 0xa9,
+                    0x36, 0x1f, 0xd3, 0xd0, 0x89, 0x22, 0x38, 0x42, 0x50, 0x0e, 0x37, 0x13, 0xd4,
+                    0x04, 0xfd, 0xcc, 0xb3, 0x3c, 0xef,
                 ],
             ) {
                 Ok(h) => h,
@@ -684,7 +988,13 @@ mod test {
     #[test]
     fn test_clz() {
         assert_eq!(leading_zeroes(b""), 0);
-        assert_eq!(leading_zeroes(b"app.bsky.feed.like/3lb6gx6opi727"), 0);
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3fn2j"), 0); // level 0
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3fo2j"), 0); // level 0
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3fp2j"), 0); // level 0
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3fs2j"), 1); // level 1
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3ft2j"), 0); // level 0
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3fu2j"), 0); // level 0
+        assert_eq!(leading_zeroes(b"com.example.record/3jqfcqzm3fx2j"), 2); // level 2
     }
 
     #[test]
@@ -775,6 +1085,7 @@ mod test {
             tree.root,
             Cid::from_str("bafyreifnqrwbk6ffmyaz5qtujqrzf5qmxf7cbxvgzktl4e3gabuxbtatv4").unwrap()
         );
+        assert_eq!(tree.depth(None).await.unwrap(), 1);
 
         tree.delete("com.example.record/3jqfcqzm3fs2j").await.unwrap(); // level 1
 
@@ -782,6 +1093,130 @@ mod test {
             tree.root,
             Cid::from_str("bafyreie4kjuxbwkhzg2i5dljaswcroeih4dgiqq6pazcmunwt2byd725vi").unwrap()
         );
+    }
+
+    #[tokio::test]
+    async fn mst_insertion_split() {
+        let bs = MemoryBlockStore::new();
+        let mut tree = Tree::create(bs).await.unwrap();
+
+        let root11 =
+            Cid::from_str("bafyreiettyludka6fpgp33stwxfuwhkzlur6chs4d2v4nkmq2j3ogpdjem").unwrap();
+        let root12 =
+            Cid::from_str("bafyreid2x5eqs4w4qxvc5jiwda4cien3gw2q6cshofxwnvv7iucrmfohpm").unwrap();
+
+        /*
+         *
+         *                *                                  *
+         *       _________|________                      ____|_____
+         *       |   |    |    |   |                    |    |     |
+         *       *   d    *    i   *       ->           *    f     *
+         *     __|__    __|__    __|__                __|__      __|___
+         *    |  |  |  |  |  |  |  |  |              |  |  |    |  |   |
+         *    a  b  c  e  g  h  j  k  l              *  d  *    *  i   *
+         *                                         __|__   |   _|_   __|__
+         *                                        |  |  |  |  |   | |  |  |
+         *                                        a  b  c  e  g   h j  k  l
+         *
+         */
+        tree.add("com.example.record/3jqfcqzm3fo2j", value_cid()).await.unwrap(); // A; level 0
+        tree.add("com.example.record/3jqfcqzm3fp2j", value_cid()).await.unwrap(); // B; level 0
+        tree.add("com.example.record/3jqfcqzm3fr2j", value_cid()).await.unwrap(); // C; level 0
+        tree.add("com.example.record/3jqfcqzm3fs2j", value_cid()).await.unwrap(); // D; level 1
+        tree.add("com.example.record/3jqfcqzm3ft2j", value_cid()).await.unwrap(); // E; level 0
+                                                                                  // GAP for F
+        tree.add("com.example.record/3jqfcqzm3fz2j", value_cid()).await.unwrap(); // G; level 0
+        tree.add("com.example.record/3jqfcqzm4fc2j", value_cid()).await.unwrap(); // H; level 0
+        tree.add("com.example.record/3jqfcqzm4fd2j", value_cid()).await.unwrap(); // I; level 1
+        tree.add("com.example.record/3jqfcqzm4ff2j", value_cid()).await.unwrap(); // J; level 0
+        tree.add("com.example.record/3jqfcqzm4fg2j", value_cid()).await.unwrap(); // K; level 0
+        tree.add("com.example.record/3jqfcqzm4fh2j", value_cid()).await.unwrap(); // L; level 0
+
+        assert_eq!(tree.root, root11);
+
+        // insert F, which will push E out of the node with G+H to a new node under D
+        tree.add("com.example.record/3jqfcqzm3fx2j", value_cid()).await.unwrap(); // F; level 2
+
+        assert_eq!(tree.root, root12);
+
+        // remove F, which should push E back over with G+H
+        tree.delete("com.example.record/3jqfcqzm3fx2j").await.unwrap(); // F; level 2
+
+        assert_eq!(tree.root, root11);
+    }
+
+    #[tokio::test]
+    async fn mst_two_layers() {
+        let bs = MemoryBlockStore::new();
+        let mut tree = Tree::create(bs).await.unwrap();
+
+        let root10 =
+            Cid::from_str("bafyreidfcktqnfmykz2ps3dbul35pepleq7kvv526g47xahuz3rqtptmky").unwrap();
+        let root12 =
+            Cid::from_str("bafyreiavxaxdz7o7rbvr3zg2liox2yww46t7g6hkehx4i4h3lwudly7dhy").unwrap();
+        let root12_2 =
+            Cid::from_str("bafyreig4jv3vuajbsybhyvb7gggvpwh2zszwfyttjrj6qwvcsp24h6popu").unwrap();
+
+        /*
+         *
+         *          *        ->            *
+         *        __|__                  __|__
+         *       |     |                |  |  |
+         *       a     c                *  b  *
+         *                              |     |
+         *                              *     *
+         *                              |     |
+         *                              a     c
+         *
+         */
+        tree.add("com.example.record/3jqfcqzm3ft2j", value_cid()).await.unwrap(); // A; level 0
+        tree.add("com.example.record/3jqfcqzm3fz2j", value_cid()).await.unwrap(); // C; level 0
+
+        assert_eq!(tree.root, root10);
+
+        // insert B, which is two levels above
+        tree.add("com.example.record/3jqfcqzm3fx2j", value_cid()).await.unwrap(); // B; level 2
+
+        assert_eq!(tree.root, root12);
+
+        // remove B
+        tree.delete("com.example.record/3jqfcqzm3fx2j").await.unwrap(); // B; level 2
+
+        assert_eq!(tree.root, root10);
+
+        // insert B (level=2) and D (level=1)
+        tree.add("com.example.record/3jqfcqzm3fx2j", value_cid()).await.unwrap(); // B; level 2
+        tree.add("com.example.record/3jqfcqzm4fd2j", value_cid()).await.unwrap(); // D; level 1
+
+        assert_eq!(tree.root, root12_2);
+
+        // remove D
+        tree.delete("com.example.record/3jqfcqzm4fd2j").await.unwrap(); // D; level 1
+
+        assert_eq!(tree.root, root12);
+    }
+
+    #[tokio::test]
+    async fn mst_two_layers_rev() {
+        let bs = MemoryBlockStore::new();
+        let mut tree = Tree::create(bs).await.unwrap();
+
+        let root10 =
+            Cid::from_str("bafyreidfcktqnfmykz2ps3dbul35pepleq7kvv526g47xahuz3rqtptmky").unwrap();
+        let root12 =
+            Cid::from_str("bafyreiavxaxdz7o7rbvr3zg2liox2yww46t7g6hkehx4i4h3lwudly7dhy").unwrap();
+
+        // This is the same test as `mst_two_layers`, but with the top level entry inserted first.
+        tree.add("com.example.record/3jqfcqzm3fx2j", value_cid()).await.unwrap(); // B; level 2
+        tree.add("com.example.record/3jqfcqzm3ft2j", value_cid()).await.unwrap(); // A; level 0
+        tree.add("com.example.record/3jqfcqzm3fz2j", value_cid()).await.unwrap(); // C; level 0
+
+        assert_eq!(tree.root, root12);
+
+        // remove B
+        tree.delete("com.example.record/3jqfcqzm3fx2j").await.unwrap(); // B; level 2
+
+        assert_eq!(tree.root, root10);
     }
 
     #[tokio::test]

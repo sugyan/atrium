@@ -213,7 +213,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         &mut self,
         rkey: &RecordKey,
     ) -> Result<Option<C::Record>, Error> {
-        let mut mst = mst::Tree::load(&mut self.db, self.latest_commit.data);
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
         let key = C::repo_path(rkey);
 
         if let Some(cid) = mst.get(&key).await? {

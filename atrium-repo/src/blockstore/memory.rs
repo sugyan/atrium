@@ -34,6 +34,7 @@ impl AsyncBlockStoreWrite for MemoryBlockStore {
             .expect("internal error encoding multihash");
         let cid = Cid::new_v1(codec, expected);
 
+        // Insert the block. We're explicitly ignoring the case where it's already present inside the hashmap.
         self.blocks.insert(cid, contents.to_vec());
         Ok(cid)
     }

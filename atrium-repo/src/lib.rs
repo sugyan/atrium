@@ -1,4 +1,5 @@
-mod blockstore;
 mod car;
-mod mst;
+
+pub mod blockstore;
+pub mod mst;
 pub mod repo;
