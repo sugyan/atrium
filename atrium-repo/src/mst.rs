@@ -2,11 +2,14 @@ use std::{cmp::Ordering, collections::HashSet, convert::Infallible};
 
 use async_stream::try_stream;
 use futures::Stream;
-use ipld_core::{cid::Cid, ipld::Ipld};
+use ipld_core::{
+    cid::{multihash::Multihash, Cid},
+    ipld::Ipld,
+};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
-use crate::blockstore::{AsyncBlockStoreRead, AsyncBlockStoreWrite, DAG_CBOR};
+use crate::blockstore::{AsyncBlockStoreRead, AsyncBlockStoreWrite, DAG_CBOR, SHA2_256};
 
 mod schema {
     use super::*;
@@ -60,11 +63,18 @@ mod algos {
     use super::*;
 
     pub enum TraverseAction<R, M> {
+        /// Continue traversal into the specified `Cid`.
         Continue((Cid, M)),
+        /// Stop traversal and return `R`.
         Stop(R),
     }
 
     /// Traverse a merkle search tree.
+    ///
+    /// This executes the closure provided in `f` and takes the action
+    /// returned by the closure.
+    /// This also keeps track of "seen" nodes, and if a node is seen twice, traversal
+    /// is immediately halted and an error is returned.
     pub async fn traverse<R, M>(
         mut bs: impl AsyncBlockStoreRead,
         root: Cid,
@@ -190,7 +200,7 @@ mod algos {
         mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
         node: Cid,
         key: &str,
-    ) -> Result<(Cid, Option<Cid>), Error> {
+    ) -> Result<(Option<Cid>, Option<Cid>), Error> {
         let mut node_path = vec![];
         let mut node_cid = node;
 
@@ -213,12 +223,8 @@ mod algos {
                             let right = node.entries.split_off(partition + 1);
 
                             break (
-                                node,
-                                if !right.is_empty() {
-                                    Some(Node { entries: right })
-                                } else {
-                                    None
-                                },
+                                Some(node),
+                                (!right.is_empty()).then(|| Node { entries: right }),
                             );
                         }
                         Some(NodeEntry::Tree(e)) => {
@@ -228,6 +234,8 @@ mod algos {
                         // This should not happen; node.find_ge() should return `None` in this case.
                         None => panic!(),
                     }
+                } else {
+                    break (None, Some(node));
                 }
             } else {
                 // The node is empty.
@@ -241,10 +249,12 @@ mod algos {
             parent.entries.remove(i);
             let (e_left, e_right) = parent.entries.split_at(i);
 
-            let left_cid = left.serialize_into(&mut bs).await?;
-            left = Node {
-                entries: e_left.iter().cloned().chain([NodeEntry::Tree(left_cid)]).collect(),
-            };
+            if let Some(left) = left.as_mut() {
+                let left_cid = left.serialize_into(&mut bs).await?;
+                *left = Node {
+                    entries: e_left.iter().cloned().chain([NodeEntry::Tree(left_cid)]).collect(),
+                };
+            }
 
             if let Some(right) = right.as_mut() {
                 let right_cid = right.serialize_into(&mut bs).await?;
@@ -258,7 +268,8 @@ mod algos {
         }
 
         // Serialize the two new subtrees.
-        let left = left.serialize_into(&mut bs).await?;
+        let left =
+            if let Some(left) = left { Some(left.serialize_into(&mut bs).await?) } else { None };
         let right =
             if let Some(right) = right { Some(right.serialize_into(&mut bs).await?) } else { None };
 
@@ -272,6 +283,7 @@ fn prefix(xs: &[u8], ys: &[u8]) -> usize {
 }
 
 fn prefix_chunks<const N: usize>(xs: &[u8], ys: &[u8]) -> usize {
+    // N.B: We take exact chunks here to entice the compiler to autovectorize this loop.
     let off =
         std::iter::zip(xs.chunks_exact(N), ys.chunks_exact(N)).take_while(|(x, y)| x == y).count()
             * N;
@@ -318,7 +330,7 @@ fn leading_zeroes(key: &[u8]) -> usize {
 /// - The number of leading zeroes in the SHA256 hash of the key
 /// - The key's lexicographic position inside of a layer
 ///
-/// # References
+/// # Reference
 /// * Official documentation: https://atproto.com/guides/data-repos
 /// * Useful reading: https://interjectedfuture.com/crdts-turned-inside-out/
 pub struct Tree<S> {
@@ -370,45 +382,53 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
                     // Search in a subtree (most common).
                     Ordering::Greater => {
                         let mut layer = layer;
-                        loop {
-                            let mut node = Node::read_from(&mut self.storage, node_cid).await?;
 
-                            if layer == target_layer {
-                                break node;
-                            } else {
-                                let partition = node.find_ge(key).unwrap();
+                        // Traverse to the lowest possible layer in the tree.
+                        let (path, (mut node, partition)) =
+                            algos::traverse(&mut self.storage, node_cid, |node, _cid| {
+                                if layer == target_layer {
+                                    Ok(algos::TraverseAction::Stop((node, 0)))
+                                } else {
+                                    let partition = node.find_ge(key).unwrap();
 
-                                layer -= 1;
-
-                                // If left neighbor is a subtree, recurse through.
-                                if let Some(partition) = partition.checked_sub(1) {
-                                    if let Some(subtree) =
-                                        node.entries.get(partition).unwrap().tree()
-                                    {
-                                        node_path.push((node_cid, partition, node.clone()));
-                                        node_cid = subtree.clone();
-                                        continue;
+                                    // If left neighbor is a subtree, recurse through.
+                                    if let Some(partition) = partition.checked_sub(1) {
+                                        if let Some(subtree) =
+                                            node.entries.get(partition).unwrap().tree()
+                                        {
+                                            layer -= 1;
+                                            return Ok(algos::TraverseAction::Continue((
+                                                subtree.clone(),
+                                                partition,
+                                            )));
+                                        }
                                     }
+
+                                    return Ok(algos::TraverseAction::Stop((node, partition)));
                                 }
+                            })
+                            .await?;
 
-                                // N.B: The `node_cid` in the tree entry is a placeholder.
-                                //
-                                // FIXME: We should probably find a better way to insert these dummy entries.
-                                // This will almost certainly cause a tree to be generated with a cycle in it.
-                                node.entries.insert(partition, NodeEntry::Tree(node_cid));
-                                node_path.push((node_cid, partition, node.clone()));
+                        node_path = path;
+                        if layer == target_layer {
+                            // A pre-existing node was found on the same layer.
+                            node
+                        } else {
+                            // Insert a new dummy tree entry and push the last node onto the node path.
+                            node.entries.insert(partition, NodeEntry::Tree(Cid::default()));
+                            node_path.push((node, partition));
+                            layer -= 1;
 
-                                while layer != target_layer {
-                                    let node = Node { entries: vec![NodeEntry::Tree(node_cid)] };
-                                    let cid = node.serialize_into(&mut self.storage).await?;
+                            // Insert empty nodes until we reach the target layer.
+                            while layer != target_layer {
+                                let node = Node { entries: vec![NodeEntry::Tree(Cid::default())] };
 
-                                    node_path.push((cid, 0, node.clone()));
-                                    layer -= 1;
-                                }
-
-                                // We need to insert a new subtree.
-                                break Node { entries: vec![] };
+                                node_path.push((node.clone(), 0));
+                                layer -= 1;
                             }
+
+                            // Insert the new leaf node.
+                            Node { entries: vec![] }
                         }
                     }
                 }
@@ -445,10 +465,11 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
                     let right_subvec = node.entries.split_off(partition);
 
                     node.entries.pop();
-                    node.entries.extend([
-                        NodeEntry::Tree(left),
-                        NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }),
-                    ]);
+                    if let Some(left) = left {
+                        node.entries.push(NodeEntry::Tree(left));
+                    }
+                    node.entries
+                        .extend([NodeEntry::Leaf(TreeEntry { key: key.to_string(), value })]);
                     if let Some(right) = right {
                         node.entries.push(NodeEntry::Tree(right));
                     }
@@ -464,7 +485,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
         let mut cid = node.serialize_into(&mut self.storage).await?;
 
         // Now walk back up the node path chain and update parent entries to point to the new node's CID.
-        for (_parent_cid, i, mut parent) in node_path.into_iter().rev() {
+        for (mut parent, i) in node_path.into_iter().rev() {
             parent.entries[i] = NodeEntry::Tree(cid);
             cid = parent.serialize_into(&mut self.storage).await?;
         }
@@ -555,13 +576,6 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         self.root
     }
 
-    /// Parses the data with the given CID as an MST node.
-    async fn read_node(&mut self, cid: Cid) -> Result<Node, Error> {
-        let node_bytes = self.storage.read_block(&cid).await?;
-        let node = Node::parse(&node_bytes)?;
-        Ok(node)
-    }
-
     async fn resolve_subtree<K>(
         &mut self,
         link: Cid,
@@ -569,7 +583,7 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         key_fn: impl Fn(&str, Cid) -> Result<K, Error>,
         stack: &mut Vec<Located<K>>,
     ) -> Result<(), Error> {
-        let node = self.read_node(link).await?;
+        let node = Node::read_from(&mut self.storage, link).await?;
 
         // Read the entries from the node in reverse order; pushing each
         // entry onto the stack un-reverses their order.
@@ -590,7 +604,7 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         key_fn: impl Fn(&str, Cid) -> Result<K, Error>,
         stack: &mut Vec<Located<K>>,
     ) -> Result<(), Error> {
-        let node = self.read_node(link).await?;
+        let node = Node::read_from(&mut self.storage, link).await?;
 
         // Read the entries from the node in forward order; pushing each
         // entry onto the stack reverses their order.
@@ -649,16 +663,11 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
     pub async fn get(&mut self, key: &str) -> Result<Option<Cid>, Error> {
-        // Start from the root of the tree.
-        let mut link = self.root;
-
-        loop {
-            let node = self.read_node(link).await?;
-            match node.get(key) {
-                None => return Ok(None),
-                Some(Located::Entry(cid)) => return Ok(Some(cid)),
-                Some(Located::InSubtree(cid)) => link = cid,
-            }
+        match algos::traverse(&mut self.storage, self.root, algos::traverse_find(key)).await {
+            // FIXME: The `unwrap` call here isn't preferable, but it is guaranteed to succeed.
+            Ok((_node_path, (node, index))) => Ok(Some(node.entries[index].leaf().unwrap().value)),
+            Err(Error::KeyNotFound) => Ok(None),
+            Err(e) => Err(e),
         }
     }
 }
@@ -1136,6 +1145,14 @@ mod test {
 
         // insert F, which will push E out of the node with G+H to a new node under D
         tree.add("com.example.record/3jqfcqzm3fx2j", value_cid()).await.unwrap(); // F; level 2
+
+        assert_eq!(tree.root, root12);
+
+        // insert K again. An error should be returned.
+        assert!(matches!(
+            tree.add("com.example.record/3jqfcqzm4fg2j", value_cid()).await.unwrap_err(), // K; level 0
+            Error::KeyAlreadyExists
+        ));
 
         assert_eq!(tree.root, root12);
 

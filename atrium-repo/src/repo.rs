@@ -1,17 +1,13 @@
-use async_stream::try_stream;
 use atrium_api::types::{
     string::{Did, Nsid, RecordKey},
     Collection,
 };
-use futures::Stream;
 use ipld_core::cid::Cid;
 use serde::{Deserialize, Serialize};
-use tokio::io::{AsyncRead, AsyncSeek, BufReader};
 
 use crate::{
-    blockstore::AsyncBlockStoreRead,
-    car::{self, IndexedReader},
-    mst::{self, Located},
+    blockstore::{self, AsyncBlockStoreRead},
+    mst,
 };
 
 /// Commit data
@@ -55,6 +51,17 @@ struct SignedCommit {
     pub sig: Vec<u8>,
 }
 
+async fn read_record<C: Collection>(
+    mut db: impl AsyncBlockStoreRead,
+    cid: Cid,
+) -> Result<C::Record, Error> {
+    assert_eq!(cid.codec(), crate::blockstore::DAG_CBOR);
+
+    let data = db.read_block(&cid).await?;
+    let parsed: C::Record = serde_ipld_dagcbor::from_reader(&data[..])?;
+    Ok(parsed)
+}
+
 #[derive(Debug)]
 pub struct Repository<R: AsyncBlockStoreRead> {
     db: R,
@@ -74,140 +81,6 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         &self.latest_commit.did
     }
 
-    /// Parses the data with the given CID as an MST node.
-    async fn read_mst_node(&mut self, cid: Cid) -> Result<mst::Node, Error> {
-        let node_bytes = self.db.read_block(&cid).await?;
-        let node = mst::Node::parse(&node_bytes)?;
-        Ok(node)
-    }
-
-    /// Parses the data with the given CID as a record of the specified collection.
-    async fn read_record<C: Collection>(&mut self, cid: Cid) -> Result<C::Record, Error> {
-        let data = self.db.read_block(&cid).await?;
-        let parsed: C::Record = serde_ipld_dagcbor::from_reader(&data[..])?;
-        Ok(parsed)
-    }
-
-    async fn resolve_subtree<K>(
-        &mut self,
-        link: Cid,
-        prefix: &str,
-        key_fn: impl Fn(&str, Cid) -> Result<K, Error>,
-        stack: &mut Vec<Located<K>>,
-    ) -> Result<(), Error> {
-        let node = self.read_mst_node(link).await?;
-
-        // Read the entries from the node in reverse order; pushing each
-        // entry onto the stack un-reverses their order.
-        for entry in node.reversed_entries_with_prefix(prefix) {
-            stack.push(match entry {
-                Located::Entry((key, cid)) => Located::Entry(key_fn(key, cid)?),
-                Located::InSubtree(cid) => Located::InSubtree(cid),
-            });
-        }
-
-        Ok(())
-    }
-
-    async fn resolve_subtree_reversed<K>(
-        &mut self,
-        link: Cid,
-        prefix: &str,
-        key_fn: impl Fn(&str, Cid) -> Result<K, Error>,
-        stack: &mut Vec<Located<K>>,
-    ) -> Result<(), Error> {
-        let node = self.read_mst_node(link).await?;
-
-        // Read the entries from the node in forward order; pushing each
-        // entry onto the stack reverses their order.
-        for entry in node.entries_with_prefix(prefix) {
-            stack.push(match entry {
-                Located::Entry((key, cid)) => Located::Entry(key_fn(key, cid)?),
-                Located::InSubtree(cid) => Located::InSubtree(cid),
-            });
-        }
-
-        Ok(())
-    }
-
-    /// Returns a stream of all keys in this repository.
-    pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
-        // Start from the root of the tree.
-        let mut stack = vec![Located::InSubtree(self.latest_commit.data)];
-
-        try_stream! {
-            while let Some(located) = stack.pop() {
-                match located {
-                    Located::Entry(key) => yield key,
-                    Located::InSubtree(link) => {
-                        self.resolve_subtree(
-                            link,
-                            "",
-                            |key, _| Ok(key.to_string()),
-                            &mut stack,
-                        )
-                        .await?
-                    }
-                }
-            }
-        }
-    }
-
-    /// Returns a stream of the records contained in the given collection.
-    pub fn get_collection<'a, C: Collection + 'a>(
-        &'a mut self,
-    ) -> impl Stream<Item = Result<(RecordKey, C::Record), Error>> + 'a {
-        let prefix = fmt_prefix(C::nsid());
-
-        // Start from the root of the tree.
-        let mut stack = vec![Located::InSubtree(self.latest_commit.data)];
-
-        try_stream! {
-            while let Some(located) = stack.pop() {
-                match located {
-                    Located::Entry((rkey, cid)) => yield (rkey, self.read_record::<C>(cid).await?),
-                    Located::InSubtree(link) => {
-                        self.resolve_subtree(
-                            link,
-                            &prefix,
-                            |key, cid| Ok((parse_recordkey(&key[prefix.len()..])?, cid)),
-                            &mut stack,
-                        )
-                        .await?
-                    }
-                }
-            }
-        }
-    }
-
-    /// Returns a stream of the records contained in the given collection, in reverse
-    /// order.
-    pub fn get_collection_reversed<'a, C: Collection + 'a>(
-        &'a mut self,
-    ) -> impl Stream<Item = Result<(RecordKey, C::Record), Error>> + 'a {
-        let prefix = fmt_prefix(C::nsid());
-
-        // Start from the root of the tree.
-        let mut stack = vec![Located::InSubtree(self.latest_commit.data)];
-
-        try_stream! {
-            while let Some(located) = stack.pop() {
-                match located {
-                    Located::Entry((rkey, cid)) => yield (rkey, self.read_record::<C>(cid).await?),
-                    Located::InSubtree(link) => {
-                        self.resolve_subtree_reversed(
-                            link,
-                            &prefix,
-                            |key, cid| Ok((parse_recordkey(&key[prefix.len()..])?, cid)),
-                            &mut stack,
-                        )
-                        .await?
-                    }
-                }
-            }
-        }
-    }
-
     /// Returns the specified record from the repository, or `None` if it does not exist.
     pub async fn get<C: Collection>(
         &mut self,
@@ -217,7 +90,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         let key = C::repo_path(rkey);
 
         if let Some(cid) = mst.get(&key).await? {
-            Ok(Some(self.read_record::<C>(cid).await?))
+            Ok(Some(read_record::<C>(&mut self.db, cid).await?))
         } else {
             Ok(None)
         }
@@ -239,7 +112,7 @@ fn parse_recordkey(key: &str) -> Result<RecordKey, Error> {
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("CAR error: {0}")]
-    Car(#[from] car::Error),
+    Car(#[from] blockstore::CarError),
     #[error("Invalid key: {0}")]
     InvalidKey(#[from] std::str::Utf8Error),
     #[error("Invalid RecordKey: {0}")]
@@ -254,18 +127,14 @@ pub enum Error {
 
 #[cfg(test)]
 mod test {
-    use std::pin::pin;
-
     use atrium_api::types::Object;
-    use futures::StreamExt;
+    use blockstore::CarStore;
 
     use super::*;
 
     /// Loads a repository from the given CAR file.
-    async fn load(
-        bytes: &[u8],
-    ) -> Result<Repository<IndexedReader<std::io::Cursor<&[u8]>>>, Error> {
-        let db = IndexedReader::new(std::io::Cursor::new(bytes)).await?;
+    async fn load(bytes: &[u8]) -> Result<Repository<CarStore<std::io::Cursor<&[u8]>>>, Error> {
+        let db = CarStore::new(std::io::Cursor::new(bytes)).await?;
         let root = db.header().roots[0];
 
         Repository::new(db, root).await
@@ -282,19 +151,6 @@ mod test {
         println!("{:?}", commit.ops);
 
         let mut repo = load(commit.blocks.as_slice()).await.unwrap();
-        let keys = pin!(repo.keys()).collect::<Vec<_>>().await;
-
-        println!("{:?}", keys);
-
-        let record = repo
-            .get::<atrium_api::app::bsky::feed::Like>(
-                &RecordKey::new(commit.ops[0].path.split('/').last().unwrap().to_string()).unwrap(),
-            )
-            .await
-            .unwrap()
-            .unwrap();
-
-        println!("{:?}", record);
     }
 
     #[tokio::test]

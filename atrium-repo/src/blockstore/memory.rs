@@ -3,12 +3,9 @@ use std::collections::HashMap;
 use ipld_core::cid::{multihash::Multihash, Cid};
 use sha2::Digest;
 
-use super::{AsyncBlockStoreRead, AsyncBlockStoreWrite, Error};
+use super::{AsyncBlockStoreRead, AsyncBlockStoreWrite, Error, SHA2_256};
 
-/// The SHA_256 multihash code
-const SHA2_256: u64 = 0x12;
-
-/// Basic in-memory blockstore
+/// Basic in-memory blockstore. This is primarily used for testing.
 pub struct MemoryBlockStore {
     blocks: HashMap<Cid, Vec<u8>>,
 }
@@ -30,9 +27,9 @@ impl AsyncBlockStoreRead for MemoryBlockStore {
 impl AsyncBlockStoreWrite for MemoryBlockStore {
     async fn write_block(&mut self, codec: u64, contents: &[u8]) -> Result<Cid, Error> {
         let digest = sha2::Sha256::digest(contents);
-        let expected = Multihash::wrap(SHA2_256, digest.as_slice())
+        let hash = Multihash::wrap(SHA2_256, digest.as_slice())
             .expect("internal error encoding multihash");
-        let cid = Cid::new_v1(codec, expected);
+        let cid = Cid::new_v1(codec, hash);
 
         // Insert the block. We're explicitly ignoring the case where it's already present inside the hashmap.
         self.blocks.insert(cid, contents.to_vec());

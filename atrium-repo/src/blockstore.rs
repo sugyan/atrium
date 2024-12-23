@@ -5,6 +5,7 @@ use ipld_core::cid::Cid;
 mod car;
 mod memory;
 
+pub use car::{CarStore, Error as CarError};
 pub use memory::MemoryBlockStore;
 
 /// DAG-PB multicodec code
