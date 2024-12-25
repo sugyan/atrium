@@ -201,12 +201,7 @@ mod algos {
         node: Cid,
         key: &str,
     ) -> Result<(Option<Cid>, Option<Cid>), Error> {
-        let mut node_path = vec![];
-        let mut node_cid = node;
-
-        let (mut left, mut right) = loop {
-            let mut node = Node::read_from(&mut bs, node_cid).await?;
-
+        let (node_path, (mut left, mut right)) = traverse(&mut bs, node, |mut node, _cid| {
             if let Some(partition) = node.find_ge(key) {
                 // Ensure that the key does not already exist.
                 if let Some(NodeEntry::Leaf(e)) = node.entries.get(partition) {
@@ -222,29 +217,28 @@ mod algos {
                             // Left neighbor is a leaf, so we can split the current node into two and we are done.
                             let right = node.entries.split_off(partition + 1);
 
-                            break (
+                            return Ok(TraverseAction::Stop((
                                 Some(node),
                                 (!right.is_empty()).then(|| Node { entries: right }),
-                            );
+                            )));
                         }
                         Some(NodeEntry::Tree(e)) => {
-                            node_path.push((node_cid, partition, node.clone()));
-                            node_cid = e.clone();
+                            return Ok(TraverseAction::Continue((e.clone(), partition)));
                         }
                         // This should not happen; node.find_ge() should return `None` in this case.
                         None => panic!(),
                     }
                 } else {
-                    break (None, Some(node));
+                    return Ok(TraverseAction::Stop((None, Some(node))));
                 }
             } else {
-                // The node is empty.
                 todo!()
             }
-        };
+        })
+        .await?;
 
         // If the node was split into two, walk back up the path chain and split all parents.
-        for (_parent_cid, i, mut parent) in node_path.into_iter().rev() {
+        for (mut parent, i) in node_path.into_iter().rev() {
             // Remove the tree entry at the partition point.
             parent.entries.remove(i);
             let (e_left, e_right) = parent.entries.split_at(i);
