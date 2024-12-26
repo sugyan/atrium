@@ -524,21 +524,45 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
                 let cid = algos::merge_subtrees(&mut self.storage, lc.clone(), rc.clone()).await?;
                 node.entries[index] = NodeEntry::Tree(cid);
                 node.entries.remove(index + 1);
-
-                // If the resulting node consists of a single tree entry, elide it.
-                if node.entries.as_slice() == &[NodeEntry::Tree(cid)] {
-                    node = Node::read_from(&mut self.storage, cid).await?;
-                }
             }
         }
 
-        let mut cid = node.serialize_into(&mut self.storage).await?;
+        // Option-alize the node depending on whether or not it is empty.
+        let node = (!node.entries.is_empty()).then_some(node);
+
+        let mut cid = if let Some(node) = node {
+            Some(node.serialize_into(&mut self.storage).await?)
+        } else {
+            None
+        };
 
         // Now walk back up the node path chain and update parent entries to point to the new node's CID.
         for (mut parent, i) in node_path.into_iter().rev() {
-            parent.entries[i] = NodeEntry::Tree(cid);
-            cid = parent.serialize_into(&mut self.storage).await?;
+            if let Some(cid) = cid.as_mut() {
+                parent.entries[i] = NodeEntry::Tree(cid.clone());
+                *cid = parent.serialize_into(&mut self.storage).await?;
+            } else {
+                // The node ended up becoming empty, so it will be orphaned.
+                // Note that we can safely delete this entry from the parent because it's guaranteed that
+                // two trees will never be adjacent (and thus no merging is required).
+                parent.entries.remove(i);
+
+                // If the parent also becomes empty, orphan it.
+                cid = if parent.entries.is_empty() {
+                    None
+                } else {
+                    Some(parent.serialize_into(&mut self.storage).await?)
+                };
+            }
         }
+
+        let cid = if let Some(cid) = cid {
+            cid
+        } else {
+            // The tree is now empty. Create a new empty node.
+            let node = Node { entries: vec![] };
+            node.serialize_into(&mut self.storage).await?
+        };
 
         self.root = cid;
         self.prune().await?;
@@ -1228,6 +1252,43 @@ mod test {
         tree.delete("com.example.record/3jqfcqzm3fx2j").await.unwrap(); // B; level 2
 
         assert_eq!(tree.root, root10);
+    }
+
+    #[tokio::test]
+    async fn mst_two_layers_del() {
+        let bs = MemoryBlockStore::new();
+        let mut tree = Tree::create(bs).await.unwrap();
+
+        let root00 =
+            Cid::from_str("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm").unwrap();
+        let root10 =
+            Cid::from_str("bafyreih7wfei65pxzhauoibu3ls7jgmkju4bspy4t2ha2qdjnzqvoy33ai").unwrap();
+        let root12 =
+            Cid::from_str("bafyreiavxaxdz7o7rbvr3zg2liox2yww46t7g6hkehx4i4h3lwudly7dhy").unwrap();
+
+        tree.add("com.example.record/3jqfcqzm3fx2j", value_cid()).await.unwrap(); // B; level 2
+        tree.add("com.example.record/3jqfcqzm3ft2j", value_cid()).await.unwrap(); // A; level 0
+        tree.add("com.example.record/3jqfcqzm3fz2j", value_cid()).await.unwrap(); // C; level 0
+
+        assert_eq!(tree.root, root12);
+        assert_eq!(tree.depth(None).await.unwrap(), 2);
+
+        // remove A. This should remove the entire left side of the tree.
+        tree.delete("com.example.record/3jqfcqzm3ft2j").await.unwrap(); // A; level 0
+
+        // add it back and compare.
+        tree.add("com.example.record/3jqfcqzm3ft2j", value_cid()).await.unwrap(); // A; level 0
+
+        assert_eq!(tree.root, root12);
+
+        tree.delete("com.example.record/3jqfcqzm3ft2j").await.unwrap(); // A; level 0
+        tree.delete("com.example.record/3jqfcqzm3fz2j").await.unwrap(); // C; level 0
+
+        assert_eq!(tree.root, root10);
+
+        tree.delete("com.example.record/3jqfcqzm3fx2j").await.unwrap(); // B; level 2
+
+        assert_eq!(tree.root, root00);
     }
 
     #[tokio::test]
