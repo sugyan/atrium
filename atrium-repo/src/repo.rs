@@ -2,7 +2,7 @@ use atrium_api::types::{
     string::{Did, Nsid, RecordKey},
     Collection,
 };
-use ipld_core::cid::Cid;
+use ipld_core::{cid::Cid, ipld::Ipld};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -48,7 +48,7 @@ struct SignedCommit {
     /// pointer (by hash) to a previous commit object for this repository
     pub prev: Option<Cid>,
     /// cryptographic signature of this commit, as raw bytes
-    pub sig: Vec<u8>,
+    pub sig: Ipld,
 }
 
 async fn read_record<C: Collection>(
@@ -65,13 +65,13 @@ async fn read_record<C: Collection>(
 #[derive(Debug)]
 pub struct Repository<R: AsyncBlockStoreRead> {
     db: R,
-    latest_commit: Commit,
+    latest_commit: SignedCommit,
 }
 
 impl<R: AsyncBlockStoreRead> Repository<R> {
     pub async fn new(mut db: R, root: Cid) -> Result<Self, Error> {
         let commit_block = db.read_block(&root).await?;
-        let latest_commit: Commit = serde_ipld_dagcbor::from_reader(&commit_block[..])?;
+        let latest_commit: SignedCommit = serde_ipld_dagcbor::from_reader(&commit_block[..])?;
 
         Ok(Self { db, latest_commit })
     }
@@ -82,14 +82,10 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     }
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
-    pub async fn get<C: Collection>(
-        &mut self,
-        rkey: &RecordKey,
-    ) -> Result<Option<C::Record>, Error> {
+    pub async fn get<C: Collection>(&mut self, rkey: &str) -> Result<Option<C::Record>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        let key = C::repo_path(rkey);
 
-        if let Some(cid) = mst.get(&key).await? {
+        if let Some(cid) = mst.get(&rkey).await? {
             Ok(Some(read_record::<C>(&mut self.db, cid).await?))
         } else {
             Ok(None)
@@ -111,8 +107,6 @@ fn parse_recordkey(key: &str) -> Result<RecordKey, Error> {
 /// Errors that can occur while interacting with a repository.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("CAR error: {0}")]
-    Car(#[from] blockstore::CarError),
     #[error("Invalid key: {0}")]
     InvalidKey(#[from] std::str::Utf8Error),
     #[error("Invalid RecordKey: {0}")]
@@ -134,7 +128,7 @@ mod test {
 
     /// Loads a repository from the given CAR file.
     async fn load(bytes: &[u8]) -> Result<Repository<CarStore<std::io::Cursor<&[u8]>>>, Error> {
-        let db = CarStore::new(std::io::Cursor::new(bytes)).await?;
+        let db = CarStore::new(std::io::Cursor::new(bytes)).await.unwrap();
         let root = db.header().roots[0];
 
         Repository::new(db, root).await
