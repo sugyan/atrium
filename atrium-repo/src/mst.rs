@@ -473,34 +473,40 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
                 }
             }
 
-            match node.entries.get(partition - 1) {
-                Some(NodeEntry::Leaf(_)) => {
-                    // Left neighbor is a leaf, so we can simply insert this leaf to its right.
-                    node.entries.insert(
-                        partition,
-                        NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }),
-                    );
-                }
-                Some(NodeEntry::Tree(e)) => {
-                    // Need to split the subtree into two based on the node's key.
-                    let (left, right) =
-                        algos::split_subtree(&mut self.storage, e.clone(), key).await?;
-
-                    // Insert the new node inbetween the two subtrees.
-                    let right_subvec = node.entries.split_off(partition);
-
-                    node.entries.pop();
-                    if let Some(left) = left {
-                        node.entries.push(NodeEntry::Tree(left));
+            if let Some(partition) = partition.checked_sub(1) {
+                match node.entries.get(partition) {
+                    Some(NodeEntry::Leaf(_)) => {
+                        // Left neighbor is a leaf, so we can simply insert this leaf to its right.
+                        node.entries.insert(
+                            partition + 1,
+                            NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }),
+                        );
                     }
-                    node.entries
-                        .extend([NodeEntry::Leaf(TreeEntry { key: key.to_string(), value })]);
-                    if let Some(right) = right {
-                        node.entries.push(NodeEntry::Tree(right));
+                    Some(NodeEntry::Tree(e)) => {
+                        // Need to split the subtree into two based on the node's key.
+                        let (left, right) =
+                            algos::split_subtree(&mut self.storage, e.clone(), key).await?;
+
+                        // Insert the new node inbetween the two subtrees.
+                        let right_subvec = node.entries.split_off(partition + 1);
+
+                        node.entries.pop();
+                        if let Some(left) = left {
+                            node.entries.push(NodeEntry::Tree(left));
+                        }
+                        node.entries
+                            .extend([NodeEntry::Leaf(TreeEntry { key: key.to_string(), value })]);
+                        if let Some(right) = right {
+                            node.entries.push(NodeEntry::Tree(right));
+                        }
+                        node.entries.extend(right_subvec.into_iter());
                     }
-                    node.entries.extend(right_subvec.into_iter());
+                    // Should be impossible. The node is empty in this case, and that is handled below.
+                    None => unreachable!(),
                 }
-                None => todo!(),
+            } else {
+                // Key is already located at leftmost position, so we can simply prepend the new node.
+                node.entries.insert(0, NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }));
             }
         } else {
             // The node is empty! Just append the new key to this node's entries.
@@ -1196,8 +1202,8 @@ mod test {
         tree.add("com.example.record/3jqfcqzm3fz2j", value_cid()).await.unwrap(); // G; level 0
         tree.add("com.example.record/3jqfcqzm4fc2j", value_cid()).await.unwrap(); // H; level 0
         tree.add("com.example.record/3jqfcqzm4fd2j", value_cid()).await.unwrap(); // I; level 1
-        tree.add("com.example.record/3jqfcqzm4ff2j", value_cid()).await.unwrap(); // J; level 0
         tree.add("com.example.record/3jqfcqzm4fg2j", value_cid()).await.unwrap(); // K; level 0
+        tree.add("com.example.record/3jqfcqzm4ff2j", value_cid()).await.unwrap(); // J; level 0
         tree.add("com.example.record/3jqfcqzm4fh2j", value_cid()).await.unwrap(); // L; level 0
 
         assert_eq!(tree.root, root11);
