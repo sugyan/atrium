@@ -141,11 +141,13 @@ mod test {
     use super::*;
 
     /// Loads a repository from the given CAR file.
-    async fn load(bytes: &[u8]) -> Result<Repository<CarStore<std::io::Cursor<&[u8]>>>, Error> {
-        let db = CarStore::new(std::io::Cursor::new(bytes)).await.unwrap();
+    async fn load(
+        bytes: &[u8],
+    ) -> Result<Repository<CarStore<std::io::Cursor<&[u8]>>>, Box<dyn std::error::Error>> {
+        let db = CarStore::new(std::io::Cursor::new(bytes)).await?;
         let root = db.header().roots[0];
 
-        Repository::new(db, root).await
+        Repository::new(db, root).await.map_err(Into::into)
     }
 
     #[tokio::test]
