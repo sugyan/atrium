@@ -1263,6 +1263,8 @@ mod test {
             Cid::from_str("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm").unwrap();
         let root10 =
             Cid::from_str("bafyreih7wfei65pxzhauoibu3ls7jgmkju4bspy4t2ha2qdjnzqvoy33ai").unwrap();
+        let root11 =
+            Cid::from_str("bafyreidjq27sf6pi5pq2relsiwis64k2jzu7yuxukovehvtc6cranqkxcy").unwrap();
         let root12 =
             Cid::from_str("bafyreiavxaxdz7o7rbvr3zg2liox2yww46t7g6hkehx4i4h3lwudly7dhy").unwrap();
 
@@ -1275,6 +1277,8 @@ mod test {
 
         // remove A. This should remove the entire left side of the tree.
         tree.delete("com.example.record/3jqfcqzm3ft2j").await.unwrap(); // A; level 0
+
+        assert_eq!(tree.root, root11);
 
         // add it back and compare.
         tree.add("com.example.record/3jqfcqzm3ft2j", value_cid()).await.unwrap(); // A; level 0
