@@ -11,7 +11,7 @@ pub use memory::MemoryBlockStore;
 /// DAG-PB multicodec code
 pub const DAG_PB: u64 = 0x70;
 /// DAG-CBOR multicodec code
-pub const DAG_CBOR: u64 = 0x71; // FIXME: ? Is this correct?
+pub const DAG_CBOR: u64 = 0x71;
 /// The SHA_256 multihash code
 pub const SHA2_256: u64 = 0x12;
 

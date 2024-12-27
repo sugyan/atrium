@@ -62,6 +62,9 @@ async fn read_record<C: Collection>(
     Ok(parsed)
 }
 
+/// An ATProtocol user repository.
+///
+/// Reference: https://atproto.com/specs/repository
 #[derive(Debug)]
 pub struct Repository<R: AsyncBlockStoreRead> {
     db: R,
@@ -82,6 +85,17 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     }
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
+    ///
+    /// ---
+    ///
+    /// Special note: You probably noticed there's no "get record by CID" helper. This is by design.
+    ///
+    /// Fetching records directly via their CID is insecure because this lookup bypasses the MST
+    /// (merkle search tree). Without using the MST, you cannot be sure that a particular CID was
+    /// authored by the owner of the repository.
+    ///
+    /// If you acknowledge the risks and want to access records via CID anyway, you will have to
+    /// do so by directly accessing the repository's backing storage.
     pub async fn get<C: Collection>(&mut self, rkey: &str) -> Result<Option<C::Record>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
