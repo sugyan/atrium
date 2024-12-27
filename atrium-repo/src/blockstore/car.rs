@@ -88,13 +88,20 @@ impl<R: AsyncRead + AsyncSeek + Unpin> CarStore<R> {
                     buffer.resize(len as usize, 0);
                     storage.read_exact(buffer.as_mut_slice()).await?;
 
-                    let digest = sha2::Sha256::digest(buffer.as_slice());
-                    let expected = Multihash::wrap(cid.hash().code(), digest.as_slice())
-                        .map_err(Error::Multihash)?;
-                    let expected = Cid::new_v1(cid.codec(), expected);
+                    let digest = match cid.hash().code() {
+                        SHA2_256 => Some(sha2::Sha256::digest(buffer.as_slice())),
+                        // FIXME: We should probably warn that we couldn't verify the block.
+                        _ => None,
+                    };
 
-                    if expected != cid {
-                        return Err(Error::InvalidHash);
+                    if let Some(digest) = digest {
+                        let expected = Multihash::wrap(cid.hash().code(), digest.as_slice())
+                            .map_err(Error::Multihash)?;
+                        let expected = Cid::new_v1(cid.codec(), expected);
+
+                        if expected != cid {
+                            return Err(Error::InvalidHash);
+                        }
                     }
 
                     index.insert(cid, (offset, len as usize));
