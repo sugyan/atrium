@@ -75,6 +75,8 @@ Below are some related projects that might be of interest:
 
 - `atproto` https://github.com/bluesky-social/atproto
   - The leading protocol implementation
+- `rsky` https://github.com/blacksky-algorithms/rsky
+  - An AT Protocol Implementation built in Rust, using atrium.
 - `adenosine` https://gitlab.com/bnewbold/adenosine
 - `atproto-rs` https://github.com/ngerakines/atproto-rs
 - `atproto-rs` https://github.com/Maaarcocr/atproto-rs
