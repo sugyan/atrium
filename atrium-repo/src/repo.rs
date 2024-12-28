@@ -72,6 +72,9 @@ pub struct Repository<R: AsyncBlockStoreRead> {
 }
 
 impl<R: AsyncBlockStoreRead> Repository<R> {
+    /// Construct a new instance of a user repository. This is a cheap operation
+    /// that simply reads out the root commit from a repository (_without_ verifying
+    /// its signature!)
     pub async fn new(mut db: R, root: Cid) -> Result<Self, Error> {
         let commit_block = db.read_block(&root).await?;
         let latest_commit: SignedCommit = serde_ipld_dagcbor::from_reader(&commit_block[..])?;
@@ -87,7 +90,6 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     /// Returns the specified record from the repository, or `None` if it does not exist.
     ///
     /// ---
-    ///
     /// Special note: You probably noticed there's no "get record by CID" helper. This is by design.
     ///
     /// Fetching records directly via their CID is insecure because this lookup bypasses the MST
