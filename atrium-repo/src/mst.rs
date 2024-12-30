@@ -1,7 +1,7 @@
 use std::{cmp::Ordering, collections::HashSet, convert::Infallible};
 
 use async_stream::try_stream;
-use futures::Stream;
+use futures::{Stream, StreamExt};
 use ipld_core::{
     cid::{multihash::Multihash, Cid},
     ipld::Ipld,
