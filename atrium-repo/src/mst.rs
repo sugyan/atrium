@@ -631,48 +631,6 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         self.root
     }
 
-    async fn resolve_subtree<K>(
-        &mut self,
-        link: Cid,
-        prefix: &str,
-        key_fn: impl Fn(&str, Cid) -> Result<K, Error>,
-        stack: &mut Vec<Located<K>>,
-    ) -> Result<(), Error> {
-        let node = Node::read_from(&mut self.storage, link).await?;
-
-        // Read the entries from the node in reverse order; pushing each
-        // entry onto the stack un-reverses their order.
-        for entry in node.reversed_entries_with_prefix(prefix) {
-            stack.push(match entry {
-                Located::Entry((key, cid)) => Located::Entry(key_fn(key, cid)?),
-                Located::InSubtree(cid) => Located::InSubtree(cid),
-            });
-        }
-
-        Ok(())
-    }
-
-    async fn resolve_subtree_reversed<K>(
-        &mut self,
-        link: Cid,
-        prefix: &str,
-        key_fn: impl Fn(&str, Cid) -> Result<K, Error>,
-        stack: &mut Vec<Located<K>>,
-    ) -> Result<(), Error> {
-        let node = Node::read_from(&mut self.storage, link).await?;
-
-        // Read the entries from the node in forward order; pushing each
-        // entry onto the stack reverses their order.
-        for entry in node.entries_with_prefix(prefix) {
-            stack.push(match entry {
-                Located::Entry((key, cid)) => Located::Entry(key_fn(key, cid)?),
-                Located::InSubtree(cid) => Located::InSubtree(cid),
-            });
-        }
-
-        Ok(())
-    }
-
     /// Compute the depth of the merkle search tree from either the specified node or the root
     pub async fn depth(&mut self, node: Option<Cid>) -> Result<usize, Error> {
         // Recursively iterate through the tree until we encounter a leaf node, and then
@@ -693,24 +651,20 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         }
     }
 
-    /// Returns a stream of all keys in this tree.
+    /// Returns a stream of all keys in this tree, in breadth-first order.
     pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
         // Start from the root of the tree.
-        let mut stack = vec![Located::InSubtree(self.root)];
+        let mut stack = vec![self.root];
 
         try_stream! {
-            while let Some(located) = stack.pop() {
-                match located {
-                    Located::Entry(key) => yield key,
-                    Located::InSubtree(link) => {
-                        self.resolve_subtree(
-                            link,
-                            "",
-                            |key, _| Ok(key.to_string()),
-                            &mut stack,
-                        )
-                        .await?
-                    }
+            while let Some(cid) = stack.pop() {
+                let node = Node::read_from(&mut self.storage, cid).await?;
+                for entry in node.trees() {
+                    stack.push(entry.clone());
+                }
+
+                for entry in node.leaves() {
+                    yield entry.key.clone();
                 }
             }
         }
