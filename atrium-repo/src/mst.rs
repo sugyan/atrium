@@ -651,8 +651,8 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         }
     }
 
-    /// Returns a stream of all keys in this tree, in lexicographic order.
-    pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
+    /// Returns a stream of all entries in this tree, in lexicographic order.
+    pub fn entries<'a>(&'a mut self) -> impl Stream<Item = Result<(String, Cid), Error>> + 'a {
         // Start from the root of the tree.
         let mut stack = vec![Located::InSubtree(self.root)];
 
@@ -667,15 +667,20 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
                                     stack.push(Located::InSubtree(entry.clone()));
                                 }
                                 NodeEntry::Leaf(entry) => {
-                                    stack.push(Located::Entry(entry.key.clone()));
+                                    stack.push(Located::Entry((entry.key.clone(), entry.value.clone())));
                                 }
                             }
                         }
                     }
-                    Located::Entry(key) => yield key,
+                    Located::Entry((key, value)) => yield (key, value),
                 }
             }
         }
+    }
+
+    /// Returns a stream of all keys in this tree, in lexicographic order.
+    pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
+        self.entries().map(|e| e).map(|e| e.map(|(k, _)| k))
     }
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
