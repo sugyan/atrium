@@ -652,6 +652,9 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
     }
 
     /// Returns a stream of all entries in this tree, in lexicographic order.
+    ///
+    /// This function will _not_ work with a partial MST, such as one received from
+    /// a firehose record.
     pub fn entries<'a>(&'a mut self) -> impl Stream<Item = Result<(String, Cid), Error>> + 'a {
         // Start from the root of the tree.
         let mut stack = vec![Located::InSubtree(self.root)];
@@ -679,6 +682,9 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
     }
 
     /// Returns a stream of all keys in this tree, in lexicographic order.
+    ///
+    /// This function will _not_ work with a partial MST, such as one received from
+    /// a firehose record.
     pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
         self.entries().map(|e| e).map(|e| e.map(|(k, _)| k))
     }
