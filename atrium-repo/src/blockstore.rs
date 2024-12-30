@@ -39,6 +39,7 @@ pub trait AsyncBlockStoreWrite: Send {
     fn write_block(
         &mut self,
         codec: u64,
+        hash: u64,
         contents: &[u8],
     ) -> impl Future<Output = Result<Cid, Error>> + Send;
 
@@ -60,9 +61,10 @@ impl<T: AsyncBlockStoreWrite> AsyncBlockStoreWrite for &mut T {
     fn write_block(
         &mut self,
         codec: u64,
+        hash: u64,
         contents: &[u8],
     ) -> impl Future<Output = Result<Cid, Error>> + Send {
-        (**self).write_block(codec, contents)
+        (**self).write_block(codec, hash, contents)
     }
 
     fn delete_block(&mut self, cid: &Cid) -> impl Future<Output = Result<(), Error>> + Send {
@@ -75,6 +77,8 @@ impl<T: AsyncBlockStoreWrite> AsyncBlockStoreWrite for &mut T {
 pub enum Error {
     #[error("CID does not exist in block store")]
     CidNotFound,
+    #[error("unsupported hashing algorithm")]
+    UnsupportedHash(u64),
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 }

@@ -822,7 +822,7 @@ impl Node {
         }
 
         let bytes = serde_ipld_dagcbor::to_vec(&node).unwrap();
-        Ok(bs.write_block(DAG_CBOR, &bytes).await?)
+        Ok(bs.write_block(DAG_CBOR, SHA2_256, &bytes).await?)
     }
 
     /// Return an iterator of the subtrees contained within this node

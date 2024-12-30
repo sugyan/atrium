@@ -138,10 +138,18 @@ impl<R: AsyncRead + AsyncSeek + Send + Unpin> AsyncBlockStoreRead for CarStore<R
 }
 
 impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite for CarStore<R> {
-    async fn write_block(&mut self, codec: u64, contents: &[u8]) -> Result<Cid, blockstore::Error> {
-        let digest = sha2::Sha256::digest(contents);
-        let hash = Multihash::wrap(SHA2_256, digest.as_slice())
-            .expect("internal error encoding multihash");
+    async fn write_block(
+        &mut self,
+        codec: u64,
+        hash: u64,
+        contents: &[u8],
+    ) -> Result<Cid, blockstore::Error> {
+        let digest = match hash {
+            SHA2_256 => sha2::Sha256::digest(contents),
+            _ => return Err(blockstore::Error::UnsupportedHash(hash)),
+        };
+        let hash =
+            Multihash::wrap(hash, digest.as_slice()).expect("internal error encoding multihash");
         let cid = Cid::new_v1(codec, hash);
 
         let mut fc = vec![];
