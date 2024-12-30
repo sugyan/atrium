@@ -1,54 +1,59 @@
 use atrium_api::types::{
-    string::{Did, Nsid, RecordKey},
+    string::{Did, Nsid, RecordKey, Tid},
     Collection,
 };
 use ipld_core::{cid::Cid, ipld::Ipld};
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 
 use crate::{
     blockstore::{self, AsyncBlockStoreRead},
     mst,
 };
 
-/// Commit data
-///
-/// Defined in: https://atproto.com/specs/repository
-///
-/// https://github.com/bluesky-social/atproto/blob/c34426fc55e8b9f28d9b1d64eab081985d1b47b5/packages/repo/src/types.ts#L12-L19
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-struct Commit {
-    /// the account DID associated with the repo, in strictly normalized form (eg, lowercase as appropriate)
-    pub did: Did,
-    /// fixed value of 3 for this repo format version
-    pub version: i64,
-    /// pointer to the top of the repo contents tree structure (MST)
-    pub data: Cid,
-    /// revision of the repo, used as a logical clock. Must increase monotonically
-    pub rev: String,
-    /// pointer (by hash) to a previous commit object for this repository
-    pub prev: Option<Cid>,
-}
+mod schema {
+    use super::*;
 
-/// Signed commit data. This is the exact same as a [Commit], but with a
-/// `sig` field appended.
-///
-/// Defined in: https://atproto.com/specs/repository
-///
-/// https://github.com/bluesky-social/atproto/blob/c34426fc55e8b9f28d9b1d64eab081985d1b47b5/packages/repo/src/types.ts#L22-L29
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
-struct SignedCommit {
-    /// the account DID associated with the repo, in strictly normalized form (eg, lowercase as appropriate)
-    pub did: Did,
-    /// fixed value of 3 for this repo format version
-    pub version: i64,
-    /// pointer to the top of the repo contents tree structure (MST)
-    pub data: Cid,
-    /// revision of the repo, used as a logical clock. Must increase monotonically
-    pub rev: String,
-    /// pointer (by hash) to a previous commit object for this repository
-    pub prev: Option<Cid>,
-    /// cryptographic signature of this commit, as raw bytes
-    pub sig: Ipld,
+    /// Commit data
+    ///
+    /// Defined in: https://atproto.com/specs/repository
+    ///
+    /// https://github.com/bluesky-social/atproto/blob/c34426fc55e8b9f28d9b1d64eab081985d1b47b5/packages/repo/src/types.ts#L12-L19
+    #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+    pub struct Commit {
+        /// the account DID associated with the repo, in strictly normalized form (eg, lowercase as appropriate)
+        pub did: Did,
+        /// fixed value of 3 for this repo format version
+        pub version: i64,
+        /// pointer to the top of the repo contents tree structure (MST)
+        pub data: Cid,
+        /// revision of the repo, used as a logical clock. Must increase monotonically
+        pub rev: Tid,
+        /// pointer (by hash) to a previous commit object for this repository
+        pub prev: Option<Cid>,
+    }
+
+    /// Signed commit data. This is the exact same as a [Commit], but with a
+    /// `sig` field appended.
+    ///
+    /// Defined in: https://atproto.com/specs/repository
+    ///
+    /// https://github.com/bluesky-social/atproto/blob/c34426fc55e8b9f28d9b1d64eab081985d1b47b5/packages/repo/src/types.ts#L22-L29
+    #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+    pub struct SignedCommit {
+        /// the account DID associated with the repo, in strictly normalized form (eg, lowercase as appropriate)
+        pub did: Did,
+        /// fixed value of 3 for this repo format version
+        pub version: i64,
+        /// pointer to the top of the repo contents tree structure (MST)
+        pub data: Cid,
+        /// revision of the repo, used as a logical clock. Must increase monotonically
+        pub rev: Tid,
+        /// pointer (by hash) to a previous commit object for this repository
+        pub prev: Option<Cid>,
+        /// cryptographic signature of this commit, as raw bytes
+        pub sig: Ipld,
+    }
 }
 
 async fn read_record<C: Collection>(
@@ -62,13 +67,48 @@ async fn read_record<C: Collection>(
     Ok(parsed)
 }
 
+/// A reference to a particular commit to a repository.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Commit {
+    inner: schema::SignedCommit,
+}
+
+impl Commit {
+    /// Returns a pointer to the top of the merkle search tree.
+    pub fn data(&self) -> Cid {
+        self.inner.data
+    }
+
+    /// Calculate the SHA-256 hash of the commit object. Used for signature verification.
+    pub fn hash(&self) -> [u8; 32] {
+        let commit = serde_ipld_dagcbor::to_vec(&schema::Commit {
+            did: self.inner.did.clone(),
+            version: self.inner.version,
+            data: self.inner.data,
+            rev: self.inner.rev.clone(),
+            prev: self.inner.prev,
+        })
+        .unwrap(); // This should (hopefully!) never fail
+
+        sha2::Sha256::digest(&commit).into()
+    }
+
+    /// Return the commit object's cryptographic signature.
+    pub fn sig(&self) -> &[u8] {
+        match self.inner.sig {
+            Ipld::Bytes(ref bytes) => bytes,
+            _ => panic!("signature field did not consist of bytes"),
+        }
+    }
+}
+
 /// An ATProtocol user repository.
 ///
 /// Reference: https://atproto.com/specs/repository
 #[derive(Debug)]
 pub struct Repository<R: AsyncBlockStoreRead> {
     db: R,
-    latest_commit: SignedCommit,
+    latest_commit: schema::SignedCommit,
 }
 
 impl<R: AsyncBlockStoreRead> Repository<R> {
@@ -77,9 +117,15 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     /// its signature!)
     pub async fn new(mut db: R, root: Cid) -> Result<Self, Error> {
         let commit_block = db.read_block(&root).await?;
-        let latest_commit: SignedCommit = serde_ipld_dagcbor::from_reader(&commit_block[..])?;
+        let latest_commit: schema::SignedCommit =
+            serde_ipld_dagcbor::from_reader(&commit_block[..])?;
 
         Ok(Self { db, latest_commit })
+    }
+
+    /// Returns the latest commit in the repository.
+    pub fn commit(&self) -> Commit {
+        Commit { inner: self.latest_commit.clone() }
     }
 
     /// Returns the DID for the repository's user.
