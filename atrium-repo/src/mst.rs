@@ -686,7 +686,7 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
     /// This function will _not_ work with a partial MST, such as one received from
     /// a firehose record.
     pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
-        self.entries().map(|e| e).map(|e| e.map(|(k, _)| k))
+        self.entries().map(|e| e.map(|(k, _)| k))
     }
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
