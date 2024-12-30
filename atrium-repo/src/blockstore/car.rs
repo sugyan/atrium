@@ -152,19 +152,22 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
             Multihash::wrap(hash, digest.as_slice()).expect("internal error encoding multihash");
         let cid = Cid::new_v1(codec, hash);
 
-        let mut fc = vec![];
-        cid.write_bytes(&mut fc).expect("internal error writing CID");
-        fc.extend_from_slice(contents);
+        // Only write the record if the CAR file does not already contain it.
+        if !self.index.contains_key(&cid) {
+            let mut fc = vec![];
+            cid.write_bytes(&mut fc).expect("internal error writing CID");
+            fc.extend_from_slice(contents);
 
-        let mut buf = unsigned_varint::encode::u64_buffer();
-        unsigned_varint::encode::u64(fc.len() as u64, &mut buf);
+            let mut buf = unsigned_varint::encode::u64_buffer();
+            unsigned_varint::encode::u64(fc.len() as u64, &mut buf);
 
-        self.storage.write_all(&buf).await?;
-        let offs = self.storage.stream_position().await?;
-        self.storage.write_all(&fc).await?;
+            self.storage.write_all(&buf).await?;
+            let offs = self.storage.stream_position().await?;
+            self.storage.write_all(&fc).await?;
 
-        // Update the index with the new block.
-        self.index.insert(cid, (offs, contents.len()));
+            // Update the index with the new block.
+            self.index.insert(cid, (offs, contents.len()));
+        }
 
         Ok(cid)
     }
