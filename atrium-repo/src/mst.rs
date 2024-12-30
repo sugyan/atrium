@@ -651,20 +651,28 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         }
     }
 
-    /// Returns a stream of all keys in this tree, in breadth-first order.
+    /// Returns a stream of all keys in this tree, in lexicographic order.
     pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
         // Start from the root of the tree.
-        let mut stack = vec![self.root];
+        let mut stack = vec![Located::InSubtree(self.root)];
 
         try_stream! {
-            while let Some(cid) = stack.pop() {
-                let node = Node::read_from(&mut self.storage, cid).await?;
-                for entry in node.trees() {
-                    stack.push(entry.clone());
-                }
-
-                for entry in node.leaves() {
-                    yield entry.key.clone();
+            while let Some(e) = stack.pop() {
+                match e {
+                    Located::InSubtree(cid) => {
+                        let node = Node::read_from(&mut self.storage, cid).await?;
+                        for entry in node.entries.iter().rev() {
+                            match entry {
+                                NodeEntry::Tree(entry) => {
+                                    stack.push(Located::InSubtree(entry.clone()));
+                                }
+                                NodeEntry::Leaf(entry) => {
+                                    stack.push(Located::Entry(entry.key.clone()));
+                                }
+                            }
+                        }
+                    }
+                    Located::Entry(key) => yield key,
                 }
             }
         }
@@ -1095,6 +1103,19 @@ mod test {
             tree.root,
             Cid::from_str("bafyreicmahysq4n6wfuxo522m6dpiy7z7qzym3dzs756t5n7nfdgccwq7m").unwrap()
         );
+
+        // Ensure keys are returned in lexicographic order.
+        let keys = tree.keys().try_collect::<Vec<_>>().await.unwrap();
+        assert_eq!(
+            keys.as_slice(),
+            &[
+                "com.example.record/3jqfcqzm3fp2j",
+                "com.example.record/3jqfcqzm3fr2j",
+                "com.example.record/3jqfcqzm3fs2j",
+                "com.example.record/3jqfcqzm3ft2j",
+                "com.example.record/3jqfcqzm4fc2j",
+            ]
+        )
     }
 
     #[tokio::test]
