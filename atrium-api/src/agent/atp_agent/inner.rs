@@ -1,100 +1,19 @@
 use super::{AtpSession, AtpSessionStore};
+use crate::agent::{InnerStore, WrapperClient};
 use crate::did_doc::DidDocument;
 use crate::types::string::Did;
 use crate::types::TryFromUnknown;
-use atrium_common::store::Store;
 use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
-use atrium_xrpc::types::AuthorizationToken;
 use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use tokio::sync::{Mutex, Notify};
 
-struct WrapperClient<S, T> {
-    store: Arc<InnerStore<S>>,
-    proxy_header: RwLock<Option<String>>,
-    labelers_header: Arc<RwLock<Option<Vec<String>>>>,
-    inner: Arc<T>,
-}
-
-impl<S, T> WrapperClient<S, T> {
-    fn configure_proxy_header(&self, value: String) {
-        self.proxy_header.write().expect("failed to write proxy header").replace(value);
-    }
-    fn configure_labelers_header(&self, labelers_dids: Option<Vec<(Did, bool)>>) {
-        *self.labelers_header.write().expect("failed to write labelers header") =
-            labelers_dids.map(|dids| {
-                dids.iter()
-                    .map(|(did, redact)| {
-                        if *redact {
-                            format!("{};redact", did.as_ref())
-                        } else {
-                            did.as_ref().into()
-                        }
-                    })
-                    .collect()
-            })
-    }
-}
-
-impl<S, T> Clone for WrapperClient<S, T> {
-    fn clone(&self) -> Self {
-        Self {
-            store: self.store.clone(),
-            labelers_header: self.labelers_header.clone(),
-            proxy_header: RwLock::new(
-                self.proxy_header.read().expect("failed to read proxy header").clone(),
-            ),
-            inner: self.inner.clone(),
-        }
-    }
-}
-
-impl<S, T> HttpClient for WrapperClient<S, T>
-where
-    S: Send + Sync,
-    T: HttpClient + Send + Sync,
-{
-    async fn send_http(
-        &self,
-        request: Request<Vec<u8>>,
-    ) -> core::result::Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>>
-    {
-        self.inner.send_http(request).await
-    }
-}
-
-impl<S, T> XrpcClient for WrapperClient<S, T>
-where
-    S: AtpSessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
-    S::Error: std::error::Error + Send + Sync + 'static,
-{
-    fn base_uri(&self) -> String {
-        self.store.get_endpoint()
-    }
-    async fn authorization_token(&self, is_refresh: bool) -> Option<AuthorizationToken> {
-        self.store.get_session().await.map(|session| {
-            AuthorizationToken::Bearer(if is_refresh {
-                session.data.refresh_jwt
-            } else {
-                session.data.access_jwt
-            })
-        })
-    }
-    async fn atproto_proxy_header(&self) -> Option<String> {
-        self.proxy_header.read().expect("failed to read proxy header").clone()
-    }
-    async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
-        self.labelers_header.read().expect("failed to read labelers header").clone()
-    }
-}
-
 pub struct Client<S, T> {
-    store: Arc<InnerStore<S>>,
-    inner: WrapperClient<S, T>,
+    store: Arc<InnerStore<S, AtpSession>>,
+    inner: WrapperClient<S, T, AtpSession>,
     is_refreshing: Arc<Mutex<bool>>,
     notify: Arc<Notify>,
 }
@@ -105,13 +24,8 @@ where
     T: XrpcClient + Send + Sync,
     S::Error: std::error::Error + Send + Sync + 'static,
 {
-    pub fn new(store: Arc<InnerStore<S>>, xrpc: T) -> Self {
-        let inner = WrapperClient {
-            store: Arc::clone(&store),
-            labelers_header: Arc::new(RwLock::new(None)),
-            proxy_header: RwLock::new(None),
-            inner: Arc::new(xrpc),
-        };
+    pub fn new(store: Arc<InnerStore<S, AtpSession>>, xrpc: T) -> Self {
+        let inner = WrapperClient::new(Arc::clone(&store), xrpc);
         Self {
             store,
             inner,
@@ -157,13 +71,13 @@ where
     }
     async fn refresh_session_inner(&self) {
         if let Ok(output) = self.call_refresh_session().await {
-            if let Some(mut session) = self.store.get_session().await {
+            if let Ok(Some(mut session)) = self.store.get().await {
                 session.access_jwt = output.data.access_jwt;
                 session.did = output.data.did;
                 session.did_doc = output.data.did_doc.clone();
                 session.handle = output.data.handle;
                 session.refresh_jwt = output.data.refresh_jwt;
-                self.store.set_session(session).await;
+                self.store.set(session).await.ok();
             }
             if let Some(did_doc) = output
                 .data
@@ -174,7 +88,7 @@ where
                 self.store.update_endpoint(&did_doc);
             }
         } else {
-            self.store.clear_session().await;
+            self.store.clear().await.ok();
         }
     }
     // same as `crate::client::com::atproto::server::Service::refresh_session()`
@@ -232,7 +146,7 @@ where
 
 impl<S, T> HttpClient for Client<S, T>
 where
-    S: Send + Sync,
+    S: AtpSessionStore + Send + Sync,
     T: HttpClient + Send + Sync,
 {
     async fn send_http(
@@ -271,61 +185,5 @@ where
         } else {
             result
         }
-    }
-}
-
-pub struct InnerStore<S> {
-    inner: S,
-    endpoint: RwLock<String>,
-}
-
-impl<S> InnerStore<S> {
-    pub fn new(inner: S, initial_endpoint: String) -> Self {
-        Self { inner, endpoint: RwLock::new(initial_endpoint) }
-    }
-    pub fn get_endpoint(&self) -> String {
-        self.endpoint.read().expect("failed to read endpoint").clone()
-    }
-    pub fn update_endpoint(&self, did_doc: &DidDocument) {
-        if let Some(endpoint) = did_doc.get_pds_endpoint() {
-            *self.endpoint.write().expect("failed to write endpoint") = endpoint;
-        }
-    }
-}
-
-impl<S> Store<(), AtpSession> for InnerStore<S>
-where
-    S: AtpSessionStore + Send + Sync,
-    S::Error: std::error::Error + Send + Sync + 'static,
-{
-    type Error = S::Error;
-
-    async fn get(&self, key: &()) -> core::result::Result<Option<AtpSession>, Self::Error> {
-        self.inner.get(key).await
-    }
-    async fn set(&self, key: (), session: AtpSession) -> core::result::Result<(), Self::Error> {
-        self.inner.set(key, session).await
-    }
-    async fn del(&self, key: &()) -> core::result::Result<(), Self::Error> {
-        self.inner.del(key).await
-    }
-    async fn clear(&self) -> core::result::Result<(), Self::Error> {
-        self.inner.clear().await
-    }
-}
-
-impl<S> AtpSessionStore for InnerStore<S>
-where
-    S: AtpSessionStore + Send + Sync,
-    S::Error: std::error::Error + Send + Sync + 'static,
-{
-    async fn get_session(&self) -> Option<AtpSession> {
-        self.inner.get_session().await
-    }
-    async fn set_session(&self, session: AtpSession) {
-        self.inner.set_session(session).await;
-    }
-    async fn clear_session(&self) {
-        self.inner.clear_session().await;
     }
 }

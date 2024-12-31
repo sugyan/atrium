@@ -5,7 +5,7 @@ pub mod store;
 
 use self::store::AtpSessionStore;
 use super::inner::Wrapper;
-use super::{Agent, SessionManager};
+use super::{Agent, InnerStore, SessionManager};
 use crate::{
     client::{com::atproto::Service as AtprotoService, Service},
     did_doc::DidDocument,
@@ -14,7 +14,7 @@ use crate::{
 use atrium_xrpc::{Error, HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
-use std::{fmt::Debug, ops::Deref, sync::Arc};
+use std::{convert, fmt::Debug, ops::Deref, sync::Arc};
 
 /// Type alias for the [com::atproto::server::create_session::Output](crate::com::atproto::server::create_session::Output)
 pub type AtpSession = crate::com::atproto::server::create_session::Output;
@@ -25,7 +25,7 @@ where
     S::Error: std::error::Error + Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
 {
-    store: Arc<inner::InnerStore<S>>,
+    store: Arc<InnerStore<S, AtpSession>>,
     inner: Arc<inner::Client<S, T>>,
     atproto_service: AtprotoService<inner::Client<S, T>>,
 }
@@ -37,7 +37,7 @@ where
     S::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn new(xrpc: T, store: S) -> Self {
-        let store = Arc::new(inner::InnerStore::new(store, xrpc.base_uri()));
+        let store = Arc::new(InnerStore::new(store, xrpc.base_uri()));
         let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
         Self {
             store: Arc::clone(&store),
@@ -63,7 +63,7 @@ where
                 .into(),
             )
             .await?;
-        self.store.set_session(result.clone()).await;
+        self.store.set(result.clone()).await.ok();
         if let Some(did_doc) = result
             .did_doc
             .as_ref()
@@ -78,17 +78,17 @@ where
         &self,
         session: AtpSession,
     ) -> Result<(), Error<crate::com::atproto::server::get_session::Error>> {
-        self.store.set_session(session.clone()).await;
+        self.store.set(session.clone()).await.ok();
         let result = self.atproto_service.server.get_session().await;
         match result {
             Ok(output) => {
                 assert_eq!(output.data.did, session.data.did);
-                if let Some(mut session) = self.store.get_session().await {
+                if let Ok(Some(mut session)) = self.store.get().await {
                     session.did_doc = output.data.did_doc.clone();
                     session.email = output.data.email;
                     session.email_confirmed = output.data.email_confirmed;
                     session.handle = output.data.handle;
-                    self.store.set_session(session).await;
+                    self.store.set(session).await.ok();
                 }
                 if let Some(did_doc) = output
                     .data
@@ -101,7 +101,7 @@ where
                 Ok(())
             }
             Err(err) => {
-                self.store.clear_session().await;
+                self.store.clear().await.ok();
                 Err(err)
             }
         }
@@ -130,7 +130,7 @@ where
     }
     /// Get the current session.
     pub async fn get_session(&self) -> Option<AtpSession> {
-        self.store.get_session().await
+        self.store.get().await.ok().and_then(convert::identity)
     }
     /// Get the current endpoint.
     pub async fn get_endpoint(&self) -> String {
@@ -190,7 +190,7 @@ where
     S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
-        self.store.get_session().await.map(|session| session.data.did)
+        self.store.get().await.ok().and_then(|session| session.map(|session| session.data.did))
     }
 }
 
@@ -302,12 +302,14 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::super::AtprotoServiceType;
     use super::store::MemorySessionStore;
     use super::*;
-    use crate::com::atproto::server::create_session::OutputData;
-    use crate::did_doc::{DidDocument, Service, VerificationMethod};
-    use crate::types::TryIntoUnknown;
+    use crate::{
+        agent::AtprotoServiceType,
+        com::atproto::server::create_session::OutputData,
+        did_doc::{DidDocument, Service, VerificationMethod},
+        types::TryIntoUnknown,
+    };
     use atrium_xrpc::HttpClient;
     use http::{HeaderMap, HeaderName, HeaderValue, Request, Response};
     use std::collections::HashMap;
@@ -491,7 +493,12 @@ mod tests {
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.session_manager.store.set_session(session_data.clone().into()).await;
+        agent
+            .session_manager
+            .store
+            .set(session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         let output = agent
             .api
             .com
@@ -525,7 +532,12 @@ mod tests {
             ..Default::default()
         };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.session_manager.store.set_session(session_data.clone().into()).await;
+        agent
+            .session_manager
+            .store
+            .set(session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         let output = agent
             .api
             .com
@@ -536,7 +548,13 @@ mod tests {
             .expect("get session should be succeeded");
         assert_eq!(output.did.as_str(), "did:web:example.com");
         assert_eq!(
-            agent.session_manager.store.get_session().await.map(|session| session.data.access_jwt),
+            agent
+                .session_manager
+                .store
+                .get()
+                .await
+                .expect("session should be stored")
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
     }
@@ -564,7 +582,12 @@ mod tests {
         };
         let counts = Arc::clone(&client.counts);
         let agent = Arc::new(AtpAgent::new(client, MemorySessionStore::default()));
-        agent.session_manager.store.set_session(session_data.clone().into()).await;
+        agent
+            .session_manager
+            .store
+            .set(session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         let handles = (0..3).map(|_| {
             let agent = Arc::clone(&agent);
             tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
@@ -579,7 +602,13 @@ mod tests {
             assert_eq!(output.did.as_str(), "did:web:example.com");
         }
         assert_eq!(
-            agent.session_manager.store.get_session().await.map(|session| session.data.access_jwt),
+            agent
+                .session_manager
+                .store
+                .get()
+                .await
+                .expect("session should be stored")
+                .map(|session| session.data.access_jwt),
             Some("access".into())
         );
         assert_eq!(
@@ -923,7 +952,12 @@ mod tests {
         let client = MockClient { responses: MockResponses::default(), ..Default::default() };
         let agent = AtpAgent::new(client, MemorySessionStore::default());
         assert_eq!(agent.did().await, None);
-        agent.session_manager.store.set_session(session_data.clone().into()).await;
+        agent
+            .session_manager
+            .store
+            .set(session_data.clone().into())
+            .await
+            .expect("set session should be succeeded");
         assert_eq!(agent.did().await, Some(session_data.did));
     }
 }
