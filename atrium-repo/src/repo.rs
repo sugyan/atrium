@@ -112,10 +112,10 @@ pub struct Repository<R: AsyncBlockStoreRead> {
 }
 
 impl<R: AsyncBlockStoreRead> Repository<R> {
-    /// Construct a new instance of a user repository. This is a cheap operation
+    /// Open a pre-existing instance of a user repository. This is a cheap operation
     /// that simply reads out the root commit from a repository (_without_ verifying
     /// its signature!)
-    pub async fn new(mut db: R, root: Cid) -> Result<Self, Error> {
+    pub async fn open(mut db: R, root: Cid) -> Result<Self, Error> {
         let commit_block = db.read_block(&root).await?;
         let latest_commit: schema::SignedCommit =
             serde_ipld_dagcbor::from_reader(&commit_block[..])?;
@@ -195,7 +195,7 @@ mod test {
         let db = CarStore::new(std::io::Cursor::new(bytes)).await?;
         let root = db.header().roots[0];
 
-        Repository::new(db, root).await.map_err(Into::into)
+        Repository::open(db, root).await.map_err(Into::into)
     }
 
     #[tokio::test]
