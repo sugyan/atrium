@@ -863,7 +863,7 @@ impl Node {
     /// Find the index of the first leaf node that has a key greater than or equal to the provided key.
     ///
     /// This may return an index that is equal to the length of `self.entries` (or in other words, OOB).
-    /// If the node has no leaves, this will return `None`.
+    /// If the node has no entries, this will return `None`.
     fn find_ge(&self, key: &str) -> Option<usize> {
         let mut e = self.entries.iter().enumerate().filter_map(|(i, e)| e.leaf().map(|e| (i, e)));
 
