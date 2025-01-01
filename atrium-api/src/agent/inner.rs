@@ -1,14 +1,11 @@
-use super::SessionManager;
+use super::{CloneWithProxy, SessionManager};
 use crate::types::string::Did;
 use atrium_xrpc::{Error, HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
 use std::{fmt::Debug, ops::Deref, sync::Arc};
 
-pub struct Wrapper<M>
-where
-    M: SessionManager + Send + Sync,
-{
+pub struct Wrapper<M> {
     inner: Arc<M>,
 }
 
@@ -40,15 +37,6 @@ where
     fn base_uri(&self) -> String {
         self.inner.base_uri()
     }
-    // async fn authentication_token(&self, is_refresh: bool) -> Option<String> {
-    //     self.inner.authentication_token(is_refresh).await
-    // }
-    // async fn atproto_proxy_header(&self) -> Option<String> {
-    //     self.inner.atproto_proxy_header().await
-    // }
-    // async fn atproto_accept_labelers_header(&self) -> Option<Vec<String>> {
-    //     self.inner.atproto_accept_labelers_header().await
-    // }
     async fn send_xrpc<P, I, O, E>(
         &self,
         request: &XrpcRequest<P, I>,
@@ -69,6 +57,15 @@ where
 {
     async fn did(&self) -> Option<Did> {
         self.inner.did().await
+    }
+}
+
+impl<M> CloneWithProxy for Wrapper<M>
+where
+    M: CloneWithProxy,
+{
+    fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
+        Self { inner: Arc::new(self.inner.clone_with_proxy(did, service_type)) }
     }
 }
 

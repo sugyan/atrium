@@ -1,14 +1,16 @@
 use super::{AtpSession, AtpSessionStore};
-use crate::agent::{InnerStore, WrapperClient};
-use crate::did_doc::DidDocument;
-use crate::types::string::Did;
-use crate::types::TryFromUnknown;
-use atrium_xrpc::error::{Error, Result, XrpcErrorKind};
-use atrium_xrpc::{HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
+use crate::{
+    agent::{Configure, InnerStore, WrapperClient},
+    did_doc::DidDocument,
+    types::{string::Did, TryFromUnknown},
+};
+use atrium_xrpc::{
+    error::{Error, Result, XrpcErrorKind},
+    {HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest},
+};
 use http::{Method, Request, Response};
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
-use std::sync::Arc;
+use std::{fmt::Debug, sync::Arc};
 use tokio::sync::{Mutex, Notify};
 
 pub struct Client<S, T> {
@@ -37,11 +39,11 @@ where
         *self.store.endpoint.write().expect("failed to write endpoint") = endpoint;
     }
     pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
-        self.inner.configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
+        self.inner.configure_proxy_header(did, service_type);
     }
     pub fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
         let cloned = self.clone();
-        cloned.inner.configure_proxy_header(format!("{}#{}", did.as_ref(), service_type.as_ref()));
+        cloned.inner.configure_proxy_header(did, service_type);
         cloned
     }
     pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {

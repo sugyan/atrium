@@ -39,11 +39,8 @@ where
     pub fn new(xrpc: T, store: S) -> Self {
         let store = Arc::new(InnerStore::new(store, xrpc.base_uri()));
         let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
-        Self {
-            store: Arc::clone(&store),
-            inner: Arc::clone(&inner),
-            atproto_service: AtprotoService::new(Arc::clone(&inner)),
-        }
+        let atproto_service = AtprotoService::new(Arc::clone(&inner));
+        Self { store, inner, atproto_service }
     }
     /// Start a new session with this agent.
     pub async fn login(
@@ -865,7 +862,7 @@ mod tests {
         assert_eq!(headers.read().await.last(), Some(&HeaderMap::new()));
 
         agent.configure_proxy_header(
-            "did:plc:test1".parse().expect("did should be balid"),
+            "did:plc:test1".parse().expect("did should be valid"),
             AtprotoServiceType::AtprotoLabeler,
         );
         agent
@@ -885,7 +882,7 @@ mod tests {
         );
 
         agent.configure_proxy_header(
-            "did:plc:test1".parse().expect("did should be balid"),
+            "did:plc:test1".parse().expect("did should be valid"),
             "atproto_labeler",
         );
         agent
@@ -906,7 +903,7 @@ mod tests {
 
         agent
             .api_with_proxy(
-                "did:plc:test2".parse().expect("did should be balid"),
+                "did:plc:test2".parse().expect("did should be valid"),
                 "atproto_labeler",
             )
             .com
