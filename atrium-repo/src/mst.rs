@@ -809,14 +809,19 @@ impl Node {
         let mut prev_key = vec![];
         let mut i = 0usize;
         while i != ents.len() {
-            // Skip this window if the first entry is not a leaf.
-            let leaf = if let Some(leaf) = ents.get(i).and_then(NodeEntry::leaf) {
-                leaf
-            } else {
-                i += 1;
-                continue;
+            let (leaf, tree) = match (ents.get(i), ents.get(i + 1)) {
+                (Some(NodeEntry::Tree(_)), Some(NodeEntry::Tree(_))) => {
+                    // We should never encounter this. If this is hit, something went wrong when modifying the tree.
+                    panic!("attempted to serialize node with two adjacent trees")
+                }
+                (Some(NodeEntry::Leaf(leaf)), Some(NodeEntry::Tree(tree))) => (leaf, Some(tree)),
+                (Some(NodeEntry::Leaf(leaf)), _) => (leaf, None),
+                // Skip this window if the first entry is not a leaf.
+                _ => {
+                    i += 1;
+                    continue;
+                }
             };
-            let tree = ents.get(i + 1).and_then(NodeEntry::tree);
 
             let prefix = prefix(&prev_key, &leaf.key.as_bytes());
 
