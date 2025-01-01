@@ -3,18 +3,22 @@ members = [
     "atrium-api",
     "atrium-common",
     "atrium-crypto",
+    "atrium-repo",
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-oauth/identity",
     "atrium-oauth/oauth-client",
     "bsky-cli",
     "bsky-sdk",
+
+    # "examples/concurrent",
+    "examples/firehose",
 ]
 # Examples show how to use the latest published crates, not the workspace state.
 exclude = [
-    "examples/concurrent",
-    "examples/firehose",
-    "examples/video",
+    # "examples/concurrent",
+    # "examples/firehose",
+    # "examples/video",
 ]
 resolver = "2"
 
@@ -27,12 +31,19 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.24.9", path = "atrium-api", default-features = false }
+atrium-api = { version = "0.24.9", path = "atrium-api" }
 atrium-common = { version = "0.1.0", path = "atrium-common" }
 atrium-identity = { version = "0.1.0", path = "atrium-oauth/identity" }
 atrium-xrpc = { version = "0.12.0", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.10", path = "atrium-xrpc-client" }
 bsky-sdk = { version = "0.1.14", path = "bsky-sdk" }
+
+# async in streams
+async-stream = "0.3"
+
+# async in traits
+# Can be removed once MSRV is at least 1.75.0.
+async-trait = "0.1.68"
 
 # DAG-CBOR codec
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
@@ -49,6 +60,7 @@ serde = "1.0.202"
 serde_bytes = "0.11.9"
 serde_html_form = "0.2.6"
 serde_json = "1.0.125"
+unsigned-varint = "0.8"
 
 # Cryptography
 ecdsa = "0.16.9"
@@ -69,6 +81,7 @@ http = "1.1.0"
 lru = "0.12.4"
 moka = "0.12.8"
 tokio = { version = "1.39", default-features = false }
+tokio-util = "0.7"
 
 # HTTP client integrations
 isahc = "1.7.2"
