@@ -69,6 +69,31 @@ mod algos {
         Stop(R),
     }
 
+    /// Compute the depth of the specified node.
+    ///
+    /// If both the node and its nested subtrees do not contain leaves, this will return `None`.
+    pub async fn compute_depth(
+        mut bs: impl AsyncBlockStoreRead,
+        node: Cid,
+    ) -> Result<Option<usize>, Error> {
+        // Recursively iterate through the tree until we encounter a leaf node, and then
+        // use that to calculate the depth of the entire tree.
+        let mut subtrees = vec![(node, 0usize)];
+
+        loop {
+            if let Some((subtree, depth)) = subtrees.pop() {
+                let node = Node::read_from(&mut bs, subtree).await?;
+                if let Some(layer) = node.layer() {
+                    return Ok(Some(depth + layer));
+                }
+
+                subtrees.extend(node.trees().cloned().zip(std::iter::repeat(depth + 1)));
+            } else {
+                return Ok(None);
+            }
+        }
+    }
+
     /// Traverse a merkle search tree.
     ///
     /// This executes the closure provided in `f` and takes the action
@@ -385,7 +410,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
         // 2) The target layer is contained within the tree (and we will traverse to find it).
         // 3) The tree is currently empty (trivial).
         let mut node = match self.depth(None).await {
-            Ok(layer) => {
+            Ok(Some(layer)) => {
                 match layer.cmp(&target_layer) {
                     // The new key can be inserted into the root node.
                     Ordering::Equal => Node::read_from(&mut self.storage, node_cid).await?,
@@ -458,7 +483,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
                     }
                 }
             }
-            Err(Error::EmptyTree) => {
+            Ok(None) => {
                 // The tree is currently empty.
                 Node { entries: vec![] }
             }
@@ -632,23 +657,8 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
     }
 
     /// Compute the depth of the merkle search tree from either the specified node or the root
-    pub async fn depth(&mut self, node: Option<Cid>) -> Result<usize, Error> {
-        // Recursively iterate through the tree until we encounter a leaf node, and then
-        // use that to calculate the depth of the entire tree.
-        let mut subtrees = vec![(node.unwrap_or(self.root), 0usize)];
-
-        loop {
-            if let Some((subtree, depth)) = subtrees.pop() {
-                let node = Node::read_from(&mut self.storage, subtree).await?;
-                if let Some(layer) = node.layer() {
-                    return Ok(depth + layer);
-                }
-
-                subtrees.extend(node.trees().cloned().zip(std::iter::repeat(depth + 1)));
-            } else {
-                return Err(Error::EmptyTree);
-            }
-        }
+    pub async fn depth(&mut self, node: Option<Cid>) -> Result<Option<usize>, Error> {
+        algos::compute_depth(&mut self.storage, node.unwrap_or(self.root)).await
     }
 
     /// Returns a stream of all entries in this tree, in lexicographic order.
@@ -976,8 +986,6 @@ pub enum Error {
     InvalidPrefixLen,
     #[error("key_suffix not a byte string")]
     KeySuffixNotBytes,
-    #[error("the tree is empty")]
-    EmptyTree,
     #[error("the key is already present in the tree")]
     KeyAlreadyExists,
     #[error("the key is not present in the tree")]
@@ -994,6 +1002,7 @@ pub enum Error {
 mod test {
     use std::str::FromStr;
 
+    use futures::TryStreamExt;
     use ipld_core::cid::multihash::Multihash;
 
     use crate::blockstore::{MemoryBlockStore, SHA2_256};
@@ -1145,7 +1154,7 @@ mod test {
             tree.root,
             Cid::from_str("bafyreifnqrwbk6ffmyaz5qtujqrzf5qmxf7cbxvgzktl4e3gabuxbtatv4").unwrap()
         );
-        assert_eq!(tree.depth(None).await.unwrap(), 1);
+        assert_eq!(tree.depth(None).await.unwrap(), Some(1));
 
         tree.delete("com.example.record/3jqfcqzm3fs2j").await.unwrap(); // level 1
 
@@ -1306,7 +1315,7 @@ mod test {
         tree.add("com.example.record/3jqfcqzm3fz2j", value_cid()).await.unwrap(); // C; level 0
 
         assert_eq!(tree.root, root12);
-        assert_eq!(tree.depth(None).await.unwrap(), 2);
+        assert_eq!(tree.depth(None).await.unwrap(), Some(2));
 
         // remove A. This should remove the entire left side of the tree.
         tree.delete("com.example.record/3jqfcqzm3ft2j").await.unwrap(); // A; level 0
