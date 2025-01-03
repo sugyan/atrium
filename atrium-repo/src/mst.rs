@@ -348,22 +348,12 @@ fn leading_zeroes(key: &[u8]) -> usize {
     let mut zeroes = 0;
 
     for byte in digest.iter() {
-        /* 64 */
-        if *byte < 0b0100_0000 {
-            zeroes += 1;
-        }
-        /* 16 */
-        if *byte < 0b0001_0000 {
-            zeroes += 1;
-        }
-        /* 4 */
-        if *byte < 0b0000_0100 {
-            zeroes += 1;
-        }
+        zeroes += (*byte < 0b0100_0000) as usize; // 64
+        zeroes += (*byte < 0b0001_0000) as usize; // 16
+        zeroes += (*byte < 0b0000_0100) as usize; // 4
+        zeroes += (*byte < 0b0000_0001) as usize; // 1
 
-        if *byte == 0 {
-            zeroes += 1;
-        } else {
+        if *byte != 0 {
             // If the byte is nonzero, then there cannot be any more leading zeroes.
             break;
         }
@@ -386,6 +376,20 @@ fn leading_zeroes(key: &[u8]) -> usize {
 pub struct Tree<S> {
     storage: S,
     root: Cid,
+}
+
+// N.B: It's trivial to clone the tree if it's trivial to clone the backing storage,
+// so implement clone if the storage also implements it.
+impl<S: Clone> Clone for Tree<S> {
+    fn clone(&self) -> Self {
+        Self { storage: self.storage.clone(), root: self.root.clone() }
+    }
+}
+
+impl<S> std::fmt::Debug for Tree<S> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Tree").field("root", &self.root).finish_non_exhaustive()
+    }
 }
 
 impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
