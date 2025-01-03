@@ -363,7 +363,24 @@ fn leading_zeroes(key: &[u8]) -> usize {
 }
 
 /// A merkle search tree data structure, backed by storage implementing
-/// [AsyncBlockStoreRead] and [AsyncBlockStoreWrite].
+/// [AsyncBlockStoreRead] and optionally [AsyncBlockStoreWrite].
+///
+/// This data structure is merely a convenience structure that implements
+/// algorithms that handle certain common operations one may want to perform
+/// against a MST.
+///
+/// The structure does not actually load the merkle search tree into memory
+/// or perform any deep copies. The tree itself lives entirely inside of the
+/// provided backing storage. This also carries the implication that any operation
+/// performed against the tree will have performance that reflects that of accesses
+/// to the backing storage.
+///
+/// If your backing storage is implemented by a cloud service, such as a
+/// database or block storage service, you will likely want to insert a
+/// caching layer in your block storage to ensure that performance remains
+/// fast.
+///
+/// ---
 ///
 /// There are two factors that determine the placement of nodes inside of
 /// a merkle search tree:
