@@ -36,9 +36,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .app
                     .bsky
                     .actor
-                    .get_profile(atrium_api::app::bsky::actor::get_profile::Parameters {
-                        actor: actor.parse().expect("invalid actor"),
-                    })
+                    .get_profile(
+                        atrium_api::app::bsky::actor::get_profile::ParametersData {
+                            actor: actor.parse().expect("invalid actor"),
+                        }
+                        .into(),
+                    )
                     .await
             })
         })
@@ -46,7 +49,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let results = join_all(handles).await;
     println!("{} profiles fetched!", results.len());
     for (actor, result) in actors.iter().zip(results) {
-        println!("{actor}: {:#?}", result?);
+        println!("{actor}: {:?}", result?);
     }
     Ok(())
 }

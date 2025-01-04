@@ -3,6 +3,7 @@ use atrium_api::app::bsky::feed::post::Record;
 use atrium_api::com::atproto::sync::subscribe_repos::{Commit, NSID};
 use atrium_api::types::{CidLink, Collection};
 use chrono::Local;
+use firehose::cid_compat::CidOld;
 use firehose::stream::frames::Frame;
 use firehose::subscription::{CommitHandler, Subscription};
 use futures::StreamExt;
@@ -54,7 +55,12 @@ impl CommitHandler for Firehose {
                 continue;
             }
             let (items, _) = rs_car::car_read_all(&mut commit.blocks.as_slice(), true).await?;
-            if let Some((_, item)) = items.iter().find(|(cid, _)| Some(CidLink(*cid)) == op.cid) {
+            if let Some((_, item)) = items.iter().find(|(cid, _)| {
+                //
+                // convert cid from v0.10.1 to v0.11.1
+                let cid = CidOld::from(*cid).try_into().expect("couldn't convert old to new cid");
+                Some(CidLink(cid)) == op.cid
+            }) {
                 let record = serde_ipld_dagcbor::from_reader::<Record, _>(&mut item.as_slice())?;
                 println!(
                     "{} - {}",
@@ -78,8 +84,5 @@ impl CommitHandler for Firehose {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    RepoSubscription::new("bsky.network")
-        .await?
-        .run(Firehose)
-        .await
+    RepoSubscription::new("bsky.network").await?.run(Firehose).await
 }

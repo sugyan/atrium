@@ -10,5 +10,5 @@ pub enum Error {
     NotAllowed,
 }
 
-/// Type alias to use this library's [`Error`] type in a [`Result`](core::result::Result).
+/// Type alias to use this library's [`Error`](enum@crate::error::Error) type in a [`Result`](core::result::Result).
 pub type Result<T> = core::result::Result<T, Error>;

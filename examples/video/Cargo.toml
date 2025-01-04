@@ -1,0 +1,12 @@
+[package]
+name = "video"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+atrium-api = { version = "0.24.8", features = ["agent"] }
+atrium-xrpc-client.version = "0.5.10"
+clap = { version = "4.5.21", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_html_form = { version = "0.2.6", default-features = false }
+tokio = { version = "1.41.1", features = ["macros", "rt-multi-thread"] }

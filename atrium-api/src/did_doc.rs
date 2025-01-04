@@ -39,6 +39,12 @@ impl DidDocument {
     pub fn get_pds_endpoint(&self) -> Option<String> {
         self.get_service_endpoint("#atproto_pds", "AtprotoPersonalDataServer")
     }
+    pub fn get_feed_gen_endpoint(&self) -> Option<String> {
+        self.get_service_endpoint("#bsky_fg", "BskyFeedGenerator")
+    }
+    pub fn get_notif_endpoint(&self) -> Option<String> {
+        self.get_service_endpoint("#bsky_notif", "BskyNotificationService")
+    }
     fn get_service_endpoint(&self, id: &str, r#type: &str) -> Option<String> {
         let full_id = self.id.to_string() + id;
         if let Some(services) = &self.service {
@@ -61,5 +67,12 @@ impl DidDocument {
                 _ => false,
             })
             .unwrap_or_default()
+    }
+    pub fn get_signing_key(&self) -> Option<&VerificationMethod> {
+        self.verification_method.as_ref().and_then(|methods| {
+            methods.iter().find(|method| {
+                method.id == "#atproto" || method.id == format!("{}#atproto", self.id)
+            })
+        })
     }
 }
