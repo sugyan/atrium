@@ -1,6 +1,6 @@
 use super::{AtpSession, AtpSessionStore};
 use crate::{
-    agent::{Configure, InnerStore, WrapperClient},
+    agent::{CloneWithProxy, Configure, InnerStore, WrapperClient},
     did_doc::DidDocument,
     types::{string::Did, TryFromUnknown},
 };
@@ -34,20 +34,6 @@ where
             is_refreshing: Arc::new(Mutex::new(false)),
             notify: Arc::new(Notify::new()),
         }
-    }
-    pub fn configure_endpoint(&self, endpoint: String) {
-        *self.store.endpoint.write().expect("failed to write endpoint") = endpoint;
-    }
-    pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
-        self.inner.configure_proxy_header(did, service_type);
-    }
-    pub fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
-        let cloned = self.clone();
-        cloned.inner.configure_proxy_header(did, service_type);
-        cloned
-    }
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
-        self.inner.configure_labelers_header(labeler_dids);
     }
     pub async fn get_labelers_header(&self) -> Option<Vec<String>> {
         self.inner.atproto_accept_labelers_header().await
@@ -131,11 +117,27 @@ where
     }
 }
 
-impl<S, T> Clone for Client<S, T>
-where
-    S: AtpSessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
-{
+impl<S, T> Configure for Client<S, T> {
+    fn configure_endpoint(&self, endpoint: String) {
+        *self.store.endpoint.write().expect("failed to write endpoint") = endpoint;
+    }
+    fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
+        self.inner.configure_labelers_header(labeler_dids);
+    }
+    fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+        self.inner.configure_proxy_header(did, service_type);
+    }
+}
+
+impl<S, T> CloneWithProxy for Client<S, T> {
+    fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
+        let cloned = self.clone();
+        cloned.inner.configure_proxy_header(did, service_type);
+        cloned
+    }
+}
+
+impl<S, T> Clone for Client<S, T> {
     fn clone(&self) -> Self {
         Self {
             store: self.store.clone(),

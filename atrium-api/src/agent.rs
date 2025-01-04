@@ -78,6 +78,9 @@ impl<M> Agent<M>
 where
     M: CloneWithProxy + SessionManager + Send + Sync,
 {
+    /// Configures the atproto-proxy header to be applied on requests.
+    ///
+    /// Returns a new client service with the proxy header configured.
     pub fn api_with_proxy(
         &self,
         did: Did,
@@ -91,12 +94,15 @@ impl<M> Configure for Agent<M>
 where
     M: Configure + SessionManager + Send + Sync,
 {
+    /// Set the current endpoint.
     fn configure_endpoint(&self, endpoint: String) {
         self.session_manager.configure_endpoint(endpoint);
     }
+    /// Configures the moderation services to be applied on requests.
     fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
         self.session_manager.configure_labelers_header(labeler_dids);
     }
+    /// Configures the atproto-proxy header to be applied on requests.
     fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
         self.session_manager.configure_proxy_header(did, service_type);
     }

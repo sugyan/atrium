@@ -1,4 +1,4 @@
-use super::{CloneWithProxy, SessionManager};
+use super::{CloneWithProxy, Configure, SessionManager};
 use crate::types::string::Did;
 use atrium_xrpc::{Error, HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
 use http::{Request, Response};
@@ -57,6 +57,21 @@ where
 {
     async fn did(&self) -> Option<Did> {
         self.inner.did().await
+    }
+}
+
+impl<M> Configure for Wrapper<M>
+where
+    M: Configure,
+{
+    fn configure_endpoint(&self, endpoint: String) {
+        self.inner.configure_endpoint(endpoint);
+    }
+    fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
+        self.inner.configure_labelers_header(labeler_dids);
+    }
+    fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+        self.inner.configure_proxy_header(did, service_type);
     }
 }
 

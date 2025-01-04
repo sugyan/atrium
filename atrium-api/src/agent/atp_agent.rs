@@ -4,10 +4,9 @@ mod inner;
 pub mod store;
 
 use self::store::AtpSessionStore;
-use super::inner::Wrapper;
-use super::{Agent, InnerStore, SessionManager};
+use super::{inner::Wrapper, Agent, CloneWithProxy, Configure, InnerStore, SessionManager};
 use crate::{
-    client::{com::atproto::Service as AtprotoService, Service},
+    client::com::atproto::Service,
     did_doc::DidDocument,
     types::{string::Did, TryFromUnknown},
 };
@@ -22,12 +21,12 @@ pub type AtpSession = crate::com::atproto::server::create_session::Output;
 pub struct CredentialSession<S, T>
 where
     S: AtpSessionStore + Send + Sync,
-    S::Error: std::error::Error + Send + Sync + 'static,
     T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     store: Arc<InnerStore<S, AtpSession>>,
     inner: Arc<inner::Client<S, T>>,
-    atproto_service: AtprotoService<inner::Client<S, T>>,
+    atproto_service: Service<inner::Client<S, T>>,
 }
 
 impl<S, T> CredentialSession<S, T>
@@ -39,7 +38,7 @@ where
     pub fn new(xrpc: T, store: S) -> Self {
         let store = Arc::new(InnerStore::new(store, xrpc.base_uri()));
         let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
-        let atproto_service = AtprotoService::new(Arc::clone(&inner));
+        let atproto_service = Service::new(Arc::clone(&inner));
         Self { store, inner, atproto_service }
     }
     /// Start a new session with this agent.
@@ -102,28 +101,6 @@ where
                 Err(err)
             }
         }
-    }
-    /// Set the current endpoint.
-    pub fn configure_endpoint(&self, endpoint: String) {
-        self.inner.configure_endpoint(endpoint);
-    }
-    /// Configures the moderation services to be applied on requests.
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
-        self.inner.configure_labelers_header(labeler_dids);
-    }
-    /// Configures the atproto-proxy header to be applied on requests.
-    pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
-        self.inner.configure_proxy_header(did, service_type);
-    }
-    /// Configures the atproto-proxy header to be applied on requests.
-    ///
-    /// Returns a new client service with the proxy header configured.
-    pub fn api_with_proxy(
-        &self,
-        did: Did,
-        service_type: impl AsRef<str>,
-    ) -> Service<inner::Client<S, T>> {
-        Service::new(Arc::new(self.inner.clone_with_proxy(did, service_type)))
     }
     /// Get the current session.
     pub async fn get_session(&self) -> Option<AtpSession> {
@@ -191,6 +168,36 @@ where
     }
 }
 
+impl<S, T> Configure for CredentialSession<S, T>
+where
+    S: AtpSessionStore + Send + Sync,
+    T: XrpcClient + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
+{
+    fn configure_endpoint(&self, endpoint: String) {
+        self.inner.configure_endpoint(endpoint);
+    }
+    fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
+        self.inner.configure_labelers_header(labeler_dids);
+    }
+    fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+        self.inner.configure_proxy_header(did, service_type);
+    }
+}
+
+impl<S, T> CloneWithProxy for CredentialSession<S, T>
+where
+    S: AtpSessionStore + Send + Sync,
+    S::Error: std::error::Error + Send + Sync + 'static,
+    T: XrpcClient + Send + Sync,
+{
+    fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
+        let inner = Arc::new(self.inner.clone_with_proxy(did, service_type));
+        let atproto_service = Service::new(Arc::clone(&inner));
+        Self { store: Arc::clone(&self.store), inner, atproto_service }
+    }
+}
+
 /// An ATP "Agent".
 /// Manages session token lifecycles and provides convenience methods.
 ///
@@ -243,28 +250,6 @@ where
         session: AtpSession,
     ) -> Result<(), Error<crate::com::atproto::server::get_session::Error>> {
         self.session_manager.resume_session(session).await
-    }
-    // /// Set the current endpoint.
-    pub fn configure_endpoint(&self, endpoint: String) {
-        self.session_manager.configure_endpoint(endpoint);
-    }
-    /// Configures the moderation services to be applied on requests.
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
-        self.session_manager.configure_labelers_header(labeler_dids);
-    }
-    /// Configures the atproto-proxy header to be applied on requests.
-    pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
-        self.session_manager.configure_proxy_header(did, service_type);
-    }
-    /// Configures the atproto-proxy header to be applied on requests.
-    ///
-    /// Returns a new client service with the proxy header configured.
-    pub fn api_with_proxy(
-        &self,
-        did: Did,
-        service_type: impl AsRef<str>,
-    ) -> Service<inner::Client<S, T>> {
-        self.session_manager.api_with_proxy(did, service_type)
     }
     /// Get the current session.
     pub async fn get_session(&self) -> Option<AtpSession> {
