@@ -171,10 +171,6 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
 
         Ok(cid)
     }
-
-    async fn delete_block(&mut self, _cid: &Cid) -> Result<(), blockstore::Error> {
-        todo!()
-    }
 }
 
 /// Errors that can occur while interacting with a CAR.

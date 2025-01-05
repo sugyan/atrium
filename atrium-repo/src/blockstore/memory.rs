@@ -38,9 +38,4 @@ impl AsyncBlockStoreWrite for MemoryBlockStore {
         self.blocks.insert(cid, contents.to_vec());
         Ok(cid)
     }
-
-    async fn delete_block(&mut self, cid: &Cid) -> Result<(), Error> {
-        self.blocks.remove(cid).ok_or(Error::CidNotFound)?;
-        Ok(())
-    }
 }

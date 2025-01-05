@@ -42,9 +42,6 @@ pub trait AsyncBlockStoreWrite: Send {
         hash: u64,
         contents: &[u8],
     ) -> impl Future<Output = Result<Cid, Error>> + Send;
-
-    /// Delete a single block from the block store.
-    fn delete_block(&mut self, cid: &Cid) -> impl Future<Output = Result<(), Error>> + Send;
 }
 
 impl<T: AsyncBlockStoreRead> AsyncBlockStoreRead for &mut T {
@@ -65,10 +62,6 @@ impl<T: AsyncBlockStoreWrite> AsyncBlockStoreWrite for &mut T {
         contents: &[u8],
     ) -> impl Future<Output = Result<Cid, Error>> + Send {
         (**self).write_block(codec, hash, contents)
-    }
-
-    fn delete_block(&mut self, cid: &Cid) -> impl Future<Output = Result<(), Error>> + Send {
-        (**self).delete_block(cid)
     }
 }
 
