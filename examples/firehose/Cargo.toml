@@ -11,8 +11,6 @@ atrium-repo = { path = "../../atrium-repo" }
 
 anyhow = "1.0.80"
 chrono = "0.4.34"
-cid_old = { package = "cid", version = "0.10.1" }
-cid = { package = "cid", version = "0.11.1" }
 futures = "0.3.30"
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
 serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }

@@ -1,6 +1,5 @@
 use anyhow::{anyhow, Result};
 use chrono::Local;
-use firehose::cid_compat::CidOld;
 use firehose::stream::frames::Frame;
 use firehose::subscription::{CommitHandler, Subscription};
 use futures::StreamExt;
@@ -10,8 +9,7 @@ use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 
 use atrium_api::app::bsky::feed;
 use atrium_api::com::atproto::sync::subscribe_repos::{Commit, NSID};
-use atrium_api::types::string::RecordKey;
-use atrium_api::types::{CidLink, Collection};
+use atrium_api::types::Collection;
 use atrium_repo::{blockstore::CarStore, Repository};
 
 struct RepoSubscription {
