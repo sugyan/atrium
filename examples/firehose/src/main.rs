@@ -59,7 +59,7 @@ struct Firehose;
 impl CommitHandler for Firehose {
     async fn handle_commit(&self, commit: &Commit) -> Result<()> {
         let mut repo = Repository::open(
-            CarStore::new(std::io::Cursor::new(commit.blocks.as_slice())).await?,
+            CarStore::open(std::io::Cursor::new(commit.blocks.as_slice())).await?,
             // N.B: This same CID is also specified inside of the `CarStore`, accessible
             // via `car.header().roots[0]`.
             commit.commit.0,

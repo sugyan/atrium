@@ -192,8 +192,8 @@ mod test {
     async fn load(
         bytes: &[u8],
     ) -> Result<Repository<CarStore<std::io::Cursor<&[u8]>>>, Box<dyn std::error::Error>> {
-        let db = CarStore::new(std::io::Cursor::new(bytes)).await?;
-        let root = db.header().roots[0];
+        let db = CarStore::open(std::io::Cursor::new(bytes)).await?;
+        let root = db.roots().next().unwrap();
 
         Repository::open(db, root).await.map_err(Into::into)
     }
