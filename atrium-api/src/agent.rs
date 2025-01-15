@@ -25,8 +25,11 @@ pub trait AuthorizationProvider {
 }
 
 pub trait Configure {
+    /// Set the current endpoint.
     fn configure_endpoint(&self, endpoint: String);
+    /// Configures the moderation services to be applied on requests.
     fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>);
+    /// Configures the atproto-proxy header to be applied on requests.
     fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>);
 }
 
@@ -94,15 +97,12 @@ impl<M> Configure for Agent<M>
 where
     M: Configure + SessionManager + Send + Sync,
 {
-    /// Set the current endpoint.
     fn configure_endpoint(&self, endpoint: String) {
         self.session_manager.configure_endpoint(endpoint);
     }
-    /// Configures the moderation services to be applied on requests.
     fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
         self.session_manager.configure_labelers_header(labeler_dids);
     }
-    /// Configures the atproto-proxy header to be applied on requests.
     fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
         self.session_manager.configure_proxy_header(did, service_type);
     }
@@ -192,7 +192,7 @@ where
 impl<S, T, U> XrpcClient for WrapperClient<S, T, U>
 where
     S: Store<(), U> + AuthorizationProvider + Send + Sync,
-    T: XrpcClient + Send + Sync,
+    T: HttpClient + Send + Sync,
     U: Clone + Send + Sync,
 {
     fn base_uri(&self) -> String {
@@ -499,7 +499,7 @@ mod tests {
         // labeler service
         {
             agent.configure_proxy_header(
-                Did::new(String::from("did:fake:service.test")).expect("did should be valid"),
+                Did::new(String::from("did:fake:service.test"))?,
                 AtprotoServiceType::AtprotoLabeler,
             );
             call_service(&agent.api).await?;
@@ -514,7 +514,7 @@ mod tests {
         // custom service
         {
             agent.configure_proxy_header(
-                Did::new(String::from("did:fake:service.test")).expect("did should be valid"),
+                Did::new(String::from("did:fake:service.test"))?,
                 "custom_service",
             );
             call_service(&agent.api).await?;
@@ -528,10 +528,12 @@ mod tests {
         }
         // api_with_proxy
         {
-            call_service(&agent.api_with_proxy(
-                Did::new(String::from("did:fake:service.test")).expect("did should be valid"),
-                "temp_service",
-            ))
+            call_service(
+                &agent.api_with_proxy(
+                    Did::new(String::from("did:fake:service.test"))?,
+                    "temp_service",
+                ),
+            )
             .await?;
             assert_eq!(
                 data.lock().await.as_ref().expect("data should be recorded").headers,

@@ -320,3 +320,18 @@ where
         Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set)?)
     }
 }
+
+impl<T, D, H> Clone for OAuthServerAgent<T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    fn clone(&self) -> Self {
+        Self {
+            server_metadata: self.server_metadata.clone(),
+            client_metadata: self.client_metadata.clone(),
+            dpop_client: self.dpop_client.clone(),
+            resolver: Arc::clone(&self.resolver),
+            keyset: self.keyset.clone(),
+        }
+    }
+}

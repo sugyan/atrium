@@ -1,7 +1,7 @@
 use atrium_api::types::string::Language;
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 pub struct OAuthAuthorizationServerMetadata {
     // https://datatracker.ietf.org/doc/html/rfc8414#section-2
     pub issuer: String,

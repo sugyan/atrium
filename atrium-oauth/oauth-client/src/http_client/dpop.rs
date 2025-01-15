@@ -187,3 +187,14 @@ where
         Ok(response)
     }
 }
+
+impl<T> Clone for DpopClient<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+            key: self.key.clone(),
+            nonces: self.nonces.clone(),
+            is_auth_server: self.is_auth_server,
+        }
+    }
+}
