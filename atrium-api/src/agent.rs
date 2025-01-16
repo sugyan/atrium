@@ -234,13 +234,13 @@ where
     S: Store<(), U>,
     U: Clone,
 {
-    async fn get(&self) -> Result<Option<U>, S::Error> {
+    pub async fn get(&self) -> Result<Option<U>, S::Error> {
         self.inner.get(&()).await
     }
-    async fn set(&self, value: U) -> Result<(), S::Error> {
+    pub async fn set(&self, value: U) -> Result<(), S::Error> {
         self.inner.set((), value).await
     }
-    async fn clear(&self) -> Result<(), S::Error> {
+    pub async fn clear(&self) -> Result<(), S::Error> {
         self.inner.clear().await
     }
 }

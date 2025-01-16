@@ -14,16 +14,16 @@ impl Store<(), String> for MemorySessionStore {
     type Error = store::memory::Error;
 
     async fn get(&self, key: &()) -> Result<Option<String>, Self::Error> {
-        todo!()
+        self.0.get(key).await
     }
     async fn set(&self, key: (), value: String) -> Result<(), Self::Error> {
-        todo!()
+        self.0.set(key, value).await
     }
     async fn del(&self, key: &()) -> Result<(), Self::Error> {
-        todo!()
+        self.0.del(key).await
     }
     async fn clear(&self) -> Result<(), Self::Error> {
-        todo!()
+        self.0.clear().await
     }
 }
 

@@ -44,6 +44,8 @@ pub enum Error {
     #[error(transparent)]
     DpopClient(#[from] crate::http_client::dpop::Error),
     #[error(transparent)]
+    OAuthSession(#[from] crate::oauth_session::Error),
+    #[error(transparent)]
     Http(#[from] atrium_xrpc::http::Error),
     #[error("http client error: {0}")]
     HttpClient(Box<dyn std::error::Error + Send + Sync + 'static>),
@@ -317,7 +319,7 @@ where
         let dpop_key = self.dpop_client.key.clone();
         // TODO
         let session = session_getter.get(&sub).await.expect("").unwrap();
-        Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set)?)
+        Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set).await?)
     }
 }
 
