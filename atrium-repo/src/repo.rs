@@ -1,15 +1,12 @@
 use atrium_api::types::{
-    string::{Did, Nsid, RecordKey, Tid},
+    string::{Did, Tid},
     Collection,
 };
 use ipld_core::{cid::Cid, ipld::Ipld};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
-use crate::{
-    blockstore::{self, AsyncBlockStoreRead},
-    mst,
-};
+use crate::{blockstore::AsyncBlockStoreRead, mst};
 
 mod schema {
     use super::*;
@@ -155,17 +152,6 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     }
 }
 
-#[inline(always)]
-fn fmt_prefix(nsid: Nsid) -> String {
-    let mut prefix: String = nsid.into();
-    prefix.push('/');
-    prefix
-}
-
-fn parse_recordkey(key: &str) -> Result<RecordKey, Error> {
-    key.parse::<RecordKey>().map_err(Error::InvalidRecordKey)
-}
-
 /// Errors that can occur while interacting with a repository.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -183,8 +169,8 @@ pub enum Error {
 
 #[cfg(test)]
 mod test {
+    use crate::blockstore::CarStore;
     use atrium_api::types::Object;
-    use blockstore::CarStore;
 
     use super::*;
 

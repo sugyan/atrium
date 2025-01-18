@@ -2,10 +2,7 @@ use std::{cmp::Ordering, collections::HashSet, convert::Infallible};
 
 use async_stream::try_stream;
 use futures::{Stream, StreamExt};
-use ipld_core::{
-    cid::{multihash::Multihash, Cid},
-    ipld::Ipld,
-};
+use ipld_core::{cid::Cid, ipld::Ipld};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
