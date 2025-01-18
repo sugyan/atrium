@@ -325,6 +325,254 @@ mod algos {
 
         Ok((left, right))
     }
+
+    /// Prune entries that contain a single nested tree entry from the root.
+    pub async fn prune(
+        mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
+        root: Cid,
+    ) -> Result<Cid, Error> {
+        let (_node_path, cid) = algos::traverse(&mut bs, root, algos::traverse_prune()).await?;
+        Ok(cid)
+    }
+
+    pub async fn add(
+        mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
+        root: Cid,
+        key: &str,
+        value: Cid,
+    ) -> Result<Cid, Error> {
+        // Compute the layer where this note should be added.
+        let target_layer = leading_zeroes(key.as_bytes());
+
+        // Now traverse to the node containing the target layer.
+        let mut node_path = vec![];
+        let mut node_cid = root.clone();
+
+        // There are three cases we need to handle:
+        // 1) The target layer is above the tree (and our entire tree needs to be pushed down).
+        // 2) The target layer is contained within the tree (and we will traverse to find it).
+        // 3) The tree is currently empty (trivial).
+        let mut node = match compute_depth(&mut bs, root).await {
+            Ok(Some(layer)) => {
+                match layer.cmp(&target_layer) {
+                    // The new key can be inserted into the root node.
+                    Ordering::Equal => Node::read_from(&mut bs, node_cid).await?,
+                    // The entire tree needs to be shifted down.
+                    Ordering::Less => {
+                        let mut layer = layer + 1;
+
+                        loop {
+                            let node = Node { entries: vec![NodeEntry::Tree(node_cid)] };
+
+                            if layer < target_layer {
+                                node_cid = node.serialize_into(&mut bs).await?;
+                                layer += 1;
+                            } else {
+                                break node;
+                            }
+                        }
+                    }
+                    // Search in a subtree (most common).
+                    Ordering::Greater => {
+                        let mut layer = layer;
+
+                        // Traverse to the lowest possible layer in the tree.
+                        let (path, (mut node, partition)) =
+                            algos::traverse(&mut bs, node_cid, |node, _cid| {
+                                if layer == target_layer {
+                                    Ok(algos::TraverseAction::Stop((node, 0)))
+                                } else {
+                                    let partition = node.find_ge(key).unwrap();
+
+                                    // If left neighbor is a subtree, recurse through.
+                                    if let Some(partition) = partition.checked_sub(1) {
+                                        if let Some(subtree) =
+                                            node.entries.get(partition).unwrap().tree()
+                                        {
+                                            layer -= 1;
+                                            return Ok(algos::TraverseAction::Continue((
+                                                subtree.clone(),
+                                                partition,
+                                            )));
+                                        }
+                                    }
+
+                                    return Ok(algos::TraverseAction::Stop((node, partition)));
+                                }
+                            })
+                            .await?;
+
+                        node_path = path;
+                        if layer == target_layer {
+                            // A pre-existing node was found on the same layer.
+                            node
+                        } else {
+                            // Insert a new dummy tree entry and push the last node onto the node path.
+                            node.entries.insert(partition, NodeEntry::Tree(Cid::default()));
+                            node_path.push((node, partition));
+                            layer -= 1;
+
+                            // Insert empty nodes until we reach the target layer.
+                            while layer != target_layer {
+                                let node = Node { entries: vec![NodeEntry::Tree(Cid::default())] };
+
+                                node_path.push((node.clone(), 0));
+                                layer -= 1;
+                            }
+
+                            // Insert the new leaf node.
+                            Node { entries: vec![] }
+                        }
+                    }
+                }
+            }
+            Ok(None) => {
+                // The tree is currently empty.
+                Node { entries: vec![] }
+            }
+            Err(e) => return Err(e),
+        };
+
+        if let Some(partition) = node.find_ge(key) {
+            // Check if the key is already present in the node.
+            if let Some(NodeEntry::Leaf(e)) = node.entries.get(partition) {
+                if e.key == key {
+                    return Err(Error::KeyAlreadyExists);
+                }
+            }
+
+            if let Some(partition) = partition.checked_sub(1) {
+                match node.entries.get(partition) {
+                    Some(NodeEntry::Leaf(_)) => {
+                        // Left neighbor is a leaf, so we can simply insert this leaf to its right.
+                        node.entries.insert(
+                            partition + 1,
+                            NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }),
+                        );
+                    }
+                    Some(NodeEntry::Tree(e)) => {
+                        // Need to split the subtree into two based on the node's key.
+                        let (left, right) = algos::split_subtree(&mut bs, e.clone(), key).await?;
+
+                        // Insert the new node inbetween the two subtrees.
+                        let right_subvec = node.entries.split_off(partition + 1);
+
+                        node.entries.pop();
+                        if let Some(left) = left {
+                            node.entries.push(NodeEntry::Tree(left));
+                        }
+                        node.entries
+                            .extend([NodeEntry::Leaf(TreeEntry { key: key.to_string(), value })]);
+                        if let Some(right) = right {
+                            node.entries.push(NodeEntry::Tree(right));
+                        }
+                        node.entries.extend(right_subvec.into_iter());
+                    }
+                    // Should be impossible. The node is empty in this case, and that is handled below.
+                    None => unreachable!(),
+                }
+            } else {
+                // Key is already located at leftmost position, so we can simply prepend the new node.
+                node.entries.insert(0, NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }));
+            }
+        } else {
+            // The node is empty! Just append the new key to this node's entries.
+            node.entries.push(NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }));
+        }
+
+        let mut cid = node.serialize_into(&mut bs).await?;
+
+        // Now walk back up the node path chain and update parent entries to point to the new node's CID.
+        for (mut parent, i) in node_path.into_iter().rev() {
+            parent.entries[i] = NodeEntry::Tree(cid);
+            cid = parent.serialize_into(&mut bs).await?;
+        }
+
+        Ok(cid)
+    }
+
+    pub async fn update(
+        mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
+        root: Cid,
+        key: &str,
+        value: Cid,
+    ) -> Result<Cid, Error> {
+        let (node_path, (mut node, index)) =
+            algos::traverse(&mut bs, root, algos::traverse_find(key)).await?;
+
+        // Update the value.
+        node.entries[index] = NodeEntry::Leaf(TreeEntry { key: key.to_string(), value });
+
+        let mut cid = node.serialize_into(&mut bs).await?;
+
+        // Now walk up the node path chain and update parent entries to point to the new node's CID.
+        for (mut parent, i) in node_path.into_iter().rev() {
+            parent.entries[i] = NodeEntry::Tree(cid);
+            cid = parent.serialize_into(&mut bs).await?;
+        }
+
+        Ok(cid)
+    }
+
+    pub async fn delete(
+        mut bs: impl AsyncBlockStoreRead + AsyncBlockStoreWrite,
+        root: Cid,
+        key: &str,
+    ) -> Result<Cid, Error> {
+        let (node_path, (mut node, index)) =
+            algos::traverse(&mut bs, root, algos::traverse_find(key)).await?;
+
+        // Remove the key.
+        node.entries.remove(index);
+
+        if let Some(index) = index.checked_sub(1) {
+            // Check to see if the left and right neighbors are both trees. If so, merge them.
+            if let (Some(NodeEntry::Tree(lc)), Some(NodeEntry::Tree(rc))) =
+                (node.entries.get(index), node.entries.get(index + 1))
+            {
+                let cid = algos::merge_subtrees(&mut bs, lc.clone(), rc.clone()).await?;
+                node.entries[index] = NodeEntry::Tree(cid);
+                node.entries.remove(index + 1);
+            }
+        }
+
+        // Option-alize the node depending on whether or not it is empty.
+        let node = (!node.entries.is_empty()).then_some(node);
+
+        let mut cid =
+            if let Some(node) = node { Some(node.serialize_into(&mut bs).await?) } else { None };
+
+        // Now walk back up the node path chain and update parent entries to point to the new node's CID.
+        for (mut parent, i) in node_path.into_iter().rev() {
+            if let Some(cid) = cid.as_mut() {
+                parent.entries[i] = NodeEntry::Tree(cid.clone());
+                *cid = parent.serialize_into(&mut bs).await?;
+            } else {
+                // The node ended up becoming empty, so it will be orphaned.
+                // Note that we can safely delete this entry from the parent because it's guaranteed that
+                // two trees will never be adjacent (and thus no merging is required).
+                parent.entries.remove(i);
+
+                // If the parent also becomes empty, orphan it.
+                cid = if parent.entries.is_empty() {
+                    None
+                } else {
+                    Some(parent.serialize_into(&mut bs).await?)
+                };
+            }
+        }
+
+        let cid = if let Some(cid) = cid {
+            cid
+        } else {
+            // The tree is now empty. Create a new empty node.
+            let node = Node { entries: vec![] };
+            node.serialize_into(&mut bs).await?
+        };
+
+        let cid = prune(&mut bs, cid).await?;
+        Ok(cid)
+    }
 }
 
 // https://users.rust-lang.org/t/how-to-find-common-prefix-of-two-byte-slices-effectively/25815/3
@@ -418,246 +666,21 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Tree<S> {
         Ok(Self { storage, root: cid })
     }
 
+    /// Add a new key with the specified value to the tree.
     pub async fn add(&mut self, key: &str, value: Cid) -> Result<(), Error> {
-        // Compute the layer where this note should be added.
-        let target_layer = leading_zeroes(key.as_bytes());
-
-        // Now traverse to the node containing the target layer.
-        let mut node_path = vec![];
-        let mut node_cid = self.root.clone();
-
-        // There are three cases we need to handle:
-        // 1) The target layer is above the tree (and our entire tree needs to be pushed down).
-        // 2) The target layer is contained within the tree (and we will traverse to find it).
-        // 3) The tree is currently empty (trivial).
-        let mut node = match self.depth(None).await {
-            Ok(Some(layer)) => {
-                match layer.cmp(&target_layer) {
-                    // The new key can be inserted into the root node.
-                    Ordering::Equal => Node::read_from(&mut self.storage, node_cid).await?,
-                    // The entire tree needs to be shifted down.
-                    Ordering::Less => {
-                        let mut layer = layer + 1;
-
-                        loop {
-                            let node = Node { entries: vec![NodeEntry::Tree(node_cid)] };
-
-                            if layer < target_layer {
-                                node_cid = node.serialize_into(&mut self.storage).await?;
-                                layer += 1;
-                            } else {
-                                break node;
-                            }
-                        }
-                    }
-                    // Search in a subtree (most common).
-                    Ordering::Greater => {
-                        let mut layer = layer;
-
-                        // Traverse to the lowest possible layer in the tree.
-                        let (path, (mut node, partition)) =
-                            algos::traverse(&mut self.storage, node_cid, |node, _cid| {
-                                if layer == target_layer {
-                                    Ok(algos::TraverseAction::Stop((node, 0)))
-                                } else {
-                                    let partition = node.find_ge(key).unwrap();
-
-                                    // If left neighbor is a subtree, recurse through.
-                                    if let Some(partition) = partition.checked_sub(1) {
-                                        if let Some(subtree) =
-                                            node.entries.get(partition).unwrap().tree()
-                                        {
-                                            layer -= 1;
-                                            return Ok(algos::TraverseAction::Continue((
-                                                subtree.clone(),
-                                                partition,
-                                            )));
-                                        }
-                                    }
-
-                                    return Ok(algos::TraverseAction::Stop((node, partition)));
-                                }
-                            })
-                            .await?;
-
-                        node_path = path;
-                        if layer == target_layer {
-                            // A pre-existing node was found on the same layer.
-                            node
-                        } else {
-                            // Insert a new dummy tree entry and push the last node onto the node path.
-                            node.entries.insert(partition, NodeEntry::Tree(Cid::default()));
-                            node_path.push((node, partition));
-                            layer -= 1;
-
-                            // Insert empty nodes until we reach the target layer.
-                            while layer != target_layer {
-                                let node = Node { entries: vec![NodeEntry::Tree(Cid::default())] };
-
-                                node_path.push((node.clone(), 0));
-                                layer -= 1;
-                            }
-
-                            // Insert the new leaf node.
-                            Node { entries: vec![] }
-                        }
-                    }
-                }
-            }
-            Ok(None) => {
-                // The tree is currently empty.
-                Node { entries: vec![] }
-            }
-            Err(e) => return Err(e),
-        };
-
-        if let Some(partition) = node.find_ge(key) {
-            // Check if the key is already present in the node.
-            if let Some(NodeEntry::Leaf(e)) = node.entries.get(partition) {
-                if e.key == key {
-                    return Err(Error::KeyAlreadyExists);
-                }
-            }
-
-            if let Some(partition) = partition.checked_sub(1) {
-                match node.entries.get(partition) {
-                    Some(NodeEntry::Leaf(_)) => {
-                        // Left neighbor is a leaf, so we can simply insert this leaf to its right.
-                        node.entries.insert(
-                            partition + 1,
-                            NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }),
-                        );
-                    }
-                    Some(NodeEntry::Tree(e)) => {
-                        // Need to split the subtree into two based on the node's key.
-                        let (left, right) =
-                            algos::split_subtree(&mut self.storage, e.clone(), key).await?;
-
-                        // Insert the new node inbetween the two subtrees.
-                        let right_subvec = node.entries.split_off(partition + 1);
-
-                        node.entries.pop();
-                        if let Some(left) = left {
-                            node.entries.push(NodeEntry::Tree(left));
-                        }
-                        node.entries
-                            .extend([NodeEntry::Leaf(TreeEntry { key: key.to_string(), value })]);
-                        if let Some(right) = right {
-                            node.entries.push(NodeEntry::Tree(right));
-                        }
-                        node.entries.extend(right_subvec.into_iter());
-                    }
-                    // Should be impossible. The node is empty in this case, and that is handled below.
-                    None => unreachable!(),
-                }
-            } else {
-                // Key is already located at leftmost position, so we can simply prepend the new node.
-                node.entries.insert(0, NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }));
-            }
-        } else {
-            // The node is empty! Just append the new key to this node's entries.
-            node.entries.push(NodeEntry::Leaf(TreeEntry { key: key.to_string(), value }));
-        }
-
-        let mut cid = node.serialize_into(&mut self.storage).await?;
-
-        // Now walk back up the node path chain and update parent entries to point to the new node's CID.
-        for (mut parent, i) in node_path.into_iter().rev() {
-            parent.entries[i] = NodeEntry::Tree(cid);
-            cid = parent.serialize_into(&mut self.storage).await?;
-        }
-
-        self.root = cid;
+        self.root = algos::add(&mut self.storage, self.root, key, value).await?;
         Ok(())
     }
 
     /// Update an existing key with a new value.
     pub async fn update(&mut self, key: &str, value: Cid) -> Result<(), Error> {
-        let (node_path, (mut node, index)) =
-            algos::traverse(&mut self.storage, self.root, algos::traverse_find(key)).await?;
-
-        // Update the value.
-        node.entries[index] = NodeEntry::Leaf(TreeEntry { key: key.to_string(), value });
-
-        let mut cid = node.serialize_into(&mut self.storage).await?;
-
-        // Now walk up the node path chain and update parent entries to point to the new node's CID.
-        for (mut parent, i) in node_path.into_iter().rev() {
-            parent.entries[i] = NodeEntry::Tree(cid);
-            cid = parent.serialize_into(&mut self.storage).await?;
-        }
-
-        self.root = cid;
+        self.root = algos::update(&mut self.storage, self.root, key, value).await?;
         Ok(())
     }
 
     /// Delete a key from the tree.
     pub async fn delete(&mut self, key: &str) -> Result<(), Error> {
-        let (node_path, (mut node, index)) =
-            algos::traverse(&mut self.storage, self.root, algos::traverse_find(key)).await?;
-
-        // Remove the key.
-        node.entries.remove(index);
-
-        if let Some(index) = index.checked_sub(1) {
-            // Check to see if the left and right neighbors are both trees. If so, merge them.
-            if let (Some(NodeEntry::Tree(lc)), Some(NodeEntry::Tree(rc))) =
-                (node.entries.get(index), node.entries.get(index + 1))
-            {
-                let cid = algos::merge_subtrees(&mut self.storage, lc.clone(), rc.clone()).await?;
-                node.entries[index] = NodeEntry::Tree(cid);
-                node.entries.remove(index + 1);
-            }
-        }
-
-        // Option-alize the node depending on whether or not it is empty.
-        let node = (!node.entries.is_empty()).then_some(node);
-
-        let mut cid = if let Some(node) = node {
-            Some(node.serialize_into(&mut self.storage).await?)
-        } else {
-            None
-        };
-
-        // Now walk back up the node path chain and update parent entries to point to the new node's CID.
-        for (mut parent, i) in node_path.into_iter().rev() {
-            if let Some(cid) = cid.as_mut() {
-                parent.entries[i] = NodeEntry::Tree(cid.clone());
-                *cid = parent.serialize_into(&mut self.storage).await?;
-            } else {
-                // The node ended up becoming empty, so it will be orphaned.
-                // Note that we can safely delete this entry from the parent because it's guaranteed that
-                // two trees will never be adjacent (and thus no merging is required).
-                parent.entries.remove(i);
-
-                // If the parent also becomes empty, orphan it.
-                cid = if parent.entries.is_empty() {
-                    None
-                } else {
-                    Some(parent.serialize_into(&mut self.storage).await?)
-                };
-            }
-        }
-
-        let cid = if let Some(cid) = cid {
-            cid
-        } else {
-            // The tree is now empty. Create a new empty node.
-            let node = Node { entries: vec![] };
-            node.serialize_into(&mut self.storage).await?
-        };
-
-        self.root = cid;
-        self.prune().await?;
-        Ok(())
-    }
-
-    /// Prune entries that contain a single nested tree entry from the root.
-    async fn prune(&mut self) -> Result<(), Error> {
-        let (_node_path, cid) =
-            algos::traverse(&mut self.storage, self.root, algos::traverse_prune()).await?;
-
-        self.root = cid;
+        self.root = algos::delete(&mut self.storage, self.root, key).await?;
         Ok(())
     }
 }
