@@ -129,7 +129,7 @@ impl<S: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> CarStore<S> {
         let header_bytes = serde_ipld_dagcbor::to_vec(&header).unwrap();
         let mut buf = unsigned_varint::encode::usize_buffer();
         let buf = unsigned_varint::encode::usize(header_bytes.len(), &mut buf);
-        storage.write_all(&buf).await?;
+        storage.write_all(buf).await?;
         storage.write_all(&header_bytes).await?;
 
         Ok(Self { storage, header, index: HashMap::new() })
@@ -143,7 +143,7 @@ impl<S: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> CarStore<S> {
         let mut buf = unsigned_varint::encode::usize_buffer();
         let buf = unsigned_varint::encode::usize(header_bytes.len(), &mut buf);
         self.storage.seek(SeekFrom::Start(0)).await?;
-        self.storage.write_all(&buf).await?;
+        self.storage.write_all(buf).await?;
         self.storage.write_all(&header_bytes).await?;
 
         Ok(())
@@ -184,7 +184,7 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
         let cid = Cid::new_v1(codec, hash);
 
         // Only write the record if the CAR file does not already contain it.
-        if !self.index.contains_key(&cid) {
+        if let std::collections::hash_map::Entry::Vacant(e) = self.index.entry(cid) {
             let mut fc = vec![];
             cid.write_bytes(&mut fc).expect("internal error writing CID");
             fc.extend_from_slice(contents);
@@ -192,12 +192,12 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
             let mut buf = unsigned_varint::encode::u64_buffer();
             let buf = unsigned_varint::encode::u64(fc.len() as u64, &mut buf);
 
-            self.storage.write_all(&buf).await?;
+            self.storage.write_all(buf).await?;
             let offs = self.storage.stream_position().await?;
             self.storage.write_all(&fc).await?;
 
             // Update the index with the new block.
-            self.index.insert(cid, (offs, contents.len()));
+            e.insert((offs, contents.len()));
         }
 
         Ok(cid)

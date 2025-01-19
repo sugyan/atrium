@@ -10,6 +10,12 @@ pub struct MemoryBlockStore {
     blocks: HashMap<Cid, Vec<u8>>,
 }
 
+impl Default for MemoryBlockStore {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MemoryBlockStore {
     pub fn new() -> Self {
         Self { blocks: HashMap::new() }

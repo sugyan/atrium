@@ -87,7 +87,7 @@ impl Commit {
         })
         .unwrap(); // This should (hopefully!) never fail
 
-        sha2::Sha256::digest(&commit).into()
+        sha2::Sha256::digest(commit).into()
     }
 
     /// Return the commit object's cryptographic signature.
@@ -144,7 +144,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     pub async fn get<C: Collection>(&mut self, rkey: &str) -> Result<Option<C::Record>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
-        if let Some(cid) = mst.get(&rkey).await? {
+        if let Some(cid) = mst.get(rkey).await? {
             Ok(Some(read_record::<C>(&mut self.db, cid).await?))
         } else {
             Ok(None)
@@ -190,11 +190,11 @@ mod test {
 
         // Read out the commit record.
         let commit: Object<atrium_api::com::atproto::sync::subscribe_repos::Commit> =
-            serde_ipld_dagcbor::from_reader(&DATA[..]).unwrap();
+            serde_ipld_dagcbor::from_reader(DATA).unwrap();
 
         println!("{:?}", commit.ops);
 
-        let mut repo = load(commit.blocks.as_slice()).await.unwrap();
+        let _repo = load(commit.blocks.as_slice()).await.unwrap();
     }
 
     #[tokio::test]
@@ -203,7 +203,7 @@ mod test {
 
         // Read out the commit record.
         let commit: Object<atrium_api::com::atproto::sync::subscribe_repos::Commit> =
-            serde_ipld_dagcbor::from_reader(&DATA[..]).unwrap();
+            serde_ipld_dagcbor::from_reader(DATA).unwrap();
 
         println!("{:?}", commit.ops);
 

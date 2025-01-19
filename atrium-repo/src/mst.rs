@@ -126,9 +126,9 @@ mod algos {
     }
 
     /// Traverse through the tree, finding the node that contains a key.
-    pub fn traverse_find<'a>(
-        key: &'a str,
-    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<(Node, usize), usize>, Error> + 'a {
+    pub fn traverse_find(
+        key: &str,
+    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<(Node, usize), usize>, Error> + '_ {
         move |node, _cid| -> Result<_, Error> {
             if let Some(index) = node.find_ge(key) {
                 if let Some(NodeEntry::Leaf(e)) = node.entries.get(index) {
@@ -140,26 +140,26 @@ mod algos {
                 // Check if the left neighbor is a tree, and if so, recurse into it.
                 if let Some(index) = index.checked_sub(1) {
                     if let Some(subtree) = node.entries.get(index).unwrap().tree() {
-                        return Ok(TraverseAction::Continue((subtree.clone(), index)));
+                        Ok(TraverseAction::Continue((*subtree, index)))
                     } else {
-                        return Err(Error::KeyNotFound);
+                        Err(Error::KeyNotFound)
                     }
                 } else {
                     // There is no left neighbor. The key is not present.
-                    return Err(Error::KeyNotFound);
+                    Err(Error::KeyNotFound)
                 }
             } else {
                 // We've recursed into an empty node, so the key is not present in the tree.
-                return Err(Error::KeyNotFound);
+                Err(Error::KeyNotFound)
             }
         }
     }
 
     /// Traverse through the tree, finding the node that contains a key. This will record
     /// the CIDs of all nodes traversed.
-    pub fn traverse_find_path<'a>(
-        key: &'a str,
-    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<Cid, Cid>, Error> + 'a {
+    pub fn traverse_find_path(
+        key: &str,
+    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<Cid, Cid>, Error> + '_ {
         move |node, cid| -> Result<_, Error> {
             if let Some(index) = node.find_ge(key) {
                 if let Some(NodeEntry::Leaf(e)) = node.entries.get(index) {
@@ -171,17 +171,17 @@ mod algos {
                 // Check if the left neighbor is a tree, and if so, recurse into it.
                 if let Some(index) = index.checked_sub(1) {
                     if let Some(subtree) = node.entries.get(index).unwrap().tree() {
-                        return Ok(TraverseAction::Continue((subtree.clone(), subtree.clone())));
+                        Ok(TraverseAction::Continue((*subtree, *subtree)))
                     } else {
-                        return Err(Error::KeyNotFound);
+                        Err(Error::KeyNotFound)
                     }
                 } else {
                     // There is no left neighbor. The key is not present.
-                    return Err(Error::KeyNotFound);
+                    Err(Error::KeyNotFound)
                 }
             } else {
                 // We've recursed into an empty node, so the key is not present in the tree.
-                return Err(Error::KeyNotFound);
+                Err(Error::KeyNotFound)
             }
         }
     }
@@ -192,11 +192,11 @@ mod algos {
         move |node, cid| -> Result<_, Error> {
             if node.entries.len() == 1 {
                 if let Some(NodeEntry::Tree(cid)) = node.entries.first() {
-                    return Ok(TraverseAction::Continue((cid.clone(), 0)));
+                    return Ok(TraverseAction::Continue((*cid, 0)));
                 }
             }
 
-            return Ok(TraverseAction::Stop(cid));
+            Ok(TraverseAction::Stop(cid))
         }
     }
 
@@ -218,8 +218,8 @@ mod algos {
             {
                 node_path.push((ln.clone(), rn.clone()));
 
-                lc = l.clone();
-                rc = r.clone();
+                lc = *l;
+                rc = *r;
             } else {
                 break (ln, rn);
             }
@@ -270,19 +270,17 @@ mod algos {
                             // Left neighbor is a leaf, so we can split the current node into two and we are done.
                             let right = node.entries.split_off(partition + 1);
 
-                            return Ok(TraverseAction::Stop((
+                            Ok(TraverseAction::Stop((
                                 Some(node),
-                                (!right.is_empty()).then(|| Node { entries: right }),
-                            )));
+                                (!right.is_empty()).then_some(Node { entries: right }),
+                            )))
                         }
-                        Some(NodeEntry::Tree(e)) => {
-                            return Ok(TraverseAction::Continue((e.clone(), partition)));
-                        }
+                        Some(NodeEntry::Tree(e)) => Ok(TraverseAction::Continue((*e, partition))),
                         // This should not happen; node.find_ge() should return `None` in this case.
                         None => panic!(),
                     }
                 } else {
-                    return Ok(TraverseAction::Stop((None, Some(node))));
+                    Ok(TraverseAction::Stop((None, Some(node))))
                 }
             } else {
                 todo!()
@@ -343,7 +341,7 @@ mod algos {
 
         // Now traverse to the node containing the target layer.
         let mut node_path = vec![];
-        let mut node_cid = root.clone();
+        let mut node_cid = root;
 
         // There are three cases we need to handle:
         // 1) The target layer is above the tree (and our entire tree needs to be pushed down).
@@ -388,13 +386,12 @@ mod algos {
                                         {
                                             layer -= 1;
                                             return Ok(algos::TraverseAction::Continue((
-                                                subtree.clone(),
-                                                partition,
+                                                *subtree, partition,
                                             )));
                                         }
                                     }
 
-                                    return Ok(algos::TraverseAction::Stop((node, partition)));
+                                    Ok(algos::TraverseAction::Stop((node, partition)))
                                 }
                             })
                             .await?;
@@ -449,7 +446,7 @@ mod algos {
                     }
                     Some(NodeEntry::Tree(e)) => {
                         // Need to split the subtree into two based on the node's key.
-                        let (left, right) = algos::split_subtree(&mut bs, e.clone(), key).await?;
+                        let (left, right) = algos::split_subtree(&mut bs, *e, key).await?;
 
                         // Insert the new node inbetween the two subtrees.
                         let right_subvec = node.entries.split_off(partition + 1);
@@ -527,7 +524,7 @@ mod algos {
             if let (Some(NodeEntry::Tree(lc)), Some(NodeEntry::Tree(rc))) =
                 (node.entries.get(index), node.entries.get(index + 1))
             {
-                let cid = algos::merge_subtrees(&mut bs, lc.clone(), rc.clone()).await?;
+                let cid = algos::merge_subtrees(&mut bs, *lc, *rc).await?;
                 node.entries[index] = NodeEntry::Tree(cid);
                 node.entries.remove(index + 1);
             }
@@ -542,7 +539,7 @@ mod algos {
         // Now walk back up the node path chain and update parent entries to point to the new node's CID.
         for (mut parent, i) in node_path.into_iter().rev() {
             if let Some(cid) = cid.as_mut() {
-                parent.entries[i] = NodeEntry::Tree(cid.clone());
+                parent.entries[i] = NodeEntry::Tree(*cid);
                 *cid = parent.serialize_into(&mut bs).await?;
             } else {
                 // The node ended up becoming empty, so it will be orphaned.
@@ -644,7 +641,7 @@ pub struct Tree<S> {
 // so implement clone if the storage also implements it.
 impl<S: Clone> Clone for Tree<S> {
     fn clone(&self) -> Self {
-        Self { storage: self.storage.clone(), root: self.root.clone() }
+        Self { storage: self.storage.clone(), root: self.root }
     }
 }
 
@@ -706,7 +703,7 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
     ///
     /// This function will _not_ work with a partial MST, such as one received from
     /// a firehose record.
-    pub fn entries<'a>(&'a mut self) -> impl Stream<Item = Result<(String, Cid), Error>> + 'a {
+    pub fn entries(&mut self) -> impl Stream<Item = Result<(String, Cid), Error>> + '_ {
         // Start from the root of the tree.
         let mut stack = vec![Located::InSubtree(self.root)];
 
@@ -718,10 +715,10 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
                         for entry in node.entries.iter().rev() {
                             match entry {
                                 NodeEntry::Tree(entry) => {
-                                    stack.push(Located::InSubtree(entry.clone()));
+                                    stack.push(Located::InSubtree(*entry));
                                 }
                                 NodeEntry::Leaf(entry) => {
-                                    stack.push(Located::Entry((entry.key.clone(), entry.value.clone())));
+                                    stack.push(Located::Entry((entry.key.clone(), entry.value)));
                                 }
                             }
                         }
@@ -736,7 +733,7 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
     ///
     /// This function will _not_ work with a partial MST, such as one received from
     /// a firehose record.
-    pub fn keys<'a>(&'a mut self) -> impl Stream<Item = Result<String, Error>> + 'a {
+    pub fn keys(&mut self) -> impl Stream<Item = Result<String, Error>> + '_ {
         self.entries().map(|e| e.map(|(k, _)| k))
     }
 
@@ -810,7 +807,7 @@ impl Node {
 
         let mut entries = vec![];
         if let Some(left) = &node.left {
-            entries.push(NodeEntry::Tree(left.clone()));
+            entries.push(NodeEntry::Tree(*left));
         }
 
         let mut prev_key = vec![];
@@ -822,7 +819,7 @@ impl Node {
 
             // Nested subtrees are located to the right of the entry.
             if let Some(tree) = &entry.tree {
-                entries.push(NodeEntry::Tree(tree.clone()));
+                entries.push(NodeEntry::Tree(*tree));
             }
         }
 
@@ -841,7 +838,7 @@ impl Node {
         // Special case: if the first entry is a tree, that gets inserted into the node directly.
         let ents = match self.entries.first() {
             Some(NodeEntry::Tree(cid)) => {
-                node.left = Some(cid.clone());
+                node.left = Some(*cid);
                 &self.entries[1..]
             }
             _ => &self.entries,
@@ -864,12 +861,12 @@ impl Node {
                 }
             };
 
-            let prefix = prefix(&prev_key, &leaf.key.as_bytes());
+            let prefix = prefix(&prev_key, leaf.key.as_bytes());
 
             node.entries.push(schema::TreeEntry {
                 prefix_len: prefix,
                 key_suffix: Ipld::Bytes(leaf.key[prefix..].as_bytes().to_vec()),
-                value: leaf.value.clone(),
+                value: leaf.value,
                 tree: tree.cloned(),
             });
 
@@ -899,11 +896,7 @@ impl Node {
 
     /// Computes the node's layer, or returns `None` if this node has no leaves.
     fn layer(&self) -> Option<usize> {
-        if let Some(e) = self.leaves().next() {
-            Some(leading_zeroes(&e.key.as_bytes()))
-        } else {
-            None
-        }
+        self.leaves().next().map(|e| leading_zeroes(e.key.as_bytes()))
     }
 
     /// Find the index of the first leaf node that has a key greater than or equal to the provided key.
@@ -915,12 +908,10 @@ impl Node {
 
         if let Some((i, _e)) = e.find(|(_i, e)| e.key.as_str() >= key) {
             Some(i)
+        } else if !self.entries.is_empty() {
+            Some(self.entries.len())
         } else {
-            if self.entries.len() != 0 {
-                Some(self.entries.len())
-            } else {
-                None
-            }
+            None
         }
     }
 
@@ -932,12 +923,12 @@ impl Node {
 
         if let Some(NodeEntry::Leaf(e)) = self.entries.get(i) {
             if e.key == key {
-                return Some(Located::Entry(e.value.clone()));
+                return Some(Located::Entry(e.value));
             }
         }
 
         if let Some(NodeEntry::Tree(cid)) = self.entries.get(i - 1) {
-            Some(Located::InSubtree(cid.clone()))
+            Some(Located::InSubtree(*cid))
         } else {
             None
         }
@@ -960,7 +951,7 @@ impl Node {
 
         if let Some(index) = index.checked_sub(1) {
             if let Some(NodeEntry::Tree(cid)) = self.entries.get(index) {
-                list.push(Located::InSubtree(cid.clone()));
+                list.push(Located::InSubtree(*cid));
             }
         }
 
@@ -969,14 +960,14 @@ impl Node {
             for e in e.chunks(2) {
                 if let NodeEntry::Leaf(t) = &e[0] {
                     if t.key.starts_with(prefix) {
-                        list.push(Located::Entry((&t.key[..], t.value.clone())));
+                        list.push(Located::Entry((&t.key[..], t.value)));
 
                         if let Some(NodeEntry::Tree(cid)) = e.get(1) {
-                            list.push(Located::InSubtree(cid.clone()));
+                            list.push(Located::InSubtree(*cid));
                         }
                     } else if prefix > t.key.as_str() {
                         if let Some(NodeEntry::Tree(cid)) = e.get(1) {
-                            list.push(Located::InSubtree(cid.clone()));
+                            list.push(Located::InSubtree(*cid));
                         }
                     }
                 }
