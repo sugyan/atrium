@@ -4,6 +4,9 @@ pub const NSID: &str = "com.atproto.server.createSession";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct InputData {
+    ///When true, instead of throwing error for takendown accounts, a valid response with a narrow scoped token will be returned
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub allow_takendown: core::option::Option<bool>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub auth_factor_token: core::option::Option<String>,
     ///Handle or other identifier supported by the server for the authenticating user.

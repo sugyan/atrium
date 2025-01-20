@@ -13,7 +13,7 @@ pub struct ParametersData {
     ///If specified, only events where the subject belongs to the given collections will be returned. When subjectType is set to 'account', this will be ignored.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub collections: core::option::Option<Vec<crate::types::string::Nsid>>,
-    ///If specified, only events with comments containing the keyword are returned
+    ///If specified, only events with comments containing the keyword are returned. Apply || separator to use multiple keywords and match using OR condition.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub comment: core::option::Option<String>,
     ///Retrieve events created after a given timestamp
@@ -34,6 +34,8 @@ pub struct ParametersData {
     pub include_all_user_records: core::option::Option<bool>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub policies: core::option::Option<Vec<String>>,
     ///If specified, only events where all of these labels were removed are returned
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub removed_labels: core::option::Option<Vec<String>>,
