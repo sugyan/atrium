@@ -8,6 +8,8 @@ pub struct RecordData {
     pub accepts_interactions: core::option::Option<bool>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub avatar: core::option::Option<crate::types::BlobRef>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub content_mode: core::option::Option<String>,
     pub created_at: crate::types::string::Datetime,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub description: core::option::Option<String>,

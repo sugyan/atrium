@@ -5,6 +5,7 @@ pub mod get_config;
 pub mod get_popular_feed_generators;
 pub mod get_suggestions_skeleton;
 pub mod get_tagged_suggestions;
+pub mod get_trending_topics;
 pub mod search_actors_skeleton;
 pub mod search_posts_skeleton;
 pub mod search_starter_packs_skeleton;

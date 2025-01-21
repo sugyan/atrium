@@ -195,6 +195,11 @@ macro_rules! record_impl {
 }
 
 record_impl!(
+    atrium_api::com::atproto::lexicon::Schema,
+    atrium_api::com::atproto::lexicon::schema::Record,
+    atrium_api::com::atproto::lexicon::schema::RecordData
+);
+record_impl!(
     atrium_api::app::bsky::actor::Profile,
     atrium_api::app::bsky::actor::profile::Record,
     atrium_api::app::bsky::actor::profile::RecordData

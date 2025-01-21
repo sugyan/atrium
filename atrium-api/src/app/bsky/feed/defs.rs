@@ -24,6 +24,10 @@ pub const CLICKTHROUGH_EMBED: &str = "app.bsky.feed.defs#clickthroughEmbed";
 pub const CLICKTHROUGH_ITEM: &str = "app.bsky.feed.defs#clickthroughItem";
 ///User clicked through to the reposter of the feed item
 pub const CLICKTHROUGH_REPOSTER: &str = "app.bsky.feed.defs#clickthroughReposter";
+///Declares the feed generator returns any types of posts.
+pub const CONTENT_MODE_UNSPECIFIED: &str = "app.bsky.feed.defs#contentModeUnspecified";
+///Declares the feed generator returns posts containing app.bsky.embed.video embeds.
+pub const CONTENT_MODE_VIDEO: &str = "app.bsky.feed.defs#contentModeVideo";
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FeedViewPostData {
@@ -45,6 +49,8 @@ pub struct GeneratorViewData {
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub avatar: core::option::Option<String>,
     pub cid: crate::types::string::Cid,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub content_mode: core::option::Option<String>,
     pub creator: crate::app::bsky::actor::defs::ProfileView,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub description: core::option::Option<String>,

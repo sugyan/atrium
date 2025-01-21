@@ -45,9 +45,27 @@ pub struct ParametersData {
     pub last_reviewed_by: core::option::Option<crate::types::string::Did>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub limit: core::option::Option<crate::types::LimitedNonZeroU8<100u8>>,
+    ///If specified, only subjects that belong to an account that has at least this many suspensions will be returned.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub min_account_suspend_count: core::option::Option<i64>,
+    ///If specified, only subjects that belong to an account that has at least this many reported records will be returned.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub min_reported_records_count: core::option::Option<i64>,
+    ///If specified, only subjects that belong to an account that has at least this many taken down records will be returned.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub min_takendown_records_count: core::option::Option<i64>,
     ///When set to true, only muted subjects and reporters will be returned.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub only_muted: core::option::Option<bool>,
+    ///Number of queues being used by moderators. Subjects will be split among all queues.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub queue_count: core::option::Option<i64>,
+    ///Index of the queue to fetch subjects from. Works only when queueCount value is specified.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub queue_index: core::option::Option<i64>,
+    ///A seeder to shuffle/balance the queue items.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub queue_seed: core::option::Option<String>,
     ///Search subjects reported after a given timestamp
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub reported_after: core::option::Option<crate::types::string::Datetime>,

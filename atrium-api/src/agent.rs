@@ -74,6 +74,7 @@ where
                     auth_factor_token: None,
                     identifier: identifier.as_ref().into(),
                     password: password.as_ref().into(),
+                    allow_takendown: None,
                 }
                 .into(),
             )
