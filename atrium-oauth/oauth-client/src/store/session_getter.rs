@@ -2,6 +2,7 @@ use crate::store::session::{Session, SessionStore};
 use atrium_api::types::string::Did;
 use atrium_common::store::Store;
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[derive(Debug)]
 pub struct SessionGetter<S> {
@@ -21,16 +22,16 @@ impl<S> Clone for SessionGetter<S> {
     }
 }
 
-impl<S> Store<Did, Session> for SessionGetter<S>
+impl<S> Store<Did, Arc<RwLock<Session>>> for SessionGetter<S>
 where
     S: SessionStore + Send + Sync + 'static,
     S::Error: std::error::Error + Send + Sync + 'static,
 {
     type Error = S::Error;
-    async fn get(&self, key: &Did) -> Result<Option<Session>, Self::Error> {
+    async fn get(&self, key: &Did) -> Result<Option<Arc<RwLock<Session>>>, Self::Error> {
         self.store.get(key).await
     }
-    async fn set(&self, key: Did, value: Session) -> Result<(), Self::Error> {
+    async fn set(&self, key: Did, value: Arc<RwLock<Session>>) -> Result<(), Self::Error> {
         self.store.set(key, value).await
     }
     async fn del(&self, key: &Did) -> Result<(), Self::Error> {

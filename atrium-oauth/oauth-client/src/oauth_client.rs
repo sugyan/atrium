@@ -27,6 +27,7 @@ use jose_jwk::{Jwk, JwkSet, Key};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[cfg(feature = "default-client")]
 pub struct OAuthClientConfig<S0, S1, M, D, H>
@@ -244,7 +245,13 @@ where
             Ok(token_set) => {
                 let sub = token_set.sub.clone();
                 self.session_getter
-                    .set(sub.clone(), Session { dpop_key: state.dpop_key.clone(), token_set })
+                    .set(
+                        sub.clone(),
+                        Arc::new(RwLock::new(Session {
+                            dpop_key: state.dpop_key.clone(),
+                            token_set,
+                        })),
+                    )
                     .await
                     .map_err(|e| Error::SessionStore(Box::new(e)))?;
                 Ok((self.create_session(server, sub).await?, state.app_state))
@@ -259,9 +266,13 @@ where
         server: OAuthServerAgent<T, D, H>,
         sub: Did,
     ) -> Result<OAuthSession<T, D, H>> {
-        Ok(server
-            .create_session(sub, self.http_client.clone(), self.session_getter.clone())
-            .await?)
+        let session: Arc<RwLock<Session>> = self
+            .session_getter
+            .get(&sub)
+            .await
+            .map_err(|e| Error::SessionStore(Box::new(e)))?
+            .ok_or_else(|| Error::SessionNotFound)?;
+        Ok(OAuthSession::new(server, Arc::clone(&self.http_client), session).await?)
     }
     fn create_server_agent(
         &self,

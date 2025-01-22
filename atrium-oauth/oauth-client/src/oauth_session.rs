@@ -1,21 +1,26 @@
 mod inner;
 mod store;
 
-use crate::{http_client::dpop, server_agent::OAuthServerAgent, DpopClient, TokenSet};
+use self::store::MemorySessionStore;
+use crate::{
+    http_client::dpop::{self, DpopClient},
+    server_agent::OAuthServerAgent,
+    store::session::Session,
+    types::TokenSet,
+};
 use atrium_api::{
     agent::{CloneWithProxy, Configure, InnerStore, SessionManager},
     types::string::Did,
 };
-use atrium_common::store::{memory::MemoryStore, Store};
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
     http::{Request, Response},
     HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest,
 };
-use jose_jwk::Key;
 use serde::{de::DeserializeOwned, Serialize};
 use std::{fmt::Debug, sync::Arc};
-use store::MemorySessionStore;
 use thiserror::Error;
+use tokio::sync::RwLock;
 
 #[derive(Error, Debug)]
 pub enum Error {
@@ -25,14 +30,12 @@ pub enum Error {
     Store(#[from] atrium_common::store::memory::Error),
 }
 
-pub struct OAuthSession<T, D, H, S = MemoryStore<String, String>>
+pub struct OAuthSession<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: Store<String, String>,
 {
-    server_agent: OAuthServerAgent<T, D, H>,
     store: Arc<InnerStore<store::MemorySessionStore, String>>,
-    inner: inner::Client<store::MemorySessionStore, DpopClient<T, S>>,
+    inner: inner::Client<store::MemorySessionStore, T, D, H>,
     token_set: TokenSet, // TODO: replace with a session store?
 }
 
@@ -42,32 +45,35 @@ where
 {
     pub(crate) async fn new(
         server_agent: OAuthServerAgent<T, D, H>,
-        dpop_key: Key,
         http_client: Arc<T>,
-        token_set: TokenSet,
+        session: Arc<RwLock<Session>>,
     ) -> Result<Self, Error> {
+        let (dpop_key, token_set) = {
+            let s = session.read().await;
+            (s.dpop_key.clone(), s.token_set.clone())
+        };
         let store = Arc::new(InnerStore::new(MemorySessionStore::default(), token_set.aud.clone()));
         store.set(token_set.access_token.clone()).await?;
         let inner = inner::Client::new(
             Arc::clone(&store),
             DpopClient::new(
                 dpop_key,
-                http_client.clone(),
+                http_client,
                 false,
                 &server_agent.server_metadata.token_endpoint_auth_signing_alg_values_supported,
             )?,
+            server_agent,
+            session,
         );
-        Ok(Self { server_agent, store, inner, token_set })
+        Ok(Self { store, inner, token_set })
     }
 }
 
-impl<T, D, H, S> HttpClient for OAuthSession<T, D, H, S>
+impl<T, D, H> HttpClient for OAuthSession<T, D, H>
 where
-    T: HttpClient + Send + Sync,
+    T: HttpClient + Send + Sync + 'static,
     D: Send + Sync,
     H: Send + Sync,
-    S: Store<String, String> + Send + Sync + 'static,
-    S::Error: std::error::Error + Send + Sync,
 {
     async fn send_http(
         &self,
@@ -77,13 +83,11 @@ where
     }
 }
 
-impl<T, D, H, S> XrpcClient for OAuthSession<T, D, H, S>
+impl<T, D, H> XrpcClient for OAuthSession<T, D, H>
 where
-    T: HttpClient + Send + Sync,
-    D: Send + Sync,
-    H: Send + Sync,
-    S: Store<String, String> + Send + Sync + 'static,
-    S::Error: std::error::Error + Send + Sync,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.inner.base_uri()
@@ -102,23 +106,20 @@ where
     }
 }
 
-impl<T, D, H, S> SessionManager for OAuthSession<T, D, H, S>
+impl<T, D, H> SessionManager for OAuthSession<T, D, H>
 where
-    T: HttpClient + Send + Sync,
-    D: Send + Sync,
-    H: Send + Sync,
-    S: Store<String, String> + Send + Sync + 'static,
-    S::Error: std::error::Error + Send + Sync,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
         Some(self.token_set.sub.clone())
     }
 }
 
-impl<T, D, H, S> Configure for OAuthSession<T, D, H, S>
+impl<T, D, H> Configure for OAuthSession<T, D, H>
 where
     T: HttpClient + Send + Sync,
-    S: Store<String, String> + Send + Sync + 'static,
 {
     fn configure_endpoint(&self, endpoint: String) {
         self.inner.configure_endpoint(endpoint);
@@ -131,14 +132,12 @@ where
     }
 }
 
-impl<T, D, H, S> CloneWithProxy for OAuthSession<T, D, H, S>
+impl<T, D, H> CloneWithProxy for OAuthSession<T, D, H>
 where
     T: HttpClient + Send + Sync,
-    S: Store<String, String> + Send + Sync + 'static,
 {
     fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
         Self {
-            server_agent: self.server_agent.clone(),
             store: self.store.clone(),
             inner: self.inner.clone_with_proxy(did, service_type),
             token_set: self.token_set.clone(),
@@ -150,7 +149,13 @@ where
 mod tests {
     use super::*;
     use crate::{
-        jose::jwt::Claims, resolver::OAuthResolver, types::OAuthTokenType, OAuthResolverConfig,
+        jose::jwt::Claims,
+        resolver::OAuthResolver,
+        types::{
+            OAuthAuthorizationServerMetadata, OAuthTokenResponse, OAuthTokenType,
+            RefreshRequestParameters, TryIntoOAuthClientMetadata,
+        },
+        AtprotoLocalhostClientMetadata, OAuthResolverConfig,
     };
     use atrium_api::{
         agent::{Agent, AtprotoServiceType},
@@ -162,6 +167,7 @@ mod tests {
     use atrium_common::resolver::Resolver;
     use atrium_identity::{did::DidResolver, handle::HandleResolver};
     use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+    use jose_jwk::Key;
     use tokio::sync::Mutex;
 
     #[derive(Default)]
@@ -184,13 +190,38 @@ mod tests {
                 .remove("authorization")
                 .and_then(|value| value.to_str().map(String::from).ok())
             else {
-                return Ok(Response::builder().status(StatusCode::UNAUTHORIZED).body(Vec::new())?);
+                let response = if request.uri().path() == "/token" {
+                    let parameters =
+                        serde_html_form::from_bytes::<RefreshRequestParameters>(request.body())?;
+                    if parameters.refresh_token == "refreshtoken" {
+                        Response::builder()
+                            .status(StatusCode::OK)
+                            .header(CONTENT_TYPE, "application/json")
+                            .body(serde_json::to_vec(&OAuthTokenResponse {
+                                access_token: String::from("accesstoken"),
+                                token_type: OAuthTokenType::DPoP,
+                                expires_in: None,
+                                refresh_token: Some(String::from("refreshtoken")),
+                                scope: None,
+                                sub: None,
+                            })?)?
+                    } else {
+                        todo!()
+                    }
+                } else {
+                    Response::builder().status(StatusCode::UNAUTHORIZED).body(Vec::new())?
+                };
+                return Ok(response);
             };
-            let Some(_token) = authorization.strip_prefix("DPoP ") else {
+            let Some(token) = authorization.strip_prefix("DPoP ") else {
                 panic!("authorization header should start with DPoP");
             };
-            // TODO: verify token
-
+            if token == "expired" {
+                return Ok(Response::builder()
+                    .status(StatusCode::UNAUTHORIZED)
+                    .header("WWW-Authenticate", "DPoP error=\"invalid_token\"")
+                    .body(Vec::new())?);
+            }
             let dpop_jwt = headers.remove("dpop").expect("dpop header should be present");
             let payload = dpop_jwt
                 .to_str()
@@ -250,12 +281,7 @@ mod tests {
 
     async fn oauth_session(
         data: Arc<Mutex<Option<RecordData>>>,
-    ) -> OAuthSession<
-        MockHttpClient,
-        NoopDidResolver,
-        NoopHandleResolver,
-        MemoryStore<String, String>,
-    > {
+    ) -> OAuthSession<MockHttpClient, NoopDidResolver, NoopHandleResolver> {
         let dpop_key = serde_json::from_str::<Key>(
             r#"{
                 "kty": "EC",
@@ -279,8 +305,17 @@ mod tests {
         let keyset = None;
         let server_agent = OAuthServerAgent::new(
             dpop_key.clone(),
-            Default::default(),
-            Default::default(),
+            OAuthAuthorizationServerMetadata {
+                token_endpoint: String::from("https://iss.example.com/token"),
+                token_endpoint_auth_methods_supported: Some(vec![
+                    String::from("none"),
+                    String::from("private_key_jwt"),
+                ]),
+                ..Default::default()
+            },
+            AtprotoLocalhostClientMetadata::default()
+                .try_into_client_metadata(&None)
+                .expect("client metadata should be valid"),
             resolver,
             Arc::clone(&http_client),
             keyset,
@@ -291,12 +326,13 @@ mod tests {
             sub: Did::new(String::from("did:fake:sub.test")).expect("did should be valid"),
             aud: String::from("https://aud.example.com"),
             scope: None,
-            refresh_token: None,
-            access_token: String::from("access_token"),
+            refresh_token: Some(String::from("refreshtoken")),
+            access_token: String::from("accesstoken"),
             token_type: OAuthTokenType::DPoP,
             expires_at: None,
         };
-        OAuthSession::new(server_agent, dpop_key, http_client, token_set)
+        let session = Arc::new(RwLock::new(Session { token_set, dpop_key }));
+        OAuthSession::new(server_agent, http_client, session)
             .await
             .expect("failed to create oauth session")
     }
@@ -496,6 +532,37 @@ mod tests {
                 assert_eq!(err.status, StatusCode::UNAUTHORIZED);
             }
             _ => panic!("unexpected error"),
+        }
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_xrpc_with_refresh() -> Result<(), Box<dyn std::error::Error>> {
+        let oauth_session = oauth_session(Arc::new(Mutex::new(Default::default()))).await;
+        oauth_session.store.set("expired".into()).await?;
+        let agent = Agent::new(oauth_session);
+        let result = agent
+            .api
+            .com
+            .atproto
+            .server
+            .get_service_auth(
+                atrium_api::com::atproto::server::get_service_auth::ParametersData {
+                    aud: Did::new(String::from("did:fake:handle.test"))
+                        .expect("did should be valid"),
+                    exp: None,
+                    lxm: None,
+                }
+                .into(),
+            )
+            .await;
+        match result {
+            Ok(output) => {
+                assert_eq!(output.token, "fake_token");
+            }
+            Err(err) => {
+                panic!("unexpected error: {err:?}");
+            }
         }
         Ok(())
     }

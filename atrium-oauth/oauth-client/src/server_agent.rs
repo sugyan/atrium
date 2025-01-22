@@ -3,9 +3,7 @@ use crate::{
     http_client::dpop::DpopClient,
     jose::jwt::{RegisteredClaims, RegisteredClaimsAud},
     keyset::Keyset,
-    oauth_session::OAuthSession,
     resolver::OAuthResolver,
-    store::{session::SessionStore, session_getter::SessionGetter},
     types::{
         OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
         PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
@@ -13,8 +11,7 @@ use crate::{
     },
     utils::{compare_algos, generate_nonce},
 };
-use atrium_api::types::string::{Datetime, Did};
-use atrium_common::store::Store;
+use atrium_api::types::string::Datetime;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
     http::{Method, Request, StatusCode},
@@ -112,8 +109,8 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub(crate) server_metadata: OAuthAuthorizationServerMetadata,
-    pub(crate) client_metadata: OAuthClientMetadata,
-    dpop_client: DpopClient<T>,
+    client_metadata: OAuthClientMetadata,
+    pub(crate) dpop_client: DpopClient<T>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
 }
@@ -186,20 +183,35 @@ where
         )
         .await
     }
-    pub async fn refresh(&self, token_set: &TokenSet) {
+    pub async fn refresh(&self, token_set: &TokenSet) -> Result<TokenSet> {
         let Some(refresh_token) = token_set.refresh_token.as_ref() else {
-            // TODO
-            return;
+            todo!();
         };
-        // TODO
-        let result = self
+        // TODO: vefify issuer
+        let response = self
             .request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
                 grant_type: TokenGrantType::RefreshToken,
                 refresh_token: refresh_token.clone(),
                 scope: None,
             }))
-            .await;
-        println!("{result:?}");
+            .await?;
+
+        let expires_at = response.expires_in.and_then(|expires_in| {
+            Datetime::now()
+                .as_ref()
+                .checked_add_signed(TimeDelta::seconds(expires_in))
+                .map(Datetime::new)
+        });
+        Ok(TokenSet {
+            sub: token_set.sub.clone(),
+            aud: token_set.aud.clone(), // TODO
+            iss: token_set.iss.clone(), // TODO
+            scope: response.scope,
+            access_token: response.access_token,
+            refresh_token: response.refresh_token,
+            token_type: response.token_type,
+            expires_at,
+        })
     }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where
@@ -305,21 +317,6 @@ where
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
             }
         }
-    }
-    pub(crate) async fn create_session<S>(
-        self,
-        sub: Did,
-        http_client: Arc<T>,
-        session_getter: SessionGetter<S>,
-    ) -> Result<OAuthSession<T, D, H>>
-    where
-        S: SessionStore + Send + Sync + 'static,
-        S::Error: std::error::Error + Send + Sync + 'static,
-    {
-        let dpop_key = self.dpop_client.key.clone();
-        // TODO
-        let session = session_getter.get(&sub).await.expect("").unwrap();
-        Ok(OAuthSession::new(self, dpop_key, http_client, session.token_set).await?)
     }
 }
 

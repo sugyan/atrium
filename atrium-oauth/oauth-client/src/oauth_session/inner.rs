@@ -1,38 +1,78 @@
 use super::store::OAuthSessionStore;
+use crate::{server_agent::OAuthServerAgent, store::session::Session, DpopClient};
 use atrium_api::{
     agent::{CloneWithProxy, Configure, InnerStore, WrapperClient},
     types::string::Did,
 };
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
     http::{Request, Response},
     Error, HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use std::{fmt::Debug, sync::Arc};
+use tokio::sync::RwLock;
 
-pub struct Client<S, T> {
-    inner: WrapperClient<S, T, String>,
+pub struct Client<S, T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    inner: WrapperClient<S, DpopClient<T>, String>,
+    store: Arc<InnerStore<S, String>>,
+    server_agent: OAuthServerAgent<T, D, H>,
+    session: Arc<RwLock<Session>>,
 }
 
-impl<S, T> Client<S, T> {
-    pub fn new(store: Arc<InnerStore<S, String>>, xrpc: T) -> Self {
-        Self { inner: WrapperClient::new(Arc::clone(&store), xrpc) }
+impl<S, T, D, H> Client<S, T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
+    pub fn new(
+        store: Arc<InnerStore<S, String>>,
+        xrpc: DpopClient<T>,
+        server_agent: OAuthServerAgent<T, D, H>,
+        session: Arc<RwLock<Session>>,
+    ) -> Self {
+        let inner = WrapperClient::new(Arc::clone(&store), xrpc);
+        Self { inner, store, server_agent, session }
     }
-    async fn refresh_token(&self) {}
-    // https://datatracker.ietf.org/doc/html/rfc6750#section-3
-    // fn is_invalid_token_response<O, E>(result: &Result<OutputDataOrBytes<O>, Error<E>>) -> bool
-    // where
-    //     O: DeserializeOwned + Send + Sync,
-    //     E: DeserializeOwned + Send + Sync + Debug,
-    // {
-    //     todo!()
-    // }
 }
 
-impl<S, T> HttpClient for Client<S, T>
+impl<S, T, D, H> Client<S, T, D, H>
 where
     S: OAuthSessionStore + Send + Sync,
-    T: HttpClient + Send + Sync,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
+{
+    // https://datatracker.ietf.org/doc/html/rfc6750#section-3
+    fn is_invalid_token_response<O, E>(result: &Result<OutputDataOrBytes<O>, Error<E>>) -> bool
+    where
+        O: DeserializeOwned + Send + Sync,
+        E: DeserializeOwned + Send + Sync + Debug,
+    {
+        match result {
+            Err(Error::Authentication(value)) => value
+                .to_str()
+                .map_or(false, |s| s.starts_with("DPoP ") && s.contains("error=\"invalid_token\"")),
+            _ => false,
+        }
+    }
+    async fn refresh_token(&self) {
+        let token_set = self.session.read().await.token_set.clone();
+        if let Ok(refreshed) = self.server_agent.refresh(&token_set).await {
+            self.store.set(refreshed.access_token.clone()).await;
+            self.session.write().await.token_set = refreshed;
+        }
+    }
+}
+
+impl<S, T, D, H> HttpClient for Client<S, T, D, H>
+where
+    S: OAuthSessionStore + Send + Sync,
+    T: HttpClient + Send + Sync + 'static,
+    D: Send + Sync,
+    H: Send + Sync,
 {
     async fn send_http(
         &self,
@@ -42,10 +82,12 @@ where
     }
 }
 
-impl<S, T> XrpcClient for Client<S, T>
+impl<S, T, D, H> XrpcClient for Client<S, T, D, H>
 where
     S: OAuthSessionStore + Send + Sync,
-    T: HttpClient + Send + Sync,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
         self.inner.base_uri()
@@ -60,19 +102,21 @@ where
         O: DeserializeOwned + Send + Sync,
         E: DeserializeOwned + Send + Sync + Debug,
     {
-        // let result = self.inner.send_xrpc(request).await;
-        // // handle session-refreshes as needed
-        // if Self::is_invalid_token_response(&result) {
-        //     self.refresh_token().await;
-        //     self.inner.send_xrpc(request).await
-        // } else {
-        //     result
-        // }
-        self.inner.send_xrpc(request).await
+        let result = self.inner.send_xrpc(request).await;
+        // handle session-refreshes as needed
+        if Self::is_invalid_token_response(&result) {
+            self.refresh_token().await;
+            self.inner.send_xrpc(request).await
+        } else {
+            result
+        }
     }
 }
 
-impl<S, T> Configure for Client<S, T> {
+impl<S, T, D, H> Configure for Client<S, T, D, H>
+where
+    T: HttpClient + Send + Sync + 'static,
+{
     fn configure_endpoint(&self, endpoint: String) {
         self.inner.configure_endpoint(endpoint)
     }
@@ -86,11 +130,17 @@ impl<S, T> Configure for Client<S, T> {
     }
 }
 
-impl<S, T> CloneWithProxy for Client<S, T>
+impl<S, T, D, H> CloneWithProxy for Client<S, T, D, H>
 where
+    T: HttpClient + Send + Sync + 'static,
     WrapperClient<S, T, String>: CloneWithProxy,
 {
     fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
-        Self { inner: self.inner.clone_with_proxy(did, service_type) }
+        Self {
+            inner: self.inner.clone_with_proxy(did, service_type),
+            store: Arc::clone(&self.store),
+            server_agent: self.server_agent.clone(),
+            session: Arc::clone(&self.session),
+        }
     }
 }
