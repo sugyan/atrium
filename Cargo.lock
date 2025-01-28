@@ -301,8 +301,10 @@ version = "0.0.0"
 dependencies = [
  "async-stream",
  "atrium-api",
+ "atrium-crypto",
  "futures",
  "ipld-core",
+ "rand",
  "serde",
  "serde_ipld_dagcbor",
  "sha2",

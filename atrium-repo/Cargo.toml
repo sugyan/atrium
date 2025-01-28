@@ -13,6 +13,9 @@ keywords.workspace = true
 
 [dev-dependencies]
 # atrium-api.features = ["bluesky"]
+atrium-crypto.workspace = true
+rand.workspace = true
+
 tokio.workspace = true
 tokio.features = ["io-util", "macros", "rt"]
 
