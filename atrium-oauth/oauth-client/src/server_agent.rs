@@ -11,7 +11,7 @@ use crate::{
     },
     utils::{compare_algos, generate_nonce},
 };
-use atrium_api::types::string::Datetime;
+use atrium_api::types::string::{Datetime, Did};
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
     http::{Method, Request, StatusCode},
@@ -36,6 +36,8 @@ pub enum Error {
     Token(String),
     #[error("unsupported authentication method")]
     UnsupportedAuthMethod,
+    #[error("no refresh token available")]
+    TokenRefresh,
     #[error("failed to parse DID: {0}")]
     InvalidDid(&'static str),
     #[error(transparent)]
@@ -137,23 +139,25 @@ where
         )?;
         Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
     }
-    /**
-     * VERY IMPORTANT ! Always call this to process token responses.
-     *
-     * Whenever an OAuth token response is received, we **MUST** verify that the
-     * "sub" is a DID, whose issuer authority is indeed the server we just
-     * obtained credentials from. This check is a critical step to actually be
-     * able to use the "sub" (DID) as being the actual user's identifier.
-     */
-    async fn verify_token_response(&self, token_response: OAuthTokenResponse) -> Result<TokenSet> {
-        // ATPROTO requires that the "sub" is always present in the token response.
-        let Some(sub) = &token_response.sub else {
+    pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
+        let token_response = self
+            .request::<OAuthTokenResponse>(OAuthRequest::Token(TokenRequestParameters {
+                grant_type: TokenGrantType::AuthorizationCode,
+                code: code.into(),
+                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
+                code_verifier: verifier.into(),
+            }))
+            .await?;
+        let Some(sub) = token_response.sub else {
             return Err(Error::Token("missing `sub` in token response".into()));
         };
-        let (metadata, identity) = self.resolver.resolve_from_identity(sub).await?;
-        if metadata.issuer != self.server_metadata.issuer {
-            return Err(Error::Token("issuer mismatch".into()));
-        }
+        let sub = sub.parse().map_err(Error::InvalidDid)?;
+        // /!\ IMPORTANT /!\
+        //
+        // The token_response MUST always be valid before the "sub" it contains
+        // can be trusted (see Atproto's OAuth spec for details).
+        let aud = self.verify_issuer(&sub).await?;
+
         let expires_at = token_response.expires_in.and_then(|expires_in| {
             Datetime::now()
                 .as_ref()
@@ -161,9 +165,9 @@ where
                 .map(Datetime::new)
         });
         Ok(TokenSet {
-            sub: sub.parse().map_err(Error::InvalidDid)?,
-            aud: identity.pds,
-            iss: metadata.issuer,
+            iss: self.server_metadata.issuer.clone(),
+            sub,
+            aud,
             scope: token_response.scope,
             access_token: token_response.access_token,
             refresh_token: token_response.refresh_token,
@@ -171,23 +175,21 @@ where
             expires_at,
         })
     }
-    pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
-        self.verify_token_response(
-            self.request(OAuthRequest::Token(TokenRequestParameters {
-                grant_type: TokenGrantType::AuthorizationCode,
-                code: code.into(),
-                redirect_uri: self.client_metadata.redirect_uris[0].clone(), // ?
-                code_verifier: verifier.into(),
-            }))
-            .await?,
-        )
-        .await
-    }
     pub async fn refresh(&self, token_set: &TokenSet) -> Result<TokenSet> {
         let Some(refresh_token) = token_set.refresh_token.as_ref() else {
-            todo!();
+            return Err(Error::TokenRefresh);
         };
-        // TODO: vefify issuer
+
+        // /!\ IMPORTANT /!\
+        //
+        // The "sub" MUST be a DID, whose issuer authority is indeed the server we
+        // are trying to obtain credentials from. Note that we are doing this
+        // *before* we actually try to refresh the token:
+        // 1) To avoid unnecessary refresh
+        // 2) So that the refresh is the last async operation, ensuring as few
+        //    async operations happen before the result gets a chance to be stored.
+        let aud = self.verify_issuer(&token_set.sub).await?;
+
         let response = self
             .request::<OAuthTokenResponse>(OAuthRequest::Refresh(RefreshRequestParameters {
                 grant_type: TokenGrantType::RefreshToken,
@@ -203,15 +205,32 @@ where
                 .map(Datetime::new)
         });
         Ok(TokenSet {
+            iss: self.server_metadata.issuer.clone(),
             sub: token_set.sub.clone(),
-            aud: token_set.aud.clone(), // TODO
-            iss: token_set.iss.clone(), // TODO
+            aud,
             scope: response.scope,
             access_token: response.access_token,
             refresh_token: response.refresh_token,
             token_type: response.token_type,
             expires_at,
         })
+    }
+    /**
+     * VERY IMPORTANT ! Always call this to process token responses.
+     *
+     * Whenever an OAuth token response is received, we **MUST** verify that the
+     * "sub" is a DID, whose issuer authority is indeed the server we just
+     * obtained credentials from. This check is a critical step to actually be
+     * able to use the "sub" (DID) as being the actual user's identifier.
+     *
+     * @returns The user's PDS URL (the resource server for the user)
+     */
+    async fn verify_issuer(&self, sub: &Did) -> Result<String> {
+        let (metadata, identity) = self.resolver.resolve_from_identity(sub).await?;
+        if metadata.issuer != self.server_metadata.issuer {
+            return Err(Error::Token("issuer mismatch".into()));
+        }
+        Ok(identity.pds)
     }
     pub async fn request<O>(&self, request: OAuthRequest) -> Result<O>
     where

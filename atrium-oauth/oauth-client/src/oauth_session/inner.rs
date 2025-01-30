@@ -61,8 +61,10 @@ where
     async fn refresh_token(&self) {
         let token_set = self.session.read().await.token_set.clone();
         if let Ok(refreshed) = self.server_agent.refresh(&token_set).await {
-            self.store.set(refreshed.access_token.clone()).await;
+            let _ = self.store.set(refreshed.access_token.clone()).await;
             self.session.write().await.token_set = refreshed;
+        } else {
+            let _ = self.store.clear().await;
         }
     }
 }

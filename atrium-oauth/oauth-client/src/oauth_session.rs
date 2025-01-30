@@ -152,15 +152,15 @@ mod tests {
         jose::jwt::Claims,
         resolver::OAuthResolver,
         types::{
-            OAuthAuthorizationServerMetadata, OAuthTokenResponse, OAuthTokenType,
-            RefreshRequestParameters, TryIntoOAuthClientMetadata,
+            OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata, OAuthTokenResponse,
+            OAuthTokenType, RefreshRequestParameters, TryIntoOAuthClientMetadata,
         },
         AtprotoLocalhostClientMetadata, OAuthResolverConfig,
     };
     use atrium_api::{
         agent::{Agent, AtprotoServiceType},
         client::Service,
-        did_doc::DidDocument,
+        did_doc::{DidDocument, Service as DidDocumentService},
         types::string::Handle,
         xrpc::http::{header::CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, StatusCode},
     };
@@ -185,6 +185,34 @@ mod tests {
             &self,
             request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            match request.uri().path() {
+                // Resolve protected resource
+                "/.well-known/oauth-protected-resource" => {
+                    assert_eq!(request.uri().host(), Some("aud.example.com"));
+                    return Response::builder()
+                        .status(StatusCode::OK)
+                        .header(CONTENT_TYPE, "application/json")
+                        .body(serde_json::to_vec(&OAuthProtectedResourceMetadata {
+                            resource: String::from("https://aud.example.com"),
+                            authorization_servers: Some(vec![String::from(
+                                "https://iss.example.com",
+                            )]),
+                            ..Default::default()
+                        })?)
+                        .map_err(|e| e.into());
+                }
+                // Resolve authorization server metadata
+                "/.well-known/oauth-authorization-server" => {
+                    assert_eq!(request.uri().host(), Some("iss.example.com"));
+                    return Response::builder()
+                        .status(StatusCode::OK)
+                        .header(CONTENT_TYPE, "application/json")
+                        .body(serde_json::to_vec(&oauth_server_metadata())?)
+                        .map_err(|e| e.into());
+                }
+                _ => {}
+            }
+
             let mut headers = request.headers().clone();
             let Some(authorization) = headers
                 .remove("authorization")
@@ -253,18 +281,28 @@ mod tests {
         }
     }
 
-    struct NoopDidResolver;
+    struct MockDidResolver;
 
-    impl Resolver for NoopDidResolver {
+    impl Resolver for MockDidResolver {
         type Input = Did;
         type Output = DidDocument;
         type Error = atrium_identity::Error;
-        async fn resolve(&self, _: &Self::Input) -> Result<Self::Output, Self::Error> {
-            unimplemented!()
+        async fn resolve(&self, did: &Self::Input) -> Result<Self::Output, Self::Error> {
+            Ok(DidDocument {
+                context: None,
+                id: did.as_ref().to_string(),
+                also_known_as: None,
+                verification_method: None,
+                service: Some(vec![DidDocumentService {
+                    id: String::from("#atproto_pds"),
+                    r#type: String::from("AtprotoPersonalDataServer"),
+                    service_endpoint: String::from("https://aud.example.com"),
+                }]),
+            })
         }
     }
 
-    impl DidResolver for NoopDidResolver {}
+    impl DidResolver for MockDidResolver {}
 
     struct NoopHandleResolver;
 
@@ -279,9 +317,21 @@ mod tests {
 
     impl HandleResolver for NoopHandleResolver {}
 
+    fn oauth_server_metadata() -> OAuthAuthorizationServerMetadata {
+        OAuthAuthorizationServerMetadata {
+            issuer: String::from("https://iss.example.com"),
+            token_endpoint: String::from("https://iss.example.com/token"),
+            token_endpoint_auth_methods_supported: Some(vec![
+                String::from("none"),
+                String::from("private_key_jwt"),
+            ]),
+            ..Default::default()
+        }
+    }
+
     async fn oauth_session(
         data: Arc<Mutex<Option<RecordData>>>,
-    ) -> OAuthSession<MockHttpClient, NoopDidResolver, NoopHandleResolver> {
+    ) -> OAuthSession<MockHttpClient, MockDidResolver, NoopHandleResolver> {
         let dpop_key = serde_json::from_str::<Key>(
             r#"{
                 "kty": "EC",
@@ -295,7 +345,7 @@ mod tests {
         let http_client = Arc::new(MockHttpClient { data });
         let resolver = Arc::new(OAuthResolver::new(
             OAuthResolverConfig {
-                did_resolver: NoopDidResolver,
+                did_resolver: MockDidResolver,
                 handle_resolver: NoopHandleResolver,
                 authorization_server_metadata: Default::default(),
                 protected_resource_metadata: Default::default(),
@@ -305,14 +355,7 @@ mod tests {
         let keyset = None;
         let server_agent = OAuthServerAgent::new(
             dpop_key.clone(),
-            OAuthAuthorizationServerMetadata {
-                token_endpoint: String::from("https://iss.example.com/token"),
-                token_endpoint_auth_methods_supported: Some(vec![
-                    String::from("none"),
-                    String::from("private_key_jwt"),
-                ]),
-                ..Default::default()
-            },
+            oauth_server_metadata(),
             AtprotoLocalhostClientMetadata::default()
                 .try_into_client_metadata(&None)
                 .expect("client metadata should be valid"),
