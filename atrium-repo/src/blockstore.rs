@@ -3,9 +3,11 @@ use std::future::Future;
 use ipld_core::cid::Cid;
 
 mod car;
+mod diff;
 mod memory;
 
 pub use car::{CarStore, Error as CarError};
+pub use diff::DiffBlockStore;
 pub use memory::MemoryBlockStore;
 
 /// DAG-PB multicodec code
