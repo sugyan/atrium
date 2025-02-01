@@ -9,6 +9,22 @@ use regex::Regex;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::{cmp, ops::Deref, str::FromStr, sync::OnceLock};
 
+// Reference: https://github.com/bluesky-social/indigo/blob/9e3b84fdbb20ca4ac397a549e1c176b308f7a6e1/repo/tid.go#L11-L19
+fn s32_encode(mut i: u64) -> String {
+    const S32_CHAR: &[u8] = b"234567abcdefghijklmnopqrstuvwxyz";
+
+    let mut s = String::new();
+    for _ in 0..13 {
+        let c = i & 0x1F;
+        s.push(S32_CHAR[c as usize] as char);
+
+        i >>= 5;
+    }
+
+    // Reverse the string to convert it to big-endian format.
+    s.as_str().chars().rev().collect()
+}
+
 /// Common trait implementations for Lexicon string formats that are newtype wrappers
 /// around `String`.
 macro_rules! string_newtype {
@@ -410,7 +426,7 @@ impl Serialize for Language {
 
 /// A [Timestamp Identifier].
 ///
-/// [Timestamp Identifier]: https://atproto.com/specs/record-key#record-key-type-tid
+/// [Timestamp Identifier]: https://atproto.com/specs/tid
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(transparent)]
 pub struct Tid(String);
@@ -434,6 +450,19 @@ impl Tid {
         } else {
             Ok(Self(tid))
         }
+    }
+
+    /// Construct a new timestamp with the specified clock ID.
+    ///
+    /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
+    /// with this parameter.
+    pub fn now(cid: u32) -> Self {
+        let now = chrono::Utc::now().timestamp_micros() as u64;
+
+        // The TID is laid out as follows:
+        // 0TTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTCCCCCCCCCC
+        let tid = (now << 10) & 0x7FFF_FFFF_FFFF_FC00 | (cid as u64) & 0x3FF;
+        Self(s32_encode(tid))
     }
 
     /// Returns the TID as a string slice.
@@ -764,6 +793,12 @@ mod tests {
                 invalid,
             );
         }
+    }
+
+    #[test]
+    fn tid_encode() {
+        assert_eq!(s32_encode(0), "2222222222222");
+        assert_eq!(s32_encode(1), "2222222222223");
     }
 
     #[test]
