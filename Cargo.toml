@@ -36,10 +36,6 @@ bsky-sdk = { version = "0.1.16", path = "bsky-sdk" }
 # async in streams
 async-stream = "0.3"
 
-# async in traits
-# Can be removed once MSRV is at least 1.75.0.
-async-trait = "0.1.68"
-
 # DAG-CBOR codec
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
 serde_ipld_dagcbor = { version = "0.6.0", default-features = false, features = ["std"] }
