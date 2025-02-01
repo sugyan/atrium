@@ -456,13 +456,21 @@ impl Tid {
     ///
     /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
     /// with this parameter.
-    pub fn now(cid: u32) -> Self {
-        let now = chrono::Utc::now().timestamp_micros() as u64;
+    pub fn from_datetime(cid: u32, time: chrono::DateTime<chrono::Utc>) -> Self {
+        let time = time.timestamp_micros() as u64;
 
         // The TID is laid out as follows:
         // 0TTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTCCCCCCCCCC
-        let tid = (now << 10) & 0x7FFF_FFFF_FFFF_FC00 | (cid as u64) & 0x3FF;
+        let tid = (time << 10) & 0x7FFF_FFFF_FFFF_FC00 | (cid as u64) & 0x3FF;
         Self(s32_encode(tid))
+    }
+
+    /// Construct a new [Tid] that represents the current time.
+    ///
+    /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
+    /// with this parameter.
+    pub fn now(cid: u32) -> Self {
+        Self::from_datetime(cid, chrono::Utc::now())
     }
 
     /// Returns the TID as a string slice.
@@ -799,6 +807,12 @@ mod tests {
     fn tid_encode() {
         assert_eq!(s32_encode(0), "2222222222222");
         assert_eq!(s32_encode(1), "2222222222223");
+    }
+
+    #[test]
+    fn tid_construct() {
+        let tid = Tid::from_datetime(0, chrono::DateTime::from_timestamp(1738430999, 0).unwrap());
+        assert_eq!(tid.as_str(), "3lh5234mwy222");
     }
 
     #[test]
