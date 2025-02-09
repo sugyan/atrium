@@ -185,6 +185,11 @@ impl Commit {
         self.inner.data
     }
 
+    /// Return the revision of the commit.
+    pub fn rev(&self) -> Tid {
+        self.inner.rev.clone()
+    }
+
     /// Calculate the SHA-256 hash of the commit object. Used for signature verification.
     pub fn hash(&self) -> [u8; 32] {
         let commit = serde_ipld_dagcbor::to_vec(&schema::Commit {
