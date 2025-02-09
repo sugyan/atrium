@@ -456,8 +456,10 @@ impl Tid {
 
     /// Construct a new timestamp with the specified clock ID.
     ///
-    /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
-    /// with this parameter.
+    /// If you have multiple clock sources, you can use `clkid` to distinguish between them
+    /// and hint to other implementations that the timestamp cannot be compared with other
+    /// timestamps from other sources.
+    /// If you are only using a single clock source, you can just specify `0` for `clkid`.
     pub fn from_datetime(clkid: LimitedU32<1023>, time: chrono::DateTime<chrono::Utc>) -> Self {
         let time = time.timestamp_micros() as u64;
 
@@ -469,8 +471,10 @@ impl Tid {
 
     /// Construct a new [Tid] that represents the current time.
     ///
-    /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
-    /// with this parameter.
+    /// If you have multiple clock sources, you can use `clkid` to distinguish between them
+    /// and hint to other implementations that the timestamp cannot be compared with other
+    /// timestamps from other sources.
+    /// If you are only using a single clock source, you can just specify `0` for `clkid`.
     pub fn now(clkid: LimitedU32<1023>) -> Self {
         Self::from_datetime(clkid, chrono::Utc::now())
     }
