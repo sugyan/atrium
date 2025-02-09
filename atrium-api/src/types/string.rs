@@ -9,11 +9,13 @@ use regex::Regex;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::{cmp, ops::Deref, str::FromStr, sync::OnceLock};
 
+use super::LimitedU32;
+
 // Reference: https://github.com/bluesky-social/indigo/blob/9e3b84fdbb20ca4ac397a549e1c176b308f7a6e1/repo/tid.go#L11-L19
 fn s32_encode(mut i: u64) -> String {
     const S32_CHAR: &[u8] = b"234567abcdefghijklmnopqrstuvwxyz";
 
-    let mut s = String::new();
+    let mut s = String::with_capacity(13);
     for _ in 0..13 {
         let c = i & 0x1F;
         s.push(S32_CHAR[c as usize] as char);
@@ -22,7 +24,7 @@ fn s32_encode(mut i: u64) -> String {
     }
 
     // Reverse the string to convert it to big-endian format.
-    s.as_str().chars().rev().collect()
+    s.chars().rev().collect()
 }
 
 /// Common trait implementations for Lexicon string formats that are newtype wrappers
@@ -456,12 +458,12 @@ impl Tid {
     ///
     /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
     /// with this parameter.
-    pub fn from_datetime(cid: u32, time: chrono::DateTime<chrono::Utc>) -> Self {
+    pub fn from_datetime(clkid: LimitedU32<1023>, time: chrono::DateTime<chrono::Utc>) -> Self {
         let time = time.timestamp_micros() as u64;
 
         // The TID is laid out as follows:
         // 0TTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTCCCCCCCCCC
-        let tid = (time << 10) & 0x7FFF_FFFF_FFFF_FC00 | (cid as u64) & 0x3FF;
+        let tid = (time << 10) & 0x7FFF_FFFF_FFFF_FC00 | (Into::<u32>::into(clkid) as u64 & 0x3FF);
         Self(s32_encode(tid))
     }
 
@@ -469,8 +471,8 @@ impl Tid {
     ///
     /// Clock IDs 0-31 can be used as an ad-hoc clock ID if you are not concerned
     /// with this parameter.
-    pub fn now(cid: u32) -> Self {
-        Self::from_datetime(cid, chrono::Utc::now())
+    pub fn now(clkid: LimitedU32<1023>) -> Self {
+        Self::from_datetime(clkid, chrono::Utc::now())
     }
 
     /// Returns the TID as a string slice.
@@ -811,7 +813,10 @@ mod tests {
 
     #[test]
     fn tid_construct() {
-        let tid = Tid::from_datetime(0, chrono::DateTime::from_timestamp(1738430999, 0).unwrap());
+        let tid = Tid::from_datetime(
+            0.try_into().unwrap(),
+            chrono::DateTime::from_timestamp(1738430999, 0).unwrap(),
+        );
         assert_eq!(tid.as_str(), "3lh5234mwy222");
     }
 
