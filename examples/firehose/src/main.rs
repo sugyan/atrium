@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use atrium_api::types::string::RecordKey;
 use chrono::Local;
 use firehose::stream::frames::Frame;
 use firehose::subscription::{CommitHandler, Subscription};
@@ -65,10 +66,14 @@ impl CommitHandler for Firehose {
         .await?;
 
         for op in &commit.ops {
-            let collection = op.path.split('/').next().expect("op.path is empty");
+            let mut s = op.path.split('/');
+            let collection = s.next().expect("op.path is empty");
+            let rkey = s.next().expect("no record key");
             if op.action != "create" {
                 continue;
             }
+
+            let rkey = RecordKey::new(rkey.to_string()).expect("invalid record key");
 
             match collection {
                 feed::Post::NSID => {
@@ -77,7 +82,7 @@ impl CommitHandler for Firehose {
                     // signed by the owner of the repository.
                     // You will always want to read out records using the MST to ensure they haven't been
                     // tampered with.
-                    if let Some(record) = repo.get::<feed::Post>(&op.path).await? {
+                    if let Some(record) = repo.get::<feed::Post>(rkey).await? {
                         println!(
                             "{} - {} - {}",
                             record.created_at.as_ref().with_timezone(&Local),

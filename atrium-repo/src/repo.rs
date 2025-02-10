@@ -256,10 +256,14 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     ///
     /// If you acknowledge the risks and want to access records via CID anyway, you will have to
     /// do so by directly accessing the repository's backing storage.
-    pub async fn get<C: Collection>(&mut self, rkey: &str) -> Result<Option<C::Record>, Error> {
+    pub async fn get<C: Collection>(
+        &mut self,
+        rkey: RecordKey,
+    ) -> Result<Option<C::Record>, Error> {
+        let path = C::repo_path(&rkey);
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
-        if let Some(cid) = mst.get(rkey).await? {
+        if let Some(cid) = mst.get(&path).await? {
             Ok(Some(read_record::<C>(&mut self.db, cid).await?))
         } else {
             Ok(None)
