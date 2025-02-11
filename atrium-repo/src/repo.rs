@@ -344,6 +344,22 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
     }
 
+    /// Add a new raw record to this repository.
+    pub async fn add_raw<'a, T: Serialize>(
+        &'a mut self,
+        key: &str,
+        data: T,
+    ) -> Result<CommitBuilder<'a, S>, Error> {
+        let data = serde_ipld_dagcbor::to_vec(&data).unwrap();
+        let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
+
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+        mst.add(&key, cid).await?;
+        let root = mst.root();
+
+        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+    }
+
     /// Update an existing record in the repository.
     pub async fn update<'a, C: Collection>(
         &'a mut self,
@@ -361,6 +377,22 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
     }
 
+    /// Update an existing record in the repository with raw data.
+    pub async fn update_raw<'a, T: Serialize>(
+        &'a mut self,
+        key: &str,
+        data: T,
+    ) -> Result<CommitBuilder<'a, S>, Error> {
+        let data = serde_ipld_dagcbor::to_vec(&data).unwrap();
+        let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
+
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+        mst.update(&key, cid).await?;
+        let root = mst.root();
+
+        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+    }
+
     /// Delete an existing record in the repository.
     pub async fn delete<'a, C: Collection>(
         &'a mut self,
@@ -370,6 +402,15 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
 
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
         mst.delete(&path).await?;
+        let root = mst.root();
+
+        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+    }
+
+    /// Delete an existing record in the repository.
+    pub async fn delete_raw<'a>(&'a mut self, key: &str) -> Result<CommitBuilder<'a, S>, Error> {
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+        mst.delete(&key).await?;
         let root = mst.root();
 
         Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
