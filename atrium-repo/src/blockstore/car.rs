@@ -85,7 +85,6 @@ impl<R: AsyncRead + AsyncSeek + Unpin> CarStore<R> {
                     // reader.seek(SeekFrom::Start(offset + len)).await?;
 
                     // Validate this block's multihash.
-                    buffer.clear();
                     buffer.resize(len as usize, 0);
                     storage.read_exact(buffer.as_mut_slice()).await?;
 
@@ -187,14 +186,14 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
         if let std::collections::hash_map::Entry::Vacant(e) = self.index.entry(cid) {
             let mut fc = vec![];
             cid.write_bytes(&mut fc).expect("internal error writing CID");
-            fc.extend_from_slice(contents);
 
             let mut buf = unsigned_varint::encode::u64_buffer();
-            let buf = unsigned_varint::encode::u64(fc.len() as u64, &mut buf);
+            let buf = unsigned_varint::encode::u64((fc.len() + contents.len()) as u64, &mut buf);
 
             self.storage.write_all(buf).await?;
-            let offs = self.storage.stream_position().await?;
             self.storage.write_all(&fc).await?;
+            let offs = self.storage.stream_position().await?;
+            self.storage.write_all(&contents).await?;
 
             // Update the index with the new block.
             e.insert((offs, contents.len()));
@@ -223,4 +222,27 @@ pub enum Error {
     Multihash(#[from] ipld_core::cid::multihash::Error),
     #[error("serde_ipld_dagcbor decoding error: {0}")]
     Parse(#[from] serde_ipld_dagcbor::DecodeError<Infallible>),
+}
+
+#[cfg(test)]
+mod test {
+    use std::io::Cursor;
+
+    use crate::blockstore::DAG_CBOR;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn basic_rw() {
+        const STR: &[u8] = b"the quick brown fox jumps over the lazy dog";
+
+        let mut mem = Vec::new();
+        let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
+
+        let cid = bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+
+        let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
+        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+    }
 }
