@@ -1,5 +1,6 @@
 use std::{cmp::Ordering, collections::HashSet, convert::Infallible};
 
+use algos::FindPathResult;
 use async_stream::try_stream;
 use futures::{Stream, StreamExt};
 use ipld_core::{cid::Cid, ipld::Ipld};
@@ -64,6 +65,21 @@ mod algos {
         Continue((Cid, M)),
         /// Stop traversal and return `R`.
         Stop(R),
+    }
+
+    pub enum FindPathResult {
+        /// The key was found
+        Found {
+            /// The containing MST node
+            node: Cid,
+            /// The value's [Cid]
+            path: Cid,
+        },
+        /// The key was not found
+        NotFound {
+            /// The containing MST node
+            node: Cid,
+        },
     }
 
     /// Compute the depth of the specified node.
@@ -159,12 +175,15 @@ mod algos {
     /// the CIDs of all nodes traversed.
     pub fn traverse_find_path(
         key: &str,
-    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<Cid, Cid>, Error> + '_ {
+    ) -> impl FnMut(Node, Cid) -> Result<TraverseAction<FindPathResult, Cid>, Error> + '_ {
         move |node, cid| -> Result<_, Error> {
             if let Some(index) = node.find_ge(key) {
                 if let Some(NodeEntry::Leaf(e)) = node.entries.get(index) {
                     if e.key == key {
-                        return Ok(TraverseAction::Stop(cid));
+                        return Ok(TraverseAction::Stop(FindPathResult::Found {
+                            node: cid,
+                            path: e.value,
+                        }));
                     }
                 }
 
@@ -173,15 +192,15 @@ mod algos {
                     if let Some(subtree) = node.entries.get(index).unwrap().tree() {
                         Ok(TraverseAction::Continue((*subtree, *subtree)))
                     } else {
-                        Err(Error::KeyNotFound)
+                        Ok(TraverseAction::Stop(FindPathResult::NotFound { node: cid }))
                     }
                 } else {
                     // There is no left neighbor. The key is not present.
-                    Err(Error::KeyNotFound)
+                    Ok(TraverseAction::Stop(FindPathResult::NotFound { node: cid }))
                 }
             } else {
                 // We've recursed into an empty node, so the key is not present in the tree.
-                Err(Error::KeyNotFound)
+                Ok(TraverseAction::Stop(FindPathResult::NotFound { node: cid }))
             }
         }
     }
@@ -747,12 +766,25 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         }
     }
 
-    /// Returns the path to a node that contains the specified key (including the containing node).
+    /// Returns the full path to a node that contains the specified key (including the containing node).
+    ///
+    /// If the key is not present in the tree, this will return the path to the node that would've contained
+    /// the key.
     ///
     /// This is useful for exporting portions of the MST for e.g. generating firehose records.
-    pub async fn get_path(&mut self, key: &str) -> Result<impl Iterator<Item = Cid>, Error> {
+    pub async fn extract_path(&mut self, key: &str) -> Result<impl Iterator<Item = Cid>, Error> {
+        // HACK: Create a common vector type that can be returned on all paths.
+        let mut r = Vec::new();
+
         match algos::traverse(&mut self.storage, self.root, algos::traverse_find_path(key)).await {
-            Ok((node_path, cid)) => Ok(node_path.into_iter().map(|(_, cid)| cid).chain([cid])),
+            Ok((node_path, FindPathResult::Found { node, path })) => {
+                r.extend(node_path.into_iter().map(|(_, cid)| cid).chain([node, path]));
+                Ok(r.into_iter())
+            }
+            Ok((node_path, FindPathResult::NotFound { node })) => {
+                r.extend(node_path.into_iter().map(|(_, cid)| cid).chain([node]));
+                Ok(r.into_iter())
+            }
             Err(e) => Err(e),
         }
     }

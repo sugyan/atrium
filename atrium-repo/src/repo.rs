@@ -269,6 +269,44 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
             Ok(None)
         }
     }
+
+    /// Returns the contents of the specified record from the repository, or `None` if it does not exist.
+    pub async fn get_raw(&mut self, key: &str) -> Result<Option<Vec<u8>>, Error> {
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+
+        if let Some(cid) = mst.get(&key).await? {
+            Ok(Some(self.db.read_block(&cid).await?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Extract the path to a specified record in the repository.
+    ///
+    /// If the record does not exist in this repository, the path returned will point to the
+    /// node in the merkle search tree that would've contained the record.
+    ///
+    /// This can be used to collect the blocks needed to broadcast a record out on the firehose,
+    /// for example.
+    pub async fn extract_path<C: Collection>(
+        &mut self,
+        rkey: RecordKey,
+    ) -> Result<impl Iterator<Item = Cid>, Error> {
+        let path = C::repo_path(&rkey);
+        self.extract_path_raw(&path).await
+    }
+
+    /// Extract the path to a specified record in the repository.
+    pub async fn extract_path_raw(
+        &mut self,
+        key: &str,
+    ) -> Result<impl Iterator<Item = Cid>, Error> {
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+
+        let mut r = vec![self.root];
+        r.extend(mst.extract_path(&key).await?);
+        Ok(r.into_iter())
+    }
 }
 
 impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
@@ -441,7 +479,7 @@ mod test {
         );
 
         // Commit a record.
-        let mut cb = repo
+        let cb = repo
             .add::<bsky::feed::Post>(
                 RecordKey::new(Tid::now(LimitedU32::MIN).to_string()).unwrap(),
                 bsky::feed::post::RecordData {
