@@ -245,4 +245,22 @@ mod test {
         let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
         assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
     }
+
+    #[tokio::test]
+    async fn basic_rw_2blocks() {
+        const STR1: &[u8] = b"the quick brown fox jumps over the lazy dog";
+        const STR2: &[u8] = b"the lazy fox jumps over the quick brown dog";
+
+        let mut mem = Vec::new();
+        let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
+
+        let cid1 = bs.write_block(DAG_CBOR, SHA2_256, &STR1).await.unwrap();
+        let cid2 = bs.write_block(DAG_CBOR, SHA2_256, &STR2).await.unwrap();
+        assert_eq!(bs.read_block(&cid1).await.unwrap(), STR1);
+        assert_eq!(bs.read_block(&cid2).await.unwrap(), STR2);
+
+        let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
+        assert_eq!(bs.read_block(&cid1).await.unwrap(), STR1);
+        assert_eq!(bs.read_block(&cid2).await.unwrap(), STR2);
+    }
 }
