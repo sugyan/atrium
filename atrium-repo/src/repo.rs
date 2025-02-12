@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use atrium_api::types::{
     string::{Did, RecordKey, Tid},
     Collection, LimitedU32,
@@ -281,31 +283,54 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         }
     }
 
-    /// Extract the path to a specified record in the repository.
+    /// Extract the CIDs associated with a particular record.
     ///
-    /// If the record does not exist in this repository, the path returned will point to the
+    /// If the record does not exist in this repository, the CIDs returned will point to the
     /// node in the merkle search tree that would've contained the record.
     ///
     /// This can be used to collect the blocks needed to broadcast a record out on the firehose,
     /// for example.
-    pub async fn extract_path<C: Collection>(
+    pub async fn extract<C: Collection>(
         &mut self,
         rkey: RecordKey,
     ) -> Result<impl Iterator<Item = Cid>, Error> {
         let path = C::repo_path(&rkey);
-        self.extract_path_raw(&path).await
+        self.extract_raw(&path).await
     }
 
-    /// Extract the path to a specified record in the repository.
-    pub async fn extract_path_raw(
+    /// Extract the CIDs associated with a particular record into a blockstore.
+    pub async fn extract_into<C: Collection>(
         &mut self,
-        key: &str,
-    ) -> Result<impl Iterator<Item = Cid>, Error> {
+        rkey: RecordKey,
+        bs: impl AsyncBlockStoreWrite,
+    ) -> Result<(), Error> {
+        let path = C::repo_path(&rkey);
+        self.extract_raw_into(&path, bs).await
+    }
+
+    /// Extract the CIDs associated with a particular record.
+    pub async fn extract_raw(&mut self, key: &str) -> Result<impl Iterator<Item = Cid>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
         let mut r = vec![self.root];
         r.extend(mst.extract_path(&key).await?);
         Ok(r.into_iter())
+    }
+
+    /// Extract the CIDs associated with a particular record into a blockstore.
+    pub async fn extract_raw_into(
+        &mut self,
+        key: &str,
+        mut bs: impl AsyncBlockStoreWrite,
+    ) -> Result<(), Error> {
+        let cids = self.extract_raw(key).await?.collect::<HashSet<_>>();
+
+        for cid in cids {
+            bs.write_block(cid.codec(), SHA2_256, self.db.read_block(&cid).await?.as_slice())
+                .await?;
+        }
+
+        Ok(())
     }
 }
 
