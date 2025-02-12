@@ -74,6 +74,12 @@ pub enum Error {
     CidNotFound,
     #[error("unsupported hashing algorithm")]
     UnsupportedHash(u64),
-    #[error("IO error: {0}")]
-    Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Other(Box<dyn std::error::Error + Send + Sync>),
+}
+
+impl From<std::io::Error> for Error {
+    fn from(value: std::io::Error) -> Self {
+        Self::Other(Box::new(value))
+    }
 }
