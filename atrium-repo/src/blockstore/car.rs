@@ -190,6 +190,7 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
             let mut buf = unsigned_varint::encode::u64_buffer();
             let buf = unsigned_varint::encode::u64((fc.len() + contents.len()) as u64, &mut buf);
 
+            self.storage.seek(SeekFrom::End(0)).await?;
             self.storage.write_all(buf).await?;
             self.storage.write_all(&fc).await?;
             let offs = self.storage.stream_position().await?;
