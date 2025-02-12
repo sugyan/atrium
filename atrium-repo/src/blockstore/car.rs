@@ -263,4 +263,20 @@ mod test {
         assert_eq!(bs.read_block(&cid1).await.unwrap(), STR1);
         assert_eq!(bs.read_block(&cid2).await.unwrap(), STR2);
     }
+
+    #[tokio::test]
+    async fn basic_root() {
+        const STR: &[u8] = b"the quick brown fox jumps over the lazy dog";
+
+        let mut mem = Vec::new();
+        let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
+
+        let cid = bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+        bs.set_root(cid).await.unwrap();
+
+        let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
+        assert_eq!(bs.roots().next().unwrap(), cid);
+        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+    }
 }
