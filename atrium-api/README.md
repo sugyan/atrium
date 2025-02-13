@@ -29,6 +29,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 auth_factor_token: None,
                 identifier: "alice@mail.com".into(),
                 password: "hunter2".into(),
+                allow_takendown: None,
             }
             .into(),
         )

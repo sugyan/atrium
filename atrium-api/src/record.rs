@@ -63,6 +63,8 @@ pub enum KnownRecord {
     #[cfg(feature = "namespace-chatbsky")]
     #[serde(rename = "chat.bsky.actor.declaration")]
     ChatBskyActorDeclaration(Box<crate::chat::bsky::actor::declaration::Record>),
+    #[serde(rename = "com.atproto.lexicon.schema")]
+    ComAtprotoLexiconSchema(Box<crate::com::atproto::lexicon::schema::Record>),
 }
 #[cfg_attr(docsrs, doc(cfg(feature = "namespace-appbsky")))]
 #[cfg(feature = "namespace-appbsky")]
@@ -272,5 +274,15 @@ impl From<crate::chat::bsky::actor::declaration::Record> for KnownRecord {
 impl From<crate::chat::bsky::actor::declaration::RecordData> for KnownRecord {
     fn from(record_data: crate::chat::bsky::actor::declaration::RecordData) -> Self {
         KnownRecord::ChatBskyActorDeclaration(Box::new(record_data.into()))
+    }
+}
+impl From<crate::com::atproto::lexicon::schema::Record> for KnownRecord {
+    fn from(record: crate::com::atproto::lexicon::schema::Record) -> Self {
+        KnownRecord::ComAtprotoLexiconSchema(Box::new(record))
+    }
+}
+impl From<crate::com::atproto::lexicon::schema::RecordData> for KnownRecord {
+    fn from(record_data: crate::com::atproto::lexicon::schema::RecordData) -> Self {
+        KnownRecord::ComAtprotoLexiconSchema(Box::new(record_data.into()))
     }
 }

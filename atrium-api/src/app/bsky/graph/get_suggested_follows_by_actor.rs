@@ -13,6 +13,9 @@ pub struct OutputData {
     ///If true, response has fallen-back to generic results, and is not scoped using relativeToDid
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub is_fallback: core::option::Option<bool>,
+    ///Snowflake for this recommendation, use when submitting recommendation events.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub rec_id: core::option::Option<i64>,
     pub suggestions: Vec<crate::app::bsky::actor::defs::ProfileView>,
 }
 pub type Output = crate::types::Object<OutputData>;

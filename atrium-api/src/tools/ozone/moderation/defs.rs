@@ -29,6 +29,27 @@ pub struct AccountHostingData {
     pub updated_at: core::option::Option<crate::types::string::Datetime>,
 }
 pub type AccountHosting = crate::types::Object<AccountHostingData>;
+///Statistics about a particular account subject
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountStatsData {
+    ///Total number of appeals against a moderation action on the account
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub appeal_count: core::option::Option<i64>,
+    ///Number of times the account was escalated
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub escalate_count: core::option::Option<i64>,
+    ///Total number of reports on the account
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub report_count: core::option::Option<i64>,
+    ///Number of times the account was suspended
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub suspend_count: core::option::Option<i64>,
+    ///Number of times the account was taken down
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub takedown_count: core::option::Option<i64>,
+}
+pub type AccountStats = crate::types::Object<AccountStatsData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct BlobViewData {
@@ -67,6 +88,9 @@ pub type ImageDetails = crate::types::Object<ImageDetailsData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ModEventAcknowledgeData {
+    ///If true, all other reports on content authored by this account will be resolved (acknowledged).
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub acknowledge_account_subjects: core::option::Option<bool>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub comment: core::option::Option<String>,
 }
@@ -196,6 +220,9 @@ pub struct ModEventTakedownData {
     ///Indicates how long the takedown should be in effect before automatically expiring.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub duration_in_hours: core::option::Option<i64>,
+    ///Names/Keywords of the policies that drove the decision.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub policies: core::option::Option<Vec<String>>,
 }
 pub type ModEventTakedown = crate::types::Object<ModEventTakedownData>;
 ///Unmute action on a subject
@@ -312,6 +339,36 @@ pub struct RecordViewNotFoundData {
     pub uri: String,
 }
 pub type RecordViewNotFound = crate::types::Object<RecordViewNotFoundData>;
+///Statistics about a set of record subject items
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct RecordsStatsData {
+    ///Number of items that were appealed at least once
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub appealed_count: core::option::Option<i64>,
+    ///Number of items that were escalated at least once
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub escalated_count: core::option::Option<i64>,
+    ///Number of item currently in "reviewOpen" or "reviewEscalated" state
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub pending_count: core::option::Option<i64>,
+    ///Number of item currently in "reviewNone" or "reviewClosed" state
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub processed_count: core::option::Option<i64>,
+    ///Number of items that were reported at least once
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reported_count: core::option::Option<i64>,
+    ///Total number of item in the set
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_count: core::option::Option<i64>,
+    ///Number of item currently taken down
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub takendown_count: core::option::Option<i64>,
+    ///Cumulative sum of the number of reports on the items in the set
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub total_reports: core::option::Option<i64>,
+}
+pub type RecordsStats = crate::types::Object<RecordsStatsData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoViewData {
@@ -386,6 +443,9 @@ pub type SubjectReviewState = String;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct SubjectStatusViewData {
+    ///Statistics related to the account subject
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub account_stats: core::option::Option<AccountStats>,
     ///True indicates that the a previously taken moderator action was appealed against, by the author of the content. False indicates last appeal was resolved by moderators.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub appealed: core::option::Option<bool>,
@@ -410,6 +470,9 @@ pub struct SubjectStatusViewData {
     pub mute_reporting_until: core::option::Option<crate::types::string::Datetime>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub mute_until: core::option::Option<crate::types::string::Datetime>,
+    ///Statistics related to the record subjects authored by the subject's account
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub records_stats: core::option::Option<RecordsStats>,
     pub review_state: SubjectReviewState,
     pub subject: crate::types::Union<SubjectStatusViewSubjectRefs>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]

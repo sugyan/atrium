@@ -2139,6 +2139,36 @@ where
             _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
+    ///Get a list of trending topics
+    pub async fn get_trending_topics(
+        &self,
+        params: crate::app::bsky::unspecced::get_trending_topics::Parameters,
+    ) -> atrium_xrpc::Result<
+        crate::app::bsky::unspecced::get_trending_topics::Output,
+        crate::app::bsky::unspecced::get_trending_topics::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                _,
+                (),
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::GET,
+                    nsid: crate::app::bsky::unspecced::get_trending_topics::NSID.into(),
+                    parameters: Some(params),
+                    input: None,
+                    encoding: None,
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
+        }
+    }
     ///Backend Actors (profile) search, returns only skeleton.
     pub async fn search_actors_skeleton(
         &self,
@@ -5043,6 +5073,36 @@ where
         Self {
             xrpc,
             _phantom: core::marker::PhantomData,
+        }
+    }
+    ///Add a handle to the set of reserved handles.
+    pub async fn add_reserved_handle(
+        &self,
+        input: crate::com::atproto::temp::add_reserved_handle::Input,
+    ) -> atrium_xrpc::Result<
+        crate::com::atproto::temp::add_reserved_handle::Output,
+        crate::com::atproto::temp::add_reserved_handle::Error,
+    > {
+        let response = self
+            .xrpc
+            .send_xrpc::<
+                (),
+                _,
+                _,
+                _,
+            >(
+                &atrium_xrpc::XrpcRequest {
+                    method: http::Method::POST,
+                    nsid: crate::com::atproto::temp::add_reserved_handle::NSID.into(),
+                    parameters: None,
+                    input: Some(atrium_xrpc::InputDataOrBytes::Data(input)),
+                    encoding: Some(String::from("application/json")),
+                },
+            )
+            .await?;
+        match response {
+            atrium_xrpc::OutputDataOrBytes::Data(data) => Ok(data),
+            _ => Err(atrium_xrpc::Error::UnexpectedResponseType),
         }
     }
     ///Check accounts location in signup queue.

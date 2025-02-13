@@ -18,3 +18,14 @@ pub struct SkeletonSearchStarterPackData {
     pub uri: String,
 }
 pub type SkeletonSearchStarterPack = crate::types::Object<SkeletonSearchStarterPackData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct TrendingTopicData {
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub description: core::option::Option<String>,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub display_name: core::option::Option<String>,
+    pub link: String,
+    pub topic: String,
+}
+pub type TrendingTopic = crate::types::Object<TrendingTopicData>;
