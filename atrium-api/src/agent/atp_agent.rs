@@ -55,6 +55,7 @@ where
             .server
             .create_session(
                 crate::com::atproto::server::create_session::InputData {
+                    allow_takendown: None,
                     auth_factor_token: None,
                     identifier: identifier.as_ref().into(),
                     password: password.as_ref().into(),
