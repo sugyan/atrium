@@ -4,20 +4,27 @@ pub mod config;
 
 pub use self::builder::BskyAtpAgentBuilder;
 use self::config::Config;
-use crate::error::Result;
-use crate::moderation::util::interpret_label_value_definitions;
-use crate::moderation::{ModerationPrefsLabeler, Moderator};
-use crate::preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData};
-use atrium_api::agent::atp_agent::store::MemorySessionStore;
-use atrium_api::agent::atp_agent::{store::AtpSessionStore, AtpAgent};
-use atrium_api::app::bsky::actor::defs::PreferencesItem;
-use atrium_api::types::{Object, Union};
-use atrium_api::xrpc::XrpcClient;
+use crate::{
+    error::Result,
+    moderation::{
+        util::interpret_label_value_definitions,
+        {ModerationPrefsLabeler, Moderator},
+    },
+    preference::{FeedViewPreferenceData, Preferences, ThreadViewPreferenceData},
+};
+use atrium_api::{
+    agent::atp_agent::{
+        store::{AtpSessionStore, MemorySessionStore},
+        AtpAgent,
+    },
+    agent::Configure,
+    app::bsky::actor::defs::PreferencesItem,
+    types::{Object, Union},
+    xrpc::XrpcClient,
+};
 #[cfg(feature = "default-client")]
 use atrium_xrpc_client::reqwest::ReqwestClient;
-use std::collections::HashMap;
-use std::ops::Deref;
-use std::sync::Arc;
+use std::{collections::HashMap, ops::Deref, sync::Arc};
 
 /// A Bluesky agent.
 ///
@@ -265,7 +272,9 @@ where
 pub(crate) mod tests {
     use super::*;
     use atrium_api::{
-        agent::atp_agent::AtpSession, com::atproto::server::create_session::OutputData,
+        agent::{atp_agent::AtpSession, AuthorizationProvider},
+        com::atproto::server::create_session::OutputData,
+        xrpc::types::AuthorizationToken,
     };
     use atrium_common::store::Store;
     use thiserror::Error;
@@ -305,6 +314,12 @@ pub(crate) mod tests {
         }
         async fn clear(&self) -> core::result::Result<(), Self::Error> {
             unimplemented!()
+        }
+    }
+
+    impl AuthorizationProvider for MockSessionStore {
+        async fn authorization_token(&self, _: bool) -> Option<AuthorizationToken> {
+            Some(AuthorizationToken::Bearer(String::from("access")))
         }
     }
 

@@ -12,7 +12,7 @@ pub use request::{
     PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
     TokenRequestParameters,
 };
-pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse, OAuthTokenType};
+pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
 use serde::Deserialize;
 pub use token::TokenSet;
 
