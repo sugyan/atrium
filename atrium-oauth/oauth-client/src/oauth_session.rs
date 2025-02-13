@@ -9,7 +9,7 @@ use crate::{
     types::TokenSet,
 };
 use atrium_api::{
-    agent::{CloneWithProxy, Configure, InnerStore, SessionManager},
+    agent::{utils::SessionWithEndpointStore, CloneWithProxy, Configure, SessionManager},
     types::string::Did,
 };
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
@@ -34,7 +34,7 @@ pub struct OAuthSession<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    store: Arc<InnerStore<store::MemorySessionStore, String>>,
+    store: Arc<SessionWithEndpointStore<store::MemorySessionStore, String>>,
     inner: inner::Client<store::MemorySessionStore, T, D, H>,
     token_set: TokenSet, // TODO: replace with a session store?
 }
@@ -52,7 +52,10 @@ where
             let s = session.read().await;
             (s.dpop_key.clone(), s.token_set.clone())
         };
-        let store = Arc::new(InnerStore::new(MemorySessionStore::default(), token_set.aud.clone()));
+        let store = Arc::new(SessionWithEndpointStore::new(
+            MemorySessionStore::default(),
+            token_set.aud.clone(),
+        ));
         store.set(token_set.access_token.clone()).await?;
         let inner = inner::Client::new(
             Arc::clone(&store),

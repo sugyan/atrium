@@ -4,7 +4,10 @@ mod inner;
 pub mod store;
 
 use self::store::AtpSessionStore;
-use super::{inner::Wrapper, Agent, CloneWithProxy, Configure, InnerStore, SessionManager};
+use super::{
+    inner::Wrapper, utils::SessionWithEndpointStore, Agent, CloneWithProxy, Configure,
+    SessionManager,
+};
 use crate::{
     client::com::atproto::Service,
     did_doc::DidDocument,
@@ -24,7 +27,7 @@ where
     T: XrpcClient + Send + Sync,
     S::Error: std::error::Error + Send + Sync + 'static,
 {
-    store: Arc<InnerStore<S, AtpSession>>,
+    store: Arc<SessionWithEndpointStore<S, AtpSession>>,
     inner: Arc<inner::Client<S, T>>,
     atproto_service: Service<inner::Client<S, T>>,
 }
@@ -36,7 +39,7 @@ where
     S::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn new(xrpc: T, store: S) -> Self {
-        let store = Arc::new(InnerStore::new(store, xrpc.base_uri()));
+        let store = Arc::new(SessionWithEndpointStore::new(store, xrpc.base_uri()));
         let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
         let atproto_service = Service::new(Arc::clone(&inner));
         Self { store, inner, atproto_service }

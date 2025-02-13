@@ -1,6 +1,9 @@
 use super::{AtpSession, AtpSessionStore};
 use crate::{
-    agent::{CloneWithProxy, Configure, InnerStore, WrapperClient},
+    agent::{
+        utils::{SessionClient, SessionWithEndpointStore},
+        CloneWithProxy, Configure,
+    },
     did_doc::DidDocument,
     types::{string::Did, TryFromUnknown},
 };
@@ -14,8 +17,8 @@ use std::{fmt::Debug, sync::Arc};
 use tokio::sync::{Mutex, Notify};
 
 pub struct Client<S, T> {
-    store: Arc<InnerStore<S, AtpSession>>,
-    inner: WrapperClient<S, T, AtpSession>,
+    store: Arc<SessionWithEndpointStore<S, AtpSession>>,
+    inner: SessionClient<S, T, AtpSession>,
     is_refreshing: Arc<Mutex<bool>>,
     notify: Arc<Notify>,
 }
@@ -23,11 +26,11 @@ pub struct Client<S, T> {
 impl<S, T> Client<S, T>
 where
     S: AtpSessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
+    T: HttpClient + Send + Sync,
     S::Error: std::error::Error + Send + Sync + 'static,
 {
-    pub fn new(store: Arc<InnerStore<S, AtpSession>>, xrpc: T) -> Self {
-        let inner = WrapperClient::new(Arc::clone(&store), xrpc);
+    pub fn new(store: Arc<SessionWithEndpointStore<S, AtpSession>>, http_client: T) -> Self {
+        let inner = SessionClient::new(Arc::clone(&store), http_client);
         Self {
             store,
             inner,

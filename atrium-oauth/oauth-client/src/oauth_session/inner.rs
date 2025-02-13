@@ -1,7 +1,10 @@
 use super::store::OAuthSessionStore;
 use crate::{server_agent::OAuthServerAgent, store::session::Session, DpopClient};
 use atrium_api::{
-    agent::{CloneWithProxy, Configure, InnerStore, WrapperClient},
+    agent::{
+        utils::{SessionClient, SessionWithEndpointStore},
+        CloneWithProxy, Configure,
+    },
     types::string::Did,
 };
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
@@ -17,8 +20,8 @@ pub struct Client<S, T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    inner: WrapperClient<S, DpopClient<T>, String>,
-    store: Arc<InnerStore<S, String>>,
+    inner: SessionClient<S, DpopClient<T>, String>,
+    store: Arc<SessionWithEndpointStore<S, String>>,
     server_agent: OAuthServerAgent<T, D, H>,
     session: Arc<RwLock<Session>>,
 }
@@ -28,12 +31,12 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn new(
-        store: Arc<InnerStore<S, String>>,
+        store: Arc<SessionWithEndpointStore<S, String>>,
         xrpc: DpopClient<T>,
         server_agent: OAuthServerAgent<T, D, H>,
         session: Arc<RwLock<Session>>,
     ) -> Self {
-        let inner = WrapperClient::new(Arc::clone(&store), xrpc);
+        let inner = SessionClient::new(Arc::clone(&store), xrpc);
         Self { inner, store, server_agent, session }
     }
 }
@@ -135,7 +138,7 @@ where
 impl<S, T, D, H> CloneWithProxy for Client<S, T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    WrapperClient<S, T, String>: CloneWithProxy,
+    SessionClient<S, T, String>: CloneWithProxy,
 {
     fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
         Self {
