@@ -63,7 +63,7 @@ sha2 = "0.10.8"
 # Networking
 dashmap = "6.1.0"
 futures = { version = "0.3.30", default-features = false, features = ["alloc"] }
-hickory-proto = { version = "0.24.1", default-features = false }
+hickory-proto = { version = "0.24.3", default-features = false }
 hickory-resolver = "0.24.1"
 http = "1.1.0"
 lru = "0.12.4"
