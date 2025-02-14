@@ -4,17 +4,13 @@ mod request;
 mod response;
 mod token;
 
+pub use self::client_metadata::*;
+pub use self::metadata::*;
+pub use self::request::*;
+pub use self::response::*;
+pub use self::token::*;
 use crate::atproto::{KnownScope, Scope};
-pub use client_metadata::{OAuthClientMetadata, TryIntoOAuthClientMetadata};
-pub use metadata::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
-pub use request::{
-    AuthorizationCodeChallengeMethod, AuthorizationResponseType,
-    PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
-    TokenRequestParameters,
-};
-pub use response::{OAuthPusehedAuthorizationRequestResponse, OAuthTokenResponse};
 use serde::Deserialize;
-pub use token::TokenSet;
 
 #[derive(Debug, Deserialize)]
 pub enum AuthorizeOptionPrompt {
