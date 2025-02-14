@@ -1,4 +1,4 @@
-//! Implementation of [`AtpAgent`] and definitions of [`SessionStore`] for it.
+//! Implementation of [`AtpAgent`] and definitions of [`AtpSessionStore`] for it.
 
 mod inner;
 pub mod store;

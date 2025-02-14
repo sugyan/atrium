@@ -1,3 +1,5 @@
+//! Structs and traits for managing sessions and making the XRPC requests.
+
 pub mod atp_agent;
 #[cfg(feature = "bluesky")]
 pub mod bluesky;
@@ -10,6 +12,7 @@ use crate::{client::Service, types::string::Did};
 use atrium_xrpc::types::AuthorizationToken;
 use std::{future::Future, sync::Arc};
 
+/// A trait for providing authorization tokens.
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait AuthorizationProvider {
     #[allow(unused_variables)]
@@ -19,6 +22,7 @@ pub trait AuthorizationProvider {
     ) -> impl Future<Output = Option<AuthorizationToken>>;
 }
 
+/// A trait for configuring the endpoint and headers of a client.
 pub trait Configure {
     /// Set the current endpoint.
     fn configure_endpoint(&self, endpoint: String);
@@ -28,6 +32,7 @@ pub trait Configure {
     fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>);
 }
 
+/// A trait for cloning a client with a proxy header.
 pub trait CloneWithProxy {
     fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self;
 }

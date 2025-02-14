@@ -1,3 +1,5 @@
+//! Utilities for managing sessions and endpoints.
+
 use super::{AuthorizationProvider, CloneWithProxy, Configure};
 use crate::{did_doc::DidDocument, types::string::Did};
 use atrium_common::store::Store;
@@ -9,6 +11,7 @@ use std::{
 };
 
 /// A client that maintains session data and manages endpoints and XRPC headers.  
+///
 /// It is recommended to use this struct internally in higher-level clients such as [`XrpcClient`], which can automatically update tokens.
 pub struct SessionClient<S, T, U> {
     store: Arc<SessionWithEndpointStore<S, U>>,
@@ -111,7 +114,8 @@ where
     }
 }
 
-/// A store that wraps an underlying store providing authorization token and adds endpoint management functionality.  
+/// A store that wraps an underlying store providing authorization token and adds endpoint management functionality.
+///
 /// This struct is intended to be used when creating a [`SessionClient`].
 pub struct SessionWithEndpointStore<S, U> {
     inner: S,
