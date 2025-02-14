@@ -1,5 +1,5 @@
 #![doc = "Error types."]
-use http::StatusCode;
+use http::{HeaderValue, StatusCode};
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Debug, Display};
 
@@ -9,6 +9,8 @@ pub enum Error<E>
 where
     E: Debug,
 {
+    #[error("authentication error: {0:?}")]
+    Authentication(HeaderValue),
     #[error("xrpc response error: {0}")]
     XrpcResponse(XrpcError<E>),
     #[error("http request error: {0}")]

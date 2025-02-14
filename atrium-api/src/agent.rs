@@ -1,20 +1,36 @@
-//! Implementation of [`AtpAgent`] and definitions of [`SessionStore`] for it.
+pub mod atp_agent;
 #[cfg(feature = "bluesky")]
 pub mod bluesky;
 mod inner;
-pub mod store;
+mod session_manager;
+pub mod utils;
 
-use self::store::SessionStore;
-use crate::client::Service;
-use crate::did_doc::DidDocument;
-use crate::types::string::Did;
-use crate::types::TryFromUnknown;
-use atrium_xrpc::error::Error;
-use atrium_xrpc::XrpcClient;
-use std::sync::Arc;
+pub use self::session_manager::SessionManager;
+use crate::{client::Service, types::string::Did};
+use atrium_xrpc::types::AuthorizationToken;
+use std::{future::Future, sync::Arc};
 
-/// Type alias for the [com::atproto::server::create_session::Output](crate::com::atproto::server::create_session::Output)
-pub type Session = crate::com::atproto::server::create_session::Output;
+#[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
+pub trait AuthorizationProvider {
+    #[allow(unused_variables)]
+    fn authorization_token(
+        &self,
+        is_refresh: bool,
+    ) -> impl Future<Output = Option<AuthorizationToken>>;
+}
+
+pub trait Configure {
+    /// Set the current endpoint.
+    fn configure_endpoint(&self, endpoint: String);
+    /// Configures the moderation services to be applied on requests.
+    fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>);
+    /// Configures the atproto-proxy header to be applied on requests.
+    fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>);
+}
+
+pub trait CloneWithProxy {
+    fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self;
+}
 
 /// Supported proxy targets.
 #[cfg(feature = "bluesky")]
@@ -34,106 +50,32 @@ impl AsRef<str> for AtprotoServiceType {
     }
 }
 
-/// An ATP "Agent".
-/// Manages session token lifecycles and provides convenience methods.
-pub struct AtpAgent<S, T>
+pub struct Agent<M>
 where
-    S: SessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
+    M: SessionManager + Send + Sync,
 {
-    store: Arc<inner::Store<S>>,
-    inner: Arc<inner::Client<S, T>>,
-    pub api: Service<inner::Client<S, T>>,
+    session_manager: Arc<inner::Wrapper<M>>,
+    pub api: Service<inner::Wrapper<M>>,
 }
 
-impl<S, T> AtpAgent<S, T>
+impl<M> Agent<M>
 where
-    S: SessionStore + Send + Sync,
-    T: XrpcClient + Send + Sync,
+    M: SessionManager + Send + Sync,
 {
-    /// Create a new agent.
-    pub fn new(xrpc: T, store: S) -> Self {
-        let store = Arc::new(inner::Store::new(store, xrpc.base_uri()));
-        let inner = Arc::new(inner::Client::new(Arc::clone(&store), xrpc));
-        let api = Service::new(Arc::clone(&inner));
-        Self { store, inner, api }
+    pub fn new(session_manager: M) -> Self {
+        let session_manager = Arc::new(inner::Wrapper::new(session_manager));
+        let api = Service::new(session_manager.clone());
+        Self { session_manager, api }
     }
-    /// Start a new session with this agent.
-    pub async fn login(
-        &self,
-        identifier: impl AsRef<str>,
-        password: impl AsRef<str>,
-    ) -> Result<Session, Error<crate::com::atproto::server::create_session::Error>> {
-        let result = self
-            .api
-            .com
-            .atproto
-            .server
-            .create_session(
-                crate::com::atproto::server::create_session::InputData {
-                    auth_factor_token: None,
-                    identifier: identifier.as_ref().into(),
-                    password: password.as_ref().into(),
-                    allow_takendown: None,
-                }
-                .into(),
-            )
-            .await?;
-        self.store.set_session(result.clone()).await;
-        if let Some(did_doc) = result
-            .did_doc
-            .as_ref()
-            .and_then(|value| DidDocument::try_from_unknown(value.clone()).ok())
-        {
-            self.store.update_endpoint(&did_doc);
-        }
-        Ok(result)
+    pub async fn did(&self) -> Option<Did> {
+        self.session_manager.did().await
     }
-    /// Resume a pre-existing session with this agent.
-    pub async fn resume_session(
-        &self,
-        session: Session,
-    ) -> Result<(), Error<crate::com::atproto::server::get_session::Error>> {
-        self.store.set_session(session.clone()).await;
-        let result = self.api.com.atproto.server.get_session().await;
-        match result {
-            Ok(output) => {
-                assert_eq!(output.data.did, session.data.did);
-                if let Some(mut session) = self.store.get_session().await {
-                    session.did_doc = output.data.did_doc.clone();
-                    session.email = output.data.email;
-                    session.email_confirmed = output.data.email_confirmed;
-                    session.handle = output.data.handle;
-                    self.store.set_session(session).await;
-                }
-                if let Some(did_doc) = output
-                    .data
-                    .did_doc
-                    .as_ref()
-                    .and_then(|value| DidDocument::try_from_unknown(value.clone()).ok())
-                {
-                    self.store.update_endpoint(&did_doc);
-                }
-                Ok(())
-            }
-            Err(err) => {
-                self.store.clear_session().await;
-                Err(err)
-            }
-        }
-    }
-    /// Set the current endpoint.
-    pub fn configure_endpoint(&self, endpoint: String) {
-        self.inner.configure_endpoint(endpoint);
-    }
-    /// Configures the moderation services to be applied on requests.
-    pub fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
-        self.inner.configure_labelers_header(labeler_dids);
-    }
-    /// Configures the atproto-proxy header to be applied on requests.
-    pub fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
-        self.inner.configure_proxy_header(did, service_type);
-    }
+}
+
+impl<M> Agent<M>
+where
+    M: CloneWithProxy + SessionManager + Send + Sync,
+{
     /// Configures the atproto-proxy header to be applied on requests.
     ///
     /// Returns a new client service with the proxy header configured.
@@ -141,52 +83,46 @@ where
         &self,
         did: Did,
         service_type: impl AsRef<str>,
-    ) -> Service<inner::Client<S, T>> {
-        Service::new(Arc::new(self.inner.clone_with_proxy(did, service_type)))
+    ) -> Service<inner::Wrapper<M>> {
+        Service::new(Arc::new(self.session_manager.clone_with_proxy(did, service_type)))
     }
-    /// Get the current session.
-    pub async fn get_session(&self) -> Option<Session> {
-        self.store.get_session().await
+}
+
+impl<M> Configure for Agent<M>
+where
+    M: Configure + SessionManager + Send + Sync,
+{
+    fn configure_endpoint(&self, endpoint: String) {
+        self.session_manager.configure_endpoint(endpoint);
     }
-    /// Get the current endpoint.
-    pub async fn get_endpoint(&self) -> String {
-        self.store.get_endpoint()
+    fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
+        self.session_manager.configure_labelers_header(labeler_dids);
     }
-    /// Get the current labelers header.
-    pub async fn get_labelers_header(&self) -> Option<Vec<String>> {
-        self.inner.get_labelers_header().await
-    }
-    /// Get the current proxy header.
-    pub async fn get_proxy_header(&self) -> Option<String> {
-        self.inner.get_proxy_header().await
+    fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+        self.session_manager.configure_proxy_header(did, service_type);
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use super::inner::Wrapper;
+    use super::utils::{SessionClient, SessionWithEndpointStore};
     use super::*;
-    use crate::agent::store::MemorySessionStore;
-    use crate::com::atproto::server::create_session::OutputData;
-    use crate::did_doc::{DidDocument, Service, VerificationMethod};
-    use crate::types::TryIntoUnknown;
-    use atrium_xrpc::HttpClient;
-    use http::{HeaderMap, HeaderName, HeaderValue, Request, Response};
-    use std::collections::HashMap;
-    use tokio::sync::RwLock;
-    #[cfg(target_arch = "wasm32")]
-    use wasm_bindgen_test::wasm_bindgen_test;
+    use atrium_common::store::Store;
+    use atrium_xrpc::{Error, HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest};
+    use http::{header::CONTENT_TYPE, HeaderMap, HeaderName, HeaderValue, Request, Response};
+    use serde::{de::DeserializeOwned, Serialize};
+    use std::fmt::Debug;
+    use tokio::sync::Mutex;
 
     #[derive(Default)]
-    struct MockResponses {
-        create_session: Option<crate::com::atproto::server::create_session::OutputData>,
-        get_session: Option<crate::com::atproto::server::get_session::OutputData>,
+    struct RecordData {
+        host: Option<String>,
+        headers: HeaderMap<HeaderValue>,
     }
 
-    #[derive(Default)]
     struct MockClient {
-        responses: MockResponses,
-        counts: Arc<RwLock<HashMap<String, usize>>>,
-        headers: Arc<RwLock<Vec<HeaderMap<HeaderValue>>>>,
+        data: Arc<Mutex<Option<RecordData>>>,
     }
 
     impl HttpClient for MockClient {
@@ -194,586 +130,280 @@ mod tests {
             &self,
             request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-            #[cfg(not(target_arch = "wasm32"))]
-            tokio::time::sleep(std::time::Duration::from_micros(10)).await;
-
-            self.headers.write().await.push(request.headers().clone());
-            let builder =
-                Response::builder().header(http::header::CONTENT_TYPE, "application/json");
-            let token = request
-                .headers()
-                .get(http::header::AUTHORIZATION)
-                .and_then(|value| value.to_str().ok())
-                .and_then(|value| value.split(' ').last());
-            if token == Some("expired") {
-                return Ok(builder.status(http::StatusCode::BAD_REQUEST).body(
-                    serde_json::to_vec(&atrium_xrpc::error::ErrorResponseBody {
-                        error: Some(String::from("ExpiredToken")),
-                        message: Some(String::from("Token has expired")),
-                    })?,
-                )?);
-            }
-            let mut body = Vec::new();
-            if let Some(nsid) = request.uri().path().strip_prefix("/xrpc/") {
-                *self.counts.write().await.entry(nsid.into()).or_default() += 1;
-                match nsid {
-                    crate::com::atproto::server::create_session::NSID => {
-                        if let Some(output) = &self.responses.create_session {
-                            body.extend(serde_json::to_vec(output)?);
-                        }
-                    }
-                    crate::com::atproto::server::get_session::NSID => {
-                        if token == Some("access") {
-                            if let Some(output) = &self.responses.get_session {
-                                body.extend(serde_json::to_vec(output)?);
-                            }
-                        }
-                    }
-                    crate::com::atproto::server::refresh_session::NSID => {
-                        if token == Some("refresh") {
-                            body.extend(serde_json::to_vec(
-                                &crate::com::atproto::server::refresh_session::OutputData {
-                                    access_jwt: String::from("access"),
-                                    active: None,
-                                    did: "did:web:example.com".parse().expect("valid"),
-                                    did_doc: None,
-                                    handle: "example.com".parse().expect("valid"),
-                                    refresh_jwt: String::from("refresh"),
-                                    status: None,
-                                },
-                            )?);
-                        }
-                    }
-                    crate::com::atproto::server::describe_server::NSID => {
-                        body.extend(serde_json::to_vec(
-                            &crate::com::atproto::server::describe_server::OutputData {
-                                available_user_domains: Vec::new(),
-                                contact: None,
-                                did: "did:web:example.com".parse().expect("valid"),
-                                invite_code_required: None,
-                                links: None,
-                                phone_verification_required: None,
-                            },
-                        )?);
-                    }
-                    _ => {}
-                }
-            }
-            if body.is_empty() {
-                Ok(builder.status(http::StatusCode::UNAUTHORIZED).body(serde_json::to_vec(
-                    &atrium_xrpc::error::ErrorResponseBody {
-                        error: Some(String::from("AuthenticationRequired")),
-                        message: Some(String::from("Invalid identifier or password")),
-                    },
-                )?)?)
-            } else {
-                Ok(builder.status(http::StatusCode::OK).body(body)?)
-            }
+            self.data.lock().await.replace(RecordData {
+                host: request.uri().host().map(String::from),
+                headers: request.headers().clone(),
+            });
+            let output = crate::com::atproto::server::get_service_auth::OutputData {
+                token: String::from("fake_token"),
+            };
+            Response::builder()
+                .header(CONTENT_TYPE, "application/json")
+                .body(serde_json::to_vec(&output)?)
+                .map_err(|e| e.into())
         }
     }
 
     impl XrpcClient for MockClient {
         fn base_uri(&self) -> String {
-            "http://localhost:8080".into()
+            unimplemented!()
         }
     }
 
-    fn session_data() -> OutputData {
-        OutputData {
-            access_jwt: String::from("access"),
-            active: None,
-            did: "did:web:example.com".parse().expect("valid"),
-            did_doc: None,
-            email: None,
-            email_auth_factor: None,
-            email_confirmed: None,
-            handle: "example.com".parse().expect("valid"),
-            refresh_jwt: String::from("refresh"),
-            status: None,
+    #[derive(thiserror::Error, Debug)]
+    enum MockStoreError {}
+
+    struct MockStore;
+
+    impl Store<(), ()> for MockStore {
+        type Error = MockStoreError;
+
+        async fn get(&self, _key: &()) -> Result<Option<()>, Self::Error> {
+            unimplemented!()
+        }
+        async fn set(&self, _key: (), _value: ()) -> Result<(), Self::Error> {
+            unimplemented!()
+        }
+        async fn del(&self, _key: &()) -> Result<(), Self::Error> {
+            unimplemented!()
+        }
+        async fn clear(&self) -> Result<(), Self::Error> {
+            unimplemented!()
         }
     }
 
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_new() {
-        let agent = AtpAgent::new(MockClient::default(), MemorySessionStore::default());
-        assert_eq!(agent.get_session().await, None);
+    impl AuthorizationProvider for MockStore {
+        async fn authorization_token(&self, _: bool) -> Option<AuthorizationToken> {
+            None
+        }
     }
 
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_login() {
-        let session_data = session_data();
-        // success
+    struct MockSessionManager {
+        inner: SessionClient<MockStore, MockClient, ()>,
+    }
+
+    impl HttpClient for MockSessionManager {
+        async fn send_http(
+            &self,
+            request: Request<Vec<u8>>,
+        ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            self.inner.send_http(request).await
+        }
+    }
+
+    impl XrpcClient for MockSessionManager {
+        fn base_uri(&self) -> String {
+            self.inner.base_uri()
+        }
+        async fn send_xrpc<P, I, O, E>(
+            &self,
+            request: &XrpcRequest<P, I>,
+        ) -> Result<OutputDataOrBytes<O>, Error<E>>
+        where
+            P: Serialize + Send + Sync,
+            I: Serialize + Send + Sync,
+            O: DeserializeOwned + Send + Sync,
+            E: DeserializeOwned + Send + Sync + Debug,
         {
-            let client = MockClient {
-                responses: MockResponses {
-                    create_session: Some(crate::com::atproto::server::create_session::OutputData {
-                        ..session_data.clone()
-                    }),
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-            let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent.login("test", "pass").await.expect("login should be succeeded");
-            assert_eq!(agent.get_session().await, Some(session_data.into()));
-        }
-        // failure with `createSession` error
-        {
-            let client = MockClient {
-                responses: MockResponses { ..Default::default() },
-                ..Default::default()
-            };
-            let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent.login("test", "bad").await.expect_err("login should be failed");
-            assert_eq!(agent.get_session().await, None);
+            self.inner.send_xrpc(request).await
         }
     }
 
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_xrpc_get_session() {
-        let session_data = session_data();
-        let client = MockClient {
-            responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::OutputData {
-                    active: session_data.active,
-                    did: session_data.did.clone(),
-                    did_doc: session_data.did_doc.clone(),
-                    email: session_data.email.clone(),
-                    email_auth_factor: session_data.email_auth_factor,
-                    email_confirmed: session_data.email_confirmed,
-                    handle: session_data.handle.clone(),
-                    status: session_data.status.clone(),
-                }),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.store.set_session(session_data.clone().into()).await;
-        let output = agent
-            .api
+    impl SessionManager for MockSessionManager {
+        async fn did(&self) -> Option<Did> {
+            Did::new(String::from("did:fake:handle.test")).ok()
+        }
+    }
+
+    impl Configure for MockSessionManager {
+        fn configure_endpoint(&self, endpoint: String) {
+            self.inner.configure_endpoint(endpoint);
+        }
+        fn configure_labelers_header(&self, labeler_dids: Option<Vec<(Did, bool)>>) {
+            self.inner.configure_labelers_header(labeler_dids);
+        }
+        fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>) {
+            self.inner.configure_proxy_header(did, service_type);
+        }
+    }
+
+    impl CloneWithProxy for MockSessionManager {
+        fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self {
+            Self { inner: self.inner.clone_with_proxy(did, service_type) }
+        }
+    }
+
+    fn agent(data: Arc<Mutex<Option<RecordData>>>) -> Agent<MockSessionManager> {
+        let inner = SessionClient::new(
+            Arc::new(SessionWithEndpointStore::new(
+                MockStore {},
+                String::from("https://example.com"),
+            )),
+            MockClient { data },
+        );
+        Agent::new(MockSessionManager { inner })
+    }
+
+    async fn call_service(
+        service: &Service<Wrapper<MockSessionManager>>,
+    ) -> Result<(), Error<crate::com::atproto::server::get_service_auth::Error>> {
+        let output = service
             .com
             .atproto
             .server
-            .get_session()
-            .await
-            .expect("get session should be succeeded");
-        assert_eq!(output.did.as_str(), "did:web:example.com");
-    }
-
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_xrpc_get_session_with_refresh() {
-        let mut session_data = session_data();
-        session_data.access_jwt = String::from("expired");
-        let client = MockClient {
-            responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::OutputData {
-                    active: session_data.active,
-                    did: session_data.did.clone(),
-                    did_doc: session_data.did_doc.clone(),
-                    email: session_data.email.clone(),
-                    email_auth_factor: session_data.email_auth_factor,
-                    email_confirmed: session_data.email_confirmed,
-                    handle: session_data.handle.clone(),
-                    status: session_data.status.clone(),
-                }),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent.store.set_session(session_data.clone().into()).await;
-        let output = agent
-            .api
-            .com
-            .atproto
-            .server
-            .get_session()
-            .await
-            .expect("get session should be succeeded");
-        assert_eq!(output.did.as_str(), "did:web:example.com");
-        assert_eq!(
-            agent.store.get_session().await.map(|session| session.data.access_jwt),
-            Some("access".into())
-        );
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    #[tokio::test]
-    async fn test_xrpc_get_session_with_duplicated_refresh() {
-        let mut session_data = session_data();
-        session_data.access_jwt = String::from("expired");
-        let client = MockClient {
-            responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::OutputData {
-                    active: session_data.active,
-                    did: session_data.did.clone(),
-                    did_doc: session_data.did_doc.clone(),
-                    email: session_data.email.clone(),
-                    email_auth_factor: session_data.email_auth_factor,
-                    email_confirmed: session_data.email_confirmed,
-                    handle: session_data.handle.clone(),
-                    status: session_data.status.clone(),
-                }),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let counts = Arc::clone(&client.counts);
-        let agent = Arc::new(AtpAgent::new(client, MemorySessionStore::default()));
-        agent.store.set_session(session_data.clone().into()).await;
-        let handles = (0..3).map(|_| {
-            let agent = Arc::clone(&agent);
-            tokio::spawn(async move { agent.api.com.atproto.server.get_session().await })
-        });
-        let results = futures::future::join_all(handles).await;
-        for result in &results {
-            let output = result
-                .as_ref()
-                .expect("task should be successfully executed")
-                .as_ref()
-                .expect("get session should be succeeded");
-            assert_eq!(output.did.as_str(), "did:web:example.com");
-        }
-        assert_eq!(
-            agent.store.get_session().await.map(|session| session.data.access_jwt),
-            Some("access".into())
-        );
-        assert_eq!(
-            counts.read().await.clone(),
-            HashMap::from_iter([
-                ("com.atproto.server.refreshSession".into(), 1),
-                ("com.atproto.server.getSession".into(), 3)
-            ])
-        );
-    }
-
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_resume_session() {
-        let session_data = session_data();
-        // success
-        {
-            let client = MockClient {
-                responses: MockResponses {
-                    get_session: Some(crate::com::atproto::server::get_session::OutputData {
-                        active: session_data.active,
-                        did: session_data.did.clone(),
-                        did_doc: session_data.did_doc.clone(),
-                        email: session_data.email.clone(),
-                        email_auth_factor: session_data.email_auth_factor,
-                        email_confirmed: session_data.email_confirmed,
-                        handle: session_data.handle.clone(),
-                        status: session_data.status.clone(),
-                    }),
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-            let agent = AtpAgent::new(client, MemorySessionStore::default());
-            assert_eq!(agent.get_session().await, None);
-            agent
-                .resume_session(
-                    OutputData {
-                        email: Some(String::from("test@example.com")),
-                        ..session_data.clone()
-                    }
-                    .into(),
-                )
-                .await
-                .expect("resume_session should be succeeded");
-            assert_eq!(agent.get_session().await, Some(session_data.clone().into()));
-        }
-        // failure with `getSession` error
-        {
-            let client = MockClient {
-                responses: MockResponses { ..Default::default() },
-                ..Default::default()
-            };
-            let agent = AtpAgent::new(client, MemorySessionStore::default());
-            assert_eq!(agent.get_session().await, None);
-            agent
-                .resume_session(session_data.clone().into())
-                .await
-                .expect_err("resume_session should be failed");
-            assert_eq!(agent.get_session().await, None);
-        }
-    }
-
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_resume_session_with_refresh() {
-        let session_data = session_data();
-        let client = MockClient {
-            responses: MockResponses {
-                get_session: Some(crate::com::atproto::server::get_session::OutputData {
-                    active: session_data.active,
-                    did: session_data.did.clone(),
-                    did_doc: session_data.did_doc.clone(),
-                    email: session_data.email.clone(),
-                    email_auth_factor: session_data.email_auth_factor,
-                    email_confirmed: session_data.email_confirmed,
-                    handle: session_data.handle.clone(),
-                    status: session_data.status.clone(),
-                }),
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let agent = AtpAgent::new(client, MemorySessionStore::default());
-        agent
-            .resume_session(
-                OutputData { access_jwt: "expired".into(), ..session_data.clone() }.into(),
+            .get_service_auth(
+                crate::com::atproto::server::get_service_auth::ParametersData {
+                    aud: Did::new(String::from("did:fake:handle.test"))
+                        .expect("did should be valid"),
+                    exp: None,
+                    lxm: None,
+                }
+                .into(),
             )
-            .await
-            .expect("resume_session should be succeeded");
-        assert_eq!(agent.get_session().await, Some(session_data.clone().into()));
+            .await?;
+        assert_eq!(output.token, "fake_token");
+        Ok(())
     }
 
     #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_login_with_diddoc() {
-        let session_data = session_data();
-        let did_doc = DidDocument {
-            context: None,
-            id: "did:plc:ewvi7nxzyoun6zhxrhs64oiz".into(),
-            also_known_as: Some(vec!["at://atproto.com".into()]),
-            verification_method: Some(vec![VerificationMethod {
-                id: "did:plc:ewvi7nxzyoun6zhxrhs64oiz#atproto".into(),
-                r#type: "Multikey".into(),
-                controller: "did:plc:ewvi7nxzyoun6zhxrhs64oiz".into(),
-                public_key_multibase: Some(
-                    "zQ3shXjHeiBuRCKmM36cuYnm7YEMzhGnCmCyW92sRJ9pribSF".into(),
+    async fn test_new() -> Result<(), Box<dyn std::error::Error>> {
+        let agent = agent(Arc::new(Mutex::new(Default::default())));
+        assert_eq!(agent.did().await, Some(Did::new(String::from("did:fake:handle.test"))?));
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_configure_endpoint() -> Result<(), Box<dyn std::error::Error>> {
+        let data = Arc::new(Mutex::new(Default::default()));
+        let agent = agent(data.clone());
+        call_service(&agent.api).await?;
+        assert_eq!(
+            data.lock().await.as_ref().expect("data should be recorded").host.as_deref(),
+            Some("example.com")
+        );
+        agent.configure_endpoint(String::from("https://pds.example.com"));
+        call_service(&agent.api).await?;
+        assert_eq!(
+            data.lock().await.as_ref().expect("data should be recorded").host.as_deref(),
+            Some("pds.example.com")
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_configure_labelers_header() -> Result<(), Box<dyn std::error::Error>> {
+        let data = Arc::new(Mutex::new(Default::default()));
+        let agent = agent(data.clone());
+        // not configured
+        {
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::new()
+            );
+        }
+        // configured 1
+        {
+            agent.configure_labelers_header(Some(vec![(
+                Did::new(String::from("did:fake:labeler.test"))?,
+                false,
+            )]));
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::from_iter([(
+                    HeaderName::from_static("atproto-accept-labelers"),
+                    HeaderValue::from_static("did:fake:labeler.test"),
+                )])
+            );
+        }
+        // configured 2
+        {
+            agent.configure_labelers_header(Some(vec![
+                (Did::new(String::from("did:fake:labeler.test_redact"))?, true),
+                (Did::new(String::from("did:fake:labeler.test"))?, false),
+            ]));
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::from_iter([(
+                    HeaderName::from_static("atproto-accept-labelers"),
+                    HeaderValue::from_static(
+                        "did:fake:labeler.test_redact;redact, did:fake:labeler.test"
+                    ),
+                )])
+            );
+        }
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_configure_proxy_header() -> Result<(), Box<dyn std::error::Error>> {
+        let data = Arc::new(Mutex::new(Default::default()));
+        let agent = agent(data.clone());
+        // not configured
+        {
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::new()
+            );
+        }
+        // labeler service
+        {
+            agent.configure_proxy_header(
+                Did::new(String::from("did:fake:service.test"))?,
+                AtprotoServiceType::AtprotoLabeler,
+            );
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::from_iter([(
+                    HeaderName::from_static("atproto-proxy"),
+                    HeaderValue::from_static("did:fake:service.test#atproto_labeler"),
+                )])
+            );
+        }
+        // custom service
+        {
+            agent.configure_proxy_header(
+                Did::new(String::from("did:fake:service.test"))?,
+                "custom_service",
+            );
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::from_iter([(
+                    HeaderName::from_static("atproto-proxy"),
+                    HeaderValue::from_static("did:fake:service.test#custom_service"),
+                )])
+            );
+        }
+        // api_with_proxy
+        {
+            call_service(
+                &agent.api_with_proxy(
+                    Did::new(String::from("did:fake:service.test"))?,
+                    "temp_service",
                 ),
-            }]),
-            service: Some(vec![Service {
-                id: "#atproto_pds".into(),
-                r#type: "AtprotoPersonalDataServer".into(),
-                service_endpoint: "https://bsky.social".into(),
-            }]),
-        };
-        // success
-        {
-            let client = MockClient {
-                responses: MockResponses {
-                    create_session: Some(crate::com::atproto::server::create_session::OutputData {
-                        did_doc: Some(
-                            did_doc
-                                .clone()
-                                .try_into_unknown()
-                                .expect("failed to convert to unknown"),
-                        ),
-                        ..session_data.clone()
-                    }),
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-            let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent.login("test", "pass").await.expect("login should be succeeded");
-            assert_eq!(agent.get_endpoint().await, "https://bsky.social");
-            assert_eq!(agent.api.com.atproto.server.xrpc.base_uri(), "https://bsky.social");
-        }
-        // invalid services
-        {
-            let client = MockClient {
-                responses: MockResponses {
-                    create_session: Some(crate::com::atproto::server::create_session::OutputData {
-                        did_doc: Some(
-                            DidDocument {
-                                service: Some(vec![
-                                    Service {
-                                        id: "#pds".into(), // not `#atproto_pds`
-                                        r#type: "AtprotoPersonalDataServer".into(),
-                                        service_endpoint: "https://bsky.social".into(),
-                                    },
-                                    Service {
-                                        id: "#atproto_pds".into(),
-                                        r#type: "AtprotoPersonalDataServer".into(),
-                                        service_endpoint: "htps://bsky.social".into(), // invalid url (not `https`)
-                                    },
-                                ]),
-                                ..did_doc.clone()
-                            }
-                            .try_into_unknown()
-                            .expect("failed to convert to unknown"),
-                        ),
-                        ..session_data.clone()
-                    }),
-                    ..Default::default()
-                },
-                ..Default::default()
-            };
-            let agent = AtpAgent::new(client, MemorySessionStore::default());
-            agent.login("test", "pass").await.expect("login should be succeeded");
-            // not updated
-            assert_eq!(agent.get_endpoint().await, "http://localhost:8080");
-            assert_eq!(agent.api.com.atproto.server.xrpc.base_uri(), "http://localhost:8080");
-        }
-    }
-
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_configure_labelers_header() {
-        let client = MockClient::default();
-        let headers = Arc::clone(&client.headers);
-        let agent = AtpAgent::new(client, MemorySessionStore::default());
-
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(headers.read().await.last(), Some(&HeaderMap::new()));
-
-        agent.configure_labelers_header(Some(vec![(
-            "did:plc:test1".parse().expect("did should be valid"),
-            false,
-        )]));
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(
-            headers.read().await.last(),
-            Some(&HeaderMap::from_iter([(
-                HeaderName::from_static("atproto-accept-labelers"),
-                HeaderValue::from_static("did:plc:test1"),
-            )]))
-        );
-
-        agent.configure_labelers_header(Some(vec![
-            ("did:plc:test1".parse().expect("did should be valid"), true),
-            ("did:plc:test2".parse().expect("did should be valid"), false),
-        ]));
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(
-            headers.read().await.last(),
-            Some(&HeaderMap::from_iter([(
-                HeaderName::from_static("atproto-accept-labelers"),
-                HeaderValue::from_static("did:plc:test1;redact, did:plc:test2"),
-            )]))
-        );
-
-        assert_eq!(
-            agent.get_labelers_header().await,
-            Some(vec![String::from("did:plc:test1;redact"), String::from("did:plc:test2")])
-        );
-    }
-
-    #[tokio::test]
-    #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
-    async fn test_configure_proxy_header() {
-        let client = MockClient::default();
-        let headers = Arc::clone(&client.headers);
-        let agent = AtpAgent::new(client, MemorySessionStore::default());
-
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(headers.read().await.last(), Some(&HeaderMap::new()));
-
-        agent.configure_proxy_header(
-            "did:plc:test1".parse().expect("did should be balid"),
-            AtprotoServiceType::AtprotoLabeler,
-        );
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(
-            headers.read().await.last(),
-            Some(&HeaderMap::from_iter([(
-                HeaderName::from_static("atproto-proxy"),
-                HeaderValue::from_static("did:plc:test1#atproto_labeler"),
-            ),]))
-        );
-
-        agent.configure_proxy_header(
-            "did:plc:test1".parse().expect("did should be balid"),
-            "atproto_labeler",
-        );
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(
-            headers.read().await.last(),
-            Some(&HeaderMap::from_iter([(
-                HeaderName::from_static("atproto-proxy"),
-                HeaderValue::from_static("did:plc:test1#atproto_labeler"),
-            ),]))
-        );
-
-        agent
-            .api_with_proxy(
-                "did:plc:test2".parse().expect("did should be balid"),
-                "atproto_labeler",
             )
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(
-            headers.read().await.last(),
-            Some(&HeaderMap::from_iter([(
-                HeaderName::from_static("atproto-proxy"),
-                HeaderValue::from_static("did:plc:test2#atproto_labeler"),
-            ),]))
-        );
-
-        agent
-            .api
-            .com
-            .atproto
-            .server
-            .describe_server()
-            .await
-            .expect("describe_server should be succeeded");
-        assert_eq!(
-            headers.read().await.last(),
-            Some(&HeaderMap::from_iter([(
-                HeaderName::from_static("atproto-proxy"),
-                HeaderValue::from_static("did:plc:test1#atproto_labeler"),
-            ),]))
-        );
-
-        assert_eq!(
-            agent.get_proxy_header().await,
-            Some(String::from("did:plc:test1#atproto_labeler"))
-        );
+            .await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::from_iter([(
+                    HeaderName::from_static("atproto-proxy"),
+                    HeaderValue::from_static("did:fake:service.test#temp_service"),
+                )])
+            );
+            call_service(&agent.api).await?;
+            assert_eq!(
+                data.lock().await.as_ref().expect("data should be recorded").headers,
+                HeaderMap::from_iter([(
+                    HeaderName::from_static("atproto-proxy"),
+                    HeaderValue::from_static("did:fake:service.test#custom_service"),
+                )])
+            );
+        }
+        Ok(())
     }
 }
