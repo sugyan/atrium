@@ -466,6 +466,20 @@ mod test {
         Repository::open(db, root).await.map_err(Into::into)
     }
 
+    async fn create_repo<S: AsyncBlockStoreRead + AsyncBlockStoreWrite>(
+        bs: S,
+        did: Did,
+        keypair: &P256Keypair,
+    ) -> Repository<S> {
+        let builder = Repository::create(bs, did).await.unwrap();
+
+        // Sign the root commit.
+        let sig = keypair.sign(&builder.hash()).unwrap();
+
+        // Finalize the root commit and create the repository.
+        builder.sign(sig).await.unwrap()
+    }
+
     #[tokio::test]
     async fn test_commit() {
         const DATA: &[u8] = include_bytes!("../test_fixtures/commit");
@@ -501,16 +515,10 @@ mod test {
         let dkey = keypair.did();
 
         // Build a new repository.
-        let builder =
-            Repository::create(&mut bs, Did::new("did:web:pds.abc.com".to_string()).unwrap())
-                .await
-                .unwrap();
+        let mut repo =
+            create_repo(&mut bs, Did::new("did:web:pds.abc.com".to_string()).unwrap(), &keypair)
+                .await;
 
-        // Sign the root commit.
-        let sig = keypair.sign(&builder.hash()).unwrap();
-
-        // Finalize the root commit and create the repository.
-        let mut repo = builder.sign(sig).await.unwrap();
         let commit = repo.commit();
 
         // Ensure that we can verify the root commit.
@@ -554,5 +562,50 @@ mod test {
         Verifier::default()
             .verify(Algorithm::P256, &pub_key, &commit.hash(), commit.sig())
             .unwrap();
+    }
+
+    #[tokio::test]
+    async fn test_extract() {
+        let mut bs = MemoryBlockStore::new();
+
+        // Create a signing key pair.
+        let keypair = P256Keypair::create(&mut rand::thread_rng());
+
+        // Build a new repository.
+        let mut repo =
+            create_repo(&mut bs, Did::new("did:web:pds.abc.com".to_string()).unwrap(), &keypair)
+                .await;
+
+        let rkey = RecordKey::new("2222222222222".to_string()).unwrap();
+        let cb = repo
+            .add::<bsky::feed::Post>(
+                rkey.clone(),
+                bsky::feed::post::RecordData {
+                    created_at: Datetime::from_str("2025-02-01T00:00:00.000Z").unwrap(),
+                    embed: None,
+                    entities: None,
+                    facets: None,
+                    labels: None,
+                    langs: None,
+                    reply: None,
+                    tags: None,
+                    text: "Hello world".to_string(),
+                }
+                .into(),
+            )
+            .await
+            .unwrap();
+
+        let sig = keypair.sign(&cb.hash()).unwrap();
+        let cid = cb.sign(sig).await.unwrap();
+
+        let commit = repo.commit();
+
+        let cids =
+            repo.extract::<bsky::feed::Post>(rkey.clone()).await.unwrap().collect::<HashSet<_>>();
+
+        assert!(cids.contains(&repo.root())); // Root commit object
+        assert!(cids.contains(&commit.data())); // MST root
+        assert!(cids.contains(&cid)); // Record data
     }
 }
