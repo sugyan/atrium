@@ -20,6 +20,10 @@ impl MemoryBlockStore {
     pub fn new() -> Self {
         Self { blocks: HashMap::new() }
     }
+
+    pub fn contains(&self, block: Cid) -> bool {
+        self.blocks.contains_key(&block)
+    }
 }
 
 impl AsyncBlockStoreRead for MemoryBlockStore {

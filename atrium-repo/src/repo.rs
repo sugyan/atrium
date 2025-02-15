@@ -679,6 +679,9 @@ mod test {
             let mut bs2 = MemoryBlockStore::new();
             repo.extract_into::<bsky::feed::Post>(record.clone(), &mut bs2).await.unwrap();
 
+            assert!(bs2.contains(repo.root()));
+            assert!(bs2.contains(repo.commit().data()));
+
             let mut repo2 = Repository::open(&mut bs2, repo.root()).await.unwrap();
             assert!(repo2.get::<bsky::feed::Post>(record.clone()).await.is_ok());
         }
