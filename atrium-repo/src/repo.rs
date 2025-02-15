@@ -4,6 +4,7 @@ use atrium_api::types::{
     string::{Did, RecordKey, Tid},
     Collection, LimitedU32,
 };
+use futures::TryStreamExt;
 use ipld_core::{cid::Cid, ipld::Ipld};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
@@ -248,16 +249,6 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     }
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
-    ///
-    /// ---
-    /// Special note: You probably noticed there's no "get record by CID" helper. This is by design.
-    ///
-    /// Fetching records directly via their CID is insecure because this lookup bypasses the MST
-    /// (merkle search tree). Without using the MST, you cannot be sure that a particular CID was
-    /// authored by the owner of the repository.
-    ///
-    /// If you acknowledge the risks and want to access records via CID anyway, you will have to
-    /// do so by directly accessing the repository's backing storage.
     pub async fn get<C: Collection>(
         &mut self,
         rkey: RecordKey,
@@ -278,6 +269,41 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
 
         if let Some(cid) = mst.get(key).await? {
             Ok(Some(self.db.read_block(cid).await?))
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// Returns the contents of a specified record from the repository, or `None` if it does not exist.
+    ///
+    /// Caution: This is a potentially expensive operation that will iterate through the entire MST.
+    /// This is done for security reasons; a particular CID cannot be proven to originate from this
+    /// repository if it is not present in the MST.
+    ///
+    /// Typically if you have a record's CID, you should also have its key (e.g. from a firehose commit).
+    /// If you have the key, you should **always prefer to use [`Repository::get_raw`]** as it is both
+    /// much faster and secure.
+    ///
+    /// If you're absolutely certain you want to look up a record by its CID and the repository comes
+    /// from a trusted source, you can elide the enumeration by accessing the backing storage directly.
+    pub async fn get_raw_cid(&mut self, cid: Cid) -> Result<Option<Vec<u8>>, Error> {
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+
+        let mut ocid = None;
+
+        let mut it = Box::pin(mst.entries());
+        while let Some((_rkey, rcid)) = it.try_next().await? {
+            if rcid == cid {
+                ocid = Some(rcid);
+                break;
+            }
+        }
+
+        // Drop the iterator so that we can access `self.db`.
+        drop(it);
+
+        if let Some(ocid) = ocid {
+            Ok(Some(self.db.read_block(ocid).await?))
         } else {
             Ok(None)
         }
