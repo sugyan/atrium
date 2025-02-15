@@ -601,11 +601,15 @@ mod test {
 
         let commit = repo.commit();
 
-        let cids =
-            repo.extract::<bsky::feed::Post>(rkey.clone()).await.unwrap().collect::<HashSet<_>>();
+        let mut bs2 = MemoryBlockStore::new();
+        repo.extract_into::<bsky::feed::Post>(rkey.clone(), &mut bs2).await.unwrap();
 
-        assert!(cids.contains(&cid)); // Root commit object
-        assert!(cids.contains(&commit.data())); // MST root
+        assert!(bs2.read_block(cid).await.is_ok()); // Root commit object
+        assert!(bs2.read_block(commit.data()).await.is_ok()); // MST root
+
+        // Ensure the record can be fetched via a record lookup.
+        let mut repo2 = Repository::open(&mut bs2, repo.root()).await.unwrap();
+        assert!(repo2.get::<bsky::feed::Post>(rkey.clone()).await.is_ok());
 
         let cb = repo.delete::<bsky::feed::Post>(rkey.clone()).await.unwrap();
         let sig = keypair.sign(&cb.hash()).unwrap();
@@ -621,5 +625,62 @@ mod test {
             // MST root (known empty hash)
             &Cid::from_str("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm").unwrap()
         ))
+    }
+
+    #[tokio::test]
+    async fn test_extract_complex() {
+        let mut bs = MemoryBlockStore::new();
+
+        // Create a signing key pair.
+        let keypair = P256Keypair::create(&mut rand::thread_rng());
+
+        // Build a new repository.
+        let mut repo =
+            create_repo(&mut bs, Did::new("did:web:pds.abc.com".to_string()).unwrap(), &keypair)
+                .await;
+
+        let mut records = Vec::new();
+
+        for i in 0..10 {
+            // Ensure we don't generate the same record key twice.
+            let rkey = loop {
+                let rkey = RecordKey::new(Tid::now(0).to_string()).unwrap();
+                if !records.contains(&rkey) {
+                    break rkey;
+                }
+            };
+
+            let cb = repo
+                .add::<bsky::feed::Post>(
+                    rkey.clone(),
+                    bsky::feed::post::RecordData {
+                        created_at: Datetime::from_str("2025-02-01T00:00:00.000Z").unwrap(),
+                        embed: None,
+                        entities: None,
+                        facets: None,
+                        labels: None,
+                        langs: None,
+                        reply: None,
+                        tags: None,
+                        text: format!("Hello world, post {i}"),
+                    }
+                    .into(),
+                )
+                .await
+                .unwrap();
+
+            let sig = keypair.sign(&cb.hash()).unwrap();
+            cb.finalize(sig).await.unwrap();
+
+            records.push(rkey.clone());
+        }
+
+        for record in records {
+            let mut bs2 = MemoryBlockStore::new();
+            repo.extract_into::<bsky::feed::Post>(record.clone(), &mut bs2).await.unwrap();
+
+            let mut repo2 = Repository::open(&mut bs2, repo.root()).await.unwrap();
+            assert!(repo2.get::<bsky::feed::Post>(record.clone()).await.is_ok());
+        }
     }
 }
