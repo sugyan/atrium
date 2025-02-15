@@ -190,7 +190,7 @@ mod algos {
                 // Check if the left neighbor is a tree, and if so, recurse into it.
                 if let Some(index) = index.checked_sub(1) {
                     if let Some(subtree) = node.entries.get(index).unwrap().tree() {
-                        Ok(TraverseAction::Continue((*subtree, *subtree)))
+                        Ok(TraverseAction::Continue((*subtree, cid)))
                     } else {
                         Ok(TraverseAction::Stop(FindPathResult::NotFound { node: cid }))
                     }
