@@ -359,14 +359,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         record: C::Record,
     ) -> Result<CommitBuilder<'a, S>, Error> {
         let path = C::repo_path(&rkey);
-        let data = serde_ipld_dagcbor::to_vec(&record).unwrap();
-        let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
-
-        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        mst.add(&path, cid).await?;
-        let root = mst.root();
-
-        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+        self.add_raw(&path, record).await
     }
 
     /// Add a new raw record to this repository.
@@ -392,14 +385,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         record: C::Record,
     ) -> Result<CommitBuilder<'a, S>, Error> {
         let path = C::repo_path(&rkey);
-        let data = serde_ipld_dagcbor::to_vec(&record).unwrap();
-        let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
-
-        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        mst.update(&path, cid).await?;
-        let root = mst.root();
-
-        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+        self.update_raw(&path, record).await
     }
 
     /// Update an existing record in the repository with raw data.
@@ -424,12 +410,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         rkey: RecordKey,
     ) -> Result<CommitBuilder<'a, S>, Error> {
         let path = C::repo_path(&rkey);
-
-        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        mst.delete(&path).await?;
-        let root = mst.root();
-
-        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+        self.delete_raw(&path).await
     }
 
     /// Delete an existing record in the repository.
