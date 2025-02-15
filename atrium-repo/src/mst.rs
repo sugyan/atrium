@@ -860,7 +860,7 @@ impl Node {
 
     /// Read and parse a node from block storage
     pub async fn read_from(mut bs: impl AsyncBlockStoreRead, cid: Cid) -> Result<Self, Error> {
-        let bytes = bs.read_block(&cid).await?;
+        let bytes = bs.read_block(cid).await?;
         Self::parse(&bytes)
     }
 

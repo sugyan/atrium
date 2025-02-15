@@ -21,13 +21,13 @@ pub trait AsyncBlockStoreRead: Send {
     /// Read a single block from the block store into the provided buffer.
     fn read_block_into(
         &mut self,
-        cid: &Cid,
+        cid: Cid,
         contents: &mut Vec<u8>,
     ) -> impl Future<Output = Result<(), Error>> + Send;
 
     /// Read a single block from the block store.
-    fn read_block(&mut self, cid: &Cid) -> impl Future<Output = Result<Vec<u8>, Error>> + Send {
-        async {
+    fn read_block(&mut self, cid: Cid) -> impl Future<Output = Result<Vec<u8>, Error>> + Send {
+        async move {
             let mut contents = Vec::new();
             self.read_block_into(cid, &mut contents).await?;
             Ok(contents)
@@ -49,7 +49,7 @@ pub trait AsyncBlockStoreWrite: Send {
 impl<T: AsyncBlockStoreRead> AsyncBlockStoreRead for &mut T {
     fn read_block_into(
         &mut self,
-        cid: &Cid,
+        cid: Cid,
         contents: &mut Vec<u8>,
     ) -> impl Future<Output = Result<(), Error>> + Send {
         (**self).read_block_into(cid, contents)

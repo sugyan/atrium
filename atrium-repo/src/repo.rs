@@ -64,7 +64,7 @@ async fn read_record<C: Collection>(
 ) -> Result<C::Record, Error> {
     assert_eq!(cid.codec(), crate::blockstore::DAG_CBOR);
 
-    let data = db.read_block(&cid).await?;
+    let data = db.read_block(cid).await?;
     let parsed: C::Record = serde_ipld_dagcbor::from_reader(&data[..])?;
     Ok(parsed)
 }
@@ -230,7 +230,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     /// that simply reads out the root commit from a repository (_without_ verifying
     /// its signature!)
     pub async fn open(mut db: R, root: Cid) -> Result<Self, Error> {
-        let commit_block = db.read_block(&root).await?;
+        let commit_block = db.read_block(root).await?;
         let latest_commit: schema::SignedCommit =
             serde_ipld_dagcbor::from_reader(&commit_block[..])?;
 
@@ -277,7 +277,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
         if let Some(cid) = mst.get(&key).await? {
-            Ok(Some(self.db.read_block(&cid).await?))
+            Ok(Some(self.db.read_block(cid).await?))
         } else {
             Ok(None)
         }
@@ -326,7 +326,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         let cids = self.extract_raw(key).await?.collect::<HashSet<_>>();
 
         for cid in cids {
-            bs.write_block(cid.codec(), SHA2_256, self.db.read_block(&cid).await?.as_slice())
+            bs.write_block(cid.codec(), SHA2_256, self.db.read_block(cid).await?.as_slice())
                 .await?;
         }
 
@@ -565,7 +565,7 @@ mod test {
             .unwrap();
 
         let sig = keypair.sign(&cb.hash()).unwrap();
-        let cid = cb.sign(sig).await.unwrap();
+        let _cid = cb.sign(sig).await.unwrap();
 
         // Verify the new commit.
         let commit = repo.commit();

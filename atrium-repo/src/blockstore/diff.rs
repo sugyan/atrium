@@ -26,7 +26,7 @@ impl<S> DiffBlockStore<S> {
 }
 
 impl<S: AsyncBlockStoreRead> AsyncBlockStoreRead for DiffBlockStore<S> {
-    async fn read_block_into(&mut self, cid: &Cid, contents: &mut Vec<u8>) -> Result<(), Error> {
+    async fn read_block_into(&mut self, cid: Cid, contents: &mut Vec<u8>) -> Result<(), Error> {
         self.inner.read_block_into(cid, contents).await
     }
 }

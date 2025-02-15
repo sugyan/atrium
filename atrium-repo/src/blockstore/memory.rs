@@ -23,9 +23,9 @@ impl MemoryBlockStore {
 }
 
 impl AsyncBlockStoreRead for MemoryBlockStore {
-    async fn read_block_into(&mut self, cid: &Cid, contents: &mut Vec<u8>) -> Result<(), Error> {
+    async fn read_block_into(&mut self, cid: Cid, contents: &mut Vec<u8>) -> Result<(), Error> {
         contents.clear();
-        contents.extend_from_slice(self.blocks.get(cid).ok_or(Error::CidNotFound)?);
+        contents.extend_from_slice(self.blocks.get(&cid).ok_or(Error::CidNotFound)?);
         Ok(())
     }
 }

@@ -152,12 +152,12 @@ impl<S: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> CarStore<S> {
 impl<R: AsyncRead + AsyncSeek + Send + Unpin> AsyncBlockStoreRead for CarStore<R> {
     async fn read_block_into(
         &mut self,
-        cid: &Cid,
+        cid: Cid,
         contents: &mut Vec<u8>,
     ) -> Result<(), blockstore::Error> {
         contents.clear();
 
-        let (offset, len) = self.index.get(cid).ok_or_else(|| blockstore::Error::CidNotFound)?;
+        let (offset, len) = self.index.get(&cid).ok_or_else(|| blockstore::Error::CidNotFound)?;
         contents.resize(*len, 0);
 
         self.storage.seek(SeekFrom::Start(*offset)).await?;
@@ -241,10 +241,10 @@ mod test {
         let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
 
         let cid = bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
-        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+        assert_eq!(bs.read_block(cid).await.unwrap(), STR);
 
         let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
-        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+        assert_eq!(bs.read_block(cid).await.unwrap(), STR);
     }
 
     #[tokio::test]
@@ -257,12 +257,12 @@ mod test {
 
         let cid1 = bs.write_block(DAG_CBOR, SHA2_256, &STR1).await.unwrap();
         let cid2 = bs.write_block(DAG_CBOR, SHA2_256, &STR2).await.unwrap();
-        assert_eq!(bs.read_block(&cid1).await.unwrap(), STR1);
-        assert_eq!(bs.read_block(&cid2).await.unwrap(), STR2);
+        assert_eq!(bs.read_block(cid1).await.unwrap(), STR1);
+        assert_eq!(bs.read_block(cid2).await.unwrap(), STR2);
 
         let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
-        assert_eq!(bs.read_block(&cid1).await.unwrap(), STR1);
-        assert_eq!(bs.read_block(&cid2).await.unwrap(), STR2);
+        assert_eq!(bs.read_block(cid1).await.unwrap(), STR1);
+        assert_eq!(bs.read_block(cid2).await.unwrap(), STR2);
     }
 
     #[tokio::test]
@@ -273,11 +273,11 @@ mod test {
         let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
 
         let cid = bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
-        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+        assert_eq!(bs.read_block(cid).await.unwrap(), STR);
         bs.set_root(cid).await.unwrap();
 
         let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
         assert_eq!(bs.roots().next().unwrap(), cid);
-        assert_eq!(bs.read_block(&cid).await.unwrap(), STR);
+        assert_eq!(bs.read_block(cid).await.unwrap(), STR);
     }
 }
