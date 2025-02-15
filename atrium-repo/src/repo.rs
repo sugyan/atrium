@@ -604,8 +604,22 @@ mod test {
         let cids =
             repo.extract::<bsky::feed::Post>(rkey.clone()).await.unwrap().collect::<HashSet<_>>();
 
-        assert!(cids.contains(&repo.root())); // Root commit object
+        assert!(cids.contains(&cid)); // Root commit object
         assert!(cids.contains(&commit.data())); // MST root
-        assert!(cids.contains(&cid)); // Record data
+
+        let cb = repo.delete::<bsky::feed::Post>(rkey.clone()).await.unwrap();
+        let sig = keypair.sign(&cb.hash()).unwrap();
+        let cid = cb.finalize(sig).await.unwrap();
+
+        // Extract won't fail even if the actual record does not exist.
+        // In this case, we are extracting a proof that the record does _not_ exist.
+        let cids =
+            repo.extract::<bsky::feed::Post>(rkey.clone()).await.unwrap().collect::<HashSet<_>>();
+
+        assert!(cids.contains(&cid)); // Root commit object
+        assert!(cids.contains(
+            // MST root (known empty hash)
+            &Cid::from_str("bafyreie5737gdxlw5i64vzichcalba3z2v5n6icifvx5xytvske7mr3hpm").unwrap()
+        ))
     }
 }
