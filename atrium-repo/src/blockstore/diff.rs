@@ -20,7 +20,7 @@ impl<S> DiffBlockStore<S> {
     }
 
     /// Return the CIDs of the blocks that have been written so far.
-    pub fn blocks<'a>(&'a self) -> impl Iterator<Item = Cid> + 'a {
+    pub fn blocks(&self) -> impl Iterator<Item = Cid> + '_ {
         self.blocks.iter().cloned()
     }
 }

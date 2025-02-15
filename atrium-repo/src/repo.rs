@@ -276,7 +276,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     pub async fn get_raw(&mut self, key: &str) -> Result<Option<Vec<u8>>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
-        if let Some(cid) = mst.get(&key).await? {
+        if let Some(cid) = mst.get(key).await? {
             Ok(Some(self.db.read_block(cid).await?))
         } else {
             Ok(None)
@@ -313,7 +313,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
         let mut r = vec![self.root];
-        r.extend(mst.extract_path(&key).await?);
+        r.extend(mst.extract_path(key).await?);
         Ok(r.into_iter())
     }
 
@@ -372,7 +372,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
 
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        mst.add(&key, cid).await?;
+        mst.add(key, cid).await?;
         let root = mst.root();
 
         Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
@@ -398,7 +398,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
 
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        mst.update(&key, cid).await?;
+        mst.update(key, cid).await?;
         let root = mst.root();
 
         Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
@@ -416,7 +416,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
     /// Delete an existing record in the repository.
     pub async fn delete_raw<'a>(&'a mut self, key: &str) -> Result<CommitBuilder<'a, S>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
-        mst.delete(&key).await?;
+        mst.delete(key).await?;
         let root = mst.root();
 
         Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))

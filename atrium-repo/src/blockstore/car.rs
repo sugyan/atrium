@@ -185,7 +185,7 @@ impl<R: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> AsyncBlockStoreWrite 
             self.storage.write_all(buf).await?;
             self.storage.write_all(&fc).await?;
             let offs = self.storage.stream_position().await?;
-            self.storage.write_all(&contents).await?;
+            self.storage.write_all(contents).await?;
 
             // Update the index with the new block.
             e.insert((offs, contents.len()));
@@ -231,7 +231,7 @@ mod test {
         let mut mem = Vec::new();
         let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
 
-        let cid = bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        let cid = bs.write_block(DAG_CBOR, SHA2_256, STR).await.unwrap();
         assert_eq!(bs.read_block(cid).await.unwrap(), STR);
 
         let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
@@ -246,8 +246,8 @@ mod test {
         let mut mem = Vec::new();
         let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
 
-        let cid1 = bs.write_block(DAG_CBOR, SHA2_256, &STR1).await.unwrap();
-        let cid2 = bs.write_block(DAG_CBOR, SHA2_256, &STR2).await.unwrap();
+        let cid1 = bs.write_block(DAG_CBOR, SHA2_256, STR1).await.unwrap();
+        let cid2 = bs.write_block(DAG_CBOR, SHA2_256, STR2).await.unwrap();
         assert_eq!(bs.read_block(cid1).await.unwrap(), STR1);
         assert_eq!(bs.read_block(cid2).await.unwrap(), STR2);
 
@@ -262,12 +262,12 @@ mod test {
 
         let mut mbs = MemoryBlockStore::new();
 
-        let cid = mbs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        let cid = mbs.write_block(DAG_CBOR, SHA2_256, STR).await.unwrap();
         assert_eq!(mbs.read_block(cid).await.unwrap(), STR);
 
         let mut mem = Vec::new();
         let mut bs = CarStore::create_with_roots(Cursor::new(&mut mem), [cid]).await.unwrap();
-        bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        bs.write_block(DAG_CBOR, SHA2_256, STR).await.unwrap();
 
         assert_eq!(bs.roots().next().unwrap(), cid);
         assert_eq!(bs.read_block(cid).await.unwrap(), STR);
