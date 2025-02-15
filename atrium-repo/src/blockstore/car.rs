@@ -120,10 +120,15 @@ impl<R: AsyncRead + AsyncSeek + Unpin> CarStore<R> {
 }
 
 impl<S: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> CarStore<S> {
-    pub async fn create(mut storage: S) -> Result<Self, Error> {
-        // HACK: Create a header with a single root entry (most commonly desired).
-        // We do this here because it's hard to delete/insert bytes into a pre-existing file.
-        let header = V1Header { version: 1, roots: vec![Cid::default()] };
+    pub async fn create(storage: S) -> Result<Self, Error> {
+        Self::create_with_roots(storage, []).await
+    }
+
+    pub async fn create_with_roots(
+        mut storage: S,
+        roots: impl IntoIterator<Item = Cid>,
+    ) -> Result<Self, Error> {
+        let header = V1Header { version: 1, roots: roots.into_iter().collect::<Vec<_>>() };
 
         let header_bytes = serde_ipld_dagcbor::to_vec(&header).unwrap();
         let mut buf = unsigned_varint::encode::usize_buffer();
@@ -132,20 +137,6 @@ impl<S: AsyncRead + AsyncWrite + AsyncSeek + Send + Unpin> CarStore<S> {
         storage.write_all(&header_bytes).await?;
 
         Ok(Self { storage, header, index: HashMap::new() })
-    }
-
-    pub async fn set_root(&mut self, root: Cid) -> Result<(), Error> {
-        // HACK: The root array must be the same length in order to avoid shifting the file's contents.
-        self.header.roots = vec![root];
-
-        let header_bytes = serde_ipld_dagcbor::to_vec(&self.header).unwrap();
-        let mut buf = unsigned_varint::encode::usize_buffer();
-        let buf = unsigned_varint::encode::usize(header_bytes.len(), &mut buf);
-        self.storage.seek(SeekFrom::Start(0)).await?;
-        self.storage.write_all(buf).await?;
-        self.storage.write_all(&header_bytes).await?;
-
-        Ok(())
     }
 }
 
@@ -229,7 +220,7 @@ pub enum Error {
 mod test {
     use std::io::Cursor;
 
-    use crate::blockstore::DAG_CBOR;
+    use crate::blockstore::{MemoryBlockStore, DAG_CBOR};
 
     use super::*;
 
@@ -269,12 +260,17 @@ mod test {
     async fn basic_root() {
         const STR: &[u8] = b"the quick brown fox jumps over the lazy dog";
 
-        let mut mem = Vec::new();
-        let mut bs = CarStore::create(Cursor::new(&mut mem)).await.unwrap();
+        let mut mbs = MemoryBlockStore::new();
 
-        let cid = bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        let cid = mbs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+        assert_eq!(mbs.read_block(cid).await.unwrap(), STR);
+
+        let mut mem = Vec::new();
+        let mut bs = CarStore::create_with_roots(Cursor::new(&mut mem), [cid]).await.unwrap();
+        bs.write_block(DAG_CBOR, SHA2_256, &STR).await.unwrap();
+
+        assert_eq!(bs.roots().next().unwrap(), cid);
         assert_eq!(bs.read_block(cid).await.unwrap(), STR);
-        bs.set_root(cid).await.unwrap();
 
         let mut bs = CarStore::open(Cursor::new(&mut mem)).await.unwrap();
         assert_eq!(bs.roots().next().unwrap(), cid);
