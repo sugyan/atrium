@@ -125,7 +125,7 @@ impl<'r, S: AsyncBlockStoreWrite> CommitBuilder<'r, S> {
     ///
     /// We assume that the provided cryptographic hash is valid. If the signature
     /// is invalid, the commit will be rejected when published to the network!
-    pub async fn sign(self, sig: Vec<u8>) -> Result<Cid, Error> {
+    pub async fn finalize(self, sig: Vec<u8>) -> Result<Cid, Error> {
         let s = schema::SignedCommit {
             did: self.inner.did.clone(),
             version: self.inner.version,
@@ -158,7 +158,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> RepoBuilder<S> {
     }
 
     /// Cryptographically sign the root commit, finalizing the initial version of this repository.
-    pub async fn sign(mut self, sig: Vec<u8>) -> Result<Repository<S>, Error> {
+    pub async fn finalize(mut self, sig: Vec<u8>) -> Result<Repository<S>, Error> {
         // Write the commit into the database.
         let s = schema::SignedCommit {
             did: self.commit.did.clone(),
@@ -477,7 +477,7 @@ mod test {
         let sig = keypair.sign(&builder.hash()).unwrap();
 
         // Finalize the root commit and create the repository.
-        builder.sign(sig).await.unwrap()
+        builder.finalize(sig).await.unwrap()
     }
 
     #[tokio::test]
@@ -554,7 +554,7 @@ mod test {
             .unwrap();
 
         let sig = keypair.sign(&cb.hash()).unwrap();
-        let _cid = cb.sign(sig).await.unwrap();
+        let _cid = cb.finalize(sig).await.unwrap();
 
         // Verify the new commit.
         let commit = repo.commit();
@@ -597,7 +597,7 @@ mod test {
             .unwrap();
 
         let sig = keypair.sign(&cb.hash()).unwrap();
-        let cid = cb.sign(sig).await.unwrap();
+        let cid = cb.finalize(sig).await.unwrap();
 
         let commit = repo.commit();
 
