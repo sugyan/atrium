@@ -269,6 +269,15 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         Commit { inner: self.latest_commit.clone() }
     }
 
+    /// Open the merkle search tree for the latest commit.
+    ///
+    /// This API is for advanced usage. Typically you will want to use the convenience
+    /// APIs offered by this struct instead. Any modifications to the tree will _not_
+    /// automatically be reflected by this `Repository`.
+    pub fn tree(&mut self) -> mst::Tree<&mut R> {
+        mst::Tree::open(&mut self.db, self.latest_commit.data)
+    }
+
     /// Returns the specified record from the repository, or `None` if it does not exist.
     pub async fn get<C: Collection>(
         &mut self,
