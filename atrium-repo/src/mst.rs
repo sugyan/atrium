@@ -748,12 +748,56 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         }
     }
 
+    /// Returns a stream of all keys starting with the specified prefix, in lexicographic order.
+    ///
+    /// This function will _not_ work with a partial MST, such as one received from
+    /// a firehose record.
+    pub fn entries_prefixed<'a>(
+        &'a mut self,
+        prefix: &'a str,
+    ) -> impl Stream<Item = Result<(String, Cid), Error>> + 'a {
+        // Start from the root of the tree.
+        let mut stack = vec![Located::InSubtree(self.root)];
+
+        try_stream! {
+            while let Some(e) = stack.pop() {
+                match e {
+                    Located::InSubtree(cid) => {
+                        let node = Node::read_from(&mut self.storage, cid).await?;
+                        for entry in node.entries_with_prefix(&prefix).rev() {
+                            match entry {
+                                NodeEntry::Tree(entry) => {
+                                    stack.push(Located::InSubtree(entry));
+                                }
+                                NodeEntry::Leaf(entry) => {
+                                    stack.push(Located::Entry((entry.key.clone(), entry.value)));
+                                }
+                            }
+                        }
+                    }
+                    Located::Entry((key, value)) => yield (key, value),
+                }
+            }
+        }
+    }
+
     /// Returns a stream of all keys in this tree, in lexicographic order.
     ///
     /// This function will _not_ work with a partial MST, such as one received from
     /// a firehose record.
     pub fn keys(&mut self) -> impl Stream<Item = Result<String, Error>> + '_ {
         self.entries().map(|e| e.map(|(k, _)| k))
+    }
+
+    /// Returns a stream of all keys in this tree with the specified prefix, in lexicographic order.
+    ///
+    /// This function will _not_ work with a partial MST, such as one received from
+    /// a firehose record.
+    pub fn keys_prefixed<'a>(
+        &'a mut self,
+        prefix: &'a str,
+    ) -> impl Stream<Item = Result<String, Error>> + 'a {
+        self.entries_prefixed(prefix).map(|e| e.map(|(k, _)| k))
     }
 
     /// Returns the specified record from the repository, or `None` if it does not exist.
@@ -825,7 +869,7 @@ impl NodeEntry {
 
 /// A node in a Merkle Search Tree.
 #[derive(Debug, Clone)]
-pub struct Node {
+struct Node {
     /// The entries within this node.
     ///
     /// This list has the special property that no two `Tree` variants can be adjacent.
@@ -971,7 +1015,7 @@ impl Node {
     pub fn entries_with_prefix<'a>(
         &'a self,
         prefix: &str,
-    ) -> impl DoubleEndedIterator<Item = Located<(&'a str, Cid)>> + 'a {
+    ) -> impl DoubleEndedIterator<Item = NodeEntry> + 'a {
         let mut list = Vec::new();
 
         let index = if let Some(i) = self.find_ge(prefix) {
@@ -981,28 +1025,28 @@ impl Node {
             return list.into_iter();
         };
 
+        // Check to see if the left neighbor is a subtree.
         if let Some(index) = index.checked_sub(1) {
             if let Some(NodeEntry::Tree(cid)) = self.entries.get(index) {
-                list.push(Located::InSubtree(*cid));
+                list.push(NodeEntry::Tree(*cid));
             }
         }
 
-        // FIXME: Verify this logic.
         if let Some(e) = self.entries.get(index..) {
-            for e in e.chunks(2) {
-                if let NodeEntry::Leaf(t) = &e[0] {
+            for e in e {
+                if let NodeEntry::Leaf(t) = e {
                     if t.key.starts_with(prefix) {
-                        list.push(Located::Entry((&t.key[..], t.value)));
-
-                        if let Some(NodeEntry::Tree(cid)) = e.get(1) {
-                            list.push(Located::InSubtree(*cid));
-                        }
-                    } else if prefix > t.key.as_str() {
-                        if let Some(NodeEntry::Tree(cid)) = e.get(1) {
-                            list.push(Located::InSubtree(*cid));
-                        }
+                        list.push(NodeEntry::Leaf(t.clone()));
+                        continue;
+                    } else if prefix < &t.key[..prefix.len()] {
+                        // This leaf node has a key that is lexicographically greater than
+                        // the prefix. Stop the search now since we won't find any more
+                        // matching entries.
+                        break;
                     }
                 }
+
+                list.push(e.clone());
             }
         }
 
@@ -1014,7 +1058,7 @@ impl Node {
     pub fn reversed_entries_with_prefix<'a>(
         &'a self,
         prefix: &'a str,
-    ) -> impl Iterator<Item = Located<(&'a str, Cid)>> + 'a {
+    ) -> impl Iterator<Item = NodeEntry> + 'a {
         self.entries_with_prefix(prefix).rev()
     }
 }
@@ -1412,5 +1456,47 @@ mod test {
         let mut tree = Tree::create(bs).await.unwrap();
 
         tree.add("com.example.record/3jqfcqzm3fo2j", Cid::default()).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn mst_enum_prefixed() {
+        let bs = MemoryBlockStore::new();
+        let mut tree = Tree::create(bs).await.unwrap();
+
+        tree.add("com.example.abcd/2222222222222", value_cid()).await.unwrap();
+        tree.add("com.example.abcd/2222222222223", value_cid()).await.unwrap();
+        tree.add("com.example.bbcd/2222222222222", value_cid()).await.unwrap();
+        tree.add("com.example.bbcd/2222222222223", value_cid()).await.unwrap();
+        tree.add("com.example.bbcd/2222222222224", value_cid()).await.unwrap();
+        tree.add("com.example.cbcd/2222222222222", value_cid()).await.unwrap();
+        tree.add("com.example.cbcd/2222222222223", value_cid()).await.unwrap();
+
+        // Ensure keys are returned in lexicographic order.
+        let keys = tree
+            .entries_prefixed("com.example.abcd")
+            .map_ok(|(k, _v)| k)
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+        assert_eq!(
+            keys.as_slice(),
+            &["com.example.abcd/2222222222222", "com.example.abcd/2222222222223",]
+        );
+
+        let keys = tree
+            .entries_prefixed("com.example.bbcd")
+            .map_ok(|(k, _v)| k)
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+
+        assert_eq!(
+            keys.as_slice(),
+            &[
+                "com.example.bbcd/2222222222222",
+                "com.example.bbcd/2222222222223",
+                "com.example.bbcd/2222222222224",
+            ]
+        );
     }
 }
