@@ -41,8 +41,8 @@ mod schema {
         /// because serde maps the latter to CBOR Major Type 4 (array of data items) instead
         /// of Major Type 2 (byte string). Other crates exist that provide bytes-specific
         /// deserializers, but `Ipld` is already in our dependencies.
-        #[serde(rename = "k")]
-        pub key_suffix: Ipld,
+        #[serde(rename = "k", with = "serde_bytes")]
+        pub key_suffix: Vec<u8>,
 
         /// ("value", CID Link, required): link to the record data (CBOR) for this entry.
         #[serde(rename = "v")]
@@ -941,7 +941,7 @@ impl Node {
 
             node.entries.push(schema::TreeEntry {
                 prefix_len: prefix,
-                key_suffix: Ipld::Bytes(leaf.key[prefix..].as_bytes().to_vec()),
+                key_suffix: leaf.key[prefix..].as_bytes().to_vec(),
                 value: leaf.value,
                 tree: tree.cloned(),
             });
@@ -1071,18 +1071,13 @@ struct TreeEntry {
 
 impl TreeEntry {
     fn parse(entry: schema::TreeEntry, prev_key: &[u8]) -> Result<Self, Error> {
-        let mut key_suffix = match entry.key_suffix {
-            Ipld::Bytes(k) => Ok(k.clone()),
-            _ => Err(Error::KeySuffixNotBytes),
-        }?;
-
         let key = if entry.prefix_len == 0 {
-            key_suffix
+            entry.key_suffix
         } else if prev_key.len() < entry.prefix_len {
             return Err(Error::InvalidPrefixLen);
         } else {
             let mut key_bytes = prev_key[..entry.prefix_len].to_vec();
-            key_bytes.append(&mut key_suffix);
+            key_bytes.extend(entry.key_suffix);
             key_bytes
         };
 
@@ -1097,8 +1092,6 @@ impl TreeEntry {
 pub enum Error {
     #[error("Invalid prefix_len")]
     InvalidPrefixLen,
-    #[error("key_suffix not a byte string")]
-    KeySuffixNotBytes,
     #[error("the key is already present in the tree")]
     KeyAlreadyExists,
     #[error("the key is not present in the tree")]

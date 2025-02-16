@@ -306,6 +306,7 @@ dependencies = [
  "ipld-core",
  "rand",
  "serde",
+ "serde_bytes",
  "serde_ipld_dagcbor",
  "sha2",
  "thiserror",

@@ -5,7 +5,7 @@ use atrium_api::types::{
     Collection, LimitedU32,
 };
 use futures::TryStreamExt;
-use ipld_core::{cid::Cid, ipld::Ipld};
+use ipld_core::cid::Cid;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha2::Digest;
 
@@ -55,7 +55,8 @@ mod schema {
         /// pointer (by hash) to a previous commit object for this repository
         pub prev: Option<Cid>,
         /// cryptographic signature of this commit, as raw bytes
-        pub sig: Ipld,
+        #[serde(with = "serde_bytes")]
+        pub sig: Vec<u8>,
     }
 }
 
@@ -133,7 +134,7 @@ impl<'r, S: AsyncBlockStoreWrite> CommitBuilder<'r, S> {
             data: self.inner.data,
             rev: self.inner.rev.clone(),
             prev: self.inner.prev,
-            sig: Ipld::Bytes(sig),
+            sig,
         };
         let b = serde_ipld_dagcbor::to_vec(&s).unwrap();
         let c = self.repo.db.write_block(DAG_CBOR, SHA2_256, &b).await?;
@@ -167,7 +168,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> RepoBuilder<S> {
             data: self.commit.data,
             rev: self.commit.rev.clone(),
             prev: self.commit.prev,
-            sig: Ipld::Bytes(sig),
+            sig,
         };
         let b = serde_ipld_dagcbor::to_vec(&s).unwrap();
         let c = self.db.write_block(DAG_CBOR, SHA2_256, &b).await?;
@@ -209,10 +210,7 @@ impl Commit {
 
     /// Return the commit object's cryptographic signature.
     pub fn sig(&self) -> &[u8] {
-        match self.inner.sig {
-            Ipld::Bytes(ref bytes) => bytes,
-            _ => panic!("signature field did not consist of bytes"),
-        }
+        self.inner.sig.as_slice()
     }
 }
 
