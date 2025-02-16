@@ -218,6 +218,27 @@ impl Commit {
 
 /// An ATProtocol user repository.
 ///
+/// This is a convenience data structure that is cheap to construct and intended
+/// to be used in an on-demand manner rather than as a long-lived data structure.
+///
+/// For example, to open an existing repository and query a single record:
+/// ```no_run
+/// # use atrium_api::{app::bsky, types::string::RecordKey};
+/// # use atrium_repo::{blockstore::MemoryBlockStore, Cid, Repository};
+/// # let mut bs = MemoryBlockStore::new();
+/// # let root = Cid::default();
+/// # let rkey = RecordKey::new("2222222222222".to_string()).unwrap();
+/// #
+/// # async move {
+/// // N.B: This will not verify the contents of the repository, so this should only
+/// // be used with data from a trusted source.
+/// let mut repo = Repository::open(&mut bs, root).await.unwrap();
+/// let post = repo.get::<bsky::feed::Post>(rkey).await.unwrap();
+///
+/// drop(repo); // We're done using the repository at this point.
+/// # };
+/// ```
+///
 /// Reference: https://atproto.com/specs/repository
 #[derive(Debug)]
 pub struct Repository<S> {
@@ -383,7 +404,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         &'a mut self,
         rkey: RecordKey,
         record: C::Record,
-    ) -> Result<CommitBuilder<'a, S>, Error> {
+    ) -> Result<(CommitBuilder<'a, S>, Cid), Error> {
         let path = C::repo_path(&rkey);
         self.add_raw(&path, record).await
     }
@@ -393,7 +414,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         &'a mut self,
         key: &str,
         data: T,
-    ) -> Result<CommitBuilder<'a, S>, Error> {
+    ) -> Result<(CommitBuilder<'a, S>, Cid), Error> {
         let data = serde_ipld_dagcbor::to_vec(&data).unwrap();
         let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
 
@@ -401,7 +422,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         mst.add(key, cid).await?;
         let root = mst.root();
 
-        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+        Ok((CommitBuilder::new(self, self.latest_commit.did.clone(), root), cid))
     }
 
     /// Update an existing record in the repository.
@@ -409,7 +430,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         &'a mut self,
         rkey: RecordKey,
         record: C::Record,
-    ) -> Result<CommitBuilder<'a, S>, Error> {
+    ) -> Result<(CommitBuilder<'a, S>, Cid), Error> {
         let path = C::repo_path(&rkey);
         self.update_raw(&path, record).await
     }
@@ -419,7 +440,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         &'a mut self,
         key: &str,
         data: T,
-    ) -> Result<CommitBuilder<'a, S>, Error> {
+    ) -> Result<(CommitBuilder<'a, S>, Cid), Error> {
         let data = serde_ipld_dagcbor::to_vec(&data).unwrap();
         let cid = self.db.write_block(DAG_CBOR, SHA2_256, &data).await?;
 
@@ -427,7 +448,7 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
         mst.update(key, cid).await?;
         let root = mst.root();
 
-        Ok(CommitBuilder::new(self, self.latest_commit.did.clone(), root))
+        Ok((CommitBuilder::new(self, self.latest_commit.did.clone(), root), cid))
     }
 
     /// Delete an existing record in the repository.
@@ -560,7 +581,7 @@ mod test {
         );
 
         // Commit a record.
-        let cb = repo
+        let (cb, _) = repo
             .add::<bsky::feed::Post>(
                 RecordKey::new(Tid::now(LimitedU32::MIN).to_string()).unwrap(),
                 bsky::feed::post::RecordData {
@@ -603,7 +624,7 @@ mod test {
                 .await;
 
         let rkey = RecordKey::new("2222222222222".to_string()).unwrap();
-        let cb = repo
+        let (cb, _) = repo
             .add::<bsky::feed::Post>(
                 rkey.clone(),
                 bsky::feed::post::RecordData {
@@ -676,7 +697,7 @@ mod test {
                 }
             };
 
-            let cb = repo
+            let (cb, _) = repo
                 .add::<bsky::feed::Post>(
                     rkey.clone(),
                     bsky::feed::post::RecordData {
