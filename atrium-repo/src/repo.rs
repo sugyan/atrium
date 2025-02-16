@@ -337,6 +337,27 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         }
     }
 
+    /// Export a list of all CIDs in the repository.
+    pub async fn export(&mut self) -> Result<impl Iterator<Item = Cid>, Error> {
+        let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
+
+        let mut r = vec![self.root];
+        r.extend(mst.export().try_collect::<Vec<_>>().await?);
+        Ok(r.into_iter())
+    }
+
+    /// Export all CIDs in the repository into a blockstore.
+    pub async fn export_into(&mut self, mut bs: impl AsyncBlockStoreWrite) -> Result<(), Error> {
+        let cids = self.export().await?.collect::<HashSet<_>>();
+
+        for cid in cids {
+            bs.write_block(cid.codec(), SHA2_256, self.db.read_block(cid).await?.as_slice())
+                .await?;
+        }
+
+        Ok(())
+    }
+
     /// Extract the CIDs associated with a particular record.
     ///
     /// If the record does not exist in this repository, the CIDs returned will point to the

@@ -718,6 +718,35 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
         algos::compute_depth(&mut self.storage, node.unwrap_or(self.root)).await
     }
 
+    /// Returns a stream of all CIDs in the tree or referenced by the tree.
+    pub fn export(&mut self) -> impl Stream<Item = Result<Cid, Error>> + '_ {
+        // Start from the root of the tree.
+        let mut stack = vec![Located::InSubtree(self.root)];
+
+        try_stream! {
+            while let Some(e) = stack.pop() {
+                match e {
+                    Located::InSubtree(cid) => {
+                        let node = Node::read_from(&mut self.storage, cid).await?;
+                        yield cid;
+
+                        for entry in node.entries.iter().rev() {
+                            match entry {
+                                NodeEntry::Tree(entry) => {
+                                    stack.push(Located::InSubtree(*entry));
+                                }
+                                NodeEntry::Leaf(entry) => {
+                                    stack.push(Located::Entry(entry.value));
+                                }
+                            }
+                        }
+                    }
+                    Located::Entry(value) => yield value,
+                }
+            }
+        }
+    }
+
     /// Returns a stream of all entries in this tree, in lexicographic order.
     ///
     /// This function will _not_ work with a partial MST, such as one received from
