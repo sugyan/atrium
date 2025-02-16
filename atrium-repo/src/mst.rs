@@ -3,7 +3,7 @@ use std::{cmp::Ordering, collections::HashSet, convert::Infallible};
 use algos::FindPathResult;
 use async_stream::try_stream;
 use futures::{Stream, StreamExt};
-use ipld_core::{cid::Cid, ipld::Ipld};
+use ipld_core::cid::Cid;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
@@ -994,6 +994,7 @@ impl Node {
     /// Finds the location of the given key's value within this sub-tree.
     ///
     /// Returns `None` if the key does not exist within this sub-tree.
+    #[allow(dead_code)]
     pub fn get(&self, key: &str) -> Option<Located<Cid>> {
         let i = self.find_ge(key)?;
 
@@ -1051,15 +1052,6 @@ impl Node {
         }
 
         list.into_iter()
-    }
-
-    /// Returns the locations of values for all keys within this sub-tree with the given
-    /// prefix, in reverse order.
-    pub fn reversed_entries_with_prefix<'a>(
-        &'a self,
-        prefix: &'a str,
-    ) -> impl Iterator<Item = NodeEntry> + 'a {
-        self.entries_with_prefix(prefix).rev()
     }
 }
 
