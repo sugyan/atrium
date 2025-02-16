@@ -6,7 +6,7 @@ use atrium_api::types::{
 };
 use futures::TryStreamExt;
 use ipld_core::{cid::Cid, ipld::Ipld};
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::{
@@ -59,14 +59,14 @@ mod schema {
     }
 }
 
-async fn read_record<C: Collection>(
+async fn read_record<T: DeserializeOwned>(
     mut db: impl AsyncBlockStoreRead,
     cid: Cid,
-) -> Result<C::Record, Error> {
+) -> Result<T, Error> {
     assert_eq!(cid.codec(), crate::blockstore::DAG_CBOR);
 
     let data = db.read_block(cid).await?;
-    let parsed: C::Record = serde_ipld_dagcbor::from_reader(&data[..])?;
+    let parsed: T = serde_ipld_dagcbor::from_reader(&data[..])?;
     Ok(parsed)
 }
 
@@ -287,18 +287,18 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
         if let Some(cid) = mst.get(&path).await? {
-            Ok(Some(read_record::<C>(&mut self.db, cid).await?))
+            Ok(Some(read_record::<C::Record>(&mut self.db, cid).await?))
         } else {
             Ok(None)
         }
     }
 
     /// Returns the contents of the specified record from the repository, or `None` if it does not exist.
-    pub async fn get_raw(&mut self, key: &str) -> Result<Option<Vec<u8>>, Error> {
+    pub async fn get_raw<T: DeserializeOwned>(&mut self, key: &str) -> Result<Option<T>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
         if let Some(cid) = mst.get(key).await? {
-            Ok(Some(self.db.read_block(cid).await?))
+            Ok(Some(read_record::<T>(&mut self.db, cid).await?))
         } else {
             Ok(None)
         }
@@ -316,7 +316,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
     ///
     /// If you're absolutely certain you want to look up a record by its CID and the repository comes
     /// from a trusted source, you can elide the enumeration by accessing the backing storage directly.
-    pub async fn get_raw_cid(&mut self, cid: Cid) -> Result<Option<Vec<u8>>, Error> {
+    pub async fn get_raw_cid<T: DeserializeOwned>(&mut self, cid: Cid) -> Result<Option<T>, Error> {
         let mut mst = mst::Tree::open(&mut self.db, self.latest_commit.data);
 
         let mut ocid = None;
@@ -333,7 +333,7 @@ impl<R: AsyncBlockStoreRead> Repository<R> {
         drop(it);
 
         if let Some(ocid) = ocid {
-            Ok(Some(self.db.read_block(ocid).await?))
+            Ok(Some(read_record::<T>(&mut self.db, ocid).await?))
         } else {
             Ok(None)
         }
