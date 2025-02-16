@@ -207,6 +207,9 @@ where
 ///
 /// This will be deprecated in the near future. Use [`Agent`] directly
 /// with a [`CredentialSession`] instead:
+///
+/// # Example
+///
 /// ```
 /// use atrium_api::agent::atp_agent::{store::MemorySessionStore, CredentialSession};
 /// use atrium_api::agent::Agent;

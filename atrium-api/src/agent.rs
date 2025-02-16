@@ -55,6 +55,26 @@ impl AsRef<str> for AtprotoServiceType {
     }
 }
 
+/// A wrapper around a session manager and a client service.
+///
+/// An agent provides the following utilities:
+/// - AT Protocol labelers configuration utilities
+/// - AT Protocol proxy configuration utilities
+/// - Cloning utilities (if the session manager implements [`CloneWithProxy`])
+///
+/// # Example
+///
+/// ```
+/// use atrium_api::agent::atp_agent::{store::MemorySessionStore, CredentialSession};
+/// use atrium_api::agent::Agent;
+/// use atrium_xrpc_client::reqwest::ReqwestClient;
+///
+/// let session = CredentialSession::new(
+///     ReqwestClient::new("https://bsky.social"),
+///     MemorySessionStore::default(),
+/// );
+/// let agent = Agent::new(session);
+/// ``````
 pub struct Agent<M>
 where
     M: SessionManager + Send + Sync,
@@ -67,11 +87,13 @@ impl<M> Agent<M>
 where
     M: SessionManager + Send + Sync,
 {
+    /// Creates a new agent with the given session manager.
     pub fn new(session_manager: M) -> Self {
         let session_manager = Arc::new(inner::Wrapper::new(session_manager));
         let api = Service::new(session_manager.clone());
         Self { session_manager, api }
     }
+    /// Returns the DID of the current session.
     pub async fn did(&self) -> Option<Did> {
         self.session_manager.did().await
     }
