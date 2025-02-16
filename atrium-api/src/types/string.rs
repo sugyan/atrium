@@ -475,6 +475,10 @@ impl Tid {
     /// and hint to other implementations that the timestamp cannot be compared with other
     /// timestamps from other sources.
     /// If you are only using a single clock source, you can just specify `0` for `clkid`.
+    ///
+    /// _Warning:_ It's possible that this function will return the same time more than once.
+    /// If it's important that these values be unique, you will want to repeatedly call this
+    /// function until a different time is returned.
     pub fn now(clkid: LimitedU32<1023>) -> Self {
         Self::from_datetime(clkid, chrono::Utc::now())
     }
