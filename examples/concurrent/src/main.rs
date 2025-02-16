@@ -1,4 +1,7 @@
-use atrium_api::agent::{store::MemorySessionStore, AtpAgent};
+use atrium_api::agent::{
+    atp_agent::{store::MemorySessionStore, CredentialSession},
+    Agent,
+};
 use atrium_xrpc_client::reqwest::ReqwestClient;
 use clap::Parser;
 use futures::future::join_all;
@@ -19,11 +22,12 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
-    let agent = Arc::new(AtpAgent::new(
+    let session = CredentialSession::new(
         ReqwestClient::new("https://bsky.social"),
         MemorySessionStore::default(),
-    ));
-    agent.login(&args.identifier, &args.password).await?;
+    );
+    session.login(&args.identifier, &args.password).await?;
+    let agent = Arc::new(Agent::new(session));
     let actors = ["bsky.app", "atproto.com", "safety.bsky.app"];
     let handles = actors
         .iter()
@@ -49,7 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let results = join_all(handles).await;
     println!("{} profiles fetched!", results.len());
     for (actor, result) in actors.iter().zip(results) {
-        println!("{actor}: {:?}", result?);
+        let result = result??;
+        println!("{actor} ({}) {:?}", result.did.as_ref(), result.description);
     }
     Ok(())
 }
