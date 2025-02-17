@@ -72,19 +72,6 @@ async fn read_record<T: DeserializeOwned>(
 }
 
 /// A [Commit] builder.
-///
-/// Example usage:
-/// ```ignore
-/// let commit = Commit::new(did, root)
-///     // .rev("1234abcd");
-/// let hash = commit.hash();
-///
-/// // Sign the SHA256 digest however you wish - either using `atrium-crypto` or
-/// // (preferably) using a HSM from a cloud provider.
-/// let signature = todo!();
-///
-/// let commit: Commit = commit.sign(signature);
-/// ```
 pub struct CommitBuilder<'r, S: AsyncBlockStoreWrite> {
     repo: &'r mut Repository<S>,
     inner: schema::Commit,
