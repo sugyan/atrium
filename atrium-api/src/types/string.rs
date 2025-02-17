@@ -9,6 +9,24 @@ use regex::Regex;
 use serde::{de::Error, Deserialize, Deserializer, Serialize, Serializer};
 use std::{cmp, ops::Deref, str::FromStr, sync::OnceLock};
 
+use super::LimitedU32;
+
+// Reference: https://github.com/bluesky-social/indigo/blob/9e3b84fdbb20ca4ac397a549e1c176b308f7a6e1/repo/tid.go#L11-L19
+fn s32_encode(mut i: u64) -> String {
+    const S32_CHAR: &[u8] = b"234567abcdefghijklmnopqrstuvwxyz";
+
+    let mut s = String::with_capacity(13);
+    for _ in 0..13 {
+        let c = i & 0x1F;
+        s.push(S32_CHAR[c as usize] as char);
+
+        i >>= 5;
+    }
+
+    // Reverse the string to convert it to big-endian format.
+    s.chars().rev().collect()
+}
+
 /// Common trait implementations for Lexicon string formats that are newtype wrappers
 /// around `String`.
 macro_rules! string_newtype {
@@ -410,7 +428,7 @@ impl Serialize for Language {
 
 /// A [Timestamp Identifier].
 ///
-/// [Timestamp Identifier]: https://atproto.com/specs/record-key#record-key-type-tid
+/// [Timestamp Identifier]: https://atproto.com/specs/tid
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Hash)]
 #[serde(transparent)]
 pub struct Tid(String);
@@ -434,6 +452,35 @@ impl Tid {
         } else {
             Ok(Self(tid))
         }
+    }
+
+    /// Construct a new timestamp with the specified clock ID.
+    ///
+    /// If you have multiple clock sources, you can use `clkid` to distinguish between them
+    /// and hint to other implementations that the timestamp cannot be compared with other
+    /// timestamps from other sources.
+    /// If you are only using a single clock source, you can just specify `0` for `clkid`.
+    pub fn from_datetime(clkid: LimitedU32<1023>, time: chrono::DateTime<chrono::Utc>) -> Self {
+        let time = time.timestamp_micros() as u64;
+
+        // The TID is laid out as follows:
+        // 0TTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTTTTTTTTTTT TTTTTTCCCCCCCCCC
+        let tid = (time << 10) & 0x7FFF_FFFF_FFFF_FC00 | (Into::<u32>::into(clkid) as u64 & 0x3FF);
+        Self(s32_encode(tid))
+    }
+
+    /// Construct a new [Tid] that represents the current time.
+    ///
+    /// If you have multiple clock sources, you can use `clkid` to distinguish between them
+    /// and hint to other implementations that the timestamp cannot be compared with other
+    /// timestamps from other sources.
+    /// If you are only using a single clock source, you can just specify `0` for `clkid`.
+    ///
+    /// _Warning:_ It's possible that this function will return the same time more than once.
+    /// If it's important that these values be unique, you will want to repeatedly call this
+    /// function until a different time is returned.
+    pub fn now(clkid: LimitedU32<1023>) -> Self {
+        Self::from_datetime(clkid, chrono::Utc::now())
     }
 
     /// Returns the TID as a string slice.
@@ -764,6 +811,21 @@ mod tests {
                 invalid,
             );
         }
+    }
+
+    #[test]
+    fn tid_encode() {
+        assert_eq!(s32_encode(0), "2222222222222");
+        assert_eq!(s32_encode(1), "2222222222223");
+    }
+
+    #[test]
+    fn tid_construct() {
+        let tid = Tid::from_datetime(
+            0.try_into().unwrap(),
+            chrono::DateTime::from_timestamp(1738430999, 0).unwrap(),
+        );
+        assert_eq!(tid.as_str(), "3lh5234mwy222");
     }
 
     #[test]
