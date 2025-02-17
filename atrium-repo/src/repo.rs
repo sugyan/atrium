@@ -719,7 +719,7 @@ mod test {
         for i in 0..10 {
             // Ensure we don't generate the same record key twice.
             let rkey = loop {
-                let rkey = RecordKey::new(Tid::now(0).to_string()).unwrap();
+                let rkey = RecordKey::new(Tid::now(LimitedU32::MIN).to_string()).unwrap();
                 if !records.contains(&rkey) {
                     break rkey;
                 }
