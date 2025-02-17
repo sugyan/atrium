@@ -5,6 +5,13 @@ git_tag_enable = false
 changelog_update = false
 
 [[package]]
+name = "atrium-common"
+publish = true
+git_release_enable = true
+git_tag_enable = true
+changelog_update = true
+
+[[package]]
 name = "atrium-crypto"
 publish = true
 git_release_enable = true
