@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.24.11](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.10...atrium-api-v0.24.11) - 2025-02-17
+
+### Added
+
+- Agent rework (#282)
+- Add `Tid::now` and `Tid::from_datetime` constructors (#277)
+
 ## [0.24.10](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.9...atrium-api-v0.24.10) - 2025-01-21
 
 ### Other
