@@ -65,7 +65,7 @@ hickory-resolver = "0.24.1"
 http = "1.1.0"
 lru = "0.12.4"
 moka = "0.12.8"
-tokio = { version = "1.39", default-features = false }
+tokio = { version = "1.43", default-features = false }
 
 # HTTP client integrations
 isahc = "1.7.2"
