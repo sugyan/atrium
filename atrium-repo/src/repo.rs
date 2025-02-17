@@ -517,11 +517,8 @@ pub enum Error {
 mod test {
     use std::str::FromStr;
 
-    use crate::blockstore::{CarStore, MemoryBlockStore};
-    use atrium_api::{
-        app::bsky,
-        types::{string::Datetime, Object},
-    };
+    use crate::blockstore::MemoryBlockStore;
+    use atrium_api::{app::bsky, types::string::Datetime};
     use atrium_crypto::{
         did::parse_did_key,
         keypair::{Did as _, P256Keypair},
@@ -530,16 +527,6 @@ mod test {
     };
 
     use super::*;
-
-    /// Loads a repository from the given CAR file.
-    async fn load(
-        bytes: &[u8],
-    ) -> Result<Repository<CarStore<std::io::Cursor<&[u8]>>>, Box<dyn std::error::Error>> {
-        let db = CarStore::open(std::io::Cursor::new(bytes)).await?;
-        let root = db.roots().next().unwrap();
-
-        Repository::open(db, root).await.map_err(Into::into)
-    }
 
     async fn create_repo<S: AsyncBlockStoreRead + AsyncBlockStoreWrite>(
         bs: S,
@@ -553,32 +540,6 @@ mod test {
 
         // Finalize the root commit and create the repository.
         builder.finalize(sig).await.unwrap()
-    }
-
-    #[tokio::test]
-    async fn test_commit() {
-        const DATA: &[u8] = include_bytes!("../test_fixtures/commit");
-
-        // Read out the commit record.
-        let commit: Object<atrium_api::com::atproto::sync::subscribe_repos::Commit> =
-            serde_ipld_dagcbor::from_reader(DATA).unwrap();
-
-        println!("{:?}", commit.ops);
-
-        let _repo = load(commit.blocks.as_slice()).await.unwrap();
-    }
-
-    #[tokio::test]
-    async fn test_invalid_commit() {
-        const DATA: &[u8] = include_bytes!("../test_fixtures/commit_invalid");
-
-        // Read out the commit record.
-        let commit: Object<atrium_api::com::atproto::sync::subscribe_repos::Commit> =
-            serde_ipld_dagcbor::from_reader(DATA).unwrap();
-
-        println!("{:?}", commit.ops);
-
-        load(commit.blocks.as_slice()).await.unwrap_err();
     }
 
     #[tokio::test]
