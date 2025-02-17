@@ -1065,14 +1065,18 @@ impl Node {
         if let Some(e) = self.entries.get(index..) {
             for e in e {
                 if let NodeEntry::Leaf(t) = e {
-                    if t.key.starts_with(prefix) {
-                        list.push(NodeEntry::Leaf(t.clone()));
-                        continue;
-                    } else if prefix < &t.key[..prefix.len()] {
-                        // This leaf node has a key that is lexicographically greater than
-                        // the prefix. Stop the search now since we won't find any more
-                        // matching entries.
-                        break;
+                    // Ensure the specified prefix is not longer than the key.
+                    // If the key is shorter than the prefix, it is always lexicographically lesser.
+                    if let Some(kp) = t.key.get(..prefix.len()) {
+                        if kp == prefix {
+                            list.push(NodeEntry::Leaf(t.clone()));
+                            continue;
+                        } else if prefix < kp {
+                            // This leaf node has a key that is lexicographically greater than
+                            // the prefix. Stop the search now since we won't find any more
+                            // matching entries.
+                            break;
+                        }
                     }
                 }
 

@@ -12,7 +12,6 @@ license.workspace = true
 keywords.workspace = true
 
 [dev-dependencies]
-# atrium-api.features = ["bluesky"]
 atrium-crypto.workspace = true
 rand.workspace = true
 
