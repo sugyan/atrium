@@ -6,12 +6,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.24.11](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.10...atrium-api-v0.24.11) - 2025-02-17
+## [0.25.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.10...atrium-api-v0.25.0) - 2025-02-17
 
 ### Added
 
-- Agent rework (#282)
 - Add `Tid::now` and `Tid::from_datetime` constructors (#277)
+
+### Changed
+
+- Agent rework (#282)
+  - Add `SessionManager` trait in preparation for OAuthSession addition.
+  - Add `Agent` struct created from `SessionManager`.
+  - Move `AtpAgent` as a wrapper for Agent created from `CredentialSession`.
+  - `bsky-sdk` was also modified with the above changes.
+
 
 ## [0.24.10](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.9...atrium-api-v0.24.10) - 2025-01-21
 
