@@ -415,11 +415,11 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
     }
 
     /// Add a new record to this repository.
-    pub async fn add<'a, C: Collection>(
-        &'a mut self,
+    pub async fn add<C: Collection>(
+        &mut self,
         rkey: RecordKey,
         record: C::Record,
-    ) -> Result<(CommitBuilder<'a, S>, Cid), Error> {
+    ) -> Result<(CommitBuilder<'_, S>, Cid), Error> {
         let path = C::repo_path(&rkey);
         self.add_raw(&path, record).await
     }
@@ -441,11 +441,11 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
     }
 
     /// Update an existing record in the repository.
-    pub async fn update<'a, C: Collection>(
-        &'a mut self,
+    pub async fn update<C: Collection>(
+        &mut self,
         rkey: RecordKey,
         record: C::Record,
-    ) -> Result<(CommitBuilder<'a, S>, Cid), Error> {
+    ) -> Result<(CommitBuilder<'_, S>, Cid), Error> {
         let path = C::repo_path(&rkey);
         self.update_raw(&path, record).await
     }
@@ -467,10 +467,10 @@ impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> Repository<S> {
     }
 
     /// Delete an existing record in the repository.
-    pub async fn delete<'a, C: Collection>(
-        &'a mut self,
+    pub async fn delete<C: Collection>(
+        &mut self,
         rkey: RecordKey,
-    ) -> Result<CommitBuilder<'a, S>, Error> {
+    ) -> Result<CommitBuilder<'_, S>, Error> {
         let path = C::repo_path(&rkey);
         self.delete_raw(&path).await
     }

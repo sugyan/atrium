@@ -1068,14 +1068,18 @@ impl Node {
                     // Ensure the specified prefix is not longer than the key.
                     // If the key is shorter than the prefix, it is always lexicographically lesser.
                     if let Some(kp) = t.key.get(..prefix.len()) {
-                        if kp == prefix {
-                            list.push(NodeEntry::Leaf(t.clone()));
-                            continue;
-                        } else if prefix < kp {
-                            // This leaf node has a key that is lexicographically greater than
-                            // the prefix. Stop the search now since we won't find any more
-                            // matching entries.
-                            break;
+                        match kp.cmp(prefix) {
+                            Ordering::Less => (),
+                            Ordering::Equal => {
+                                list.push(NodeEntry::Leaf(t.clone()));
+                                continue;
+                            }
+                            Ordering::Greater => {
+                                // This leaf node has a key that is lexicographically greater than
+                                // the prefix. Stop the search now since we won't find any more
+                                // matching entries.
+                                break;
+                            }
                         }
                     }
                 }

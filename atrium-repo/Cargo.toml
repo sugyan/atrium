@@ -12,11 +12,13 @@ license.workspace = true
 keywords.workspace = true
 
 [dev-dependencies]
+atrium-api.workspace = true
+atrium-api.features = ["namespace-appbsky"]
 atrium-crypto.workspace = true
 rand.workspace = true
 
 tokio.workspace = true
-tokio.features = ["io-util", "macros", "rt", "io-util"]
+tokio.features = ["io-util", "macros", "rt"]
 
 [dependencies]
 atrium-api.workspace = true
@@ -25,6 +27,7 @@ atrium-api.workspace = true
 async-stream.workspace = true
 futures = { workspace = true, features = ["std"] }
 tokio.workspace = true
+tokio.features = ["io-util"]
 tokio-util = { workspace = true, features = ["compat"] }
 
 # Encodings
