@@ -793,7 +793,7 @@ impl<S: AsyncBlockStoreRead> Tree<S> {
                 match e {
                     Located::InSubtree(cid) => {
                         let node = Node::read_from(&mut self.storage, cid).await?;
-                        for entry in node.entries_with_prefix(&prefix).rev() {
+                        for entry in node.entries_with_prefix(prefix).rev() {
                             match entry {
                                 NodeEntry::Tree(entry) => {
                                     stack.push(Located::InSubtree(entry));
