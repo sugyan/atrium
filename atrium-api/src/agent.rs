@@ -1,3 +1,5 @@
+//! Structs and traits for managing sessions and making the XRPC requests.
+
 pub mod atp_agent;
 #[cfg(feature = "bluesky")]
 pub mod bluesky;
@@ -10,6 +12,7 @@ use crate::{client::Service, types::string::Did};
 use atrium_xrpc::types::AuthorizationToken;
 use std::{future::Future, sync::Arc};
 
+/// A trait for providing authorization tokens.
 #[cfg_attr(not(target_arch = "wasm32"), trait_variant::make(Send))]
 pub trait AuthorizationProvider {
     #[allow(unused_variables)]
@@ -19,6 +22,7 @@ pub trait AuthorizationProvider {
     ) -> impl Future<Output = Option<AuthorizationToken>>;
 }
 
+/// A trait for configuring the endpoint and headers of a client.
 pub trait Configure {
     /// Set the current endpoint.
     fn configure_endpoint(&self, endpoint: String);
@@ -28,6 +32,7 @@ pub trait Configure {
     fn configure_proxy_header(&self, did: Did, service_type: impl AsRef<str>);
 }
 
+/// A trait for cloning a client with a proxy header.
 pub trait CloneWithProxy {
     fn clone_with_proxy(&self, did: Did, service_type: impl AsRef<str>) -> Self;
 }
@@ -50,6 +55,26 @@ impl AsRef<str> for AtprotoServiceType {
     }
 }
 
+/// A wrapper around a session manager and a client service.
+///
+/// An agent provides the following utilities:
+/// - AT Protocol labelers configuration utilities
+/// - AT Protocol proxy configuration utilities
+/// - Cloning utilities (if the session manager implements [`CloneWithProxy`])
+///
+/// # Example
+///
+/// ```
+/// use atrium_api::agent::atp_agent::{store::MemorySessionStore, CredentialSession};
+/// use atrium_api::agent::Agent;
+/// use atrium_xrpc_client::reqwest::ReqwestClient;
+///
+/// let session = CredentialSession::new(
+///     ReqwestClient::new("https://bsky.social"),
+///     MemorySessionStore::default(),
+/// );
+/// let agent = Agent::new(session);
+/// ``````
 pub struct Agent<M>
 where
     M: SessionManager + Send + Sync,
@@ -62,11 +87,13 @@ impl<M> Agent<M>
 where
     M: SessionManager + Send + Sync,
 {
+    /// Creates a new agent with the given session manager.
     pub fn new(session_manager: M) -> Self {
         let session_manager = Arc::new(inner::Wrapper::new(session_manager));
         let api = Service::new(session_manager.clone());
         Self { session_manager, api }
     }
+    /// Returns the DID of the current session.
     pub async fn did(&self) -> Option<Did> {
         self.session_manager.did().await
     }

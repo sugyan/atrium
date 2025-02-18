@@ -1,5 +1,8 @@
 use atrium_api::{
-    agent::{store::MemorySessionStore, AtpAgent},
+    agent::{
+        atp_agent::{store::MemorySessionStore, CredentialSession},
+        Agent,
+    },
     client::AtpServiceClient,
     types::{
         string::{Datetime, Did},
@@ -112,9 +115,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Login
     println!("Logging in...");
-    let agent =
-        AtpAgent::new(ReqwestClient::new("https://bsky.social"), MemorySessionStore::default());
-    let session = agent.login(&args.identifier, &args.password).await?;
+    let session = CredentialSession::new(
+        ReqwestClient::new("https://bsky.social"),
+        MemorySessionStore::default(),
+    );
+    session.login(&args.identifier, &args.password).await?;
+    let endpoint = session.get_endpoint().await;
+    let agent = Agent::new(session);
+    let Some(did) = agent.did().await else {
+        return Err("Failed to get DID".into());
+    };
 
     // Check upload limits
     println!("Checking upload limits...");
@@ -155,12 +165,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .server
             .get_service_auth(
                 atrium_api::com::atproto::server::get_service_auth::ParametersData {
-                    aud: format!(
-                        "did:web:{}",
-                        agent.get_endpoint().await.strip_prefix("https://").unwrap()
-                    )
-                    .parse()
-                    .expect("invalid DID"),
+                    aud: format!("did:web:{}", endpoint.strip_prefix("https://").unwrap())
+                        .parse()
+                        .expect("invalid DID"),
                     exp: None,
                     lxm: atrium_api::com::atproto::repo::upload_blob::NSID.parse().ok(),
                 }
@@ -175,7 +182,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             .expect("failed to get filename");
         let client = AtpServiceClient::new(VideoClient::new(
             service_auth.data.token,
-            Some(UploadParams { did: session.did.clone(), name: filename }),
+            Some(UploadParams { did: did.clone(), name: filename }),
         ));
         client.service.app.bsky.video.upload_video(data).await?
     };
@@ -251,7 +258,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             atrium_api::com::atproto::repo::create_record::InputData {
                 collection: atrium_api::app::bsky::feed::Post::nsid(),
                 record,
-                repo: session.data.did.into(),
+                repo: did.into(),
                 rkey: None,
                 swap_commit: None,
                 validate: Some(true),
