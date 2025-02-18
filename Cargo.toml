@@ -21,11 +21,11 @@ edition = "2021"
 rust-version = "1.75"
 repository = "https://github.com/sugyan/atrium"
 license = "MIT"
-keywords = ["atproto", "bluesky"]
+keywords = ["atproto", "bluesky", "mst"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.25.0", path = "atrium-api" }
+atrium-api = { version = "0.25.0", path = "atrium-api", default-features = false }
 atrium-common = { version = "0.1.0", path = "atrium-common" }
 atrium-crypto = { version = "0.1.2", path = "atrium-crypto" }
 atrium-identity = { version = "0.1.0", path = "atrium-identity" }
@@ -71,7 +71,7 @@ hickory-resolver = "0.24.1"
 http = "1.1.0"
 lru = "0.12.4"
 moka = "0.12.8"
-tokio = { version = "1.43", default-features = false, features = ["io-util"] }
+tokio = { version = "1.43", default-features = false }
 tokio-util = "0.7"
 
 # HTTP client integrations

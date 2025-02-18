@@ -16,7 +16,7 @@ atrium-crypto.workspace = true
 rand.workspace = true
 
 tokio.workspace = true
-tokio.features = ["io-util", "macros", "rt"]
+tokio.features = ["io-util", "macros", "rt", "io-util"]
 
 [dependencies]
 atrium-api.workspace = true
