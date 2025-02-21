@@ -7,7 +7,6 @@ use atrium_api::types::{
 use futures::TryStreamExt;
 use ipld_core::cid::Cid;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use sha2::Digest;
 
 use crate::{
     blockstore::{AsyncBlockStoreRead, AsyncBlockStoreWrite, DAG_CBOR, SHA2_256},
@@ -104,10 +103,9 @@ impl<'r, S: AsyncBlockStoreWrite> CommitBuilder<'r, S> {
         self
     }
 
-    /// Calculate the cryptographic hash of the commit.
-    pub fn hash(&self) -> [u8; 32] {
-        let commit = serde_ipld_dagcbor::to_vec(&self.inner).unwrap(); // This should (hopefully!) never fail
-        sha2::Sha256::digest(commit).into()
+    /// Serialize the commit as bytes for signing.
+    pub fn bytes(&self) -> Vec<u8> {
+        serde_ipld_dagcbor::to_vec(&self.inner).unwrap() // This should (hopefully!) never fail
     }
 
     /// Cryptographically sign the commit, ensuring it can never be mutated again.
@@ -140,10 +138,9 @@ pub struct RepoBuilder<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> {
 }
 
 impl<S: AsyncBlockStoreRead + AsyncBlockStoreWrite> RepoBuilder<S> {
-    /// Get the cryptographic hash of the root commit.
-    pub fn hash(&self) -> [u8; 32] {
-        let commit = serde_ipld_dagcbor::to_vec(&self.commit).unwrap(); // This should (hopefully!) never fail
-        sha2::Sha256::digest(commit).into()
+    /// Serialize the root commit as bytes for signing.
+    pub fn bytes(&self) -> Vec<u8> {
+        serde_ipld_dagcbor::to_vec(&self.commit).unwrap() // This should (hopefully!) never fail
     }
 
     /// Cryptographically sign the root commit, finalizing the initial version of this repository.
@@ -181,18 +178,16 @@ impl Commit {
         self.inner.rev.clone()
     }
 
-    /// Calculate the SHA-256 hash of the commit object. Used for signature verification.
-    pub fn hash(&self) -> [u8; 32] {
-        let commit = serde_ipld_dagcbor::to_vec(&schema::Commit {
+    /// Serialize the commit as bytes for signature validation.
+    pub fn bytes(&self) -> Vec<u8> {
+        serde_ipld_dagcbor::to_vec(&schema::Commit {
             did: self.inner.did.clone(),
             version: self.inner.version,
             data: self.inner.data,
             rev: self.inner.rev.clone(),
             prev: self.inner.prev,
         })
-        .unwrap(); // This should (hopefully!) never fail
-
-        sha2::Sha256::digest(commit).into()
+        .unwrap() // This should (hopefully!) never fail
     }
 
     /// Return the commit object's cryptographic signature.
@@ -510,7 +505,6 @@ mod test {
         did::parse_did_key,
         keypair::{Did as _, P256Keypair},
         verify::Verifier,
-        Algorithm,
     };
 
     use super::*;
@@ -523,7 +517,7 @@ mod test {
         let builder = Repository::create(bs, did).await.unwrap();
 
         // Sign the root commit.
-        let sig = keypair.sign(&builder.hash()).unwrap();
+        let sig = keypair.sign(&builder.bytes()).unwrap();
 
         // Finalize the root commit and create the repository.
         builder.finalize(sig).await.unwrap()
@@ -545,10 +539,8 @@ mod test {
         let commit = repo.commit();
 
         // Ensure that we can verify the root commit.
-        let (_, pub_key) = parse_did_key(&dkey).unwrap();
-        Verifier::default()
-            .verify(Algorithm::P256, &pub_key, &commit.hash(), commit.sig())
-            .unwrap();
+        let (alg, pub_key) = parse_did_key(&dkey).unwrap();
+        Verifier::default().verify(alg, &pub_key, &commit.bytes(), commit.sig()).unwrap();
 
         // Ensure the root commit points to the known empty MST CID.
         assert_eq!(
@@ -576,15 +568,13 @@ mod test {
             .await
             .unwrap();
 
-        let sig = keypair.sign(&cb.hash()).unwrap();
+        let sig = keypair.sign(&cb.bytes()).unwrap();
         let _cid = cb.finalize(sig).await.unwrap();
 
         // Verify the new commit.
         let commit = repo.commit();
 
-        Verifier::default()
-            .verify(Algorithm::P256, &pub_key, &commit.hash(), commit.sig())
-            .unwrap();
+        Verifier::default().verify(alg, &pub_key, &commit.bytes(), commit.sig()).unwrap();
     }
 
     #[tokio::test]
@@ -619,7 +609,7 @@ mod test {
             .await
             .unwrap();
 
-        let sig = keypair.sign(&cb.hash()).unwrap();
+        let sig = keypair.sign(&cb.bytes()).unwrap();
         let cid = cb.finalize(sig).await.unwrap();
 
         let commit = repo.commit();
@@ -635,7 +625,7 @@ mod test {
         assert!(repo2.get::<bsky::feed::Post>(rkey.clone()).await.is_ok());
 
         let cb = repo.delete::<bsky::feed::Post>(rkey.clone()).await.unwrap();
-        let sig = keypair.sign(&cb.hash()).unwrap();
+        let sig = keypair.sign(&cb.bytes()).unwrap();
         let cid = cb.finalize(sig).await.unwrap();
 
         // Extract won't fail even if the actual record does not exist.
@@ -692,7 +682,7 @@ mod test {
                 .await
                 .unwrap();
 
-            let sig = keypair.sign(&cb.hash()).unwrap();
+            let sig = keypair.sign(&cb.bytes()).unwrap();
             cb.finalize(sig).await.unwrap();
 
             records.push(rkey.clone());
