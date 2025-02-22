@@ -66,5 +66,5 @@ jobs:
       - run: wasm-pack test --node atrium-api
       - run: wasm-pack test --node atrium-xrpc
       - run: wasm-pack test --node atrium-xrpc-client
-      - run: wasm-pack test --node atrium-oauth/identity
+      - run: wasm-pack test --node atrium-identity
       - run: wasm-pack test --node atrium-common
