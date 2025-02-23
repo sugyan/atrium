@@ -1,17 +1,21 @@
-use crate::jose::create_signed_jwt;
-use crate::jose::jws::RegisteredHeader;
-use crate::jose::jwt::{Claims, PublicClaims, RegisteredClaims};
-use crate::store::memory::MemorySimpleStore;
-use crate::store::SimpleStore;
-use atrium_xrpc::http::{Request, Response};
-use atrium_xrpc::HttpClient;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
-use base64::Engine;
+use crate::jose::{
+    create_signed_jwt,
+    jws::RegisteredHeader,
+    jwt::{Claims, PublicClaims, RegisteredClaims},
+};
+use atrium_common::store::{memory::MemoryStore, Store};
+use atrium_xrpc::{
+    http::{Request, Response},
+    HttpClient,
+};
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use chrono::Utc;
 use jose_jwa::{Algorithm, Signing};
 use jose_jwk::{crypto, EcCurves, Jwk, Key};
-use rand::rngs::SmallRng;
-use rand::{RngCore, SeedableRng};
+use rand::{
+    rngs::SmallRng,
+    {RngCore, SeedableRng},
+};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
@@ -36,9 +40,9 @@ pub enum Error {
 
 type Result<T> = core::result::Result<T, Error>;
 
-pub struct DpopClient<T, S = MemorySimpleStore<String, String>>
+pub struct DpopClient<T, S = MemoryStore<String, String>>
 where
-    S: SimpleStore<String, String>,
+    S: Store<String, String>,
 {
     inner: Arc<T>,
     pub(crate) key: Key,
@@ -65,14 +69,14 @@ impl<T> DpopClient<T> {
                 return Err(Error::UnsupportedKey);
             }
         }
-        let nonces = MemorySimpleStore::<String, String>::default();
+        let nonces = MemoryStore::<String, String>::default();
         Ok(Self { inner: http_client, key, nonces, is_auth_server })
     }
 }
 
 impl<T, S> DpopClient<T, S>
 where
-    S: SimpleStore<String, String>,
+    S: Store<String, String>,
 {
     fn build_proof(
         &self,
@@ -135,7 +139,8 @@ where
 impl<T, S> HttpClient for DpopClient<T, S>
 where
     T: HttpClient + Send + Sync + 'static,
-    S: SimpleStore<String, String> + Send + Sync + 'static,
+    S: Store<String, String> + Send + Sync + 'static,
+    S::Error: std::error::Error + Send + Sync + 'static,
 {
     async fn send_http(
         &self,
@@ -180,5 +185,16 @@ where
         request.headers_mut().insert("DPoP", next_proof.parse()?);
         let response = self.inner.send_http(request).await?;
         Ok(response)
+    }
+}
+
+impl<T> Clone for DpopClient<T> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: Arc::clone(&self.inner),
+            key: self.key.clone(),
+            nonces: self.nonces.clone(),
+            is_auth_server: self.is_auth_server,
+        }
     }
 }
