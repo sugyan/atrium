@@ -1,11 +1,15 @@
-use super::store::OAuthSessionStore;
-use crate::{server_agent::OAuthServerAgent, store::session::Session, DpopClient};
+use super::store::MemorySessionStore;
+use crate::{
+    server_agent::OAuthServerAgent,
+    store::{session::SessionStore, session_getter::SessionHandle},
+    DpopClient,
+};
 use atrium_api::{
     agent::{
         utils::{SessionClient, SessionWithEndpointStore},
         CloneWithProxy, Configure,
     },
-    types::string::Did,
+    types::string::{Datetime, Did},
 };
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::{
@@ -20,10 +24,10 @@ pub struct Client<S, T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
 {
-    inner: SessionClient<S, DpopClient<T>, String>,
-    store: Arc<SessionWithEndpointStore<S, String>>,
+    inner: SessionClient<MemorySessionStore, DpopClient<T>, String>,
+    store: Arc<SessionWithEndpointStore<MemorySessionStore, String>>,
     server_agent: OAuthServerAgent<T, D, H>,
-    session: Arc<RwLock<Session>>,
+    session: Arc<RwLock<SessionHandle<S>>>,
 }
 
 impl<S, T, D, H> Client<S, T, D, H>
@@ -31,10 +35,10 @@ where
     T: HttpClient + Send + Sync + 'static,
 {
     pub fn new(
-        store: Arc<SessionWithEndpointStore<S, String>>,
+        store: Arc<SessionWithEndpointStore<MemorySessionStore, String>>,
         xrpc: DpopClient<T>,
         server_agent: OAuthServerAgent<T, D, H>,
-        session: Arc<RwLock<Session>>,
+        session: Arc<RwLock<SessionHandle<S>>>,
     ) -> Self {
         let inner = SessionClient::new(Arc::clone(&store), xrpc);
         Self { inner, store, server_agent, session }
@@ -43,7 +47,7 @@ where
 
 impl<S, T, D, H> Client<S, T, D, H>
 where
-    S: OAuthSessionStore + Send + Sync,
+    S: SessionStore + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
@@ -62,10 +66,16 @@ where
         }
     }
     async fn refresh_token(&self) {
-        let token_set = self.session.read().await.token_set.clone();
+        let mut handle = self.session.write().await;
+        let token_set = handle.read().await.token_set;
+        if let Some(expired_at) = &token_set.expires_at {
+            if *expired_at > Datetime::now() {
+                return;
+            }
+        }
         if let Ok(refreshed) = self.server_agent.refresh(&token_set).await {
             let _ = self.store.set(refreshed.access_token.clone()).await;
-            self.session.write().await.token_set = refreshed;
+            handle.write_token_set(refreshed).await;
         } else {
             let _ = self.store.clear().await;
         }
@@ -74,7 +84,7 @@ where
 
 impl<S, T, D, H> HttpClient for Client<S, T, D, H>
 where
-    S: OAuthSessionStore + Send + Sync,
+    S: Send + Sync,
     T: HttpClient + Send + Sync + 'static,
     D: Send + Sync,
     H: Send + Sync,
@@ -89,7 +99,7 @@ where
 
 impl<S, T, D, H> XrpcClient for Client<S, T, D, H>
 where
-    S: OAuthSessionStore + Send + Sync,
+    S: SessionStore + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     D: DidResolver + Send + Sync + 'static,
     H: HandleResolver + Send + Sync + 'static,
@@ -145,7 +155,7 @@ where
             inner: self.inner.clone_with_proxy(did, service_type),
             store: Arc::clone(&self.store),
             server_agent: self.server_agent.clone(),
-            session: Arc::clone(&self.session),
+            session: self.session.clone(),
         }
     }
 }

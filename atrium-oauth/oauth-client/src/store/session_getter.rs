@@ -1,8 +1,38 @@
-use crate::store::session::{Session, SessionStore};
+use crate::{
+    store::session::{Session, SessionStore},
+    TokenSet,
+};
 use atrium_api::types::string::Did;
-use atrium_common::store::Store;
 use std::sync::Arc;
-use tokio::sync::RwLock;
+
+#[derive(Debug, Clone)]
+pub struct SessionHandle<S> {
+    session: Session,
+    store: Arc<S>,
+    sub: Did,
+}
+
+impl<S> SessionHandle<S>
+where
+    S: SessionStore + Send + Sync + 'static,
+{
+    pub(crate) fn new(session: Session, store: Arc<S>, sub: Did) -> Self {
+        Self { session, store, sub }
+    }
+    pub async fn read(&self) -> Session {
+        self.session.clone()
+    }
+    pub async fn write_token_set(&mut self, value: TokenSet) {
+        self.session.token_set = value;
+        // write to store asynchronously
+        let store = Arc::clone(&self.store);
+        let sub = self.sub.clone();
+        let session = self.session.clone();
+        tokio::spawn(async move {
+            store.set(sub, session).await.ok();
+        });
+    }
+}
 
 #[derive(Debug)]
 pub struct SessionGetter<S> {
@@ -13,38 +43,20 @@ impl<S> SessionGetter<S> {
     pub fn new(store: S) -> Self {
         Self { store: Arc::new(store) }
     }
-    // TODO: extended store methods?
 }
 
-impl<S> Clone for SessionGetter<S> {
-    fn clone(&self) -> Self {
-        Self { store: self.store.clone() }
-    }
-}
-
-impl<S> Store<Did, Arc<RwLock<Session>>> for SessionGetter<S>
+impl<S> SessionGetter<S>
 where
     S: SessionStore + Send + Sync + 'static,
-    S::Error: std::error::Error + Send + Sync + 'static,
 {
-    type Error = S::Error;
-    async fn get(&self, key: &Did) -> Result<Option<Arc<RwLock<Session>>>, Self::Error> {
-        self.store.get(key).await
+    pub async fn get(&self, key: &Did) -> Result<Option<SessionHandle<S>>, S::Error> {
+        self.store
+            .get(key)
+            .await?
+            .map(|session| Ok(SessionHandle::new(session, Arc::clone(&self.store), key.clone())))
+            .transpose()
     }
-    async fn set(&self, key: Did, value: Arc<RwLock<Session>>) -> Result<(), Self::Error> {
+    pub async fn set(&self, key: Did, value: Session) -> Result<(), S::Error> {
         self.store.set(key, value).await
     }
-    async fn del(&self, key: &Did) -> Result<(), Self::Error> {
-        self.store.del(key).await
-    }
-    async fn clear(&self) -> Result<(), Self::Error> {
-        self.store.clear().await
-    }
-}
-
-impl<S> SessionStore for SessionGetter<S>
-where
-    S: SessionStore + Send + Sync + 'static,
-    S::Error: std::error::Error + Send + Sync + 'static,
-{
 }

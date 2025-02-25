@@ -19,7 +19,7 @@ use crate::{
     utils::{compare_algos, generate_key, generate_nonce},
 };
 use atrium_api::types::string::Did;
-use atrium_common::{resolver::Resolver, store::Store};
+use atrium_common::resolver::Resolver;
 use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_xrpc::HttpClient;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
@@ -27,7 +27,6 @@ use jose_jwk::{Jwk, JwkSet, Key};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 #[cfg(feature = "default-client")]
 pub struct OAuthClientConfig<S0, S1, M, D, H>
@@ -215,7 +214,7 @@ where
     pub async fn callback(
         &self,
         params: CallbackParams,
-    ) -> Result<(OAuthSession<T, D, H>, Option<String>)> {
+    ) -> Result<(OAuthSession<T, D, H, S1>, Option<String>)> {
         let Some(state_key) = params.state else {
             return Err(Error::Callback("missing `state` parameter".into()));
         };
@@ -245,13 +244,7 @@ where
             Ok(token_set) => {
                 let sub = token_set.sub.clone();
                 self.session_getter
-                    .set(
-                        sub.clone(),
-                        Arc::new(RwLock::new(Session {
-                            dpop_key: state.dpop_key.clone(),
-                            token_set,
-                        })),
-                    )
+                    .set(sub.clone(), Session { dpop_key: state.dpop_key.clone(), token_set })
                     .await
                     .map_err(|e| Error::SessionStore(Box::new(e)))?;
                 Ok((self.create_session(server, sub).await?, state.app_state))
@@ -265,8 +258,8 @@ where
         &self,
         server: OAuthServerAgent<T, D, H>,
         sub: Did,
-    ) -> Result<OAuthSession<T, D, H>> {
-        let session: Arc<RwLock<Session>> = self
+    ) -> Result<OAuthSession<T, D, H, S1>> {
+        let session = self
             .session_getter
             .get(&sub)
             .await
