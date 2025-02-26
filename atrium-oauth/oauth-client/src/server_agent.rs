@@ -278,7 +278,7 @@ where
             Some("private_key_jwt")
                 if method_supported
                     .as_ref()
-                    .map_or(false, |v| v.contains(&String::from("private_key_jwt"))) =>
+                    .is_some_and(|v| v.contains(&String::from("private_key_jwt"))) =>
             {
                 if let Some(keyset) = &self.keyset {
                     let mut algs = self
@@ -315,9 +315,7 @@ where
                 }
             }
             Some("none")
-                if method_supported
-                    .as_ref()
-                    .map_or(false, |v| v.contains(&String::from("none"))) =>
+                if method_supported.as_ref().is_some_and(|v| v.contains(&String::from("none"))) =>
             {
                 return Ok((None, None))
             }

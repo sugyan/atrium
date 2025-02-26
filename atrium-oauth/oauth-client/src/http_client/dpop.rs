@@ -155,7 +155,7 @@ where
         let ath = request
             .headers()
             .get("Authorization")
-            .filter(|v| v.to_str().map_or(false, |s| s.starts_with("DPoP ")))
+            .filter(|v| v.to_str().is_ok_and(|s| s.starts_with("DPoP ")))
             .map(|auth| URL_SAFE_NO_PAD.encode(Sha256::digest(&auth.as_bytes()[5..])));
 
         let init_nonce = self.nonces.get(&nonce_key).await?;

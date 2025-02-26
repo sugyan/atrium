@@ -61,7 +61,7 @@ where
         match result {
             Err(Error::Authentication(value)) => value
                 .to_str()
-                .map_or(false, |s| s.starts_with("DPoP ") && s.contains("error=\"invalid_token\"")),
+                .is_ok_and(|s| s.starts_with("DPoP ") && s.contains("error=\"invalid_token\"")),
             _ => false,
         }
     }
