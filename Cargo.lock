@@ -270,6 +270,7 @@ dependencies = [
  "chrono",
  "ecdsa",
  "elliptic-curve",
+ "futures",
  "hickory-resolver",
  "jose-jwa",
  "jose-jwk",

@@ -196,6 +196,9 @@ mod tests {
             &self,
             request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            // tick tokio time
+            tokio::time::sleep(std::time::Duration::from_micros(0)).await;
+
             match request.uri().path() {
                 // Resolve protected resource
                 "/.well-known/oauth-protected-resource" => {
@@ -239,13 +242,16 @@ mod tests {
                             .body(serde_json::to_vec(&OAuthTokenResponse {
                                 access_token: String::from("new_accesstoken"),
                                 token_type: OAuthTokenType::DPoP,
-                                expires_in: None,
+                                expires_in: Some(10),
                                 refresh_token: Some(String::from("new_refreshtoken")),
                                 scope: None,
                                 sub: None,
                             })?)?
                     } else {
-                        todo!()
+                        Response::builder()
+                            .status(StatusCode::UNAUTHORIZED)
+                            .header("WWW-Authenticate", "DPoP error=\"invalid_token\"")
+                            .body(Vec::new())?
                     }
                 } else {
                     Response::builder().status(StatusCode::UNAUTHORIZED).body(Vec::new())?
@@ -662,6 +668,47 @@ mod tests {
                 .clone();
             assert_eq!(token_set.access_token, "new_accesstoken");
             assert_eq!(token_set.refresh_token, Some(String::from("new_refreshtoken")));
+        }
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_xrpc_with_duplicated_refresh() -> Result<(), Box<dyn std::error::Error>> {
+        let session_data = Default::default();
+        let oauth_session = oauth_session(Default::default(), Arc::clone(&session_data)).await;
+        oauth_session.store.set("expired".into()).await?;
+        let agent = Arc::new(Agent::new(oauth_session));
+
+        let handles = (0..3).map(|_| {
+            let agent = Arc::clone(&agent);
+            tokio::spawn(async move {
+                agent
+                    .api
+                    .com
+                    .atproto
+                    .server
+                    .get_service_auth(
+                        atrium_api::com::atproto::server::get_service_auth::ParametersData {
+                            aud: Did::new(String::from("did:fake:handle.test"))
+                                .expect("did should be valid"),
+                            exp: None,
+                            lxm: None,
+                        }
+                        .into(),
+                    )
+                    .await
+            })
+        });
+        let results = futures::future::join_all(handles).await;
+        for result in results {
+            match result? {
+                Ok(output) => {
+                    assert_eq!(output.token, "fake_token");
+                }
+                Err(err) => {
+                    panic!("unexpected error: {err:?}");
+                }
+            }
         }
         Ok(())
     }
