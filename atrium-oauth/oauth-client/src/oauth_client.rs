@@ -7,7 +7,7 @@ use crate::{
     server_agent::{OAuthRequest, OAuthServerAgent},
     store::{
         session::{Session, SessionStore},
-        session_getter::SessionGetter,
+        session_getter::{SessionGetter, SessionHandle},
         state::{InternalStateData, StateStore},
     },
     types::{
@@ -142,6 +142,9 @@ where
     pub fn jwks(&self) -> JwkSet {
         self.keyset.as_ref().map(|keyset| keyset.public_jwks()).unwrap_or_default()
     }
+    /// Start the authorization process.
+    ///
+    /// This method will return a URL that the user should be redirected to.
     pub async fn authorize(
         &self,
         input: impl AsRef<str>,
@@ -211,6 +214,10 @@ where
             todo!()
         }
     }
+    /// Handle the callback from the authorization server.
+    ///
+    /// This method will exchange the authorization code for an access token and store the session,
+    /// and return the [`OAuthSession`] and the application state.
     pub async fn callback(
         &self,
         params: CallbackParams,
@@ -243,29 +250,44 @@ where
         match server.exchange_code(&params.code, &state.verifier).await {
             Ok(token_set) => {
                 let sub = token_set.sub.clone();
-                self.session_getter
+                let session_handle = self
+                    .session_getter
                     .set(sub.clone(), Session { dpop_key: state.dpop_key.clone(), token_set })
                     .await
                     .map_err(|e| Error::SessionStore(Box::new(e)))?;
-                Ok((self.create_session(server, sub).await?, state.app_state))
+                Ok((self.create_session(server, session_handle).await?, state.app_state))
             }
             Err(_) => {
                 todo!()
             }
         }
     }
-    async fn create_session(
-        &self,
-        server: OAuthServerAgent<T, D, H>,
-        sub: Did,
-    ) -> Result<OAuthSession<T, D, H, S1>> {
-        let session = self
+    /// Load a stored session by giving the subject DID.
+    ///
+    /// This method will return the [`OAuthSession`] if it exists.
+    pub async fn restore(&self, sub: &Did) -> Result<OAuthSession<T, D, H, S1>> {
+        let session_handle = self
             .session_getter
-            .get(&sub)
+            .get(sub)
             .await
             .map_err(|e| Error::SessionStore(Box::new(e)))?
             .ok_or_else(|| Error::SessionNotFound)?;
-        Ok(OAuthSession::new(server, Arc::clone(&self.http_client), session).await?)
+        let session = session_handle.read().await;
+        self.create_session(
+            self.create_server_agent(
+                session.dpop_key,
+                self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
+            )?,
+            session_handle,
+        )
+        .await
+    }
+    async fn create_session(
+        &self,
+        server: OAuthServerAgent<T, D, H>,
+        session_handle: SessionHandle<S1>,
+    ) -> Result<OAuthSession<T, D, H, S1>> {
+        Ok(OAuthSession::new(server, Arc::clone(&self.http_client), session_handle).await?)
     }
     fn create_server_agent(
         &self,

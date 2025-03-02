@@ -56,7 +56,8 @@ where
             .map(|session| Ok(SessionHandle::new(session, Arc::clone(&self.store), key.clone())))
             .transpose()
     }
-    pub async fn set(&self, key: Did, value: Session) -> Result<(), S::Error> {
-        self.store.set(key, value).await
+    pub async fn set(&self, key: Did, value: Session) -> Result<SessionHandle<S>, S::Error> {
+        self.store.set(key.clone(), value.clone()).await?;
+        Ok(SessionHandle::new(value, Arc::clone(&self.store), key))
     }
 }
