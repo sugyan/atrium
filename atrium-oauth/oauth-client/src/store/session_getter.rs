@@ -60,4 +60,7 @@ where
         self.store.set(key.clone(), value.clone()).await?;
         Ok(SessionHandle::new(value, Arc::clone(&self.store), key))
     }
+    pub async fn del(&self, key: &Did) -> Result<(), S::Error> {
+        self.store.del(key).await
+    }
 }

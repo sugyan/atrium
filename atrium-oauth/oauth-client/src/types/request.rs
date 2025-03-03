@@ -66,3 +66,11 @@ pub struct RefreshRequestParameters {
     pub refresh_token: String,
     pub scope: Option<String>,
 }
+
+// https://datatracker.ietf.org/doc/html/rfc7009#section-2.1
+#[derive(Serialize, Deserialize)]
+pub struct RevocationRequestParameters {
+    pub token: String,
+    // ?
+    // pub token_type_hint: Option<String>,
+}

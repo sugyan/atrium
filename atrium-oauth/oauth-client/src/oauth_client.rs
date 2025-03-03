@@ -282,6 +282,23 @@ where
         )
         .await
     }
+    /// Revoke a session by giving the subject DID.
+    pub async fn revoke(&self, sub: &Did) -> Result<()> {
+        let session = self
+            .session_getter
+            .get(sub)
+            .await
+            .map_err(|e| Error::SessionStore(Box::new(e)))?
+            .ok_or(Error::SessionNotFound)?
+            .read()
+            .await;
+        let server_agent = self.create_server_agent(
+            session.dpop_key,
+            self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
+        )?;
+        server_agent.revoke(&session.token_set.access_token).await?;
+        self.session_getter.del(sub).await.map_err(|e| Error::SessionStore(Box::new(e)))
+    }
     async fn create_session(
         &self,
         server: OAuthServerAgent<T, D, H>,

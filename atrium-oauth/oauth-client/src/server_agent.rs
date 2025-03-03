@@ -6,8 +6,8 @@ use crate::{
     resolver::OAuthResolver,
     types::{
         OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthTokenResponse,
-        PushedAuthorizationRequestParameters, RefreshRequestParameters, TokenGrantType,
-        TokenRequestParameters, TokenSet,
+        PushedAuthorizationRequestParameters, RefreshRequestParameters,
+        RevocationRequestParameters, TokenGrantType, TokenRequestParameters, TokenSet,
     },
     utils::{compare_algos, generate_nonce},
 };
@@ -68,7 +68,7 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub enum OAuthRequest {
     Token(TokenRequestParameters),
     Refresh(RefreshRequestParameters),
-    Revocation,
+    Revocation(RevocationRequestParameters),
     Introspection,
     PushedAuthorizationRequest(PushedAuthorizationRequestParameters),
 }
@@ -78,7 +78,7 @@ impl OAuthRequest {
         String::from(match self {
             Self::Token(_) => "token",
             Self::Refresh(_) => "refresh",
-            Self::Revocation => "revocation",
+            Self::Revocation(_) => "revocation",
             Self::Introspection => "introspection",
             Self::PushedAuthorizationRequest(_) => "pushed_authorization_request",
         })
@@ -87,6 +87,8 @@ impl OAuthRequest {
         match self {
             Self::Token(_) | Self::Refresh(_) => StatusCode::OK,
             Self::PushedAuthorizationRequest(_) => StatusCode::CREATED,
+            // Unlike https://datatracker.ietf.org/doc/html/rfc7009#section-2.2, oauth-provider seems to return `204`.
+            Self::Revocation(_) => StatusCode::NO_CONTENT,
             _ => unimplemented!(),
         }
     }
@@ -138,6 +140,11 @@ where
             &server_metadata.token_endpoint_auth_signing_alg_values_supported,
         )?;
         Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
+    }
+    pub async fn revoke(&self, token: &str) -> Result<()> {
+        self.request(OAuthRequest::Revocation(RevocationRequestParameters { token: token.into() }))
+            .await?;
+        Ok(())
     }
     pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
         let token_response = self
@@ -242,6 +249,7 @@ where
         let body = match &request {
             OAuthRequest::Token(params) => self.build_body(params)?,
             OAuthRequest::Refresh(params) => self.build_body(params)?,
+            OAuthRequest::Revocation(params) => self.build_body(params)?,
             OAuthRequest::PushedAuthorizationRequest(params) => self.build_body(params)?,
             _ => unimplemented!(),
         };
@@ -252,7 +260,13 @@ where
             .body(body.into_bytes())?;
         let res = self.dpop_client.send_http(req).await.map_err(Error::HttpClient)?;
         if res.status() == request.expected_status() {
-            Ok(serde_json::from_slice(res.body())?)
+            let body = res.body();
+            if body.is_empty() {
+                // since an empty body cannot be deserialized, use “null” temporarily to allow deserialization to `()`.
+                Ok(serde_json::from_slice(b"null")?)
+            } else {
+                Ok(serde_json::from_slice(body)?)
+            }
         } else if res.status().is_client_error() {
             Err(Error::HttpStatusWithBody(res.status(), serde_json::from_slice(res.body())?))
         } else {
@@ -328,7 +342,7 @@ where
             OAuthRequest::Token(_) | OAuthRequest::Refresh(_) => {
                 Some(&self.server_metadata.token_endpoint)
             }
-            OAuthRequest::Revocation => self.server_metadata.revocation_endpoint.as_ref(),
+            OAuthRequest::Revocation(_) => self.server_metadata.revocation_endpoint.as_ref(),
             OAuthRequest::Introspection => self.server_metadata.introspection_endpoint.as_ref(),
             OAuthRequest::PushedAuthorizationRequest(_) => {
                 self.server_metadata.pushed_authorization_request_endpoint.as_ref()
