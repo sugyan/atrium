@@ -5,7 +5,7 @@ use self::store::MemorySessionStore;
 use crate::{
     http_client::dpop::{self, DpopClient},
     server_agent::OAuthServerAgent,
-    store::{session::SessionStore, session_getter::SessionHandle},
+    store::{session::SessionStore, session_registry::SessionHandle},
 };
 use atrium_api::{
     agent::{utils::SessionWithEndpointStore, CloneWithProxy, Configure, SessionManager},

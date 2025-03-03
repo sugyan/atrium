@@ -7,7 +7,7 @@ use crate::{
     server_agent::{OAuthRequest, OAuthServerAgent},
     store::{
         session::{Session, SessionStore},
-        session_getter::{SessionGetter, SessionHandle},
+        session_registry::{SessionHandle, SessionRegistry},
         state::{InternalStateData, StateStore},
     },
     types::{
@@ -69,7 +69,7 @@ where
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S0,
-    session_getter: SessionGetter<S1>,
+    session_registry: SessionRegistry<S1>,
     http_client: Arc<T>,
 }
 
@@ -82,7 +82,7 @@ where
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     state_store: S0,
-    session_getter: SessionGetter<S1>,
+    session_registry: SessionRegistry<S1>,
     http_client: Arc<T>,
 }
 
@@ -100,7 +100,7 @@ impl<S0, S1, D, H> OAuthClient<S0, S1, D, H, crate::http_client::default::Defaul
             keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
-            session_getter: SessionGetter::new(config.session_store),
+            session_registry: SessionRegistry::new(config.session_store),
             http_client,
         })
     }
@@ -123,7 +123,7 @@ where
             keyset,
             resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
             state_store: config.state_store,
-            session_getter: SessionGetter::new(config.session_store),
+            session_registry: SessionRegistry::new(config.session_store),
             http_client,
         })
     }
@@ -251,7 +251,7 @@ where
             Ok(token_set) => {
                 let sub = token_set.sub.clone();
                 let session_handle = self
-                    .session_getter
+                    .session_registry
                     .set(sub.clone(), Session { dpop_key: state.dpop_key.clone(), token_set })
                     .await
                     .map_err(|e| Error::SessionStore(Box::new(e)))?;
@@ -267,7 +267,7 @@ where
     /// This method will return the [`OAuthSession`] if it exists.
     pub async fn restore(&self, sub: &Did) -> Result<OAuthSession<T, D, H, S1>> {
         let session_handle = self
-            .session_getter
+            .session_registry
             .get(sub)
             .await
             .map_err(|e| Error::SessionStore(Box::new(e)))?
@@ -285,7 +285,7 @@ where
     /// Revoke a session by giving the subject DID.
     pub async fn revoke(&self, sub: &Did) -> Result<()> {
         let session = self
-            .session_getter
+            .session_registry
             .get(sub)
             .await
             .map_err(|e| Error::SessionStore(Box::new(e)))?
@@ -297,7 +297,7 @@ where
             self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
         )?;
         server_agent.revoke(&session.token_set.access_token).await?;
-        self.session_getter.del(sub).await.map_err(|e| Error::SessionStore(Box::new(e)))
+        self.session_registry.del(sub).await.map_err(|e| Error::SessionStore(Box::new(e)))
     }
     async fn create_session(
         &self,

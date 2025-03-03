@@ -35,17 +35,17 @@ where
 }
 
 #[derive(Debug)]
-pub struct SessionGetter<S> {
+pub struct SessionRegistry<S> {
     store: Arc<S>,
 }
 
-impl<S> SessionGetter<S> {
+impl<S> SessionRegistry<S> {
     pub fn new(store: S) -> Self {
         Self { store: Arc::new(store) }
     }
 }
 
-impl<S> SessionGetter<S>
+impl<S> SessionRegistry<S>
 where
     S: SessionStore + Send + Sync + 'static,
 {

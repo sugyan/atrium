@@ -1,7 +1,7 @@
 use super::store::MemorySessionStore;
 use crate::{
     server_agent::OAuthServerAgent,
-    store::{session::SessionStore, session_getter::SessionHandle},
+    store::{session::SessionStore, session_registry::SessionHandle},
     DpopClient,
 };
 use atrium_api::{
