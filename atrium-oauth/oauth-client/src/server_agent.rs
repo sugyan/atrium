@@ -142,8 +142,10 @@ where
         Ok(Self { server_metadata, client_metadata, dpop_client, resolver, keyset })
     }
     pub async fn revoke(&self, token: &str) -> Result<()> {
-        self.request(OAuthRequest::Revocation(RevocationRequestParameters { token: token.into() }))
-            .await?;
+        self.request::<()>(OAuthRequest::Revocation(RevocationRequestParameters {
+            token: token.into(),
+        }))
+        .await?;
         Ok(())
     }
     pub async fn exchange_code(&self, code: &str, verifier: &str) -> Result<TokenSet> {
