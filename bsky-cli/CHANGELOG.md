@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.29](https://github.com/sugyan/atrium/compare/bsky-cli-v0.1.28...bsky-cli-v0.1.29) - 2025-03-08
+
+### Other
+
+- update Cargo.lock dependencies
+
 ## [0.1.28](https://github.com/sugyan/atrium/compare/bsky-cli-v0.1.27...bsky-cli-v0.1.28) - 2025-02-17
 
 ### Other
