@@ -28,7 +28,7 @@ keywords = ["atproto", "bluesky"]
 atrium-api = { version = "0.25.0", path = "atrium-api", default-features = false }
 atrium-common = { version = "0.1.0", path = "atrium-common" }
 atrium-crypto = { version = "0.1.2", path = "atrium-crypto" }
-atrium-identity = { version = "0.1.0", path = "atrium-identity" }
+atrium-identity = { version = "0.1.1", path = "atrium-identity" }
 atrium-xrpc = { version = "0.12.1", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.11", path = "atrium-xrpc-client" }
 bsky-sdk = { version = "0.1.16", path = "bsky-sdk" }
