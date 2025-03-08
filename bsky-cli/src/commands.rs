@@ -87,6 +87,9 @@ pub struct CreatePostArgs {
     /// Images to embed
     #[arg(short, long)]
     pub(crate) images: Vec<PathBuf>,
+    /// Alt-Text for images
+    #[arg(short, long)]
+    pub(crate) alt_text: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
