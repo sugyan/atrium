@@ -21,7 +21,7 @@ edition = "2021"
 rust-version = "1.75"
 repository = "https://github.com/sugyan/atrium"
 license = "MIT"
-keywords = ["atproto", "bluesky", "mst"]
+keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies

@@ -9,7 +9,7 @@ documentation = "https://docs.rs/atrium-repo"
 readme = "README.md"
 repository.workspace = true
 license.workspace = true
-keywords.workspace = true
+keywords = ["atproto", "bluesky", "mst"]
 
 [dev-dependencies]
 atrium-api.workspace = true
