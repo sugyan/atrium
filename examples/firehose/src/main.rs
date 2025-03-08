@@ -23,19 +23,34 @@ impl RepoSubscription {
         Ok(RepoSubscription { stream })
     }
     async fn run(&mut self, handler: impl CommitHandler) -> Result<(), Box<dyn std::error::Error>> {
-        while let Some(result) = self.next().await {
-            if let Ok(Frame::Message(Some(t), message)) = result {
-                if t.as_str() == "#commit" {
-                    let commit = serde_ipld_dagcbor::from_reader(message.body.as_slice())?;
+        loop {
+            let message = match self.next().await {
+                Some(msg) => msg,
+                None => continue, // Could be a websocket control message, etc.
+            };
 
-                    // Handle the commit on the websocket reader thread.
-                    //
-                    // N.B: You should ensure that your commit handler either executes as quickly as
-                    // possible or offload processing to a separate thread. If you run too far behind,
-                    // the firehose server _will_ terminate the connection!
-                    if let Err(err) = handler.handle_commit(&commit).await {
-                        eprintln!("FAILED: {err:?}");
+            match message {
+                Ok(Frame::Message(Some(t), message)) => {
+                    if t.as_str() == "#commit" {
+                        let commit = serde_ipld_dagcbor::from_reader(message.body.as_slice())?;
+
+                        // Handle the commit on the websocket reader thread.
+                        //
+                        // N.B: You should ensure that your commit handler either executes as quickly as
+                        // possible or offload processing to a separate thread. If you run too far behind,
+                        // the firehose server _will_ terminate the connection!
+                        if let Err(err) = handler.handle_commit(&commit).await {
+                            eprintln!("FAILED: {err:?}");
+                        }
                     }
+                }
+                Ok(Frame::Message(None, _msg)) => (),
+                Ok(Frame::Error(_e)) => {
+                    println!("received error frame");
+                    break;
+                }
+                Err(e) => {
+                    println!("error {e}");
                 }
             }
         }
@@ -44,11 +59,11 @@ impl RepoSubscription {
 }
 
 impl Subscription for RepoSubscription {
-    async fn next(&mut self) -> Option<Result<Frame, <Frame as TryFrom<&[u8]>>::Error>> {
-        if let Some(Ok(Message::Binary(data))) = self.stream.next().await {
-            Some(Frame::try_from(data.as_slice()))
-        } else {
-            None
+    async fn next(&mut self) -> Option<anyhow::Result<Frame>> {
+        match self.stream.next().await {
+            Some(Ok(Message::Binary(data))) => Some(Frame::try_from(data.as_slice())),
+            Some(Ok(_)) | None => None,
+            Some(Err(e)) => Some(Err(anyhow::Error::new(e))),
         }
     }
 }
@@ -60,7 +75,7 @@ impl CommitHandler for Firehose {
         let mut repo = Repository::open(
             CarStore::open(std::io::Cursor::new(commit.blocks.as_slice())).await?,
             // N.B: This same CID is also specified inside of the `CarStore`, accessible
-            // via `car.header().roots[0]`.
+            // via `car.roots().next().unwrap()`.
             commit.commit.0,
         )
         .await?;

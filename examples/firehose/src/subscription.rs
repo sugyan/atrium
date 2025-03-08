@@ -5,7 +5,7 @@ use std::future::Future;
 
 #[trait_variant::make(HttpService: Send)]
 pub trait Subscription {
-    async fn next(&mut self) -> Option<Result<Frame, <Frame as TryFrom<&[u8]>>::Error>>;
+    async fn next(&mut self) -> Option<anyhow::Result<Frame>>;
 }
 
 pub trait CommitHandler {
