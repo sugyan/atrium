@@ -3,6 +3,7 @@ members = [
     "atrium-api",
     "atrium-common",
     "atrium-crypto",
+    "atrium-repo",
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-identity",
@@ -20,16 +21,20 @@ edition = "2021"
 rust-version = "1.75"
 repository = "https://github.com/sugyan/atrium"
 license = "MIT"
-keywords = ["atproto", "bluesky"]
+keywords = ["atproto", "bluesky", "mst"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
 atrium-api = { version = "0.25.0", path = "atrium-api", default-features = false }
 atrium-common = { version = "0.1.0", path = "atrium-common" }
+atrium-crypto = { version = "0.1.2", path = "atrium-crypto" }
 atrium-identity = { version = "0.1.0", path = "atrium-identity" }
 atrium-xrpc = { version = "0.12.1", path = "atrium-xrpc" }
 atrium-xrpc-client = { version = "0.5.11", path = "atrium-xrpc-client" }
 bsky-sdk = { version = "0.1.16", path = "bsky-sdk" }
+
+# async in streams
+async-stream = "0.3"
 
 # DAG-CBOR codec
 ipld-core = { version = "0.4.1", default-features = false, features = ["std"] }
@@ -46,6 +51,7 @@ serde = "1.0.202"
 serde_bytes = "0.11.9"
 serde_html_form = "0.2.6"
 serde_json = "1.0.125"
+unsigned-varint = "0.8"
 
 # Cryptography
 ecdsa = "0.16.9"
@@ -66,6 +72,7 @@ http = "1.1.0"
 lru = "0.12.4"
 moka = "0.12.8"
 tokio = { version = "1.43", default-features = false }
+tokio-util = "0.7"
 
 # HTTP client integrations
 isahc = "1.7.2"
