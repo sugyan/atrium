@@ -57,7 +57,7 @@ impl Keyset {
             .0
             .iter()
             .filter_map(|key| {
-                if key.prm.cls.map_or(false, |c| c != cls) {
+                if key.prm.cls.is_some_and(|c| c != cls) {
                     return None;
                 }
                 let alg = match &key.key {

@@ -324,6 +324,7 @@ mod tests {
             &self,
             request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            // tick tokio time
             #[cfg(not(target_arch = "wasm32"))]
             tokio::time::sleep(std::time::Duration::from_micros(10)).await;
 

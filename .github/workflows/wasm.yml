@@ -20,6 +20,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: crates
+      - name: Install Rust 1.75.0
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: 1.75.0
       # We use a synthetic crate to ensure no dev-dependencies are enabled, which can
       # be incompatible with some of these targets.
       - name: Create synthetic crate for testing
