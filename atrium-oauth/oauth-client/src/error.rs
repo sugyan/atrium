@@ -13,6 +13,8 @@ pub enum Error {
     #[error(transparent)]
     OAuthSession(#[from] crate::oauth_session::Error),
     #[error(transparent)]
+    SessionRegistry(#[from] crate::store::session_registry::Error),
+    #[error(transparent)]
     Identity(#[from] atrium_identity::Error),
     #[error("authorize error: {0}")]
     Authorize(String),
@@ -22,8 +24,6 @@ pub enum Error {
     StateStore(Box<dyn std::error::Error + Send + Sync + 'static>),
     #[error("session store error: {0}")]
     SessionStore(Box<dyn std::error::Error + Send + Sync + 'static>),
-    #[error("session does not exist")]
-    SessionNotFound,
 }
 
 pub type Result<T> = core::result::Result<T, Error>;

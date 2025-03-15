@@ -266,12 +266,7 @@ where
     ///
     /// This method will return the [`OAuthSession`] if it exists.
     pub async fn restore(&self, sub: &Did) -> Result<OAuthSession<T, D, H, S1>> {
-        let session_handle = self
-            .session_registry
-            .get(sub)
-            .await
-            .map_err(|e| Error::SessionStore(Box::new(e)))?
-            .ok_or_else(|| Error::SessionNotFound)?;
+        let session_handle = self.session_registry.get(sub).await?;
         let session = session_handle.read().await;
         self.create_session(
             self.create_server_agent(
@@ -284,14 +279,7 @@ where
     }
     /// Revoke a session by giving the subject DID.
     pub async fn revoke(&self, sub: &Did) -> Result<()> {
-        let session = self
-            .session_registry
-            .get(sub)
-            .await
-            .map_err(|e| Error::SessionStore(Box::new(e)))?
-            .ok_or(Error::SessionNotFound)?
-            .read()
-            .await;
+        let session = self.session_registry.get(sub).await?.read().await;
         let server_agent = self.create_server_agent(
             session.dpop_key,
             self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
