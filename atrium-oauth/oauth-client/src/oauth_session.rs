@@ -46,11 +46,11 @@ where
     pub(crate) async fn new(
         server_agent: OAuthServerAgent<T, D, H>,
         http_client: Arc<T>,
-        session_handle: SessionHandle<S>,
+        session_handle: Arc<RwLock<SessionHandle<S>>>,
     ) -> Result<Self, Error> {
         // initialize SessionWithEndpointStore
         let (dpop_key, token_set) = {
-            let s = session_handle.read().await;
+            let s = session_handle.read().await.session();
             (s.dpop_key.clone(), s.token_set.clone())
         };
         let store = Arc::new(SessionWithEndpointStore::new(
@@ -59,7 +59,6 @@ where
         ));
         store.set(token_set.access_token.clone()).await?;
         // initialize inner client
-        let session_handle = Arc::new(RwLock::new(session_handle));
         let inner = inner::Client::new(
             Arc::clone(&store),
             DpopClient::new(
@@ -122,7 +121,7 @@ where
     S: SessionStore + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {
-        Some(self.session_handle.read().await.read().await.token_set.sub.clone())
+        Some(self.session_handle.read().await.session().token_set.sub.clone())
     }
 }
 
@@ -422,8 +421,8 @@ mod tests {
             Arc::new(MockSessionStore { data: Arc::clone(&store) }),
             sub.clone(),
         );
-        store.lock().await.insert(sub, session.read().await.clone());
-        OAuthSession::new(server_agent, http_client, session)
+        store.lock().await.insert(sub, session.session().clone());
+        OAuthSession::new(server_agent, http_client, Arc::new(RwLock::new(session)))
             .await
             .expect("failed to create oauth session")
     }

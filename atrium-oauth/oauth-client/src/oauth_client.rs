@@ -27,6 +27,7 @@ use jose_jwk::{Jwk, JwkSet, Key};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
+use tokio::sync::RwLock;
 
 #[cfg(feature = "default-client")]
 pub struct OAuthClientConfig<S0, S1, M, D, H>
@@ -64,6 +65,7 @@ where
 pub struct OAuthClient<S0, S1, D, H, T = crate::http_client::default::DefaultHttpClient>
 where
     T: HttpClient + Send + Sync + 'static,
+    S1: SessionStore + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
@@ -77,6 +79,7 @@ where
 pub struct OAuthClient<S0, S1, D, H, T>
 where
     T: HttpClient + Send + Sync + 'static,
+    S1: SessionStore + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
@@ -87,7 +90,10 @@ where
 }
 
 #[cfg(feature = "default-client")]
-impl<S0, S1, D, H> OAuthClient<S0, S1, D, H, crate::http_client::default::DefaultHttpClient> {
+impl<S0, S1, D, H> OAuthClient<S0, S1, D, H, crate::http_client::default::DefaultHttpClient>
+where
+    S1: SessionStore + Send + Sync + 'static,
+{
     pub fn new<M>(config: OAuthClientConfig<S0, S1, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
@@ -267,7 +273,7 @@ where
     /// This method will return the [`OAuthSession`] if it exists.
     pub async fn restore(&self, sub: &Did) -> Result<OAuthSession<T, D, H, S1>> {
         let session_handle = self.session_registry.get(sub).await?;
-        let session = session_handle.read().await;
+        let session = session_handle.read().await.session();
         self.create_session(
             self.create_server_agent(
                 session.dpop_key,
@@ -279,7 +285,7 @@ where
     }
     /// Revoke a session by giving the subject DID.
     pub async fn revoke(&self, sub: &Did) -> Result<()> {
-        let session = self.session_registry.get(sub).await?.read().await;
+        let session = self.session_registry.get(sub).await?.read().await.session();
         let server_agent = self.create_server_agent(
             session.dpop_key,
             self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
@@ -290,7 +296,7 @@ where
     async fn create_session(
         &self,
         server: OAuthServerAgent<T, D, H>,
-        session_handle: SessionHandle<S1>,
+        session_handle: Arc<RwLock<SessionHandle<S1>>>,
     ) -> Result<OAuthSession<T, D, H, S1>> {
         Ok(OAuthSession::new(server, Arc::clone(&self.http_client), session_handle).await?)
     }

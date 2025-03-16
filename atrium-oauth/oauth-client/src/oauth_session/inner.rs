@@ -67,7 +67,7 @@ where
     }
     async fn refresh_token(&self) {
         let mut handle = self.session.write().await;
-        let token_set = handle.read().await.token_set;
+        let token_set = handle.session().token_set;
         if let Some(expired_at) = &token_set.expires_at {
             if *expired_at > Datetime::now() {
                 return;
