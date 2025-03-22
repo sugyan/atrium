@@ -1,144 +1,126 @@
 use crate::{
+    server_agent::OAuthServerFactory,
     store::session::{Session, SessionStore},
-    TokenSet,
 };
-use atrium_api::types::string::Did;
-use atrium_common::{
-    resolver::{CachedResolver, Resolver, ThrottledResolver},
-    types::{
-        cached::{
-            r#impl::{Cache, CacheImpl},
-            CacheConfig, Cacheable,
-        },
-        throttled::Throttleable,
-    },
-};
+use atrium_api::types::string::{Datetime, Did};
+use atrium_identity::{did::DidResolver, handle::HandleResolver};
+use atrium_xrpc::HttpClient;
+use dashmap::DashMap;
 use std::sync::Arc;
 use thiserror::Error;
-use tokio::sync::RwLock;
-
-#[derive(Debug)]
-pub struct SessionHandle<S> {
-    session: Session,
-    store: Arc<S>,
-    sub: Did,
-}
-
-impl<S> SessionHandle<S>
-where
-    S: SessionStore + Send + Sync + 'static,
-{
-    pub(crate) fn new(session: Session, store: Arc<S>, sub: Did) -> Self {
-        Self { session, store, sub }
-    }
-    pub fn session(&self) -> Session {
-        self.session.clone()
-    }
-    pub async fn write_token_set(&mut self, value: TokenSet) {
-        self.session.token_set = value;
-
-        self.store.set(self.sub.clone(), self.session.clone()).await.ok();
-        // Might this be done asynchronously?
-        // let store = Arc::clone(&self.store);
-        // let sub = self.sub.clone();
-        // let session = self.session.clone();
-        // tokio::spawn(async move {
-        //     store.set(sub, session).await.ok();
-        // });
-    }
-}
+use tokio::sync::Mutex;
 
 #[derive(Error, Debug)]
 pub enum Error {
+    #[error(transparent)]
+    ServerAgent(#[from] crate::server_agent::Error),
     #[error("session store error: {0}")]
-    Store(Box<dyn std::error::Error>),
+    Store(String),
     #[error("session does not exist")]
     SessionNotFound,
 }
 
-pub struct SessionRegistry<S>
+pub struct SessionRegistry<S, T, D, H>
 where
     S: SessionStore + Send + Sync + 'static,
+    T: HttpClient + Send + Sync + 'static,
 {
     store: Arc<S>,
-    resolver: ThrottledResolver<CachedResolver<Getter<S>>>,
+    server_factory: Arc<OAuthServerFactory<T, D, H>>,
+    pending: DashMap<Did, Arc<Mutex<()>>>,
 }
 
-impl<S> SessionRegistry<S>
+impl<S, T, D, H> SessionRegistry<S, T, D, H>
 where
     S: SessionStore + Send + Sync + 'static,
+    T: HttpClient + Send + Sync + 'static,
 {
-    pub fn new(store: S) -> Self {
+    pub fn new(store: S, server_factory: Arc<OAuthServerFactory<T, D, H>>) -> Self {
         let store = Arc::new(store);
-        Self {
-            store: Arc::clone(&store),
-            resolver: Getter { store }.cached(CacheImpl::new(CacheConfig::default())).throttled(),
-        }
+        Self { store: Arc::clone(&store), server_factory, pending: DashMap::new() }
     }
 }
 
-impl<S> SessionRegistry<S>
+impl<S, T, D, H> SessionRegistry<S, T, D, H>
 where
     S: SessionStore + Send + Sync + 'static,
+    T: HttpClient + Send + Sync + 'static,
+    D: DidResolver + Send + Sync + 'static,
+    H: HandleResolver + Send + Sync + 'static,
 {
-    pub async fn get(&self, key: &Did) -> Result<Arc<RwLock<SessionHandle<S>>>, Error> {
-        match self.resolver.resolve(key).await? {
-            Some(handle) => Ok(handle),
-            None => Err(Error::SessionNotFound),
+    async fn get_refreshed(&self, key: &Did) -> Result<Session, Error> {
+        let lock =
+            self.pending.entry(key.clone()).or_insert_with(|| Arc::new(Mutex::new(()))).clone();
+        let _guard = lock.lock().await;
+
+        let mut session = self
+            .store
+            .get(key)
+            .await
+            .map_err(|e| Error::Store(e.to_string()))?
+            .ok_or(Error::SessionNotFound)?;
+        if let Some(expires_at) = &session.token_set.expires_at {
+            if expires_at > &Datetime::now() {
+                return Ok(session);
+            }
+        }
+
+        let server = self
+            .server_factory
+            .build_from_issuer(session.dpop_key.clone(), &session.token_set.iss)
+            .await?;
+        session.token_set = server.refresh(&session.token_set).await?;
+        self.store
+            .set(key.clone(), session.clone())
+            .await
+            .map_err(|e| Error::Store(e.to_string()))?;
+        Ok(session)
+    }
+    pub async fn get(&self, key: &Did, refresh: bool) -> Result<Session, Error> {
+        if refresh {
+            self.get_refreshed(key).await
+        } else {
+            // TODO: cached?
+            self.store
+                .get(key)
+                .await
+                .map_err(|e| Error::Store(e.to_string()))?
+                .ok_or(Error::SessionNotFound)
         }
     }
-    pub async fn set(
-        &self,
-        key: Did,
-        value: Session,
-    ) -> Result<Arc<RwLock<SessionHandle<S>>>, S::Error> {
-        self.store.set(key.clone(), value.clone()).await?;
-        Ok(Arc::new(RwLock::new(SessionHandle::new(value, Arc::clone(&self.store), key))))
+    pub async fn set(&self, key: Did, value: Session) -> Result<(), S::Error> {
+        self.store.set(key.clone(), value.clone()).await
     }
     pub async fn del(&self, key: &Did) -> Result<(), S::Error> {
         self.store.del(key).await
     }
 }
 
-#[derive(Debug)]
-struct Getter<S> {
-    store: Arc<S>,
-}
-
-impl<S> Resolver for Getter<S>
-where
-    S: SessionStore + Send + Sync + 'static,
-{
-    type Input = Did;
-    type Output = Arc<RwLock<SessionHandle<S>>>;
-    type Error = Error;
-
-    async fn resolve(&self, input: &Self::Input) -> Result<Self::Output, Self::Error> {
-        let session = self
-            .store
-            .get(input)
-            .await
-            .map_err(|e| Error::Store(Box::new(e)))?
-            .ok_or(Error::SessionNotFound)?;
-        Ok(Arc::new(RwLock::new(SessionHandle::new(
-            session,
-            Arc::clone(&self.store),
-            input.clone(),
-        ))))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::OAuthTokenType;
-    use atrium_api::types::string::Datetime;
+    use crate::{
+        tests::{client_metadata, dpop_key, oauth_resolver, MockDidResolver, NoopHandleResolver},
+        types::{OAuthTokenType, TokenSet},
+    };
     use atrium_common::store::Store;
+    use atrium_xrpc::http::{Request, Response};
     use std::{collections::HashMap, time::Duration};
     use tokio::{sync::Mutex, time::sleep};
 
     #[derive(Error, Debug)]
     enum MockStoreError {}
+
+    struct MockHttpClient {}
+
+    impl HttpClient for MockHttpClient {
+        async fn send_http(
+            &self,
+            _request: Request<Vec<u8>>,
+        ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+            unimplemented!()
+        }
+    }
 
     struct MockSessionStore {
         hm: Mutex<HashMap<Did, Session>>,
@@ -179,19 +161,10 @@ mod tests {
     }
 
     fn session() -> Session {
-        let dpop_key = serde_json::from_str(
-            r#"{
-                "kty": "EC",
-                "crv": "P-256",
-                "x": "NIRNgPVAwnVNzN5g2Ik2IMghWcjnBOGo9B-lKXSSXFs",
-                "y": "iWF-Of43XoSTZxcadO9KWdPTjiCoviSztYw7aMtZZMc",
-                "d": "9MuCYfKK4hf95p_VRj6cxKJwORTgvEU3vynfmSgFH2M"
-            }"#,
-        )
-        .expect("key should be valid");
+        let dpop_key = dpop_key();
         let token_set = TokenSet {
             iss: String::from("https://iss.example.com"),
-            sub: "did:fake:sub.test".parse().expect("invalid did"),
+            sub: did(),
             aud: String::from("https://aud.example.com"),
             scope: None,
             refresh_token: Some(String::from("refreshtoken")),
@@ -202,86 +175,40 @@ mod tests {
         Session { dpop_key, token_set }
     }
 
+    fn session_registry(
+        store: MockSessionStore,
+    ) -> SessionRegistry<MockSessionStore, MockHttpClient, MockDidResolver, NoopHandleResolver>
+    {
+        let http_client = Arc::new(MockHttpClient {});
+        SessionRegistry::new(
+            store,
+            Arc::new(OAuthServerFactory::new(
+                client_metadata(),
+                Arc::new(oauth_resolver(Arc::clone(&http_client))),
+                http_client,
+                None,
+            )),
+        )
+    }
+
     #[tokio::test]
-    async fn test_get_handle() -> Result<(), Box<dyn std::error::Error>> {
-        let registry = SessionRegistry::new(MockSessionStore::default());
-        let result = registry.get(&"did:fake:nonexistent".parse()?).await;
+    async fn test_get_session() -> Result<(), Box<dyn std::error::Error>> {
+        let registry = session_registry(MockSessionStore::default());
+        let result = registry.get(&"did:fake:nonexistent".parse()?, false).await;
         assert!(matches!(result, Err(Error::SessionNotFound)));
-        let result = registry.get(&"did:fake:handle.test".parse()?).await;
-        let handle = result.expect("handle should exist");
-        assert_eq!(handle.read().await.session().token_set.access_token, "accesstoken");
+        let result = registry.get(&"did:fake:handle.test".parse()?, false).await;
+        let session = result.expect("handle should exist");
+        assert_eq!(session.token_set.access_token, "accesstoken");
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_handle_update() -> Result<(), Box<dyn std::error::Error>> {
-        let store = MockSessionStore::default();
-        let registry = SessionRegistry::new(store);
-        let handle = registry.get(&did()).await?;
-        assert_eq!(handle.read().await.session().token_set.access_token, "accesstoken");
-        // update token set
-        handle
-            .write()
-            .await
-            .write_token_set(TokenSet {
-                iss: String::from("https://iss.example.com"),
-                sub: "did:fake:sub.test".parse().expect("invalid did"),
-                aud: String::from("https://aud.example.com"),
-                scope: None,
-                refresh_token: Some(String::from("refreshtoken")),
-                access_token: String::from("newaccesstoken"),
-                token_type: OAuthTokenType::DPoP,
-                expires_at: None,
-            })
-            .await;
-        // check if the token set is updated
-        assert_eq!(handle.read().await.session().token_set.access_token, "newaccesstoken");
-        match registry.store.get(&did()).await? {
-            Some(session) => {
-                assert_eq!(session.token_set.access_token, "newaccesstoken");
-            }
-            None => {
-                panic!("session should exist");
-            }
-        }
-        Ok(())
+    async fn test_get_refreshed() -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
     }
 
     #[tokio::test]
-    async fn test_parallel() -> Result<(), Box<dyn std::error::Error>> {
-        async fn update_with_lock(
-            registry: Arc<SessionRegistry<MockSessionStore>>,
-        ) -> Result<(bool, String), String> {
-            let session = registry.get(&did()).await.map_err(|e| e.to_string())?;
-
-            let mut handle = session.write().await;
-            let mut token_set = handle.session().token_set;
-            if token_set.expires_at.is_some() {
-                return Ok((false, handle.session().token_set.access_token));
-            }
-            token_set.access_token = String::from("newaccesstoken");
-            token_set.expires_at = Some(Datetime::now());
-            handle.write_token_set(token_set).await;
-
-            Ok((true, handle.session().token_set.access_token))
-        }
-
-        let store = MockSessionStore::default();
-        let registry = Arc::new(SessionRegistry::new(store));
-        let mut handles = Vec::new();
-        for _ in 1..5 {
-            let registry = Arc::clone(&registry);
-            handles.push(tokio::spawn(async { update_with_lock(registry).await }));
-        }
-        let mut refreshed_count = 0;
-        for handle in handles {
-            let (refreshed, access_token) = handle.await??;
-            assert_eq!(access_token, "newaccesstoken");
-            if refreshed {
-                refreshed_count += 1;
-            }
-        }
-        assert_eq!(refreshed_count, 1);
-        Ok(())
+    async fn test_get_refreshed_parallel() -> Result<(), Box<dyn std::error::Error>> {
+        todo!()
     }
 }

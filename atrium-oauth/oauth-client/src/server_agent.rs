@@ -1,3 +1,6 @@
+mod factory;
+
+pub use self::factory::OAuthServerFactory;
 use crate::{
     constants::FALLBACK_ALG,
     http_client::dpop::DpopClient,
@@ -42,8 +45,8 @@ pub enum Error {
     InvalidDid(&'static str),
     #[error(transparent)]
     DpopClient(#[from] crate::http_client::dpop::Error),
-    #[error(transparent)]
-    OAuthSession(#[from] crate::oauth_session::Error),
+    // #[error(transparent)]
+    // OAuthSession(#[from] crate::oauth_session::Error),
     #[error(transparent)]
     Http(#[from] atrium_xrpc::http::Error),
     #[error("http client error: {0}")]
@@ -114,7 +117,7 @@ where
 {
     pub(crate) server_metadata: OAuthAuthorizationServerMetadata,
     client_metadata: OAuthClientMetadata,
-    pub(crate) dpop_client: DpopClient<T>,
+    dpop_client: DpopClient<T>,
     resolver: Arc<OAuthResolver<T, D, H>>,
     keyset: Option<Keyset>,
 }

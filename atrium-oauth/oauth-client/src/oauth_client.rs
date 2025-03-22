@@ -4,10 +4,10 @@ use crate::{
     keyset::Keyset,
     oauth_session::OAuthSession,
     resolver::{OAuthResolver, OAuthResolverConfig},
-    server_agent::{OAuthRequest, OAuthServerAgent},
+    server_agent::{OAuthRequest, OAuthServerAgent, OAuthServerFactory},
     store::{
         session::{Session, SessionStore},
-        session_registry::{SessionHandle, SessionRegistry},
+        session_registry::SessionRegistry,
         state::{InternalStateData, StateStore},
     },
     types::{
@@ -27,7 +27,6 @@ use jose_jwk::{Jwk, JwkSet, Key};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
-use tokio::sync::RwLock;
 
 #[cfg(feature = "default-client")]
 pub struct OAuthClientConfig<S0, S1, M, D, H>
@@ -66,12 +65,14 @@ pub struct OAuthClient<S0, S1, D, H, T = crate::http_client::default::DefaultHtt
 where
     T: HttpClient + Send + Sync + 'static,
     S1: SessionStore + Send + Sync + 'static,
+    S1::Error: std::error::Error + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
+    server_factory: Arc<OAuthServerFactory<T, D, H>>,
     state_store: S0,
-    session_registry: SessionRegistry<S1>,
+    session_registry: Arc<SessionRegistry<S1, T, D, H>>,
     http_client: Arc<T>,
 }
 
@@ -80,12 +81,14 @@ pub struct OAuthClient<S0, S1, D, H, T>
 where
     T: HttpClient + Send + Sync + 'static,
     S1: SessionStore + Send + Sync + 'static,
+    S1::Error: std::error::Error + Send + Sync + 'static,
 {
     pub client_metadata: OAuthClientMetadata,
     keyset: Option<Keyset>,
     resolver: Arc<OAuthResolver<T, D, H>>,
+    server_factory: Arc<OAuthServerFactory<T, D, H>>,
     state_store: S0,
-    session_registry: SessionRegistry<S1>,
+    session_registry: Arc<SessionRegistry<S1, T, D, H>>,
     http_client: Arc<T>,
 }
 
@@ -93,6 +96,7 @@ where
 impl<S0, S1, D, H> OAuthClient<S0, S1, D, H, crate::http_client::default::DefaultHttpClient>
 where
     S1: SessionStore + Send + Sync + 'static,
+    S1::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn new<M>(config: OAuthClientConfig<S0, S1, M, D, H>) -> Result<Self>
     where
@@ -101,12 +105,22 @@ where
         let keyset = if let Some(keys) = config.keys { Some(keys.try_into()?) } else { None };
         let client_metadata = config.client_metadata.try_into_client_metadata(&keyset)?;
         let http_client = Arc::new(crate::http_client::default::DefaultHttpClient::default());
+        let resolver = Arc::new(OAuthResolver::new(config.resolver, Arc::clone(&http_client)));
+        let server_factory = Arc::new(OAuthServerFactory::new(
+            client_metadata.clone(),
+            Arc::clone(&resolver),
+            Arc::clone(&http_client),
+            keyset.clone(),
+        ));
+        let session_registry =
+            Arc::new(SessionRegistry::new(config.session_store, Arc::clone(&server_factory)));
         Ok(Self {
             client_metadata,
             keyset,
-            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
+            resolver,
+            server_factory,
             state_store: config.state_store,
-            session_registry: SessionRegistry::new(config.session_store),
+            session_registry,
             http_client,
         })
     }
@@ -124,12 +138,22 @@ where
         let keyset = if let Some(keys) = config.keys { Some(keys.try_into()?) } else { None };
         let client_metadata = config.client_metadata.try_into_client_metadata(&keyset)?;
         let http_client = Arc::new(config.http_client);
+        let resolver = Arc::new(OAuthResolver::new(config.resolver, Arc::clone(&http_client)));
+        let server_factory = Arc::new(OAuthServerFactory::new(
+            client_metadata.clone(),
+            Arc::clone(&resolver),
+            Arc::clone(&http_client),
+            keyset.clone(),
+        ));
+        let session_registry =
+            SessionRegistry::new(config.session_store, Arc::clone(&server_factory));
         Ok(Self {
             client_metadata,
             keyset,
-            resolver: Arc::new(OAuthResolver::new(config.resolver, http_client.clone())),
+            resolver,
+            server_factory,
             state_store: config.state_store,
-            session_registry: SessionRegistry::new(config.session_store),
+            session_registry,
             http_client,
         })
     }
@@ -193,7 +217,7 @@ where
             prompt: options.prompt.map(String::from),
         };
         if metadata.pushed_authorization_request_endpoint.is_some() {
-            let server = self.create_server_agent(dpop_key, metadata.clone())?;
+            let server = self.server_factory.build_from_metadata(dpop_key, metadata.clone())?;
             let par_response = server
                 .request::<OAuthPusehedAuthorizationRequestResponse>(
                     OAuthRequest::PushedAuthorizationRequest(parameters),
@@ -252,16 +276,16 @@ where
         } else if metadata.authorization_response_iss_parameter_supported == Some(true) {
             return Err(Error::Callback("missing `iss` parameter".into()));
         }
-        let server = self.create_server_agent(state.dpop_key.clone(), metadata.clone())?;
+        let server =
+            self.server_factory.build_from_metadata(state.dpop_key.clone(), metadata.clone())?;
         match server.exchange_code(&params.code, &state.verifier).await {
             Ok(token_set) => {
                 let sub = token_set.sub.clone();
-                let session_handle = self
-                    .session_registry
+                self.session_registry
                     .set(sub.clone(), Session { dpop_key: state.dpop_key.clone(), token_set })
                     .await
                     .map_err(|e| Error::SessionStore(Box::new(e)))?;
-                Ok((self.create_session(server, session_handle).await?, state.app_state))
+                Ok((self.create_session(server, &sub).await?, state.app_state))
             }
             Err(_) => {
                 todo!()
@@ -272,47 +296,35 @@ where
     ///
     /// This method will return the [`OAuthSession`] if it exists.
     pub async fn restore(&self, sub: &Did) -> Result<OAuthSession<T, D, H, S1>> {
-        let session_handle = self.session_registry.get(sub).await?;
-        let session = session_handle.read().await.session();
+        // let session_handle = self.session_registry.get(sub).await?;
+        // let session = session_handle.read().await.session();
+        let session = self.session_registry.get(sub, false).await?;
         self.create_session(
-            self.create_server_agent(
-                session.dpop_key,
-                self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
-            )?,
-            session_handle,
+            self.server_factory.build_from_issuer(session.dpop_key, &session.token_set.iss).await?,
+            sub,
         )
         .await
     }
     /// Revoke a session by giving the subject DID.
     pub async fn revoke(&self, sub: &Did) -> Result<()> {
-        let session = self.session_registry.get(sub).await?.read().await.session();
-        let server_agent = self.create_server_agent(
-            session.dpop_key,
-            self.resolver.get_authorization_server_metadata(&session.token_set.iss).await?,
-        )?;
+        let session = self.session_registry.get(sub, false).await?;
+        let server_agent =
+            self.server_factory.build_from_issuer(session.dpop_key, &session.token_set.iss).await?;
         server_agent.revoke(&session.token_set.access_token).await?;
         self.session_registry.del(sub).await.map_err(|e| Error::SessionStore(Box::new(e)))
     }
     async fn create_session(
         &self,
         server: OAuthServerAgent<T, D, H>,
-        session_handle: Arc<RwLock<SessionHandle<S1>>>,
+        sub: &Did,
     ) -> Result<OAuthSession<T, D, H, S1>> {
-        Ok(OAuthSession::new(server, Arc::clone(&self.http_client), session_handle).await?)
-    }
-    fn create_server_agent(
-        &self,
-        dpop_key: Key,
-        server_metadata: OAuthAuthorizationServerMetadata,
-    ) -> Result<OAuthServerAgent<T, D, H>> {
-        Ok(OAuthServerAgent::new(
-            dpop_key,
-            server_metadata,
-            self.client_metadata.clone(),
-            self.resolver.clone(),
-            self.http_client.clone(),
-            self.keyset.clone(),
-        )?)
+        Ok(OAuthSession::new(
+            server.server_metadata.clone(),
+            sub.clone(),
+            Arc::clone(&self.http_client),
+            Arc::clone(&self.session_registry),
+        )
+        .await?)
     }
     fn generate_dpop_key(metadata: &OAuthAuthorizationServerMetadata) -> Option<Key> {
         let mut algs =

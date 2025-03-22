@@ -278,6 +278,7 @@ dependencies = [
  "atrium-xrpc",
  "base64",
  "chrono",
+ "dashmap",
  "ecdsa",
  "elliptic-curve",
  "futures",
