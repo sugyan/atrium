@@ -107,8 +107,7 @@ mod tests {
         types::{OAuthTokenResponse, OAuthTokenType, RefreshRequestParameters, TokenSet},
     };
     use atrium_common::store::Store;
-    use atrium_xrpc::http::{header::CONTENT_TYPE, Request, Response};
-    use reqwest::StatusCode;
+    use atrium_xrpc::http::{header::CONTENT_TYPE, Request, Response, StatusCode};
     use std::{collections::HashMap, time::Duration};
     use tokio::{sync::Mutex, time::sleep};
 

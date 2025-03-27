@@ -130,6 +130,8 @@ where
 impl<S0, S1, D, H, T> OAuthClient<S0, S1, D, H, T>
 where
     T: HttpClient + Send + Sync + 'static,
+    S1: SessionStore + Send + Sync + 'static,
+    S1::Error: std::error::Error + Send + Sync + 'static,
 {
     pub fn new<M>(config: OAuthClientConfig<S0, S1, T, M, D, H>) -> Result<Self>
     where
@@ -146,7 +148,7 @@ where
             keyset.clone(),
         ));
         let session_registry =
-            SessionRegistry::new(config.session_store, Arc::clone(&server_factory));
+            Arc::new(SessionRegistry::new(config.session_store, Arc::clone(&server_factory)));
         Ok(Self {
             client_metadata,
             keyset,
