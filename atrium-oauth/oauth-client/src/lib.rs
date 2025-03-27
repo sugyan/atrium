@@ -31,7 +31,8 @@ mod tests {
     use crate::{
         resolver::OAuthResolver,
         types::{
-            OAuthAuthorizationServerMetadata, OAuthClientMetadata, TryIntoOAuthClientMetadata,
+            OAuthAuthorizationServerMetadata, OAuthClientMetadata, OAuthProtectedResourceMetadata,
+            TryIntoOAuthClientMetadata,
         },
         AtprotoLocalhostClientMetadata, OAuthResolverConfig,
     };
@@ -127,5 +128,13 @@ mod tests {
         AtprotoLocalhostClientMetadata::default()
             .try_into_client_metadata(&None)
             .expect("client metadata should be valid")
+    }
+
+    pub fn protected_resource_metadata() -> OAuthProtectedResourceMetadata {
+        OAuthProtectedResourceMetadata {
+            resource: String::from("https://aud.example.com"),
+            authorization_servers: Some(vec![String::from("https://iss.example.com")]),
+            ..Default::default()
+        }
     }
 }

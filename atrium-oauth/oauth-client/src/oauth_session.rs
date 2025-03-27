@@ -167,16 +167,13 @@ mod tests {
     use super::*;
     use crate::server_agent::OAuthServerFactory;
     use crate::tests::{
-        client_metadata, dpop_key, oauth_resolver, server_metadata, MockDidResolver,
-        NoopHandleResolver,
+        client_metadata, dpop_key, oauth_resolver, protected_resource_metadata, server_metadata,
+        MockDidResolver, NoopHandleResolver,
     };
     use crate::{
         jose::jwt::Claims,
         store::session::Session,
-        types::{
-            OAuthProtectedResourceMetadata, OAuthTokenResponse, OAuthTokenType,
-            RefreshRequestParameters, TokenSet,
-        },
+        types::{OAuthTokenResponse, OAuthTokenType, RefreshRequestParameters, TokenSet},
     };
     use atrium_api::{
         agent::{Agent, AtprotoServiceType},
@@ -196,14 +193,14 @@ mod tests {
 
     struct MockHttpClient {
         data: Arc<Mutex<Option<RecordData>>>,
-        new_token: Arc<Mutex<Option<OAuthTokenResponse>>>,
+        next_token: Arc<Mutex<Option<OAuthTokenResponse>>>,
     }
 
     impl MockHttpClient {
         fn new(data: Arc<Mutex<Option<RecordData>>>) -> Self {
             Self {
                 data,
-                new_token: Arc::new(Mutex::new(Some(OAuthTokenResponse {
+                next_token: Arc::new(Mutex::new(Some(OAuthTokenResponse {
                     access_token: String::from("new_accesstoken"),
                     token_type: OAuthTokenType::DPoP,
                     expires_in: Some(10),
@@ -223,29 +220,17 @@ mod tests {
             // tick tokio time
             tokio::time::sleep(std::time::Duration::from_micros(0)).await;
 
-            match request.uri().path() {
-                // Resolve protected resource
-                "/.well-known/oauth-protected-resource" => {
-                    assert_eq!(request.uri().host(), Some("aud.example.com"));
+            match (request.uri().host(), request.uri().path()) {
+                (Some("iss.example.com"), "/.well-known/oauth-authorization-server") => {
                     return Response::builder()
-                        .status(StatusCode::OK)
-                        .header(CONTENT_TYPE, "application/json")
-                        .body(serde_json::to_vec(&OAuthProtectedResourceMetadata {
-                            resource: String::from("https://aud.example.com"),
-                            authorization_servers: Some(vec![String::from(
-                                "https://iss.example.com",
-                            )]),
-                            ..Default::default()
-                        })?)
-                        .map_err(|e| e.into());
-                }
-                // Resolve authorization server metadata
-                "/.well-known/oauth-authorization-server" => {
-                    assert_eq!(request.uri().host(), Some("iss.example.com"));
-                    return Response::builder()
-                        .status(StatusCode::OK)
                         .header(CONTENT_TYPE, "application/json")
                         .body(serde_json::to_vec(&server_metadata())?)
+                        .map_err(|e| e.into());
+                }
+                (Some("aud.example.com"), "/.well-known/oauth-protected-resource") => {
+                    return Response::builder()
+                        .header(CONTENT_TYPE, "application/json")
+                        .body(serde_json::to_vec(&protected_resource_metadata())?)
                         .map_err(|e| e.into());
                 }
                 _ => {}
@@ -260,7 +245,7 @@ mod tests {
                     let parameters =
                         serde_html_form::from_bytes::<RefreshRequestParameters>(request.body())?;
                     let token_response = if parameters.refresh_token == "refreshtoken" {
-                        self.new_token.lock().await.take()
+                        self.next_token.lock().await.take()
                     } else {
                         None
                     };
@@ -395,7 +380,7 @@ mod tests {
     }
 
     async fn call_service(
-        service: &Service<impl SessionManager + Send + Sync>,
+        service: &Service<impl SessionManager + Sync>,
     ) -> Result<(), atrium_xrpc::Error<atrium_api::com::atproto::server::get_service_auth::Error>>
     {
         let output = service
@@ -663,8 +648,7 @@ mod tests {
                     .await
             })
         });
-        let results = futures::future::join_all(handles).await;
-        for result in results {
+        for result in futures::future::join_all(handles).await {
             match result? {
                 Ok(output) => {
                     assert_eq!(output.token, "fake_token");

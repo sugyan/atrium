@@ -100,25 +100,80 @@ where
 mod tests {
     use super::*;
     use crate::{
-        tests::{client_metadata, dpop_key, oauth_resolver, MockDidResolver, NoopHandleResolver},
-        types::{OAuthTokenType, TokenSet},
+        tests::{
+            client_metadata, dpop_key, oauth_resolver, protected_resource_metadata,
+            server_metadata, MockDidResolver, NoopHandleResolver,
+        },
+        types::{OAuthTokenResponse, OAuthTokenType, RefreshRequestParameters, TokenSet},
     };
     use atrium_common::store::Store;
-    use atrium_xrpc::http::{Request, Response};
+    use atrium_xrpc::http::{header::CONTENT_TYPE, Request, Response};
+    use reqwest::StatusCode;
     use std::{collections::HashMap, time::Duration};
     use tokio::{sync::Mutex, time::sleep};
 
     #[derive(Error, Debug)]
     enum MockStoreError {}
 
-    struct MockHttpClient {}
+    struct MockHttpClient {
+        next_token: Arc<Mutex<Option<OAuthTokenResponse>>>,
+    }
+
+    impl Default for MockHttpClient {
+        fn default() -> Self {
+            Self {
+                next_token: Arc::new(Mutex::new(Some(OAuthTokenResponse {
+                    access_token: String::from("new_accesstoken"),
+                    token_type: OAuthTokenType::DPoP,
+                    expires_in: Some(10),
+                    refresh_token: Some(String::from("new_refreshtoken")),
+                    scope: None,
+                    sub: None,
+                }))),
+            }
+        }
+    }
 
     impl HttpClient for MockHttpClient {
         async fn send_http(
             &self,
-            _request: Request<Vec<u8>>,
+            request: Request<Vec<u8>>,
         ) -> Result<Response<Vec<u8>>, Box<dyn std::error::Error + Send + Sync + 'static>> {
-            unimplemented!()
+            println!("{:?}", request);
+
+            Ok(match (request.uri().host(), request.uri().path()) {
+                (Some("iss.example.com"), "/.well-known/oauth-authorization-server") => {
+                    Response::builder()
+                        .header(CONTENT_TYPE, "application/json")
+                        .body(serde_json::to_vec(&server_metadata())?)?
+                }
+                (Some("aud.example.com"), "/.well-known/oauth-protected-resource") => {
+                    Response::builder()
+                        .header(CONTENT_TYPE, "application/json")
+                        .body(serde_json::to_vec(&protected_resource_metadata())?)?
+                }
+                (Some("iss.example.com"), "/token") => {
+                    let parameters =
+                        serde_html_form::from_bytes::<RefreshRequestParameters>(request.body())?;
+                    if let Some(token_response) = if parameters.refresh_token == "refreshtoken" {
+                        self.next_token.lock().await.take()
+                    } else {
+                        None
+                    } {
+                        Response::builder()
+                            .header(CONTENT_TYPE, "application/json")
+                            .body(serde_json::to_vec(&token_response)?)?
+                    } else {
+                        Response::builder()
+                            .status(StatusCode::UNAUTHORIZED)
+                            .header("WWW-Authenticate", "DPoP error=\"invalid_token\"")
+                            .body(Vec::new())?
+                    }
+                }
+                _ => {
+                    Response::builder().status(StatusCode::INTERNAL_SERVER_ERROR).body(Vec::new())?
+                }
+            })
         }
     }
 
@@ -179,7 +234,7 @@ mod tests {
         store: MockSessionStore,
     ) -> SessionRegistry<MockSessionStore, MockHttpClient, MockDidResolver, NoopHandleResolver>
     {
-        let http_client = Arc::new(MockHttpClient {});
+        let http_client = Arc::new(MockHttpClient::default());
         SessionRegistry::new(
             store,
             Arc::new(OAuthServerFactory::new(
@@ -204,11 +259,39 @@ mod tests {
 
     #[tokio::test]
     async fn test_get_refreshed() -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        let registry = session_registry(MockSessionStore::default());
+        let session = registry.get(&did(), true).await?;
+        assert_eq!(session.token_set.access_token, "new_accesstoken");
+        assert_eq!(session.token_set.refresh_token.as_deref(), Some("new_refreshtoken"));
+        // second time should return the same session
+        let session = registry.get(&did(), true).await?;
+        assert_eq!(session.token_set.access_token, "new_accesstoken");
+        assert_eq!(session.token_set.refresh_token.as_deref(), Some("new_refreshtoken"));
+        Ok(())
     }
 
     #[tokio::test]
     async fn test_get_refreshed_parallel() -> Result<(), Box<dyn std::error::Error>> {
-        todo!()
+        let registry = Arc::new(session_registry(MockSessionStore::default()));
+        let mut handles = Vec::new();
+        for _ in 0..3 {
+            let registry = Arc::clone(&registry);
+            handles.push(tokio::spawn(async move { registry.get(&did(), true).await }));
+        }
+        for result in futures::future::join_all(handles).await {
+            match result? {
+                Ok(session) => {
+                    assert_eq!(session.token_set.access_token, "new_accesstoken");
+                    assert_eq!(
+                        session.token_set.refresh_token.as_deref(),
+                        Some("new_refreshtoken")
+                    );
+                }
+                Err(err) => {
+                    panic!("unexpected error: {err:?}");
+                }
+            }
+        }
+        Ok(())
     }
 }
