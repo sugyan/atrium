@@ -18,9 +18,11 @@ use crate::{
     },
     utils::{compare_algos, generate_key, generate_nonce},
 };
-use atrium_api::{did_doc::DidDocument, types::string::Did};
+use atrium_api::{
+    did_doc::DidDocument,
+    types::string::{Did, Handle},
+};
 use atrium_common::resolver::Resolver;
-use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::HttpClient;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use jose_jwk::{Jwk, JwkSet, Key};
@@ -166,7 +168,7 @@ where
     S0: StateStore + Send + Sync + 'static,
     S1: SessionStore + Send + Sync + 'static,
     D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    H: Resolver<Input = Handle, Output = Did, Error = atrium_identity::Error> + Send + Sync,
     T: HttpClient + Send + Sync + 'static,
     S0::Error: std::error::Error + Send + Sync + 'static,
     S1::Error: std::error::Error + Send + Sync + 'static,

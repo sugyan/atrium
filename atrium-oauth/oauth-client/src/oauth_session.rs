@@ -10,10 +10,9 @@ use crate::{
 use atrium_api::{
     agent::{utils::SessionWithEndpointStore, CloneWithProxy, Configure, SessionManager},
     did_doc::DidDocument,
-    types::string::Did,
+    types::string::{Did, Handle},
 };
 use atrium_common::resolver::Resolver;
-use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::{
     http::{Request, Response},
     HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest,
@@ -47,7 +46,7 @@ impl<T, D, H, S> OAuthSession<T, D, H, S>
 where
     T: HttpClient + Send + Sync,
     D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    H: Resolver<Input = Handle, Output = Did, Error = atrium_identity::Error> + Send + Sync,
     S: SessionStore + Send + Sync + 'static,
 {
     pub(crate) async fn new(
@@ -101,7 +100,7 @@ impl<T, D, H, S> XrpcClient for OAuthSession<T, D, H, S>
 where
     T: HttpClient + Send + Sync + 'static,
     D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    H: Resolver<Input = Handle, Output = Did, Error = atrium_identity::Error> + Send + Sync,
     S: SessionStore + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {
@@ -125,7 +124,7 @@ impl<T, D, H, S> SessionManager for OAuthSession<T, D, H, S>
 where
     T: HttpClient + Send + Sync + 'static,
     D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    H: Resolver<Input = Handle, Output = Did, Error = atrium_identity::Error> + Send + Sync,
     S: SessionStore + Send + Sync + 'static,
 {
     async fn did(&self) -> Option<Did> {

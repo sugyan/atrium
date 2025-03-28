@@ -41,7 +41,6 @@ mod tests {
         types::string::{Did, Handle},
     };
     use atrium_common::resolver::Resolver;
-    use atrium_identity::handle::HandleResolver;
     use atrium_xrpc::HttpClient;
     use jose_jwk::Key;
     use std::sync::Arc;
@@ -77,8 +76,6 @@ mod tests {
             unimplemented!()
         }
     }
-
-    impl HandleResolver for NoopHandleResolver {}
 
     pub fn oauth_resolver<T>(
         http_client: Arc<T>,

@@ -1,7 +1,8 @@
 use crate::error::{Error, Result};
-use crate::handle::HandleResolver;
-use atrium_api::did_doc::DidDocument;
-use atrium_api::types::string::{AtIdentifier, Did};
+use atrium_api::{
+    did_doc::DidDocument,
+    types::string::{AtIdentifier, Did, Handle},
+};
 use atrium_common::resolver::Resolver;
 use serde::{Deserialize, Serialize};
 
@@ -31,7 +32,7 @@ impl<D, H> IdentityResolver<D, H> {
 impl<D, H> Resolver for IdentityResolver<D, H>
 where
     D: Resolver<Input = Did, Output = DidDocument, Error = Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    H: Resolver<Input = Handle, Output = Did, Error = Error> + Send + Sync,
 {
     type Input = str;
     type Output = ResolvedIdentity;

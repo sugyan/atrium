@@ -4,10 +4,9 @@ use crate::{
 };
 use atrium_api::{
     did_doc::DidDocument,
-    types::string::{Datetime, Did},
+    types::string::{Datetime, Did, Handle},
 };
 use atrium_common::resolver::Resolver;
-use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::HttpClient;
 use dashmap::DashMap;
 use std::sync::Arc;
@@ -50,7 +49,7 @@ where
     S: SessionStore + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    H: Resolver<Input = Handle, Output = Did, Error = atrium_identity::Error> + Send + Sync,
 {
     async fn get_refreshed(&self, key: &Did) -> Result<Session, Error> {
         let lock =

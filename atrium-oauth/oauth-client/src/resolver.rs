@@ -1,28 +1,29 @@
-use atrium_api::did_doc::DidDocument;
-use atrium_api::types::string::Did;
-use atrium_common::resolver::CachedResolver;
-use atrium_common::resolver::Resolver;
-use atrium_common::resolver::ThrottledResolver;
-use atrium_common::types::cached::r#impl::Cache;
-use atrium_common::types::cached::r#impl::CacheImpl;
-use atrium_common::types::cached::CacheConfig;
-use atrium_common::types::cached::Cacheable;
-use atrium_common::types::throttled::Throttleable;
 mod oauth_authorization_server_resolver;
 mod oauth_protected_resource_resolver;
 
 use self::oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
 use self::oauth_protected_resource_resolver::DefaultOAuthProtectedResourceResolver;
 use crate::types::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
-use atrium_identity::handle::HandleResolver;
-use atrium_identity::identity_resolver::{
-    IdentityResolver, IdentityResolverConfig, ResolvedIdentity,
+use atrium_api::{
+    did_doc::DidDocument,
+    types::string::{Did, Handle},
 };
-use atrium_identity::{Error, Result};
+use atrium_common::{
+    resolver::{CachedResolver, Resolver, ThrottledResolver},
+    types::{
+        cached::{
+            r#impl::{Cache, CacheImpl},
+            {CacheConfig, Cacheable},
+        },
+        throttled::Throttleable,
+    },
+};
+use atrium_identity::{
+    identity_resolver::{IdentityResolver, IdentityResolverConfig, ResolvedIdentity},
+    {Error, Result},
+};
 use atrium_xrpc::HttpClient;
-use std::marker::PhantomData;
-use std::sync::Arc;
-use std::time::Duration;
+use std::{marker::PhantomData, sync::Arc, time::Duration};
 
 #[derive(Clone, Debug)]
 pub struct OAuthAuthorizationServerMetadataResolverConfig {
@@ -108,8 +109,8 @@ where
 impl<T, D, H> OAuthResolver<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = Error> + Send + Sync,
+    H: Resolver<Input = Handle, Output = Did, Error = Error> + Send + Sync,
 {
     pub async fn get_authorization_server_metadata(
         &self,
@@ -187,8 +188,8 @@ where
 impl<T, D, H> Resolver for OAuthResolver<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = Error> + Send + Sync,
+    H: Resolver<Input = Handle, Output = Did, Error = Error> + Send + Sync,
 {
     type Input = str;
     type Output = (OAuthAuthorizationServerMetadata, Option<ResolvedIdentity>);

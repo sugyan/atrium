@@ -4,9 +4,12 @@ use crate::{
     resolver::OAuthResolver,
     types::{OAuthAuthorizationServerMetadata, OAuthClientMetadata},
 };
-use atrium_api::{did_doc::DidDocument, types::string::Did};
+use atrium_api::{
+    did_doc::DidDocument,
+    types::string::{Did, Handle},
+};
 use atrium_common::resolver::Resolver;
-use atrium_identity::handle::HandleResolver;
+use atrium_identity::Error;
 use atrium_xrpc::HttpClient;
 use jose_jwk::Key;
 use std::sync::Arc;
@@ -38,8 +41,8 @@ where
 impl<T, D, H> OAuthServerFactory<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
-    H: HandleResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = Error> + Send + Sync,
+    H: Resolver<Input = Handle, Output = Did, Error = Error> + Send + Sync,
 {
     pub async fn build_from_issuer(
         &self,
