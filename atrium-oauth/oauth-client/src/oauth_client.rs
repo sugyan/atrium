@@ -18,9 +18,9 @@ use crate::{
     },
     utils::{compare_algos, generate_key, generate_nonce},
 };
-use atrium_api::types::string::Did;
+use atrium_api::{did_doc::DidDocument, types::string::Did};
 use atrium_common::resolver::Resolver;
-use atrium_identity::{did::DidResolver, handle::HandleResolver};
+use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::HttpClient;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use jose_jwk::{Jwk, JwkSet, Key};
@@ -165,7 +165,7 @@ impl<S0, S1, D, H, T> OAuthClient<S0, S1, D, H, T>
 where
     S0: StateStore + Send + Sync + 'static,
     S1: SessionStore + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
     S0::Error: std::error::Error + Send + Sync + 'static,

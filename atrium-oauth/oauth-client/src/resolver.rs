@@ -1,3 +1,5 @@
+use atrium_api::did_doc::DidDocument;
+use atrium_api::types::string::Did;
 use atrium_common::resolver::CachedResolver;
 use atrium_common::resolver::Resolver;
 use atrium_common::resolver::ThrottledResolver;
@@ -12,10 +14,10 @@ mod oauth_protected_resource_resolver;
 use self::oauth_authorization_server_resolver::DefaultOAuthAuthorizationServerResolver;
 use self::oauth_protected_resource_resolver::DefaultOAuthProtectedResourceResolver;
 use crate::types::{OAuthAuthorizationServerMetadata, OAuthProtectedResourceMetadata};
+use atrium_identity::handle::HandleResolver;
 use atrium_identity::identity_resolver::{
     IdentityResolver, IdentityResolverConfig, ResolvedIdentity,
 };
-use atrium_identity::{did::DidResolver, handle::HandleResolver};
 use atrium_identity::{Error, Result};
 use atrium_xrpc::HttpClient;
 use std::marker::PhantomData;
@@ -106,7 +108,7 @@ where
 impl<T, D, H> OAuthResolver<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
 {
     pub async fn get_authorization_server_metadata(
@@ -185,7 +187,7 @@ where
 impl<T, D, H> Resolver for OAuthResolver<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
 {
     type Input = str;

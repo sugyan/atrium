@@ -8,9 +8,11 @@ use atrium_api::{
         utils::{SessionClient, SessionWithEndpointStore},
         CloneWithProxy, Configure,
     },
+    did_doc::DidDocument,
     types::string::Did,
 };
-use atrium_identity::{did::DidResolver, handle::HandleResolver};
+use atrium_common::resolver::Resolver;
+use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::{
     http::{Request, Response},
     Error, HttpClient, OutputDataOrBytes, XrpcClient, XrpcRequest,
@@ -49,7 +51,7 @@ impl<S, T, D, H> Client<S, T, D, H>
 where
     S: SessionStore + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
 {
     // https://datatracker.ietf.org/doc/html/rfc6750#section-3
@@ -91,7 +93,7 @@ impl<S, T, D, H> XrpcClient for Client<S, T, D, H>
 where
     S: SessionStore + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
 {
     fn base_uri(&self) -> String {

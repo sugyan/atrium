@@ -14,8 +14,12 @@ use crate::{
     },
     utils::{compare_algos, generate_nonce},
 };
-use atrium_api::types::string::{Datetime, Did};
-use atrium_identity::{did::DidResolver, handle::HandleResolver};
+use atrium_api::{
+    did_doc::DidDocument,
+    types::string::{Datetime, Did},
+};
+use atrium_common::resolver::Resolver;
+use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::{
     http::{Method, Request, StatusCode},
     HttpClient,
@@ -125,7 +129,7 @@ where
 impl<T, D, H> OAuthServerAgent<T, D, H>
 where
     T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
 {
     pub fn new(

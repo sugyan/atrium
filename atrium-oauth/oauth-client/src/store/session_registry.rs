@@ -2,8 +2,12 @@ use crate::{
     server_agent::OAuthServerFactory,
     store::session::{Session, SessionStore},
 };
-use atrium_api::types::string::{Datetime, Did};
-use atrium_identity::{did::DidResolver, handle::HandleResolver};
+use atrium_api::{
+    did_doc::DidDocument,
+    types::string::{Datetime, Did},
+};
+use atrium_common::resolver::Resolver;
+use atrium_identity::handle::HandleResolver;
 use atrium_xrpc::HttpClient;
 use dashmap::DashMap;
 use std::sync::Arc;
@@ -45,7 +49,7 @@ impl<S, T, D, H> SessionRegistry<S, T, D, H>
 where
     S: SessionStore + Send + Sync + 'static,
     T: HttpClient + Send + Sync + 'static,
-    D: DidResolver + Send + Sync + 'static,
+    D: Resolver<Input = Did, Output = DidDocument, Error = atrium_identity::Error> + Send + Sync,
     H: HandleResolver + Send + Sync + 'static,
 {
     async fn get_refreshed(&self, key: &Did) -> Result<Session, Error> {

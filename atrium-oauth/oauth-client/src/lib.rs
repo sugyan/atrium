@@ -41,7 +41,7 @@ mod tests {
         types::string::{Did, Handle},
     };
     use atrium_common::resolver::Resolver;
-    use atrium_identity::{did::DidResolver, handle::HandleResolver};
+    use atrium_identity::handle::HandleResolver;
     use atrium_xrpc::HttpClient;
     use jose_jwk::Key;
     use std::sync::Arc;
@@ -66,8 +66,6 @@ mod tests {
             })
         }
     }
-
-    impl DidResolver for MockDidResolver {}
 
     pub struct NoopHandleResolver;
 
