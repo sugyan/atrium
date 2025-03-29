@@ -1,6 +1,7 @@
 //! Lexicon integer types with minimum or maximum acceptable values.
 
 use std::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8};
+use std::str::FromStr;
 
 use serde::Deserialize;
 
@@ -29,6 +30,14 @@ macro_rules! uint {
                 }
             }
 
+            impl<const MAX: $primitive> FromStr for $lim<MAX> {
+                type Err = String;
+
+                fn from_str(src: &str) -> Result<Self, Self::Err> {
+                    Self::new(src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?)
+                }
+            }
+
             impl<const MAX: $primitive> TryFrom<$primitive> for $lim<MAX> {
                 type Error = String;
 
@@ -47,7 +56,7 @@ macro_rules! uint {
                         type Value = $lim<MAX>;
 
                         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                            f.write_str("integer as a number or string")
+                            f.write_str(stringify!($primitive))
                         }
 
                         fn [<visit_ $primitive>]<E>(self, val: $primitive) -> Result<Self::Value, E>
@@ -55,16 +64,9 @@ macro_rules! uint {
                         {
                             $lim::new(val).map_err(serde::de::Error::custom)
                         }
-
-                        fn visit_str<E>(self, val: &str) -> Result<Self::Value, E>
-                            where E: serde::de::Error
-                        {
-                            let v = val.parse().map_err(serde::de::Error::custom)?;
-                            $lim::new(v).map_err(serde::de::Error::custom)
-                        }
                     }
 
-                    deserializer.deserialize_any(Visitor)
+                    deserializer.[<deserialize_ $primitive>](Visitor)
                 }
             }
 
@@ -100,6 +102,14 @@ macro_rules! uint {
                 }
             }
 
+            impl<const MAX: $primitive> FromStr for $lim_nz<MAX> {
+                type Err = String;
+
+                fn from_str(src: &str) -> Result<Self, Self::Err> {
+                    Self::new(src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?)
+                }
+            }
+
             impl<const MAX: $primitive> TryFrom<$primitive> for $lim_nz<MAX> {
                 type Error = String;
 
@@ -118,7 +128,7 @@ macro_rules! uint {
                         type Value = $lim_nz<MAX>;
 
                         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                            f.write_str("integer as a number or string")
+                            f.write_str(stringify!($primitive))
                         }
 
                         fn [<visit_ $primitive>]<E>(self, val: $primitive) -> Result<Self::Value, E>
@@ -126,16 +136,9 @@ macro_rules! uint {
                         {
                             $lim_nz::new(val).map_err(serde::de::Error::custom)
                         }
-
-                        fn visit_str<E>(self, val: &str) -> Result<Self::Value, E>
-                            where E: serde::de::Error
-                        {
-                            let v = val.parse().map_err(serde::de::Error::custom)?;
-                            $lim_nz::new(v).map_err(serde::de::Error::custom)
-                        }
                     }
 
-                    deserializer.deserialize_any(Visitor)
+                    deserializer.[<deserialize_ $primitive>](Visitor)
                 }
             }
 
@@ -189,6 +192,14 @@ macro_rules! uint {
                 }
             }
 
+            impl<const MIN: $primitive, const MAX: $primitive> FromStr for $bounded<MIN, MAX> {
+                type Err = String;
+
+                fn from_str(src: &str) -> Result<Self, Self::Err> {
+                    Self::new(src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?)
+                }
+            }
+
             impl<'de, const MIN: $primitive, const MAX: $primitive> Deserialize<'de> for $bounded<MIN, MAX> {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
                     where D: serde::Deserializer<'de>
@@ -199,7 +210,7 @@ macro_rules! uint {
                         type Value = $bounded<MIN, MAX>;
 
                         fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                            f.write_str("integer as a number or string")
+                            f.write_str(stringify!($primitive))
                         }
 
                         fn [<visit_ $primitive>]<E>(self, val: $primitive) -> Result<Self::Value, E>
@@ -207,16 +218,9 @@ macro_rules! uint {
                         {
                             $bounded::new(val).map_err(serde::de::Error::custom)
                         }
-
-                        fn visit_str<E>(self, val: &str) -> Result<Self::Value, E>
-                            where E: serde::de::Error
-                        {
-                            let v = val.parse().map_err(serde::de::Error::custom)?;
-                            $bounded::new(v).map_err(serde::de::Error::custom)
-                        }
                     }
 
-                    deserializer.deserialize_any(Visitor)
+                    deserializer.[<deserialize_ $primitive>](Visitor)
                 }
             }
 
@@ -252,18 +256,5 @@ mod tests {
         assert_eq!(Ok(LimitedNonZeroU8::<10>::MAX), 10.try_into());
         assert_eq!(Ok(BoundedU8::<7, 10>::MIN), 7.try_into());
         assert_eq!(Ok(BoundedU8::<7, 10>::MAX), 10.try_into());
-    }
-
-    #[test]
-    fn deserialize_json() {
-        #[derive(serde::Deserialize, Debug)]
-        struct S {
-            value: LimitedU32<10000>,
-        }
-
-        let s = serde_json::from_str::<S>(r#"{"value": "10000"}"#).unwrap();
-        assert_eq!(s.value.0, 10000);
-
-        let _s = serde_json::from_str::<S>(r#"{"value": "10001"}"#).unwrap_err();
     }
 }
