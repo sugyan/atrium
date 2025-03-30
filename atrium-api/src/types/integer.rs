@@ -3,7 +3,7 @@
 use std::num::{NonZeroU16, NonZeroU32, NonZeroU64, NonZeroU8};
 use std::str::FromStr;
 
-use serde::Deserialize;
+use serde::{de::Error, Deserialize};
 
 macro_rules! uint {
     ($primitive:ident, $nz:ident, $lim:ident, $lim_nz:ident, $bounded:ident) => {
@@ -48,25 +48,12 @@ macro_rules! uint {
 
             impl<'de, const MAX: $primitive> Deserialize<'de> for $lim<MAX> {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                    where D: serde::Deserializer<'de>
+                where
+                    D: serde::Deserializer<'de>,
                 {
-                    struct Visitor<const MAX: $primitive>;
-
-                    impl<'de, const MAX: $primitive> serde::de::Visitor<'de> for Visitor<MAX> {
-                        type Value = $lim<MAX>;
-
-                        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                            f.write_str(stringify!($primitive))
-                        }
-
-                        fn [<visit_ $primitive>]<E>(self, val: $primitive) -> Result<Self::Value, E>
-                            where E: serde::de::Error
-                        {
-                            $lim::new(val).map_err(serde::de::Error::custom)
-                        }
-                    }
-
-                    deserializer.[<deserialize_ $primitive>](Visitor)
+                    Self::new(
+                        Deserialize::deserialize(deserializer)?
+                    ).map_err(D::Error::custom)
                 }
             }
 
@@ -120,25 +107,12 @@ macro_rules! uint {
 
             impl<'de, const MAX: $primitive> Deserialize<'de> for $lim_nz<MAX> {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                    where D: serde::Deserializer<'de>
+                where
+                    D: serde::Deserializer<'de>,
                 {
-                    struct Visitor<const MAX: $primitive>;
-
-                    impl<'de, const MAX: $primitive> serde::de::Visitor<'de> for Visitor<MAX> {
-                        type Value = $lim_nz<MAX>;
-
-                        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                            f.write_str(stringify!($primitive))
-                        }
-
-                        fn [<visit_ $primitive>]<E>(self, val: $primitive) -> Result<Self::Value, E>
-                            where E: serde::de::Error
-                        {
-                            $lim_nz::new(val).map_err(serde::de::Error::custom)
-                        }
-                    }
-
-                    deserializer.[<deserialize_ $primitive>](Visitor)
+                    Self::new(
+                        Deserialize::deserialize(deserializer)?
+                    ).map_err(D::Error::custom)
                 }
             }
 
@@ -200,27 +174,16 @@ macro_rules! uint {
                 }
             }
 
-            impl<'de, const MIN: $primitive, const MAX: $primitive> Deserialize<'de> for $bounded<MIN, MAX> {
+            impl<'de, const MIN: $primitive, const MAX: $primitive> Deserialize<'de>
+                for $bounded<MIN, MAX>
+            {
                 fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-                    where D: serde::Deserializer<'de>
+                where
+                    D: serde::Deserializer<'de>,
                 {
-                    struct Visitor<const MIN: $primitive, const MAX: $primitive>;
-
-                    impl<'de, const MIN: $primitive, const MAX: $primitive> serde::de::Visitor<'de> for Visitor<MIN, MAX> {
-                        type Value = $bounded<MIN, MAX>;
-
-                        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-                            f.write_str(stringify!($primitive))
-                        }
-
-                        fn [<visit_ $primitive>]<E>(self, val: $primitive) -> Result<Self::Value, E>
-                            where E: serde::de::Error
-                        {
-                            $bounded::new(val).map_err(serde::de::Error::custom)
-                        }
-                    }
-
-                    deserializer.[<deserialize_ $primitive>](Visitor)
+                    Self::new(
+                        Deserialize::deserialize(deserializer)?
+                    ).map_err(D::Error::custom)
                 }
             }
 
