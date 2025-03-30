@@ -215,6 +215,7 @@ dependencies = [
  "regex",
  "serde",
  "serde_bytes",
+ "serde_html_form",
  "serde_ipld_dagcbor",
  "serde_json",
  "thiserror",
