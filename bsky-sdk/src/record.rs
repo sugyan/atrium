@@ -348,8 +348,11 @@ mod tests {
             .into()
         );
         // delete
-        atrium_api::app::bsky::actor::profile::Record::delete(&agent, String::from("somerkey"))
-            .await?;
+        atrium_api::app::bsky::actor::profile::Record::delete(
+            &agent,
+            RecordKey::new("somerkey".into()).unwrap(),
+        )
+        .await?;
         Ok(())
     }
 
@@ -381,7 +384,11 @@ mod tests {
             .into()
         );
         // delete
-        atrium_api::app::bsky::feed::post::Record::delete(&agent, String::from("somerkey")).await?;
+        atrium_api::app::bsky::feed::post::Record::delete(
+            &agent,
+            RecordKey::new("somerkey".into()).unwrap(),
+        )
+        .await?;
         Ok(())
     }
 
@@ -406,8 +413,11 @@ mod tests {
             .into()
         );
         // delete
-        atrium_api::app::bsky::graph::follow::Record::delete(&agent, String::from("somerkey"))
-            .await?;
+        atrium_api::app::bsky::graph::follow::Record::delete(
+            &agent,
+            RecordKey::new("somerkey".into()).unwrap(),
+        )
+        .await?;
         Ok(())
     }
 }
