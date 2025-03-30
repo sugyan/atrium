@@ -141,6 +141,24 @@ pub struct PersonalDetailsPrefData {
     pub birth_date: core::option::Option<crate::types::string::Datetime>,
 }
 pub type PersonalDetailsPref = crate::types::Object<PersonalDetailsPrefData>;
+///Default post interaction settings for the account. These values should be applied as default values when creating new posts. These refs should mirror the threadgate and postgate records exactly.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PostInteractionSettingsPrefData {
+    ///Matches postgate record. List of rules defining who can embed this users posts. If value is an empty array or is undefined, no particular rules apply and anyone can embed.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub postgate_embedding_rules: core::option::Option<
+        Vec<crate::types::Union<PostInteractionSettingsPrefPostgateEmbeddingRulesItem>>,
+    >,
+    ///Matches threadgate record. List of rules defining who can reply to this users posts. If value is an empty array, no one can reply. If value is undefined, anyone can reply.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub threadgate_allow_rules: core::option::Option<
+        Vec<crate::types::Union<PostInteractionSettingsPrefThreadgateAllowRulesItem>>,
+    >,
+}
+pub type PostInteractionSettingsPref = crate::types::Object<
+    PostInteractionSettingsPrefData,
+>;
 pub type Preferences = Vec<crate::types::Union<PreferencesItem>>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -305,6 +323,30 @@ pub struct ViewerStateData {
 pub type ViewerState = crate::types::Object<ViewerStateData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
+pub enum PostInteractionSettingsPrefPostgateEmbeddingRulesItem {
+    #[serde(rename = "app.bsky.feed.postgate#disableRule")]
+    AppBskyFeedPostgateDisableRule(Box<crate::app::bsky::feed::postgate::DisableRule>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum PostInteractionSettingsPrefThreadgateAllowRulesItem {
+    #[serde(rename = "app.bsky.feed.threadgate#mentionRule")]
+    AppBskyFeedThreadgateMentionRule(
+        Box<crate::app::bsky::feed::threadgate::MentionRule>,
+    ),
+    #[serde(rename = "app.bsky.feed.threadgate#followerRule")]
+    AppBskyFeedThreadgateFollowerRule(
+        Box<crate::app::bsky::feed::threadgate::FollowerRule>,
+    ),
+    #[serde(rename = "app.bsky.feed.threadgate#followingRule")]
+    AppBskyFeedThreadgateFollowingRule(
+        Box<crate::app::bsky::feed::threadgate::FollowingRule>,
+    ),
+    #[serde(rename = "app.bsky.feed.threadgate#listRule")]
+    AppBskyFeedThreadgateListRule(Box<crate::app::bsky::feed::threadgate::ListRule>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
 pub enum PreferencesItem {
     #[serde(rename = "app.bsky.actor.defs#adultContentPref")]
     AdultContentPref(Box<AdultContentPref>),
@@ -330,4 +372,6 @@ pub enum PreferencesItem {
     BskyAppStatePref(Box<BskyAppStatePref>),
     #[serde(rename = "app.bsky.actor.defs#labelersPref")]
     LabelersPref(Box<LabelersPref>),
+    #[serde(rename = "app.bsky.actor.defs#postInteractionSettingsPref")]
+    PostInteractionSettingsPref(Box<PostInteractionSettingsPref>),
 }

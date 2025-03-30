@@ -7,6 +7,7 @@ pub struct RecordData {
     ///List of AT-URIs embedding this post that the author has detached from.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub detached_embedding_uris: core::option::Option<Vec<String>>,
+    ///List of rules defining who can embed this post. If value is an empty array or is undefined, no particular rules apply and anyone can embed.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub embedding_rules: core::option::Option<
         Vec<crate::types::Union<RecordEmbeddingRulesItem>>,

@@ -48,6 +48,9 @@ pub struct ParametersData {
     ///If specified, only subjects that belong to an account that has at least this many suspensions will be returned.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub min_account_suspend_count: core::option::Option<i64>,
+    ///If specified, only subjects that have priority score value above the given value will be returned.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub min_priority_score: core::option::Option<crate::types::LimitedU8<100u8>>,
     ///If specified, only subjects that belong to an account that has at least this many reported records will be returned.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub min_reported_records_count: core::option::Option<i64>,

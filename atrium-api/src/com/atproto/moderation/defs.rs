@@ -15,3 +15,5 @@ pub const REASON_SPAM: &str = "com.atproto.moderation.defs#reasonSpam";
 pub type ReasonType = String;
 ///Direct violation of server rules, laws, terms of service
 pub const REASON_VIOLATION: &str = "com.atproto.moderation.defs#reasonViolation";
+///Tag describing a type of subject that might be reported.
+pub type SubjectType = String;

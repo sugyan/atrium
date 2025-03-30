@@ -9,7 +9,7 @@ pub struct InputData {
     ///The handle or DID of the repo (aka, current account).
     pub repo: crate::types::string::AtIdentifier,
     ///The Record Key.
-    pub rkey: String,
+    pub rkey: crate::types::string::RecordKey,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub swap_commit: core::option::Option<crate::types::string::Cid>,

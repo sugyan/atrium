@@ -8,11 +8,15 @@ pub struct ConvoViewData {
     pub last_message: core::option::Option<
         crate::types::Union<ConvoViewLastMessageRefs>,
     >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub last_reaction: core::option::Option<
+        crate::types::Union<ConvoViewLastReactionRefs>,
+    >,
     pub members: Vec<crate::chat::bsky::actor::defs::ProfileViewBasic>,
     pub muted: bool,
-    #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub opened: core::option::Option<bool>,
     pub rev: String,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub status: core::option::Option<String>,
     pub unread_count: i64,
 }
 pub type ConvoView = crate::types::Object<ConvoViewData>;
@@ -25,6 +29,22 @@ pub struct DeletedMessageViewData {
     pub sent_at: crate::types::string::Datetime,
 }
 pub type DeletedMessageView = crate::types::Object<DeletedMessageViewData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LogAcceptConvoData {
+    pub convo_id: String,
+    pub rev: String,
+}
+pub type LogAcceptConvo = crate::types::Object<LogAcceptConvoData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LogAddReactionData {
+    pub convo_id: String,
+    pub message: crate::types::Union<LogAddReactionMessageRefs>,
+    pub reaction: ReactionView,
+    pub rev: String,
+}
+pub type LogAddReaction = crate::types::Object<LogAddReactionData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct LogBeginConvoData {
@@ -57,6 +77,44 @@ pub struct LogLeaveConvoData {
 pub type LogLeaveConvo = crate::types::Object<LogLeaveConvoData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct LogMuteConvoData {
+    pub convo_id: String,
+    pub rev: String,
+}
+pub type LogMuteConvo = crate::types::Object<LogMuteConvoData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LogReadMessageData {
+    pub convo_id: String,
+    pub message: crate::types::Union<LogReadMessageMessageRefs>,
+    pub rev: String,
+}
+pub type LogReadMessage = crate::types::Object<LogReadMessageData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LogRemoveReactionData {
+    pub convo_id: String,
+    pub message: crate::types::Union<LogRemoveReactionMessageRefs>,
+    pub reaction: ReactionView,
+    pub rev: String,
+}
+pub type LogRemoveReaction = crate::types::Object<LogRemoveReactionData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct LogUnmuteConvoData {
+    pub convo_id: String,
+    pub rev: String,
+}
+pub type LogUnmuteConvo = crate::types::Object<LogUnmuteConvoData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct MessageAndReactionViewData {
+    pub message: MessageView,
+    pub reaction: ReactionView,
+}
+pub type MessageAndReactionView = crate::types::Object<MessageAndReactionViewData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct MessageInputData {
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub embed: core::option::Option<crate::types::Union<MessageInputEmbedRefs>>,
@@ -83,6 +141,9 @@ pub struct MessageViewData {
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub facets: core::option::Option<Vec<crate::app::bsky::richtext::facet::Main>>,
     pub id: String,
+    ///Reactions to this message, in ascending order of creation time.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reactions: core::option::Option<Vec<ReactionView>>,
     pub rev: String,
     pub sender: MessageViewSender,
     pub sent_at: crate::types::string::Datetime,
@@ -96,8 +157,36 @@ pub struct MessageViewSenderData {
 }
 pub type MessageViewSender = crate::types::Object<MessageViewSenderData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ReactionViewData {
+    pub created_at: crate::types::string::Datetime,
+    pub sender: ReactionViewSender,
+    pub value: String,
+}
+pub type ReactionView = crate::types::Object<ReactionViewData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ReactionViewSenderData {
+    pub did: crate::types::string::Did,
+}
+pub type ReactionViewSender = crate::types::Object<ReactionViewSenderData>;
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum ConvoViewLastMessageRefs {
+    #[serde(rename = "chat.bsky.convo.defs#messageView")]
+    MessageView(Box<MessageView>),
+    #[serde(rename = "chat.bsky.convo.defs#deletedMessageView")]
+    DeletedMessageView(Box<DeletedMessageView>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum ConvoViewLastReactionRefs {
+    #[serde(rename = "chat.bsky.convo.defs#messageAndReactionView")]
+    MessageAndReactionView(Box<MessageAndReactionView>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum LogAddReactionMessageRefs {
     #[serde(rename = "chat.bsky.convo.defs#messageView")]
     MessageView(Box<MessageView>),
     #[serde(rename = "chat.bsky.convo.defs#deletedMessageView")]
@@ -114,6 +203,22 @@ pub enum LogCreateMessageMessageRefs {
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum LogDeleteMessageMessageRefs {
+    #[serde(rename = "chat.bsky.convo.defs#messageView")]
+    MessageView(Box<MessageView>),
+    #[serde(rename = "chat.bsky.convo.defs#deletedMessageView")]
+    DeletedMessageView(Box<DeletedMessageView>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum LogReadMessageMessageRefs {
+    #[serde(rename = "chat.bsky.convo.defs#messageView")]
+    MessageView(Box<MessageView>),
+    #[serde(rename = "chat.bsky.convo.defs#deletedMessageView")]
+    DeletedMessageView(Box<DeletedMessageView>),
+}
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(tag = "$type")]
+pub enum LogRemoveReactionMessageRefs {
     #[serde(rename = "chat.bsky.convo.defs#messageView")]
     MessageView(Box<MessageView>),
     #[serde(rename = "chat.bsky.convo.defs#deletedMessageView")]

@@ -29,8 +29,14 @@ impl std::fmt::Display for Error {
 pub enum OutputLogsItem {
     #[serde(rename = "chat.bsky.convo.defs#logBeginConvo")]
     ChatBskyConvoDefsLogBeginConvo(Box<crate::chat::bsky::convo::defs::LogBeginConvo>),
+    #[serde(rename = "chat.bsky.convo.defs#logAcceptConvo")]
+    ChatBskyConvoDefsLogAcceptConvo(Box<crate::chat::bsky::convo::defs::LogAcceptConvo>),
     #[serde(rename = "chat.bsky.convo.defs#logLeaveConvo")]
     ChatBskyConvoDefsLogLeaveConvo(Box<crate::chat::bsky::convo::defs::LogLeaveConvo>),
+    #[serde(rename = "chat.bsky.convo.defs#logMuteConvo")]
+    ChatBskyConvoDefsLogMuteConvo(Box<crate::chat::bsky::convo::defs::LogMuteConvo>),
+    #[serde(rename = "chat.bsky.convo.defs#logUnmuteConvo")]
+    ChatBskyConvoDefsLogUnmuteConvo(Box<crate::chat::bsky::convo::defs::LogUnmuteConvo>),
     #[serde(rename = "chat.bsky.convo.defs#logCreateMessage")]
     ChatBskyConvoDefsLogCreateMessage(
         Box<crate::chat::bsky::convo::defs::LogCreateMessage>,
@@ -38,5 +44,13 @@ pub enum OutputLogsItem {
     #[serde(rename = "chat.bsky.convo.defs#logDeleteMessage")]
     ChatBskyConvoDefsLogDeleteMessage(
         Box<crate::chat::bsky::convo::defs::LogDeleteMessage>,
+    ),
+    #[serde(rename = "chat.bsky.convo.defs#logReadMessage")]
+    ChatBskyConvoDefsLogReadMessage(Box<crate::chat::bsky::convo::defs::LogReadMessage>),
+    #[serde(rename = "chat.bsky.convo.defs#logAddReaction")]
+    ChatBskyConvoDefsLogAddReaction(Box<crate::chat::bsky::convo::defs::LogAddReaction>),
+    #[serde(rename = "chat.bsky.convo.defs#logRemoveReaction")]
+    ChatBskyConvoDefsLogRemoveReaction(
+        Box<crate::chat::bsky::convo::defs::LogRemoveReaction>,
     ),
 }

@@ -7,7 +7,7 @@ use atrium_api::agent::atp_agent::store::AtpSessionStore;
 use atrium_api::com::atproto::repo::{
     create_record, delete_record, get_record, list_records, put_record,
 };
-use atrium_api::types::{Collection, LimitedNonZeroU8, TryIntoUnknown};
+use atrium_api::types::{string::RecordKey, Collection, LimitedNonZeroU8, TryIntoUnknown};
 use atrium_api::xrpc::XrpcClient;
 use std::future::Future;
 
@@ -25,18 +25,18 @@ where
     ) -> impl Future<Output = Result<list_records::Output>>;
     fn get(
         agent: &BskyAgent<T, S>,
-        rkey: String,
+        rkey: RecordKey,
     ) -> impl Future<Output = Result<get_record::Output>>;
     fn put(
         self,
         agent: &BskyAgent<T, S>,
-        rkey: String,
+        rkey: RecordKey,
     ) -> impl Future<Output = Result<put_record::Output>>;
     fn create(self, agent: &BskyAgent<T, S>)
         -> impl Future<Output = Result<create_record::Output>>;
     fn delete(
         agent: &BskyAgent<T, S>,
-        rkey: String,
+        rkey: RecordKey,
     ) -> impl Future<Output = Result<delete_record::Output>>;
 }
 
@@ -66,14 +66,12 @@ macro_rules! record_impl {
                             limit,
                             repo: session.data.did.into(),
                             reverse: None,
-                            rkey_end: None,
-                            rkey_start: None,
                         }
                         .into(),
                     )
                     .await?)
             }
-            async fn get(agent: &BskyAgent<T, S>, rkey: String) -> Result<get_record::Output> {
+            async fn get(agent: &BskyAgent<T, S>, rkey: RecordKey) -> Result<get_record::Output> {
                 let session = agent.get_session().await.ok_or(Error::NotLoggedIn)?;
                 Ok(agent
                     .api
@@ -94,7 +92,7 @@ macro_rules! record_impl {
             async fn put(
                 self,
                 agent: &BskyAgent<T, S>,
-                rkey: String,
+                rkey: RecordKey,
             ) -> Result<put_record::Output> {
                 let session = agent.get_session().await.ok_or(Error::NotLoggedIn)?;
                 Ok(agent
@@ -138,7 +136,7 @@ macro_rules! record_impl {
             }
             async fn delete(
                 agent: &BskyAgent<T, S>,
-                rkey: String,
+                rkey: RecordKey,
             ) -> Result<delete_record::Output> {
                 let session = agent.get_session().await.ok_or(Error::NotLoggedIn)?;
                 Ok(agent
@@ -173,13 +171,13 @@ macro_rules! record_impl {
             ) -> Result<list_records::Output> {
                 <$record>::list(agent, cursor, limit).await
             }
-            async fn get(agent: &BskyAgent<T, S>, rkey: String) -> Result<get_record::Output> {
+            async fn get(agent: &BskyAgent<T, S>, rkey: RecordKey) -> Result<get_record::Output> {
                 <$record>::get(agent, rkey).await
             }
             async fn put(
                 self,
                 agent: &BskyAgent<T, S>,
-                rkey: String,
+                rkey: RecordKey,
             ) -> Result<put_record::Output> {
                 <$record>::from(self).put(agent, rkey).await
             }
@@ -188,7 +186,7 @@ macro_rules! record_impl {
             }
             async fn delete(
                 agent: &BskyAgent<T, S>,
-                rkey: String,
+                rkey: RecordKey,
             ) -> Result<delete_record::Output> {
                 <$record>::delete(agent, rkey).await
             }

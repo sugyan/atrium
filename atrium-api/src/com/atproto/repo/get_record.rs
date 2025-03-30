@@ -12,7 +12,7 @@ pub struct ParametersData {
     ///The handle or DID of the repo.
     pub repo: crate::types::string::AtIdentifier,
     ///The Record Key.
-    pub rkey: String,
+    pub rkey: crate::types::string::RecordKey,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

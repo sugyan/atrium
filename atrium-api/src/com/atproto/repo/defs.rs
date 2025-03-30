@@ -4,6 +4,6 @@
 #[serde(rename_all = "camelCase")]
 pub struct CommitMetaData {
     pub cid: crate::types::string::Cid,
-    pub rev: String,
+    pub rev: crate::types::string::Tid,
 }
 pub type CommitMeta = crate::types::Object<CommitMetaData>;

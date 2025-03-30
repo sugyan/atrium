@@ -182,6 +182,14 @@ pub struct SkeletonReasonRepostData {
     pub repost: String,
 }
 pub type SkeletonReasonRepost = crate::types::Object<SkeletonReasonRepostData>;
+///Metadata about this post within the context of the thread it is in.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ThreadContextData {
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub root_author_like: core::option::Option<String>,
+}
+pub type ThreadContext = crate::types::Object<ThreadContextData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct ThreadViewPostData {
@@ -192,6 +200,8 @@ pub struct ThreadViewPostData {
     pub replies: core::option::Option<
         Vec<crate::types::Union<ThreadViewPostRepliesItem>>,
     >,
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub thread_context: core::option::Option<ThreadContext>,
 }
 pub type ThreadViewPost = crate::types::Object<ThreadViewPostData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

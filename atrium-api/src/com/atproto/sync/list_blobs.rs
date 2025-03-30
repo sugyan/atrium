@@ -12,7 +12,7 @@ pub struct ParametersData {
     pub limit: core::option::Option<crate::types::LimitedNonZeroU16<1000u16>>,
     ///Optional revision of the repo to list blobs since.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub since: core::option::Option<String>,
+    pub since: core::option::Option<crate::types::string::Tid>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -1,7 +1,7 @@
 use crate::commands::Command;
 use anyhow::{Context, Result};
 use api::agent::bluesky::{AtprotoServiceType, BSKY_CHAT_DID};
-use api::types::string::{AtIdentifier, Datetime, Handle};
+use api::types::string::{AtIdentifier, Datetime, Handle, RecordKey};
 use api::types::LimitedNonZeroU8;
 use bsky_sdk::agent::config::{Config, FileStore};
 use bsky_sdk::api;
@@ -312,6 +312,8 @@ impl Runner {
                         api::chat::bsky::convo::list_convos::ParametersData {
                             cursor: None,
                             limit: Some(limit),
+                            read_state: None,
+                            status: None,
                         }
                         .into(),
                     )
@@ -435,7 +437,8 @@ impl Runner {
                         api::com::atproto::repo::delete_record::InputData {
                             collection: "app.bsky.feed.post".parse().expect("valid"),
                             repo: self.handle().await?.into(),
-                            rkey: args.uri.rkey,
+                            rkey: RecordKey::new(args.uri.rkey)
+                                .map_err(|e| anyhow::anyhow!(e))?,
                             swap_commit: None,
                             swap_record: None,
                         }
