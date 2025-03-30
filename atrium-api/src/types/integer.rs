@@ -33,7 +33,9 @@ macro_rules! uint {
             type Err = String;
 
             fn from_str(src: &str) -> Result<Self, Self::Err> {
-                Self::new(src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?)
+                Self::new(
+                    src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?,
+                )
             }
         }
 
@@ -50,9 +52,7 @@ macro_rules! uint {
             where
                 D: serde::Deserializer<'de>,
             {
-                Self::new(
-                    Deserialize::deserialize(deserializer)?
-                ).map_err(D::Error::custom)
+                Self::new(Deserialize::deserialize(deserializer)?).map_err(D::Error::custom)
             }
         }
 
@@ -92,7 +92,9 @@ macro_rules! uint {
             type Err = String;
 
             fn from_str(src: &str) -> Result<Self, Self::Err> {
-                Self::new(src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?)
+                Self::new(
+                    src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?,
+                )
             }
         }
 
@@ -109,9 +111,7 @@ macro_rules! uint {
             where
                 D: serde::Deserializer<'de>,
             {
-                Self::new(
-                    Deserialize::deserialize(deserializer)?
-                ).map_err(D::Error::custom)
+                Self::new(Deserialize::deserialize(deserializer)?).map_err(D::Error::custom)
             }
         }
 
@@ -169,7 +169,9 @@ macro_rules! uint {
             type Err = String;
 
             fn from_str(src: &str) -> Result<Self, Self::Err> {
-                Self::new(src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?)
+                Self::new(
+                    src.parse::<$primitive>().map_err(|_| format!("value is not an integer"))?,
+                )
             }
         }
 
@@ -180,9 +182,7 @@ macro_rules! uint {
             where
                 D: serde::Deserializer<'de>,
             {
-                Self::new(
-                    Deserialize::deserialize(deserializer)?
-                ).map_err(D::Error::custom)
+                Self::new(Deserialize::deserialize(deserializer)?).map_err(D::Error::custom)
             }
         }
 
