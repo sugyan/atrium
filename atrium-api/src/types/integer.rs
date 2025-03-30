@@ -257,4 +257,60 @@ mod tests {
         assert_eq!(Ok(BoundedU8::<7, 10>::MIN), 7.try_into());
         assert_eq!(Ok(BoundedU8::<7, 10>::MAX), 10.try_into());
     }
+
+    #[test]
+    fn u8_from_str() {
+        {
+            type LU8 = LimitedU8<10>;
+            assert_eq!(Ok(LU8::MIN), "0".parse());
+            assert_eq!(Ok(LU8::MAX), "10".parse());
+            assert_eq!(Err("value is greater than 10".into()), "11".parse::<LU8>());
+        }
+        {
+            type LU8 = LimitedNonZeroU8<10>;
+            assert_eq!(Ok(LU8::MIN), "1".parse());
+            assert_eq!(Ok(LU8::MAX), "10".parse());
+            assert_eq!(Err("value is greater than 10".into()), "11".parse::<LU8>());
+        }
+        {
+            type BU8 = BoundedU8<7, 10>;
+            assert_eq!(Err("value is less than 7".into()), "6".parse::<BU8>());
+            assert_eq!(Ok(BU8::MIN), "7".parse());
+            assert_eq!(Ok(BU8::MAX), "10".parse());
+            assert_eq!(Err("value is greater than 10".into()), "11".parse::<BU8>());
+        }
+    }
+
+    #[test]
+    fn deserialize_u8_from_str() {
+        {
+            #[derive(Deserialize, Debug)]
+            struct Foo {
+                bar: LimitedU8<10>,
+            }
+
+            match serde_json::from_str::<Foo>(r#"{"bar": 0}"#) {
+                Ok(foo) => assert_eq!(foo.bar, LimitedU8::<10>::MIN),
+                Err(e) => panic!("failed to deserialize: {e}"),
+            }
+            match serde_json::from_str::<Foo>(r#"{"bar": "0"}"#) {
+                Ok(_) => panic!("deserialization should fail"),
+                Err(e) => assert!(e.to_string().contains("invalid type: string")),
+            }
+            match serde_html_form::from_str::<Foo>(r#"bar=0"#) {
+                Ok(foo) => assert_eq!(foo.bar, LimitedU8::<10>::MIN),
+                Err(e) => panic!("failed to deserialize: {e}"),
+            }
+            match serde_html_form::from_str::<Foo>(r#"bar=10"#) {
+                Ok(foo) => assert_eq!(foo.bar, LimitedU8::<10>::MAX),
+                Err(e) => panic!("failed to deserialize: {e}"),
+            }
+            match serde_html_form::from_str::<Foo>(r#"bar=11"#) {
+                Ok(_) => panic!("deserialization should fail"),
+                Err(e) => assert_eq!(e.to_string(), "value is greater than 10"),
+            }
+        }
+        // TODO: LimitedNonZeroU8
+        // TODO: BoundedU8
+    }
 }
