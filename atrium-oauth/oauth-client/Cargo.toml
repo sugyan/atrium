@@ -14,12 +14,13 @@ keywords = ["atproto", "bluesky", "oauth"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-atrium-api = { workspace = true, default-features = false }
+atrium-api = { workspace = true, features = ["agent"] }
 atrium-common.workspace = true
 atrium-identity.workspace = true
 atrium-xrpc.workspace = true
 base64.workspace = true
 chrono.workspace = true
+dashmap.workspace = true
 ecdsa = { workspace = true, features = ["signing"] }
 elliptic-curve.workspace = true
 jose-jwa.workspace = true
@@ -32,11 +33,14 @@ serde_html_form.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
 trait-variant.workspace = true
 
 [dev-dependencies]
+atrium-api = { workspace = true, features = ["bluesky"] }
+futures.workspace = true
 hickory-resolver.workspace = true
-p256 = { workspace = true, features = ["pem"] }
+p256 = { workspace = true, features = ["pem", "std"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 [features]

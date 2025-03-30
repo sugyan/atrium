@@ -1,11 +1,11 @@
 use super::response::OAuthTokenType;
-use atrium_api::types::string::Datetime;
+use atrium_api::types::string::{Datetime, Did};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct TokenSet {
     pub iss: String,
-    pub sub: String,
+    pub sub: Did,
     pub aud: String,
     pub scope: Option<String>,
 
