@@ -10,6 +10,7 @@ pub mod get_repo;
 pub mod get_repo_status;
 pub mod list_blobs;
 pub mod list_repos;
+pub mod list_repos_by_collection;
 pub mod notify_of_update;
 pub mod request_crawl;
 pub mod subscribe_repos;

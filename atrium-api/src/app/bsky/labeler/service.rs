@@ -7,6 +7,19 @@ pub struct RecordData {
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub labels: core::option::Option<crate::types::Union<RecordLabelsRefs>>,
     pub policies: crate::app::bsky::labeler::defs::LabelerPolicies,
+    ///The set of report reason 'codes' which are in-scope for this service to review and action. These usually align to policy categories. If not defined (distinct from empty array), all reason types are allowed.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub reason_types: core::option::Option<
+        Vec<crate::com::atproto::moderation::defs::ReasonType>,
+    >,
+    ///Set of record types (collection NSIDs) which can be reported to this service. If not defined (distinct from empty array), default is any record type.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_collections: core::option::Option<Vec<crate::types::string::Nsid>>,
+    ///The set of subject types (account, record, etc) this service accepts reports on.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub subject_types: core::option::Option<
+        Vec<crate::com::atproto::moderation::defs::SubjectType>,
+    >,
 }
 pub type Record = crate::types::Object<RecordData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

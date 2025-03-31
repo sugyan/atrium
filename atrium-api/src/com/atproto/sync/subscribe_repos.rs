@@ -54,42 +54,32 @@ pub type Account = crate::types::Object<AccountData>;
 #[serde(rename_all = "camelCase")]
 pub struct CommitData {
     pub blobs: Vec<crate::types::CidLink>,
-    ///CAR file containing relevant blocks, as a diff since the previous repo state.
+    ///CAR file containing relevant blocks, as a diff since the previous repo state. The commit must be included as a block, and the commit block CID must be the first entry in the CAR header 'roots' list.
     #[serde(with = "serde_bytes")]
     pub blocks: Vec<u8>,
     ///Repo commit object CID.
     pub commit: crate::types::CidLink,
     pub ops: Vec<RepoOp>,
-    ///DEPRECATED -- unused. WARNING -- nullable and optional; stick with optional to ensure golang interoperability.
+    ///The root CID of the MST tree for the previous commit from this repo (indicated by the 'since' revision field in this message). Corresponds to the 'data' field in the repo commit object. NOTE: this field is effectively required for the 'inductive' version of firehose.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub prev: core::option::Option<crate::types::CidLink>,
+    pub prev_data: core::option::Option<crate::types::CidLink>,
     ///DEPRECATED -- unused
     pub rebase: bool,
-    ///The repo this event comes from.
+    ///The repo this event comes from. Note that all other message types name this field 'did'.
     pub repo: crate::types::string::Did,
     ///The rev of the emitted commit. Note that this information is also in the commit object included in blocks, unless this is a tooBig event.
-    pub rev: String,
+    pub rev: crate::types::string::Tid,
     ///The stream sequence number of this message.
     pub seq: i64,
     ///The rev of the last emitted commit from this repo (if any).
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub since: core::option::Option<String>,
+    pub since: core::option::Option<crate::types::string::Tid>,
     ///Timestamp of when this message was originally broadcast.
     pub time: crate::types::string::Datetime,
-    ///Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
+    ///DEPRECATED -- replaced by #sync event and data limits. Indicates that this commit contained too many ops, or data size was too large. Consumers will need to make a separate request to get missing data.
     pub too_big: bool,
 }
 pub type Commit = crate::types::Object<CommitData>;
-///DEPRECATED -- Use #identity event instead
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct HandleData {
-    pub did: crate::types::string::Did,
-    pub handle: crate::types::string::Handle,
-    pub seq: i64,
-    pub time: crate::types::string::Datetime,
-}
-pub type Handle = crate::types::Object<HandleData>;
 ///Represents a change to an account's identity. Could be an updated handle, signing key, or pds hosting endpoint. Serves as a prod to all downstream services to refresh their identity cache.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -110,17 +100,6 @@ pub struct InfoData {
     pub name: String,
 }
 pub type Info = crate::types::Object<InfoData>;
-///DEPRECATED -- Use #account event instead
-#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct MigrateData {
-    pub did: crate::types::string::Did,
-    #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub migrate_to: core::option::Option<String>,
-    pub seq: i64,
-    pub time: crate::types::string::Datetime,
-}
-pub type Migrate = crate::types::Object<MigrateData>;
 ///A repo operation, ie a mutation of a single record.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -130,32 +109,39 @@ pub struct RepoOpData {
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub cid: core::option::Option<crate::types::CidLink>,
     pub path: String,
+    ///For updates and deletes, the previous record CID (required for inductive firehose). For creations, field should not be defined.
+    #[serde(skip_serializing_if = "core::option::Option::is_none")]
+    pub prev: core::option::Option<crate::types::CidLink>,
 }
 pub type RepoOp = crate::types::Object<RepoOpData>;
-///DEPRECATED -- Use #account event instead
+///Updates the repo to a new state, without necessarily including that state on the firehose. Used to recover from broken commit streams, data loss incidents, or in situations where upstream host does not know recent state of the repository.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct TombstoneData {
+pub struct SyncData {
+    ///CAR file containing the commit, as a block. The CAR header must include the commit block CID as the first 'root'.
+    #[serde(with = "serde_bytes")]
+    pub blocks: Vec<u8>,
+    ///The account this repo event corresponds to. Must match that in the commit object.
     pub did: crate::types::string::Did,
+    ///The rev of the commit. This value must match that in the commit object.
+    pub rev: String,
+    ///The stream sequence number of this message.
     pub seq: i64,
+    ///Timestamp of when this message was originally broadcast.
     pub time: crate::types::string::Datetime,
 }
-pub type Tombstone = crate::types::Object<TombstoneData>;
+pub type Sync = crate::types::Object<SyncData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "$type")]
 pub enum Message {
     #[serde(rename = "com.atproto.sync.subscribeRepos#commit")]
     Commit(Box<Commit>),
+    #[serde(rename = "com.atproto.sync.subscribeRepos#sync")]
+    Sync(Box<Sync>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#identity")]
     Identity(Box<Identity>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#account")]
     Account(Box<Account>),
-    #[serde(rename = "com.atproto.sync.subscribeRepos#handle")]
-    Handle(Box<Handle>),
-    #[serde(rename = "com.atproto.sync.subscribeRepos#migrate")]
-    Migrate(Box<Migrate>),
-    #[serde(rename = "com.atproto.sync.subscribeRepos#tombstone")]
-    Tombstone(Box<Tombstone>),
     #[serde(rename = "com.atproto.sync.subscribeRepos#info")]
     Info(Box<Info>),
 }

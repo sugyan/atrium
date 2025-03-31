@@ -16,12 +16,6 @@ pub struct ParametersData {
     ///Flag to reverse the order of the returned records.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub reverse: core::option::Option<bool>,
-    ///DEPRECATED: The highest sort-ordered rkey to stop at (exclusive)
-    #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub rkey_end: core::option::Option<String>,
-    ///DEPRECATED: The lowest sort-ordered rkey to start from (exclusive)
-    #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub rkey_start: core::option::Option<String>,
 }
 pub type Parameters = crate::types::Object<ParametersData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

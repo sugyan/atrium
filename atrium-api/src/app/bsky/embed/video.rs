@@ -11,6 +11,7 @@ pub struct MainData {
     pub aspect_ratio: core::option::Option<crate::app::bsky::embed::defs::AspectRatio>,
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub captions: core::option::Option<Vec<Caption>>,
+    ///The mp4 video file. May be up to 100mb, formerly limited to 50mb.
     pub video: crate::types::BlobRef,
 }
 pub type Main = crate::types::Object<MainData>;

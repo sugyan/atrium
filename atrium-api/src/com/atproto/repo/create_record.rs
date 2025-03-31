@@ -12,7 +12,7 @@ pub struct InputData {
     pub repo: crate::types::string::AtIdentifier,
     ///The Record Key.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub rkey: core::option::Option<String>,
+    pub rkey: core::option::Option<crate::types::string::RecordKey>,
     ///Compare and swap with the previous commit by CID.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub swap_commit: core::option::Option<crate::types::string::Cid>,

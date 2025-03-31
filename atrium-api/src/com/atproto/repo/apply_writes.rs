@@ -48,8 +48,9 @@ impl std::fmt::Display for Error {
 #[serde(rename_all = "camelCase")]
 pub struct CreateData {
     pub collection: crate::types::string::Nsid,
+    ///NOTE: maxLength is redundant with record-key format. Keeping it temporarily to ensure backwards compatibility.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
-    pub rkey: core::option::Option<String>,
+    pub rkey: core::option::Option<crate::types::string::RecordKey>,
     pub value: crate::types::Unknown,
 }
 pub type Create = crate::types::Object<CreateData>;
@@ -67,7 +68,7 @@ pub type CreateResult = crate::types::Object<CreateResultData>;
 #[serde(rename_all = "camelCase")]
 pub struct DeleteData {
     pub collection: crate::types::string::Nsid,
-    pub rkey: String,
+    pub rkey: crate::types::string::RecordKey,
 }
 pub type Delete = crate::types::Object<DeleteData>;
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -79,7 +80,7 @@ pub type DeleteResult = crate::types::Object<DeleteResultData>;
 #[serde(rename_all = "camelCase")]
 pub struct UpdateData {
     pub collection: crate::types::string::Nsid,
-    pub rkey: String,
+    pub rkey: crate::types::string::RecordKey,
     pub value: crate::types::Unknown,
 }
 pub type Update = crate::types::Object<UpdateData>;

@@ -3,6 +3,7 @@
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct RecordData {
+    ///List of rules defining who can reply to this post. If value is an empty array, no one can reply. If value is undefined, anyone can reply.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub allow: core::option::Option<Vec<crate::types::Union<RecordAllowItem>>>,
     pub created_at: crate::types::string::Datetime,
@@ -13,6 +14,11 @@ pub struct RecordData {
     pub post: String,
 }
 pub type Record = crate::types::Object<RecordData>;
+///Allow replies from actors who follow you.
+#[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct FollowerRuleData {}
+pub type FollowerRule = crate::types::Object<FollowerRuleData>;
 ///Allow replies from actors you follow.
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -35,6 +41,8 @@ pub type MentionRule = crate::types::Object<MentionRuleData>;
 pub enum RecordAllowItem {
     #[serde(rename = "app.bsky.feed.threadgate#mentionRule")]
     MentionRule(Box<MentionRule>),
+    #[serde(rename = "app.bsky.feed.threadgate#followerRule")]
+    FollowerRule(Box<FollowerRule>),
     #[serde(rename = "app.bsky.feed.threadgate#followingRule")]
     FollowingRule(Box<FollowingRule>),
     #[serde(rename = "app.bsky.feed.threadgate#listRule")]

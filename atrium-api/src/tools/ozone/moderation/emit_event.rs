@@ -85,6 +85,10 @@ pub enum InputEventRefs {
     ToolsOzoneModerationDefsModEventEmail(
         Box<crate::tools::ozone::moderation::defs::ModEventEmail>,
     ),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventDivert")]
+    ToolsOzoneModerationDefsModEventDivert(
+        Box<crate::tools::ozone::moderation::defs::ModEventDivert>,
+    ),
     #[serde(rename = "tools.ozone.moderation.defs#modEventTag")]
     ToolsOzoneModerationDefsModEventTag(
         Box<crate::tools::ozone::moderation::defs::ModEventTag>,
@@ -100,6 +104,10 @@ pub enum InputEventRefs {
     #[serde(rename = "tools.ozone.moderation.defs#recordEvent")]
     ToolsOzoneModerationDefsRecordEvent(
         Box<crate::tools::ozone::moderation::defs::RecordEvent>,
+    ),
+    #[serde(rename = "tools.ozone.moderation.defs#modEventPriorityScore")]
+    ToolsOzoneModerationDefsModEventPriorityScore(
+        Box<crate::tools::ozone::moderation::defs::ModEventPriorityScore>,
     ),
 }
 #[derive(serde::Serialize, serde::Deserialize, Debug, Clone, PartialEq, Eq)]

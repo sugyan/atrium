@@ -34,7 +34,7 @@ pub struct RepoData {
     pub did: crate::types::string::Did,
     ///Current repo commit CID
     pub head: crate::types::string::Cid,
-    pub rev: String,
+    pub rev: crate::types::string::Tid,
     ///If active=false, this optional field indicates a possible reason for why the account is not active. If active=false and no status is supplied, then the host makes no claim for why the repository is no longer being hosted.
     #[serde(skip_serializing_if = "core::option::Option::is_none")]
     pub status: core::option::Option<String>,
