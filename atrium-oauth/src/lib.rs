@@ -1,3 +1,4 @@
+#![doc = include_str!("../README.md")]
 mod atproto;
 mod constants;
 mod error;

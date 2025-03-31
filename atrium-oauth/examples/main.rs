@@ -1,16 +1,20 @@
 use atrium_api::agent::Agent;
-use atrium_identity::did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL};
-use atrium_identity::handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver};
-use atrium_oauth_client::store::session::MemorySessionStore;
-use atrium_oauth_client::store::state::MemoryStateStore;
-use atrium_oauth_client::{
+use atrium_identity::{
+    did::{CommonDidResolver, CommonDidResolverConfig, DEFAULT_PLC_DIRECTORY_URL},
+    handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver},
+};
+use atrium_oauth::{
+    store::{session::MemorySessionStore, state::MemoryStateStore},
     AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, KnownScope, OAuthClient,
     OAuthClientConfig, OAuthResolverConfig, Scope,
 };
 use atrium_xrpc::http::Uri;
 use hickory_resolver::TokioAsyncResolver;
-use std::io::{stdin, stdout, BufRead, Write};
-use std::sync::Arc;
+use std::{
+    error::Error,
+    io::{stdin, stdout, BufRead, Write},
+    sync::Arc,
+};
 
 struct HickoryDnsTxtResolver {
     resolver: TokioAsyncResolver,
@@ -29,13 +33,13 @@ impl DnsTxtResolver for HickoryDnsTxtResolver {
     async fn resolve(
         &self,
         query: &str,
-    ) -> core::result::Result<Vec<String>, Box<dyn std::error::Error + Send + Sync + 'static>> {
+    ) -> core::result::Result<Vec<String>, Box<dyn Error + Send + Sync + 'static>> {
         Ok(self.resolver.txt_lookup(query).await?.iter().map(|txt| txt.to_string()).collect())
     }
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn Error>> {
     let http_client = Arc::new(DefaultHttpClient::default());
     let config = OAuthClientConfig {
         client_metadata: AtprotoLocalhostClientMetadata {
@@ -49,11 +53,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         resolver: OAuthResolverConfig {
             did_resolver: CommonDidResolver::new(CommonDidResolverConfig {
                 plc_directory_url: DEFAULT_PLC_DIRECTORY_URL.to_string(),
-                http_client: http_client.clone(),
+                http_client: Arc::clone(&http_client),
             }),
             handle_resolver: AtprotoHandleResolver::new(AtprotoHandleResolverConfig {
                 dns_txt_resolver: HickoryDnsTxtResolver::default(),
-                http_client: http_client.clone(),
+                http_client: Arc::clone(&http_client),
             }),
             authorization_server_metadata: Default::default(),
             protected_resource_metadata: Default::default(),
