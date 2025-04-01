@@ -62,6 +62,9 @@ where
     pub http_client: T,
 }
 
+/// An OAuth client for AT Protocol.
+///
+/// This client is used to process OAuth flows with AT Protocol.
 #[cfg(feature = "default-client")]
 pub struct OAuthClient<S0, S1, D, H, T = crate::http_client::default::DefaultHttpClient>
 where
@@ -100,6 +103,7 @@ where
     S1: SessionStore + Send + Sync + 'static,
     S1::Error: std::error::Error + Send + Sync + 'static,
 {
+    /// Create a new OAuth client.
     pub fn new<M>(config: OAuthClientConfig<S0, S1, M, D, H>) -> Result<Self>
     where
         M: TryIntoOAuthClientMetadata<Error = crate::atproto::Error>,
@@ -173,6 +177,7 @@ where
     S0::Error: std::error::Error + Send + Sync + 'static,
     S1::Error: std::error::Error + Send + Sync + 'static,
 {
+    /// Get the jwks of the client.
     pub fn jwks(&self) -> JwkSet {
         self.keyset.as_ref().map(|keyset| keyset.public_jwks()).unwrap_or_default()
     }

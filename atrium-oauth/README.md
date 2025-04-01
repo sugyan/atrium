@@ -99,6 +99,7 @@ use atrium_api::agent::Agent;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = OAuthClient::new(...)?;
 
     ...
 
@@ -131,6 +132,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     ...
 
+    let (oauth_session, _) = client.callback(params).await?;
     let agent = Agent::new(oauth_session);
     let output = agent
         .api
