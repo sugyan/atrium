@@ -4,9 +4,9 @@ use atrium_identity::{
     handle::{AtprotoHandleResolver, AtprotoHandleResolverConfig, DnsTxtResolver},
 };
 use atrium_oauth::{
+    store::session::MemorySessionStore, store::state::MemoryStateStore,
     AtprotoLocalhostClientMetadata, AuthorizeOptions, DefaultHttpClient, KnownScope, OAuthClient,
     OAuthClientConfig, OAuthResolverConfig, Scope,
-    {session::MemorySessionStore, state::MemoryStateStore},
 };
 use atrium_xrpc::http::Uri;
 use hickory_resolver::TokioAsyncResolver;
