@@ -88,7 +88,7 @@ dirs = "5.0.1"
 
 # Testing
 gloo-timers = { version = "0.3.0", features = ["futures"] }
-mockito = "1.4"
+mockito = "=1.6.1"
 
 # WebAssembly
 wasm-bindgen-test = "0.3.41"
