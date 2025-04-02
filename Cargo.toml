@@ -7,7 +7,7 @@ members = [
     "atrium-xrpc",
     "atrium-xrpc-client",
     "atrium-identity",
-    "atrium-oauth/oauth-client",
+    "atrium-oauth",
     "bsky-cli",
     "bsky-sdk",
     "examples/concurrent",

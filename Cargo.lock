@@ -269,7 +269,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "atrium-oauth-client"
+name = "atrium-oauth"
 version = "0.1.0"
 dependencies = [
  "atrium-api",
