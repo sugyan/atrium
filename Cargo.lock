@@ -430,6 +430,8 @@ dependencies = [
  "atrium-xrpc-client",
  "chrono",
  "ipld-core",
+ "litemap",
+ "native-tls",
  "psl",
  "regex",
  "serde",
@@ -439,6 +441,7 @@ dependencies = [
  "toml",
  "trait-variant",
  "unicode-segmentation",
+ "zerofrom",
 ]
 
 [[package]]

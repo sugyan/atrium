@@ -30,6 +30,10 @@ atrium-common.workspace = true
 ipld-core.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
+native-tls.workspace = true
+litemap.workspace = true
+zerofrom.workspace = true
+
 [features]
 default = ["default-client", "rich-text"]
 default-client = ["atrium-xrpc-client"]
