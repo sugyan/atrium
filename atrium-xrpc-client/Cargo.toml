@@ -31,6 +31,9 @@ mockito.workspace = true
 tokio = { workspace = true, features = ["macros"] }
 serde = { workspace = true, features = ["derive"] }
 futures.workspace = true
+native-tls.workspace = true
+zerofrom.workspace = true
+litemap.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dev-dependencies]
 wasm-bindgen-test.workspace = true
