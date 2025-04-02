@@ -200,7 +200,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "atrium-api"
-version = "0.25.0"
+version = "0.25.1"
 dependencies = [
  "atrium-common",
  "atrium-xrpc",
@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-common"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "dashmap",
  "futures",
@@ -255,7 +255,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-identity"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "atrium-api",
  "atrium-common",
@@ -299,7 +299,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-repo"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-stream",
  "atrium-api",
@@ -319,7 +319,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc"
-version = "0.12.1"
+version = "0.12.2"
 dependencies = [
  "bumpalo",
  "http 1.1.0",
@@ -334,7 +334,7 @@ dependencies = [
 
 [[package]]
 name = "atrium-xrpc-client"
-version = "0.5.11"
+version = "0.5.12"
 dependencies = [
  "atrium-xrpc",
  "bumpalo",
@@ -415,7 +415,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-cli"
-version = "0.1.29"
+version = "0.1.30"
 dependencies = [
  "anyhow",
  "bsky-sdk",
@@ -429,7 +429,7 @@ dependencies = [
 
 [[package]]
 name = "bsky-sdk"
-version = "0.1.16"
+version = "0.1.17"
 dependencies = [
  "anyhow",
  "atrium-api",

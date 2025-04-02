@@ -1,6 +1,6 @@
 [package]
 name = "atrium-repo"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Justin Moore <me@justinm.one>", "Jack Grigg <thestr4d@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
