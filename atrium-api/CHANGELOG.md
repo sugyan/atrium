@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.25.0...atrium-api-v0.25.1) - 2025-04-02
+
+### Added
+
+- Update generated API ([#298](https://github.com/sugyan/atrium/pull/298))
+- OAuth session ([#243](https://github.com/sugyan/atrium/pull/243))
+
 ## [0.25.0](https://github.com/sugyan/atrium/compare/atrium-api-v0.24.10...atrium-api-v0.25.0) - 2025-02-17
 
 ### Added

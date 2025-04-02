@@ -1,6 +1,6 @@
 [package]
 name = "atrium-common"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["sugyan <sugi1982+github@gmail.com>", "avdb13 <avdb@keemail.me>"]
 edition.workspace = true
 rust-version.workspace = true
