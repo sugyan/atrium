@@ -73,6 +73,7 @@ lru = "0.12.4"
 moka = "0.12.8"
 tokio = { version = "1.43", default-features = false }
 tokio-util = "0.7"
+native-tls = "=0.2.13"
 
 # HTTP client integrations
 isahc = "1.7.2"
