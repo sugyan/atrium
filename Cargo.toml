@@ -25,13 +25,13 @@ keywords = ["atproto", "bluesky"]
 
 [workspace.dependencies]
 # Intra-workspace dependencies
-atrium-api = { version = "0.25.1", path = "atrium-api", default-features = false }
+atrium-api = { version = "0.25.2", path = "atrium-api", default-features = false }
 atrium-common = { version = "0.1.1", path = "atrium-common" }
 atrium-crypto = { version = "0.1.2", path = "atrium-crypto" }
-atrium-identity = { version = "0.1.2", path = "atrium-identity" }
+atrium-identity = { version = "0.1.3", path = "atrium-identity" }
 atrium-xrpc = { version = "0.12.2", path = "atrium-xrpc" }
-atrium-xrpc-client = { version = "0.5.12", path = "atrium-xrpc-client" }
-bsky-sdk = { version = "0.1.17", path = "bsky-sdk" }
+atrium-xrpc-client = { version = "0.5.13", path = "atrium-xrpc-client" }
+bsky-sdk = { version = "0.1.18", path = "bsky-sdk" }
 
 # async in streams
 async-stream = "0.3"

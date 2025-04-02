@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.25.1...atrium-api-v0.25.2) - 2025-04-02
+
+### Other
+
+- updated the following local packages: atrium-xrpc-client
+
 ## [0.25.1](https://github.com/sugyan/atrium/compare/atrium-api-v0.25.0...atrium-api-v0.25.1) - 2025-04-02
 
 ### Added
