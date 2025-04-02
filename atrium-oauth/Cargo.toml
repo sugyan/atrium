@@ -42,6 +42,7 @@ futures.workspace = true
 hickory-resolver.workspace = true
 p256 = { workspace = true, features = ["pem", "std"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+base64ct.workspace = true
 
 [features]
 default = ["default-client"]

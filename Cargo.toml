@@ -73,9 +73,6 @@ lru = "0.12.4"
 moka = "0.12.8"
 tokio = { version = "1.43", default-features = false }
 tokio-util = "0.7"
-native-tls = "=0.2.13"
-zerofrom = "=0.1.5"
-litemap = "=0.7.4"
 
 # HTTP client integrations
 isahc = "1.7.2"
@@ -100,3 +97,9 @@ bumpalo = "~3.14.0"
 
 # Code generation
 trait-variant = "0.1.2"
+
+# Others
+native-tls = "=0.2.13"
+zerofrom = "=0.1.5"
+litemap = "=0.7.4"
+base64ct = "=1.6.0"
