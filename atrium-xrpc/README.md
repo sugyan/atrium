@@ -2,8 +2,8 @@
 
 [![](https://img.shields.io/crates/v/atrium-xrpc)](https://crates.io/crates/atrium-xrpc)
 [![](https://img.shields.io/docsrs/atrium-xrpc)](https://docs.rs/atrium-xrpc)
-[![](https://img.shields.io/crates/l/atrium-xrpc)](https://github.com/sugyan/atrium/blob/main/LICENSE)
-[![Rust](https://github.com/sugyan/atrium/actions/workflows/xrpc.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/xrpc.yml)
+[![](https://img.shields.io/crates/l/atrium-xrpc)](https://github.com/atrium-rs/atrium/blob/main/LICENSE)
+[![Rust](https://github.com/atrium-rs/atrium/actions/workflows/xrpc.yml/badge.svg?branch=main)](https://github.com/atrium-rs/atrium/actions/workflows/xrpc.yml)
 
 Definitions for ATProto's [XRPC](https://atproto.com/specs/xrpc) request/response, and their associated errors.
 
