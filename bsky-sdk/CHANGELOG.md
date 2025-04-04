@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.19](https://github.com/atrium-rs/atrium/compare/bsky-sdk-v0.1.18...bsky-sdk-v0.1.19) - 2025-04-04
+
+### Other
+
+- Replace repository owner ([#301](https://github.com/atrium-rs/atrium/pull/301))
+
 ## [0.1.18](https://github.com/sugyan/atrium/compare/bsky-sdk-v0.1.17...bsky-sdk-v0.1.18) - 2025-04-02
 
 ### Other
