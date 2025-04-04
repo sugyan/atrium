@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.25.3](https://github.com/atrium-rs/atrium/compare/atrium-api-v0.25.2...atrium-api-v0.25.3) - 2025-04-04
+
+### Other
+
+- Replace repository owner ([#301](https://github.com/atrium-rs/atrium/pull/301))
+
 ## [0.25.2](https://github.com/sugyan/atrium/compare/atrium-api-v0.25.1...atrium-api-v0.25.2) - 2025-04-02
 
 ### Other

@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.14](https://github.com/atrium-rs/atrium/compare/atrium-xrpc-client-v0.5.13...atrium-xrpc-client-v0.5.14) - 2025-04-04
+
+### Other
+
+- Replace repository owner ([#301](https://github.com/atrium-rs/atrium/pull/301))
+
 ## [0.5.13](https://github.com/sugyan/atrium/compare/atrium-xrpc-client-v0.5.12...atrium-xrpc-client-v0.5.13) - 2025-04-02
 
 ### Other
