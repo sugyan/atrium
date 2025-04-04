@@ -38,6 +38,7 @@ namespace-toolsozone = []
 [dev-dependencies]
 atrium-xrpc-client.workspace = true
 futures.workspace = true
+serde_html_form.workspace = true
 serde_ipld_dagcbor.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
