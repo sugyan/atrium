@@ -2,8 +2,8 @@
 
 [![](https://img.shields.io/crates/v/atrium-api)](https://crates.io/crates/atrium-api)
 [![](https://img.shields.io/docsrs/atrium-api)](https://docs.rs/atrium-api)
-[![](https://img.shields.io/crates/l/atrium-api)](https://github.com/sugyan/atrium/blob/main/LICENSE)
-[![Rust](https://github.com/sugyan/atrium/actions/workflows/api.yml/badge.svg?branch=main)](https://github.com/sugyan/atrium/actions/workflows/api.yml)
+[![](https://img.shields.io/crates/l/atrium-api)](https://github.com/atrium-rs/atrium/blob/main/LICENSE)
+[![Rust](https://github.com/atrium-rs/atrium/actions/workflows/api.yml/badge.svg?branch=main)](https://github.com/atrium-rs/atrium/actions/workflows/api.yml)
 
 ATrium API is a Rust library that includes the definitions of XRPC requests and their associated input/output model types. These codes are generated from the Lexicon schema on [atproto.com](https://atproto.com/).
 
